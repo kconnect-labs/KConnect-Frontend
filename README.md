@@ -1,6 +1,6 @@
 # K-Connect Frontend
 
-![K-Connect Logo](https://k-connect.ru/icon-512.png)
+![K-Connect Logo](https://k-connect.ru/icon-192.png)
 
 ## 🌟 О проекте
 
