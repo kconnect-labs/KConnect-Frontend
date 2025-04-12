@@ -26,7 +26,7 @@ K-Connect — современная социальная платформа, р
 
 ```bash
 # Клонирование репозитория
-git clone https://github.com/your-org/k-connect-frontend.git
+git clone https://github.com/c1osed1/k-connect-frontend.git
 cd k-connect-frontend
 
 # Установка зависимостей
