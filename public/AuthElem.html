@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Авторизация через ElemSocial</title>
+  <style>
+    @font-face {
+        font-family: 'SF Pro Display';
+        src: url('/static/font/sf-pro-display-medium.otf') format('opentype');
+        font-weight: normal;
+        font-style: normal;
+    }
+    body { 
+      font-family: 'SF Pro Display', sans-serif; 
+      text-align: center; 
+      padding-top: 100px; 
+      background-color: #131313; 
+      color: #D0BCFF; 
+    }
+    .spinner {
+      border: 8px solid #f3f3f3;
+      border-top: 8px solid #555;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin { 
+      0% { transform: rotate(0deg); } 
+      100% { transform: rotate(360deg); } 
+    }
+    .error {
+      color: #ff6b6b;
+      margin: 20px;
+      padding: 10px;
+      border: 1px solid #ff6b6b;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Авторизируемся, пожалуйста, подождите...</h1>
+  <div class="spinner"></div>
+  <p id="status">Подготовка авторизации...</p>
+  <div id="error" class="error" style="display: none;"></div>
+  <script>
+    const token = {{ token|tojson }};
+    const statusEl = document.getElementById("status");
+    const errorEl = document.getElementById("error");
+
+    console.log("[BROWSER] Запуск авторизации с токеном:", token);
+
+    function tryAuth() {
+      statusEl.textContent = "Попытка авторизации...";
+      console.log("[BROWSER] Отправка запроса на сервер...");
+
+      fetch(`/auth_elem/${token}`, {  
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ connect_key: token })
+      })
+      .then(response => response.json())
+      .then(result => {
+         console.log("[BROWSER] Ответ сервера:", result);
+         if(result.status === "success" && result.redirect) {
+            statusEl.textContent = "Авторизация успешна. Перенаправляем...";
+            console.log("[BROWSER] Перенаправление на:", result.redirect);
+            window.location.href = result.redirect;
+         } else {
+            console.error("[BROWSER] ❌ Ошибка авторизации:", result.message);
+            errorEl.style.display = "block";
+            errorEl.innerHTML = `<strong>Ошибка:</strong> ${result.message || "Неизвестная ошибка"}`;
+            statusEl.textContent = "Ошибка авторизации";
+         }
+      })
+      .catch(err => {
+         console.error("[BROWSER] ❌ Ошибка связи с сервером:", err);
+         errorEl.style.display = "block";
+         errorEl.innerHTML = `<strong>Ошибка связи:</strong> ${err.message}`;
+         statusEl.textContent = "Ошибка авторизации";
+      });
+    }
+    
+    tryAuth();
+</script>
+
+</body>
+</html>

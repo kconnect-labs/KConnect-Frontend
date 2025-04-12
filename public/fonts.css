@@ -1,0 +1,28 @@
+@font-face {
+  font-family: 'SF Pro Display';
+  src: url('/font/sf-pro-display-medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SF Pro Display';
+  src: url('/font/sf-pro-display-medium.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+body, html, button, input, textarea, select, p, h1, h2, h3, h4, h5, h6, a, span, div {
+  font-family: var(--font-family) !important;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+} 
