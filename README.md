@@ -1,4 +1,4 @@
-# K-Connect Frontend
+# K-Connect Frontend k-connect.ru
 
 ![K-Connect Logo](https://k-connect.ru/icon-192.png)
 
