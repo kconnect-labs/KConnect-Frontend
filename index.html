@@ -5,7 +5,7 @@
     <link rel="icon" href="/favicon.ico" />
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
     
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover" />
 
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
@@ -64,6 +64,57 @@
     
 
     <script src="/createSvgIcon.js"></script>
+    
+    <style>
+      /* Disable all touch actions that can cause zoom */
+      body {
+        touch-action: pan-x pan-y;
+        -webkit-touch-callout: none;
+        /* Убираем запрет на выделение текста */
+        /*
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        */
+      }
+      
+      /* Добавляем возможность выделения текста */
+      p, h1, h2, h3, h4, h5, h6, span, div, article, section {
+        -webkit-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+        user-select: text;
+      }
+      
+      /* Но запрещаем выделение текста для интерактивных элементов интерфейса */
+      button, a, input[type="button"], .no-select {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+    </style>
+    
+    <script>
+      // Disable pinch zoom
+      document.addEventListener('touchmove', function(event) {
+        if (event.touches.length > 1) {
+          event.preventDefault();
+        }
+      }, { passive: false });
+      
+      // Prevent double-tap to zoom
+      let lastTap = 0;
+      document.addEventListener('touchend', function(event) {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        if (tapLength < 300 && tapLength > 0) {
+          event.preventDefault();
+        }
+        lastTap = currentTime;
+      });
+    </script>
   </head>
   <body>
     <noscript>Для работы К-Коннект необходим JavaScript</noscript>
