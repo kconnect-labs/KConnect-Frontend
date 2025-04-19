@@ -25,7 +25,7 @@ import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
 import ReplyIcon from '@mui/icons-material/Reply';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
-// Get notification icon based on type
+
 const getNotificationIcon = (type) => {
   switch (type) {
     case 'comment_like':
@@ -46,7 +46,7 @@ const getNotificationIcon = (type) => {
 const NotificationGroup = ({ notifications, onNotificationClick }) => {
   const [open, setOpen] = useState(false);
   
-  // Check if notifications exist and are not empty
+  
   if (!Array.isArray(notifications) || notifications.length === 0) {
     return null;
   }
@@ -63,7 +63,7 @@ const NotificationGroup = ({ notifications, onNotificationClick }) => {
     setOpen(!open);
   };
 
-  // Get sender name and avatar
+  
   const senderName = firstNotification.sender_user?.name || 'Пользователь';
   const avatar = firstNotification.sender_user?.avatar_url || 
                  (firstNotification.sender_user?.id ? 
@@ -96,7 +96,7 @@ const NotificationGroup = ({ notifications, onNotificationClick }) => {
             alt={senderName}
             sx={{ width: 40, height: 40 }}
             onError={(e) => {
-              // Fallback to system avatar if image fails to load
+              
               if (e.currentTarget) {
                 e.currentTarget.src = '/static/uploads/avatar/system/avatar.png';
               }
@@ -189,8 +189,8 @@ const NotificationsPage = () => {
     };
 
     fetchNotifications();
-    // Increase interval to reduce API calls
-    const interval = setInterval(fetchNotifications, 90000); // Check every 90 seconds
+    
+    const interval = setInterval(fetchNotifications, 90000); 
     return () => clearInterval(interval);
   }, []);
 
@@ -214,16 +214,16 @@ const NotificationsPage = () => {
     }
   };
 
-  // Group notifications by sender
+  
   const groupedNotifications = useMemo(() => {
     console.log("Grouping notifications:", notifications);
     
-    // Filter out notifications without sender_id
+    
     const validNotifications = notifications.filter(
       notification => notification && notification.sender_user && notification.sender_user.id
     );
     
-    // Group by sender_id
+    
     return validNotifications.reduce((acc, notification) => {
       const key = notification.sender_user.id;
       
@@ -236,7 +236,7 @@ const NotificationsPage = () => {
     }, {});
   }, [notifications]);
 
-  // Get groups as array for rendering
+  
   const notificationGroups = useMemo(() => {
     return Object.values(groupedNotifications);
   }, [groupedNotifications]);

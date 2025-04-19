@@ -65,22 +65,22 @@ const SubscriptionsPage = ({ tabIndex = 0 }) => {
   
   const loaderRef = useRef(null);
   
-  // Get user data for the profile we're viewing
+  
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // If username is not provided, use current user
+        
         const targetUsername = username || currentUser?.username;
         if (!targetUsername) {
           setProfileUser(currentUser);
           return;
         }
         
-        // If viewing our own profile/subscriptions
+        
         if (currentUser && targetUsername === currentUser.username) {
           setProfileUser(currentUser);
         } else {
-          // Fetch user data for the specified username
+          
           const response = await axios.get(`/api/users/${targetUsername}`);
           setProfileUser(response.data);
         }
@@ -92,21 +92,21 @@ const SubscriptionsPage = ({ tabIndex = 0 }) => {
     fetchUserData();
   }, [username, currentUser]);
   
-  // Load followers
+  
   useEffect(() => {
     if (value === 0) {
       fetchFollowers();
     }
   }, [value, username]);
   
-  // Load following
+  
   useEffect(() => {
     if (value === 1) {
       fetchFollowing();
     }
   }, [value, username]);
   
-  // Intersection observer for infinite scrolling
+  
   useEffect(() => {
     const observer = new IntersectionObserver(
       entries => {
@@ -232,12 +232,12 @@ const SubscriptionsPage = ({ tabIndex = 0 }) => {
       });
       
       if (response.data.success) {
-        // Update followers list with new is_following status
+        
         setFollowers(prev => prev.map(user => 
           user.id === userId ? { ...user, is_following: true } : user
         ));
         
-        // Update following list with new is_following status
+        
         setFollowing(prev => prev.map(user => 
           user.id === userId ? { ...user, is_following: true } : user
         ));
@@ -257,12 +257,12 @@ const SubscriptionsPage = ({ tabIndex = 0 }) => {
       });
       
       if (response.data.success) {
-        // Update followers list with new is_following status
+        
         setFollowers(prev => prev.map(user => 
           user.id === userId ? { ...user, is_following: response.data.is_following } : user
         ));
         
-        // Update following list with new is_following status
+        
         setFollowing(prev => prev.map(user => 
           user.id === userId ? { ...user, is_following: response.data.is_following } : user
         ));

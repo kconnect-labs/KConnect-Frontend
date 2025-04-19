@@ -1,4 +1,4 @@
-import './axiosConfig'; // Импортируем конфигурацию axios первой для глобальных настроек
+import './axiosConfig'; 
 import authService from './AuthService';
 import profileService from './ProfileService';
 import postService from './PostService';

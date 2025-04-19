@@ -11,7 +11,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
+  DialogActions as MuiDialogActions,
   TextField,
   Alert,
   IconButton,
@@ -50,6 +50,8 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import { Fade } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import BadgeShopBottomNavigation from '../components/BadgeShopBottomNavigation';
 
 const StyledCard = styled(Card)(({ theme }) => ({
   height: '100%',
@@ -328,7 +330,11 @@ const BadgeDialog = styled(Dialog)(({ theme }) => ({
       margin: theme.spacing(1),
       maxHeight: '85vh',
     },
-    zIndex: 1000000
+    zIndex: 1000000,
+    background: 'rgba(18, 18, 18, 0.8)',
+    backdropFilter: 'blur(10px)',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+    border: '1px solid rgba(255, 255, 255, 0.1)'
   },
   '& .MuiBackdrop-root': {
     zIndex: 999999
@@ -527,19 +533,142 @@ const CopiesChip = styled(Chip)(({ theme, issoldout }) => ({
   }
 }));
 
+
+const StyledDialog = styled(Dialog)(({ theme }) => ({
+  "& .MuiDialog-container": {
+    zIndex: 999999999999
+  },
+  "& .MuiDialog-paper": {
+    borderRadius: 16,
+    background: theme.palette.mode === 'dark' 
+      ? 'rgba(18, 18, 18, 0.8)' 
+      : 'rgba(255, 255, 255, 0.8)',
+    backdropFilter: 'blur(10px)',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+    border: theme.palette.mode === 'dark' 
+      ? '1px solid rgba(255, 255, 255, 0.1)'
+      : '1px solid rgba(208, 188, 255, 0.3)',
+    overflow: 'hidden',
+    maxWidth: '450px',
+    width: '100%',
+    margin: theme.spacing(2),
+    [theme.breakpoints.down('sm')]: {
+      margin: theme.spacing(1.5),
+      maxWidth: '95%',
+    },
+  },
+  "& .MuiDialogTitle-root": {
+    fontSize: '1.2rem',
+    fontWeight: 500
+  }
+}));
+
+const DialogHeader = styled(Box)(({ theme }) => ({
+  position: 'relative',
+  overflow: 'hidden',
+  padding: theme.spacing(2),
+  borderBottom: `1px solid ${theme.palette.mode === 'dark' 
+    ? 'rgba(255, 255, 255, 0.1)'
+    : 'rgba(208, 188, 255, 0.2)'}`,
+  background: theme.palette.mode === 'dark'
+    ? 'linear-gradient(90deg, rgba(208, 188, 255, 0.2) 0%, rgba(0, 0, 0, 0) 100%)'
+    : 'linear-gradient(90deg, rgba(208, 188, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%)',
+}));
+
+const HeaderGlow = styled(Box)(({ theme }) => ({
+  position: 'absolute',
+  top: -50,
+  right: -50,
+  width: 150,
+  height: 150,
+  borderRadius: '50%',
+  background: 'radial-gradient(circle, rgba(208, 188, 255, 0.3) 0%, rgba(208, 188, 255, 0) 70%)',
+  zIndex: 0
+}));
+
+const DialogHeaderContent = styled(Box)(({ theme }) => ({
+  position: 'relative',
+  zIndex: 1,
+  display: 'flex',
+  alignItems: 'center'
+}));
+
+const DialogActions = styled(MuiDialogActions)(({ theme }) => ({
+  padding: theme.spacing(2),
+  paddingLeft: theme.spacing(3),
+  paddingRight: theme.spacing(3),
+  justifyContent: 'space-between',
+  backgroundColor: theme.palette.mode === 'dark'
+    ? 'rgba(0, 0, 0, 0.4)'
+    : 'rgba(255, 255, 255, 0.6)',
+  borderTop: `1px solid ${theme.palette.mode === 'dark' 
+    ? 'rgba(255, 255, 255, 0.1)'
+    : 'rgba(208, 188, 255, 0.2)'}`,
+}));
+
+const CancelButton = styled(Button)(({ theme }) => ({
+  borderRadius: 12,
+  paddingLeft: theme.spacing(3),
+  paddingRight: theme.spacing(3),
+  borderColor: theme.palette.mode === 'dark'
+    ? 'rgba(255, 255, 255, 0.2)'
+    : 'rgba(0, 0, 0, 0.2)',
+  color: theme.palette.mode === 'dark'
+    ? 'rgba(255, 255, 255, 0.7)'
+    : 'rgba(0, 0, 0, 0.7)',
+  '&:hover': {
+    borderColor: theme.palette.mode === 'dark'
+      ? 'rgba(255, 255, 255, 0.4)'
+      : 'rgba(0, 0, 0, 0.4)',
+    background: theme.palette.mode === 'dark'
+      ? 'rgba(255, 255, 255, 0.05)'
+      : 'rgba(0, 0, 0, 0.05)'
+  }
+}));
+
+const ActionButton = styled(Button)(({ theme }) => ({
+  borderRadius: 12,
+  paddingLeft: theme.spacing(4),
+  paddingRight: theme.spacing(4),
+  paddingTop: theme.spacing(0.75),
+  paddingBottom: theme.spacing(0.75),
+  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+  background: 'linear-gradient(45deg, #6200ee 30%, #9c64f2 90%)',
+  color: '#fff',
+  '&:hover': {
+    boxShadow: '0 6px 16px rgba(0, 0, 0, 0.25)',
+  }
+}));
+
+const ContentBox = styled(Box)(({ theme }) => ({
+  position: 'relative',
+  padding: theme.spacing(2.5),
+  borderRadius: 8,
+  backgroundColor: theme.palette.mode === 'dark'
+    ? 'rgba(208, 188, 255, 0.05)'
+    : 'rgba(208, 188, 255, 0.1)',
+  border: `1px solid ${theme.palette.mode === 'dark' 
+    ? 'rgba(208, 188, 255, 0.2)'
+    : 'rgba(208, 188, 255, 0.3)'}`,
+  marginBottom: theme.spacing(2),
+}));
+
 const BadgeShopPage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const navigate = useNavigate();
   const { user } = useContext(AuthContext);
+  const [tabValue, setTabValue] = useState(0);
+  const [sortOption, setSortOption] = useState('newest');
   const [badges, setBadges] = useState([]);
   const [userPoints, setUserPoints] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
+  const [selectedBadge, setSelectedBadge] = useState(null);
+  const [openBadgeDialog, setOpenBadgeDialog] = useState(false);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [openPurchaseDialog, setOpenPurchaseDialog] = useState(false);
-  const [selectedBadge, setSelectedBadge] = useState(null);
-  const [tabValue, setTabValue] = useState(0);
   const [purchaseStep, setPurchaseStep] = useState(0);
-  const [purchaseSuccess, setPurchaseSuccess] = useState(false);
-  const [sortOption, setSortOption] = useState('newest');
   const [newBadge, setNewBadge] = useState({
     name: '',
     description: '',
@@ -548,65 +677,114 @@ const BadgeShopPage = () => {
     max_copies: '',
     image: null
   });
-  const [openBadgeDialog, setOpenBadgeDialog] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
-  // Функция для формирования правильного URL для изображений бейджей
-  const getBadgeImageUrl = (imagePath) => {
-    if (!imagePath) return '';
-    
-    // Если путь уже содержит полный URL, возвращаем его
-    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-      return imagePath;
+  const [createdBadgesCount, setCreatedBadgesCount] = useState(0);
+  const [badgeLimitReached, setBadgeLimitReached] = useState(false);
+  const [badgeLimit, setBadgeLimit] = useState(3); 
+  const [userSubscription, setUserSubscription] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [purchaseSuccess, setPurchaseSuccess] = useState(false);
+  
+  
+  const fetchSubscriptionStatus = async () => {
+    try {
+      const response = await axios.get('/api/user/subscription/status');
+      if (response.data.active) {
+        setUserSubscription(response.data);
+        updateBadgeLimit(response.data.subscription_type);
+      } else {
+        setUserSubscription(null);
+        setBadgeLimit(3); 
+      }
+    } catch (error) {
+      console.error('Error fetching subscription status:', error);
+      setUserSubscription(null);
+      setBadgeLimit(3);
+    }
+  };
+  
+  
+  const updateBadgeLimit = (subscriptionType) => {
+    if (!subscriptionType) {
+      setBadgeLimit(3); 
+      return;
     }
     
-    // Если путь начинается с /, то это уже относительный путь от корня
-    if (imagePath.startsWith('/')) {
-      return imagePath;
-    }
     
-    // Добавляем префикс к пути, если он отсутствует
-    if (!imagePath.startsWith('static/')) {
-      return `/static/images/bages/shop/${imagePath}`;
-    }
+    const subType = subscriptionType.toLowerCase().trim();
     
-    // Иначе добавляем только слеш в начале
-    return `/${imagePath}`;
+    if (subType === 'basic') {
+      setBadgeLimit(5);
+    } else if (subType === 'premium') {
+      setBadgeLimit(8);
+    } else if (subType === 'ultimate' || subType.includes('ultimate')) {
+      setBadgeLimit(Infinity); 
+    } else {
+      setBadgeLimit(3);
+    }
+  };
+  
+  
+  const fetchCreatedBadgesCount = async () => {
+    try {
+      const response = await axios.get('/api/badges/created');
+      if (response.data && response.data.total_badges !== undefined) {
+        setCreatedBadgesCount(response.data.total_badges);
+        
+        
+        
+        const isUltimate = userSubscription && userSubscription.subscription_type && 
+          (userSubscription.subscription_type.toLowerCase() === 'ultimate' || 
+           userSubscription.subscription_type.toLowerCase().includes('ultimate'));
+        
+        if (isUltimate) {
+          setBadgeLimitReached(false);
+        } else {
+          setBadgeLimitReached(response.data.total_badges >= badgeLimit);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching created badges count:', error);
+    }
   };
 
   useEffect(() => {
     fetchBadges();
     fetchUserPoints();
+    fetchSubscriptionStatus();
   }, []);
+  
+  
+  useEffect(() => {
+    const isUltimate = userSubscription && userSubscription.subscription_type && 
+      (userSubscription.subscription_type.toLowerCase() === 'ultimate' || 
+       userSubscription.subscription_type.toLowerCase().includes('ultimate'));
+    
+    if (isUltimate) {
+      setBadgeLimitReached(false);
+    } else {
+      setBadgeLimitReached(createdBadgesCount >= badgeLimit);
+    }
+  }, [badgeLimit, createdBadgesCount, userSubscription]);
+  
+  
+  useEffect(() => {
+    fetchCreatedBadgesCount();
+  }, [userSubscription]);
+
+  const getBadgeImageUrl = (imagePath) => {
+    if (!imagePath) return '';
+    return `/static/images/bages/shop/${imagePath}`;
+  };
 
   const fetchBadges = async () => {
-    try {
       setLoading(true);
-      const response = await axios.get('/api/badges/shop?sort=newest');
-      const badges = response.data.badges.map(badge => ({
-        ...badge,
-        creator: badge.creator || {
-          username: 'Неизвестный пользователь',
-          name: 'Неизвестный пользователь',
-          avatar_url: null
-        },
-        owners: badge.purchases.map(purchase => ({
-          id: purchase.buyer_id,
-          username: purchase.buyer?.username || 'Неизвестный пользователь',
-          name: purchase.buyer?.name || 'Неизвестный пользователь',
-          avatar_url: purchase.buyer?.avatar_url || null,
-          purchase_date: purchase.purchase_date
-        }))
-      }));
-      // Ensure newest badges are first by sorting by ID in descending order
-      badges.sort((a, b) => b.id - a.id);
-      setBadges(badges);
+    try {
+      const response = await axios.get('/api/badges/shop');
+      setBadges(response.data.badges || []);
     } catch (error) {
-      console.error('Ошибка при загрузке бейджиков:', error);
+      console.error('Error fetching badges:', error);
       setError('Ошибка при загрузке бейджиков');
     } finally {
       setLoading(false);
@@ -617,20 +795,23 @@ const BadgeShopPage = () => {
     try {
       const response = await axios.get('/api/user/points');
       setUserPoints(response.data.points);
-    } catch (err) {
-      console.error('Ошибка при загрузке баллов:', err);
+    } catch (error) {
+      console.error('Error fetching user points:', error);
     }
   };
 
   const handleCreateBadge = async () => {
     try {
-      // Проверяем обязательные поля
+      
+      
+
+      
       if (!newBadge.name || !newBadge.description || !newBadge.price || !newBadge.image) {
         setError('Пожалуйста, заполните все обязательные поля');
         return;
       }
 
-      // Проверяем, что цена является положительным числом
+      
       const price = parseInt(newBadge.price);
       if (isNaN(price) || price <= 0) {
         setError('Цена должна быть положительным числом');
@@ -643,11 +824,11 @@ const BadgeShopPage = () => {
       formData.append('price', price);
       formData.append('royalty_percentage', newBadge.royalty_percentage);
       
-      // Если указано max_copies = 1, это значит что бейдж только для создателя
+      
       const maxCopies = parseInt(newBadge.max_copies) || 0;
       if (maxCopies === 1) {
         formData.append('max_copies', 1);
-        formData.append('is_sold_out', true); // Помечаем как распроданный сразу
+        formData.append('is_sold_out', true); 
       } else if (newBadge.max_copies) {
         formData.append('max_copies', newBadge.max_copies);
       }
@@ -655,7 +836,7 @@ const BadgeShopPage = () => {
       formData.append('image', newBadge.image);
       formData.append('strip_path_prefix', true);
       formData.append('file_path_mode', 'clean');
-      formData.append('auto_assign_to_creator', true); // Флаг для автоматической выдачи бейджа создателю
+      formData.append('auto_assign_to_creator', true); 
 
       const response = await axios.post('/api/badges/create', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -670,6 +851,10 @@ const BadgeShopPage = () => {
         max_copies: '',
         image: null
       });
+      
+      
+      
+      await fetchCreatedBadgesCount();
       fetchBadges();
       fetchUserPoints();
     } catch (err) {
@@ -679,37 +864,37 @@ const BadgeShopPage = () => {
   };
 
   const handlePurchaseBadge = async (badge) => {
-    if (isPurchasing) return; // Предотвращаем повторные нажатия
+    if (isPurchasing) return; 
     
     try {
-      // Устанавливаем флаг покупки
+      
       setIsPurchasing(true);
       
-      // Анимация начала транзакции - переход к шагу подтверждения с анимацией
-      setPurchaseStep(1.5); // Промежуточное значение для анимации
       
-      // Имитируем задержку сети для анимации
+      setPurchaseStep(1.5); 
+      
+      
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Запрос на сервер
+      
       await axios.post(`/api/badges/purchase/${badge.id}`, {
-        // Указываем бэкенду, что нужно удалить префикс badges/ из image_path перед сохранением
+        
         badge_info: {
-          // Имя для поля bage в Achievement
+          
           name: badge.name !== 'shop_1' ? badge.name : 'Бейджик',
-          // Флаг для удаления префикса badges/ из пути
+          
           remove_badge_prefix: true,
-          // Добавляем префикс shop/ для покупок
+          
           add_shop_prefix: true
         }
       });
       
-      // Успешная покупка
+      
       setPurchaseStep(2);
       setPurchaseSuccess(true);
-      setShowConfetti(true); // Запускаем конфетти при успешной покупке
+      setShowConfetti(true); 
       
-      // Обновляем данные и сбрасываем состояния
+      
       setTimeout(() => {
         setOpenPurchaseDialog(false);
         setPurchaseStep(0);
@@ -717,12 +902,12 @@ const BadgeShopPage = () => {
         setShowConfetti(false);
         fetchBadges();
         fetchUserPoints();
-        setIsPurchasing(false); // Сбрасываем флаг покупки
+        setIsPurchasing(false); 
       }, 3000);
     } catch (err) {
       setError(err.response?.data?.error || 'Ошибка при покупке бейджика');
       setPurchaseStep(0);
-      setIsPurchasing(false); // Сбрасываем флаг покупки при ошибке
+      setIsPurchasing(false); 
     }
   };
 
@@ -741,6 +926,10 @@ const BadgeShopPage = () => {
     const file = event.target.files[0];
     if (file && file.type === 'image/svg+xml') {
       setNewBadge({ ...newBadge, image: file });
+      
+      
+      const fileUrl = URL.createObjectURL(file);
+      setPreviewUrl(fileUrl);
     } else {
       setError('Пожалуйста, загрузите SVG файл');
     }
@@ -757,47 +946,96 @@ const BadgeShopPage = () => {
     setSelectedBadge(null);
   };
 
-  // Sorting function for badges
+  
   const getSortedBadges = (badges) => {
     if (!badges.length) return [];
     
     switch (sortOption) {
       case 'newest':
-        // Sort by id descending (higher id = newer)
+        
         return [...badges].sort((a, b) => b.id - a.id);
       case 'oldest':
-        // Sort by id ascending (lower id = older)
+        
         return [...badges].sort((a, b) => a.id - b.id);
       case 'popular':
-        // Sort by number of purchases (most popular)
+        
         return [...badges].sort((a, b) => (b.purchases?.length || 0) - (a.purchases?.length || 0));
       case 'price-low':
-        // Sort by price (lowest first)
+        
         return [...badges].sort((a, b) => a.price - b.price);
       case 'price-high':
-        // Sort by price (highest first)
+        
         return [...badges].sort((a, b) => b.price - a.price);
       default:
         return badges;
     }
   };
 
-  // filter and sort badges
+  
   const processedBadges = () => {
-    // First filter by tab
+    
     let filtered = badges;
-    if (tabValue === 1) {
+    if (tabValue === 0) {
+      
+      filtered = badges.filter(badge => 
+        
+        !((badge.max_copies === 1 && badge.copies_sold >= 1) || 
+          (badge.max_copies && badge.copies_sold >= badge.max_copies)) &&
+        
+        !badge.purchases?.some(p => p.buyer_id === user?.id)
+      );
+    } else if (tabValue === 1) {
+      
       filtered = badges.filter(badge => badge.creator_id === user?.id);
     } else if (tabValue === 2) {
+      
       filtered = badges.filter(badge => badge.purchases?.some(p => p.buyer_id === user?.id));
+    } else if (tabValue === 3) {
+      
+      filtered = badges.filter(badge => 
+        (badge.max_copies === 1 && badge.copies_sold >= 1) || 
+        (badge.max_copies && badge.copies_sold >= badge.max_copies)
+      );
     }
 
-    // Then sort
+    
     return getSortedBadges(filtered);
   };
 
   const handleSortChange = (event) => {
     setSortOption(event.target.value);
+  };
+
+  
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+  
+  const badgePreviewStyles = {
+    previewContainer: {
+      display: 'flex', 
+      gap: theme.spacing(3),
+      marginTop: theme.spacing(2),
+      backgroundColor: 'rgba(0, 0, 0, 0.02)',
+      borderRadius: theme.shape.borderRadius,
+      padding: theme.spacing(2),
+      flexWrap: 'wrap',
+      justifyContent: 'center'
+    },
+    previewItem: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: theme.spacing(1)
+    },
+    previewLabel: {
+      fontSize: 12,
+      color: theme.palette.text.secondary
+    }
   };
 
   if (loading) {
@@ -829,6 +1067,26 @@ const BadgeShopPage = () => {
         </Box>
       </Box>
 
+      {}
+      {isMobile && (
+        <Box sx={{ 
+          mb: 2, 
+          p: 1.5, 
+          bgcolor: 'background.paper', 
+          borderRadius: 2,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <Typography variant="h6" align="center" sx={{ fontWeight: 600 }}>
+            {tabValue === 0 && 'Доступные бейджики'}
+            {tabValue === 1 && 'Мои бейджики'}
+            {tabValue === 2 && 'Купленные бейджики'}
+            {tabValue === 3 && 'Скупленные бейджики'}
+          </Typography>
+        </Box>
+      )}
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
           {error}
@@ -848,11 +1106,15 @@ const BadgeShopPage = () => {
           onChange={(e, newValue) => setTabValue(newValue)}
           variant={isMobile ? 'fullWidth' : 'standard'}
           centered={!isMobile}
-          sx={{ mb: isMobile ? 2 : 0 }}
+          sx={{ 
+            mb: isMobile ? 2 : 0,
+            display: { xs: 'none', md: 'flex' } 
+          }}
         >
-          <Tab label="Все бейджики" />
-          <Tab label="Мои бейджики" />
+          <Tab label="Доступные" />
+          <Tab label="Мои" />
           <Tab label="Купленные" />
+          <Tab label="Скупленные" />
         </StyledTabs>
 
         <SortSelect size="small">
@@ -999,7 +1261,7 @@ const BadgeShopPage = () => {
             background: theme.palette.background.default,
             borderRadius: 20,
             overflow: 'hidden',
-            zIndex: 1000000,
+            zIndex: 1000000000,
             maxHeight: '90vh',
             display: 'flex',
             flexDirection: 'column'
@@ -1137,7 +1399,7 @@ const BadgeShopPage = () => {
         )}
       </BadgeDialog>
 
-      {/* Диалог создания бейджика */}
+      {}
       <Dialog 
         open={openCreateDialog} 
         onClose={() => setOpenCreateDialog(false)} 
@@ -1148,27 +1410,159 @@ const BadgeShopPage = () => {
           zIndex: 1000000,
           '& .MuiBackdrop-root': {
             position: 'fixed',
+          },
+          '& .MuiPaper-root': {
+            borderRadius: '16px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+            overflow: 'hidden'
           }
         }}
       >
-        <DialogTitle>
+        <DialogTitle sx={{
+          borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
+          backgroundColor: 'rgba(0, 0, 0, 0.02)',
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box
+              component="span"
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                p: 1,
+                bgcolor: 'primary.light',
+                borderRadius: '50%',
+                color: 'white',
+                mr: 1
+              }}
+            >
+              <AddIcon fontSize="small" />
+            </Box>
           Создание нового бейджика
+          </Box>
           <IconButton
             aria-label="close"
             onClick={() => setOpenCreateDialog(false)}
-            sx={{ position: 'absolute', right: 8, top: 8 }}
+            sx={{
+              color: 'text.secondary',
+              '&:hover': {
+                bgcolor: 'rgba(0, 0, 0, 0.04)',
+              }
+            }}
           >
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent>
-          <Box sx={{ pt: 2 }}>
+        <DialogContent sx={{ 
+          padding: theme.spacing(3), 
+          bgcolor: 'background.paper'
+        }}>
+          <Box sx={{ pt: 1 }}>
+            {}
+            <Box sx={{ mb: 2, p: 2, bgcolor: 'rgba(0, 0, 0, 0.03)', borderRadius: 1 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Лимиты создания бейджиков:
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1 }}>
+                <Chip label="Без подписки: 3 бейджика" size="small" />
+                <Chip label="Basic: 5 бейджиков" size="small" />
+                <Chip label="Premium: 8 бейджиков" size="small" />
+                <Chip label="Ultimate: без ограничений" size="small" color="primary" />
+              </Box>
+              <Typography variant="body2" color="textSecondary">
+                Вы создали {createdBadgesCount || 0} из {userSubscription?.subscription_type === 'ultimate' ? '∞' : badgeLimit || 3} бейджиков
+              </Typography>
+            </Box>
+            
+            {}
+            <Box sx={{ mb: 2, p: 2, bgcolor: 'rgba(0, 0, 0, 0.03)', borderRadius: 1 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Требования к изображению:
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                • Загружайте только SVG формат
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                • Максимальная ширина: 100px
+              </Typography>
+              <Typography variant="body2" color="textSecondary" gutterBottom>
+                • Ограничения по высоте: 23px, 30px, 60px
+              </Typography>
+              
+              {previewUrl ? (
+                <Box sx={badgePreviewStyles.previewContainer}>
+                  <Box sx={badgePreviewStyles.previewItem}>
+                    <Typography sx={badgePreviewStyles.previewLabel}>23px</Typography>
+                    <Box sx={{ 
+                      height: 23, 
+                      maxWidth: 100, 
+                      display: 'flex', 
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '1px solid rgba(0, 0, 0, 0.12)',
+                      borderRadius: '4px',
+                      padding: '0 8px',
+                      overflow: 'hidden'
+                    }}>
+                      <img src={previewUrl} alt="Badge preview" style={{ height: '100%', maxWidth: '100%' }} />
+                    </Box>
+                  </Box>
+                  
+                  <Box sx={badgePreviewStyles.previewItem}>
+                    <Typography sx={badgePreviewStyles.previewLabel}>30px</Typography>
+                    <Box sx={{ 
+                      height: 30, 
+                      maxWidth: 100, 
+                      display: 'flex', 
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '1px solid rgba(0, 0, 0, 0.12)',
+                      borderRadius: '4px',
+                      padding: '0 8px',
+                      overflow: 'hidden'
+                    }}>
+                      <img src={previewUrl} alt="Badge preview" style={{ height: '100%', maxWidth: '100%' }} />
+                    </Box>
+                  </Box>
+                  
+                  <Box sx={badgePreviewStyles.previewItem}>
+                    <Typography sx={badgePreviewStyles.previewLabel}>60px</Typography>
+                    <Box sx={{ 
+                      height: 60, 
+                      maxWidth: 100, 
+                      display: 'flex', 
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '1px solid rgba(0, 0, 0, 0.12)',
+                      borderRadius: '4px',
+                      padding: '0 8px',
+                      overflow: 'hidden'
+                    }}>
+                      <img src={previewUrl} alt="Badge preview" style={{ height: '100%', maxWidth: '100%' }} />
+                    </Box>
+                  </Box>
+                </Box>
+              ) : (
+                <Typography variant="body2" color="textSecondary" align="center" sx={{ mt: 2 }}>
+                  Загрузите SVG для просмотра превью
+                </Typography>
+              )}
+            </Box>
+            
             <TextField
               fullWidth
               label="Название"
               value={newBadge.name}
               onChange={(e) => setNewBadge({ ...newBadge, name: e.target.value })}
               margin="normal"
+              variant="outlined"
+              InputProps={{
+                sx: { borderRadius: '8px' }
+              }}
             />
             <TextField
               fullWidth
@@ -1178,6 +1572,10 @@ const BadgeShopPage = () => {
               value={newBadge.description}
               onChange={(e) => setNewBadge({ ...newBadge, description: e.target.value })}
               margin="normal"
+              variant="outlined"
+              InputProps={{
+                sx: { borderRadius: '8px' }
+              }}
             />
             <TextField
               fullWidth
@@ -1186,6 +1584,10 @@ const BadgeShopPage = () => {
               value={newBadge.price}
               onChange={(e) => setNewBadge({ ...newBadge, price: e.target.value })}
               margin="normal"
+              variant="outlined"
+              InputProps={{
+                sx: { borderRadius: '8px' }
+              }}
             />
             <TextField
               fullWidth
@@ -1195,42 +1597,103 @@ const BadgeShopPage = () => {
               onChange={(e) => setNewBadge({ ...newBadge, max_copies: e.target.value })}
               margin="normal"
               helperText="Оставьте пустым для неограниченного количества"
-            />
-            <Button
               variant="outlined"
+              InputProps={{
+                sx: { borderRadius: '8px' }
+              }}
+            />
+            <Box
               component="label"
-              fullWidth
-              sx={{ mt: 2 }}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                p: 3,
+                mt: 2,
+                borderRadius: '12px',
+                border: '2px dashed',
+                borderColor: previewUrl ? 'primary.main' : 'divider',
+                bgcolor: 'rgba(0, 0, 0, 0.02)',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                '&:hover': {
+                  borderColor: 'primary.main',
+                  bgcolor: 'rgba(0, 0, 0, 0.03)'
+                }
+              }}
             >
-              Загрузить SVG изображение
               <input
                 type="file"
                 hidden
                 accept=".svg"
                 onChange={handleImageChange}
               />
-            </Button>
-            {newBadge.image && (
-              <Typography variant="body2" sx={{ mt: 1 }}>
-                Выбран файл: {newBadge.image.name}
+              <Box sx={{ textAlign: 'center' }}>
+                {previewUrl ? (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <img 
+                      src={previewUrl} 
+                      alt="SVG Preview" 
+                      style={{ 
+                        height: 80, 
+                        maxWidth: '100%', 
+                        marginBottom: theme.spacing(2),
+                        filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))'
+                      }} 
+                    />
+                    <Typography variant="body2" color="primary">
+                      Нажмите, чтобы выбрать другой файл
               </Typography>
-            )}
+                  </Box>
+                ) : (
+                  <>
+
+                    <Typography variant="subtitle1" gutterBottom>
+                      Загрузите SVG изображение
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">
+                      Перетащите файл сюда или нажмите для выбора
+                    </Typography>
+                  </>
+                )}
+              </Box>
+            </Box>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenCreateDialog(false)}>Отмена</Button>
+        <DialogActions sx={{ 
+          padding: theme.spacing(2, 3),
+          borderTop: '1px solid rgba(0, 0, 0, 0.06)',
+          backgroundColor: 'rgba(0, 0, 0, 0.02)'
+        }}>
+          <Button 
+            onClick={() => setOpenCreateDialog(false)}
+            sx={{ 
+              borderRadius: '8px',
+              textTransform: 'none',
+              fontWeight: 500
+            }}
+          >
+            Отмена
+          </Button>
           <Button
             onClick={handleCreateBadge}
             variant="contained"
             disabled={!newBadge.name || !newBadge.price || !newBadge.image}
+            sx={{ 
+              borderRadius: '8px',
+              textTransform: 'none',
+              fontWeight: 500,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              px: 3
+            }}
           >
-            Создать
+            Создать за 300 баллов
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Диалог покупки бейджика - стилизован как процесс оформления заказа */}
-      <Dialog 
+      {}
+      <StyledDialog 
         open={openPurchaseDialog} 
         onClose={() => {
           if (purchaseStep !== 2) {
@@ -1238,18 +1701,16 @@ const BadgeShopPage = () => {
             setPurchaseStep(0);
           }
         }}
-        maxWidth="sm"
         fullWidth
-        sx={{ 
-          position: 'fixed',
-          zIndex: 1000000,
-          '& .MuiBackdrop-root': {
-            position: 'fixed',
-          }
-        }}
       >
-        <DialogTitle sx={{ borderBottom: '1px solid #eee', pb: 2 }}>
-          Покупка бейджика
+        <DialogHeader>
+          <HeaderGlow />
+          <DialogHeaderContent>
+            <ShoppingCartIcon color="primary" sx={{ mr: 1.5, fontSize: 24 }} />
+            <Typography variant="h6" fontWeight="bold" color="primary.light">
+              Покупка бейджика
+            </Typography>
+          </DialogHeaderContent>
           {purchaseStep !== 2 && (
             <IconButton
               aria-label="close"
@@ -1259,80 +1720,122 @@ const BadgeShopPage = () => {
               <CloseIcon />
             </IconButton>
           )}
-        </DialogTitle>
-        <DialogContent>
+        </DialogHeader>
+        <DialogContent sx={{ p: 3, pt: 2.5, bgcolor: 'transparent' }}>
           {selectedBadge && (
             <>
-              <Stepper activeStep={purchaseStep} sx={{ mt: 3, mb: 4 }}>
+              <Stepper 
+                activeStep={purchaseStep} 
+                sx={{ 
+                  mt: 3, 
+                  mb: 4,
+                  '& .MuiStepLabel-label': {
+                    [theme.breakpoints.down('sm')]: {
+                      fontSize: '0.75rem',
+                    }
+                  },
+                  '& .MuiStepper-root': {
+                    flexWrap: 'nowrap',
+                  },
+                  '& .MuiStep-root': {
+                    px: 0,
+                  },
+                  '& .MuiStepConnector-line': {
+                    minHeight: 0,
+                  }
+                }}
+                alternativeLabel={isMobile}
+              >
                 <Step>
-                  <StepLabel>Информация</StepLabel>
+                  <StepLabel>
+                    {isMobile ? 'Инфо' : 'Информация'}
+                  </StepLabel>
                 </Step>
                 <Step>
-                  <StepLabel>Подтверждение</StepLabel>
+                  <StepLabel>
+                    {isMobile ? 'Подтв.' : 'Подтверждение'}
+                  </StepLabel>
                 </Step>
                 <Step>
-                  <StepLabel>Завершение</StepLabel>
+                  <StepLabel>
+                    {isMobile ? 'Итог' : 'Завершение'}
+                  </StepLabel>
                 </Step>
               </Stepper>
               
               {purchaseStep === 0 && (
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                  <Box sx={{ width: 100, height: 100, mr: 3 }}>
-                    <img 
-                      src={getBadgeImageUrl(selectedBadge.image_path)} 
-                      alt={selectedBadge.name} 
-                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                    />
+                <ContentBox>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    alignItems: 'center', 
+                    mb: 3 
+                  }}>
+                    <Box sx={{ 
+                      width: 120, 
+                      height: 120, 
+                      mb: 3,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: 'rgba(208, 188, 255, 0.1)',
+                      borderRadius: 2,
+                      padding: 1
+                    }}>
+                      <img 
+                        src={getBadgeImageUrl(selectedBadge.image_path)} 
+                        alt={selectedBadge.name} 
+                        style={{ width: '90%', height: '90%', objectFit: 'contain' }}
+                      />
+                    </Box>
+                    <Box sx={{ width: '100%', textAlign: 'center' }}>
+                      <Typography variant="h6" gutterBottom>{selectedBadge.name}</Typography>
+                      <Typography variant="body2" gutterBottom sx={{ opacity: 0.7 }}>{selectedBadge.description}</Typography>
+                      <PriceChip 
+                        icon={<MonetizationOnIcon />} 
+                        label={`${selectedBadge.price} баллов`}
+                        variant="outlined"
+                        size="medium"
+                        sx={{ mt: 1 }}
+                      />
+                    </Box>
                   </Box>
-                  <Box>
-                    <Typography variant="h6" gutterBottom>{selectedBadge.name}</Typography>
-                    <Typography variant="body1" gutterBottom>{selectedBadge.description}</Typography>
-                    <PriceChip 
-                      icon={<MonetizationOnIcon />} 
-                      label={`${selectedBadge.price} баллов`}
-                      variant="outlined"
-                      size="medium"
-                      sx={{ mt: 1 }}
-                    />
-                  </Box>
-                </Box>
+                </ContentBox>
               )}
               
               {purchaseStep === 1 && (
-                <Box>
-                  <Paper sx={{ p: 2, mb: 3, bgcolor: 'background.paper', borderRadius: 2 }}>
-                    <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'bold' }}>
-                      Детали покупки:
+                <ContentBox>
+                  <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold' }}>
+                    Детали покупки:
+                  </Typography>
+                  
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body1">Название:</Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                      {selectedBadge.name}
                     </Typography>
-                    
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body1">Название:</Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                        {selectedBadge.name}
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body1">Стоимость:</Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                        {selectedBadge.price} баллов
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body1">Ваш баланс после покупки:</Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                        {userPoints - selectedBadge.price} баллов
-                      </Typography>
-                    </Box>
-                    
-                    <Divider sx={{ my: 2 }} />
-                    
-                    <Typography variant="body2" color="text.secondary">
-                      Бейджик будет добавлен в ваши достижения сразу после покупки
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body1">Стоимость:</Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                      {selectedBadge.price} баллов
                     </Typography>
-                  </Paper>
-                </Box>
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body1">Ваш баланс после покупки:</Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                      {userPoints - selectedBadge.price} баллов
+                    </Typography>
+                  </Box>
+                  
+                  <Divider sx={{ my: 2 }} />
+                  
+                  <Typography variant="body2" color="text.secondary">
+                    Бейджик будет добавлен в ваши достижения сразу после покупки
+                  </Typography>
+                </ContentBox>
               )}
               
               {purchaseStep === 2 && (
@@ -1361,30 +1864,30 @@ const BadgeShopPage = () => {
                             '100%': { opacity: 1 }
                           }
                         }}>
-                          {/* Анимированные элементы конфетти */}
-                          {[...Array(30)].map((_, i) => (
+                          {}
+                          {[...Array(15)].map((_, i) => (
                             <Box
                               key={i}
                               sx={{
                                 position: 'absolute',
-                                width: Math.random() * 10 + 5,
-                                height: Math.random() * 10 + 5,
+                                width: Math.random() * 8 + 5,
+                                height: Math.random() * 8 + 5,
                                 backgroundColor: [
-                                  '#3f51b5', '#f50057', '#00e676', '#ffea00', '#9c27b0',
-                                  '#e91e63', '#2196f3', '#ff9800', '#4caf50', '#cddc39'
+                                  '#6200ee', '#9c64f2', '#d0bcff', '#e9ddff', '#6200ee',
+                                  '#9c64f2', '#d0bcff', '#e9ddff', '#6200ee', '#9c64f2'
                                 ][Math.floor(Math.random() * 10)],
                                 borderRadius: '50%',
                                 left: `${Math.random() * 100}%`,
                                 top: 0,
-                                animation: `fall${i % 3} ${Math.random() * 2 + 1}s linear infinite`,
+                                animation: `fall${i % 3} ${Math.random() * 1.5 + 1}s linear forwards`,
                                 '@keyframes fall0': {
-                                  to: { transform: 'translateY(400px) rotate(360deg)', opacity: 0 }
+                                  to: { transform: 'translateY(300px) rotate(360deg)', opacity: 0 }
                                 },
                                 '@keyframes fall1': {
-                                  to: { transform: 'translateY(400px) rotate(-360deg)', opacity: 0 }
+                                  to: { transform: 'translateY(300px) rotate(-360deg)', opacity: 0 }
                                 },
                                 '@keyframes fall2': {
-                                  to: { transform: 'translateY(400px) rotate(720deg)', opacity: 0 }
+                                  to: { transform: 'translateY(300px) rotate(720deg)', opacity: 0 }
                                 }
                               }}
                             />
@@ -1411,7 +1914,7 @@ const BadgeShopPage = () => {
                           Бейджик "{selectedBadge.name}" успешно добавлен в ваши достижения.
                         </Typography>
                         
-                        {/* Анимированное отображение нового баланса */}
+                        {}
                         <Box sx={{ 
                           mt: 3,
                           p: 2,
@@ -1419,14 +1922,14 @@ const BadgeShopPage = () => {
                           bgcolor: 'background.paper',
                           boxShadow: 1,
                           width: '100%',
-                          maxWidth: 300,
+                          maxWidth: 250,
                           animation: 'fade-in 1s ease-in-out forwards',
                           '@keyframes fade-in': {
                             from: { opacity: 0, transform: 'translateY(20px)' },
                             to: { opacity: 1, transform: 'translateY(0)' }
                           }
                         }}>
-                          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                          <Typography variant="subtitle2" color="text.secondary" gutterBottom align="center">
                             Новый баланс:
                           </Typography>
                           <Typography variant="h6" color="primary" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1443,7 +1946,7 @@ const BadgeShopPage = () => {
                       alignItems: 'center',
                       gap: 2
                     }}>
-                      <CircularProgress size={50} />
+                      <CircularProgress size={40} />
                       <Typography variant="body1">
                         Обработка транзакции...
                       </Typography>
@@ -1454,50 +1957,62 @@ const BadgeShopPage = () => {
             </>
           )}
         </DialogContent>
-        <DialogActions sx={{ borderTop: '1px solid #eee', pt: 2 }}>
+        <DialogActions>
           {purchaseStep === 0 && (
             <>
-              <Button onClick={() => setOpenPurchaseDialog(false)}>Отмена</Button>
-              <Button
+              <CancelButton 
+                onClick={() => setOpenPurchaseDialog(false)} 
+                variant="outlined"
+              >
+                Отмена
+              </CancelButton>
+              <ActionButton
                 onClick={handleNextPurchaseStep}
-                variant="contained"
                 disabled={userPoints < (selectedBadge?.price || 0)}
               >
                 Продолжить
-              </Button>
+              </ActionButton>
             </>
           )}
           
           {purchaseStep === 1 && (
             <>
-              <Button onClick={() => setPurchaseStep(0)} disabled={isPurchasing}>Назад</Button>
-              <Button
-                onClick={() => handlePurchaseBadge(selectedBadge)}
-                variant="contained"
-                color="primary"
+              <CancelButton 
+                onClick={() => setPurchaseStep(0)} 
+                variant="outlined"
                 disabled={isPurchasing}
-                startIcon={isPurchasing ? <CircularProgress size={20} color="inherit" /> : null}
+              >
+                Назад
+              </CancelButton>
+              <ActionButton
+                onClick={() => handlePurchaseBadge(selectedBadge)}
+                disabled={isPurchasing}
+                startIcon={isPurchasing ? <CircularProgress size={16} color="inherit" /> : null}
               >
                 {isPurchasing ? 'Обработка...' : 'Подтвердить покупку'}
-              </Button>
+              </ActionButton>
             </>
           )}
           
           {purchaseStep === 2 && purchaseSuccess && (
-            <Button
+            <ActionButton
               onClick={() => {
                 setOpenPurchaseDialog(false);
                 setPurchaseStep(0);
               }}
-              variant="contained"
-              color="primary"
               sx={{ mx: 'auto' }}
             >
               Готово
-            </Button>
+            </ActionButton>
           )}
         </DialogActions>
-      </Dialog>
+      </StyledDialog>
+      
+      {}
+      <BadgeShopBottomNavigation 
+        tabValue={tabValue}
+        onTabChange={(e, newValue) => setTabValue(newValue)}
+      />
     </Container>
   );
 };

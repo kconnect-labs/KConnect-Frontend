@@ -37,7 +37,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import axios from 'axios';
 import { formatDateTimeShort } from '../../utils/dateUtils';
 
-// Get notification icon based on type
+
 const getNotificationIcon = (type) => {
   switch (type) {
     case 'comment_like':
@@ -55,29 +55,29 @@ const getNotificationIcon = (type) => {
   }
 };
 
-// Function to get proper avatar URL
+
 const getAvatarUrl = (sender) => {
   if (!sender) return '/static/uploads/avatar/system/avatar.png';
   
-  // If avatar_url is provided, use it directly
+  
   if (sender.avatar_url) {
-    // Check if the URL already has the full path to avoid duplicating
+    
     if (sender.avatar_url.startsWith('/static/uploads/avatar/')) {
       return sender.avatar_url;
     }
     return sender.avatar_url;
   }
   
-  // Otherwise construct from id and photo name
+  
   if (sender.id && sender.photo) {
-    // Make sure we're not duplicating paths
+    
     if (sender.photo.startsWith('/static/uploads/avatar/')) {
       return sender.photo;
     }
     return `/static/uploads/avatar/${sender.id}/${sender.photo}`;
   }
   
-  // Fallback
+  
   return `/static/uploads/avatar/system/avatar.png`;
 };
 
@@ -88,7 +88,7 @@ const NotificationItem = ({ notification, onNotificationClick, onDelete }) => {
     return null;
   }
   
-  // Get sender name and avatar
+  
   const senderName = notification.sender_user?.name || 'Пользователь';
   const avatar = getAvatarUrl(notification.sender_user);
   
@@ -205,7 +205,7 @@ const NotificationList = () => {
   const theme = useTheme();
   const navigate = useNavigate();
 
-  // Fetch notifications
+  
   const fetchNotifications = async () => {
     try {
       setLoading(true);
@@ -227,13 +227,13 @@ const NotificationList = () => {
     }
   };
 
-  // Mark all notifications as read
+  
   const markAllAsRead = async () => {
     try {
       const response = await axios.post('/api/notifications/mark-all-read');
       
       if (response.data && response.data.success) {
-        // Update local state to mark all as read
+        
         setNotifications(prev => 
           prev.map(n => ({ ...n, is_read: true }))
         );
@@ -244,16 +244,16 @@ const NotificationList = () => {
     }
   };
   
-  // Delete a single notification
+  
   const deleteNotification = async (notificationId) => {
     try {
       const response = await axios.delete(`/api/notifications/${notificationId}`);
       
       if (response.data && response.data.success) {
-        // Remove the notification from state
+        
         setNotifications(prev => prev.filter(n => n.id !== notificationId));
         
-        // Update unread count if the deleted notification was unread
+        
         const deletedNotification = notifications.find(n => n.id === notificationId);
         if (deletedNotification && !deletedNotification.is_read) {
           setUnreadCount(prev => Math.max(0, prev - 1));
@@ -264,7 +264,7 @@ const NotificationList = () => {
     }
   };
   
-  // Clear all notifications
+  
   const clearAllNotifications = async () => {
     try {
       const response = await axios.delete('/api/notifications');
@@ -290,7 +290,7 @@ const NotificationList = () => {
     try {
       await axios.post(`/api/notifications/${notification.id}/read`);
       
-      // Update local state
+      
       setNotifications(prev => 
         prev.map(n => n.id === notification.id ? { ...n, is_read: true } : n)
       );
@@ -299,17 +299,17 @@ const NotificationList = () => {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
       
-      // Close drawer
+      
       setDrawerOpen(false);
       
-      // Navigate to link if provided
+      
       if (notification.link) {
         navigate(notification.link);
       }
     } catch (error) {
       console.error('Error marking notification as read:', error);
       
-      // Even if the API call fails, still navigate to the link
+      
       if (notification.link) {
         setDrawerOpen(false);
         navigate(notification.link);
@@ -319,7 +319,7 @@ const NotificationList = () => {
 
   const handleOpenDrawer = () => {
     setDrawerOpen(true);
-    // Отмечаем все уведомления как прочитанные при открытии
+    
     if (unreadCount > 0) {
       markAllAsRead();
     }

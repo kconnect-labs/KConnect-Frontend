@@ -102,15 +102,15 @@ const ProfileHeader = ({
         boxShadow: 3,
         mb: 3
       }}>
-        {/* Баннер профиля */}
+        {}
         <BannerImage sx={{ backgroundImage: `url(${banner_url})` }} />
         
-        {/* Основная информация и аватар */}
+        {}
         <Box sx={{ px: 3, pb: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
             <ProfileAvatar src={avatar_url} alt={name} />
             
-            {/* Кнопки действий (только если это не профиль текущего пользователя) */}
+            {}
             {!isCurrentUser && (
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button 
@@ -133,7 +133,7 @@ const ProfileHeader = ({
             )}
           </Box>
           
-          {/* Имя пользователя и верификация */}
+          {}
           <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
             <Typography variant="h4" component="h1">
               {name}
@@ -160,12 +160,12 @@ const ProfileHeader = ({
             </Typography>
           </Box>
           
-          {/* Username */}
+          {}
           <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
             @{username}
           </Typography>
           
-          {/* Описание профиля */}
+          {}
           {about && (
             <Typography 
               variant="body1" 
@@ -180,7 +180,7 @@ const ProfileHeader = ({
             </Typography>
           )}
           
-          {/* Социальные сети */}
+          {}
           {socials.length > 0 && (
             <Box sx={{ display: 'flex', flexWrap: 'wrap', mt: 2 }}>
               {socials.map((social, index) => (
@@ -197,7 +197,7 @@ const ProfileHeader = ({
             </Box>
           )}
           
-          {/* Статистика профиля */}
+          {}
           <StatsContainer>
             <StatItem>
               <Typography variant="h6">{followers_count}</Typography>

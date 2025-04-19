@@ -1,22 +1,34 @@
 import React from 'react';
 import { Paper, BottomNavigation as MuiBottomNavigation, BottomNavigationAction } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Icon } from '@iconify/react';
 import HomeIcon from '@mui/icons-material/Home';
 import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';
 import PeopleIcon from '@mui/icons-material/People';
 import PersonIcon from '@mui/icons-material/Person';
 import AppsIcon from '@mui/icons-material/Apps';
+import VideogameAssetRoundedIcon from '@mui/icons-material/VideogameAssetRounded';
+import SearchIcon from '@mui/icons-material/Search';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 
 const AppBottomNavigation = ({ user }) => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Скрываем навигацию на страницах авторизации
+  
   const authPages = ['/login', '/register', '/register/profile', '/confirm-email'];
   const isAuthPage = authPages.some(path => location.pathname.startsWith(path));
+  const isSettingsPage = location.pathname.startsWith('/settings');
+  const isBadgeShopPage = location.pathname.startsWith('/badge-shop');
   
-  // Если мы на странице авторизации, не показываем панель навигации
-  if (isAuthPage) {
+  
+  if (isAuthPage || isSettingsPage || isBadgeShopPage) {
+    return null;
+  }
+  
+  
+  const isClickerPage = location.pathname.startsWith('/clicker');
+  if (isClickerPage) {
     return null;
   }
   
@@ -32,6 +44,8 @@ const AppBottomNavigation = ({ user }) => {
 
   console.log("BottomNavigation rendering, user:", user, "pathname:", location.pathname);
 
+
+
   return (
     <Paper 
       sx={{ 
@@ -40,7 +54,7 @@ const AppBottomNavigation = ({ user }) => {
         left: 0, 
         right: 0,
         display: { xs: 'block', md: 'none' },
-        zIndex: 9999,
+        zIndex: 1000,
         borderTop: '1px solid rgba(255, 255, 255, 0.1)',
         background: 'linear-gradient(180deg, rgba(26,26,26,0.8) 0%, rgba(26,26,26,0.95) 100%)',
         backdropFilter: 'blur(10px)'
@@ -83,7 +97,7 @@ const AppBottomNavigation = ({ user }) => {
       >
         <BottomNavigationAction 
           label="Лента" 
-          icon={<HomeIcon sx={{ fontSize: 28 }} />}
+          icon={<Icon icon="solar:home-bold" width="28" height="28" />}
           sx={{ 
             minWidth: 'auto',
             '& .MuiBottomNavigationAction-label': {
@@ -93,7 +107,7 @@ const AppBottomNavigation = ({ user }) => {
         />
         <BottomNavigationAction 
           label="Музыка" 
-          icon={<LibraryMusicIcon sx={{ fontSize: 28 }} />}
+          icon={<Icon icon="solar:music-notes-bold" width="28" height="28" />}
           sx={{ 
             minWidth: 'auto',
             '& .MuiBottomNavigationAction-label': {
@@ -103,7 +117,7 @@ const AppBottomNavigation = ({ user }) => {
         />
         <BottomNavigationAction 
           label="Подписки" 
-          icon={<PeopleIcon sx={{ fontSize: 28 }} />}
+          icon={<Icon icon="solar:users-group-rounded-bold" width="28" height="28" />}
           sx={{ 
             minWidth: 'auto',
             '& .MuiBottomNavigationAction-label': {
@@ -113,7 +127,7 @@ const AppBottomNavigation = ({ user }) => {
         />
         <BottomNavigationAction 
           label="Профиль" 
-          icon={<PersonIcon sx={{ fontSize: 28 }} />}
+          icon={<Icon icon="solar:user-bold" width="28" height="28" />}
           sx={{ 
             minWidth: 'auto',
             '& .MuiBottomNavigationAction-label': {
@@ -123,8 +137,7 @@ const AppBottomNavigation = ({ user }) => {
         />
         <BottomNavigationAction 
           label="Еще" 
-          icon={<AppsIcon sx={{ 
-            fontSize: 28,
+          icon={<Icon icon="solar:widget-2-bold" width="28" height="28" sx={{
             transform: 'scale(1.1)',
             filter: 'drop-shadow(0px 1px 1px rgba(0,0,0,0.2))',
           }} />}

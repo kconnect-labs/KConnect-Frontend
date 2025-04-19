@@ -34,7 +34,7 @@ import { useContext } from 'react';
 import FullScreenPlayer from './FullScreenPlayer';
 import { extractDominantColor } from '../../utils/imageUtils';
 
-// Используем styled для создания более красивых компонентов с сильными эффектами блюра
+
 const PlayerContainer = styled(Paper)(({ theme, covercolor }) => ({
   position: 'fixed',
   bottom: 20,
@@ -72,7 +72,7 @@ const PlayerContainer = styled(Paper)(({ theme, covercolor }) => ({
   },
 }));
 
-// Стилизованный компонент для прокручивающегося текста
+
 const MarqueeText = styled(Typography)(({ isactive }) => ({
   whiteSpace: 'nowrap',
   overflow: 'hidden',
@@ -137,7 +137,7 @@ const VolumeSlider = styled(Slider)(({ theme, covercolor }) => ({
   },
 }));
 
-// Функция для извлечения цвета из обложки
+
 const getColorFromImage = extractDominantColor;
 
 const DesktopPlayer = () => {
@@ -162,16 +162,16 @@ const DesktopPlayer = () => {
   const [seekValue, setSeekValue] = useState(0);
   const [isSeeking, setIsSeeking] = useState(false);
   const [fullScreenOpen, setFullScreenOpen] = useState(false);
-  const [repeatMode, setRepeatMode] = useState('off'); // 'off', 'all', 'one'
+  const [repeatMode, setRepeatMode] = useState('off'); 
   const [shuffleMode, setShuffleMode] = useState(false);
   const [dominantColor, setDominantColor] = useState(null);
   const [isPlayerHovered, setIsPlayerHovered] = useState(false);
   
-  // Состояния для анимации текста
+  
   const [titleOverflowing, setTitleOverflowing] = useState(false);
   const [artistOverflowing, setArtistOverflowing] = useState(false);
   
-  // Add state for share notification
+  
   const [shareSnackbar, setShareSnackbar] = useState({
     open: false,
     message: '',
@@ -182,7 +182,7 @@ const DesktopPlayer = () => {
   const titleRef = useRef(null);
   const artistRef = useRef(null);
   
-  // Проверяем, переполняется ли текст
+  
   useEffect(() => {
     if (titleRef.current) {
       setTitleOverflowing(titleRef.current.scrollWidth > titleRef.current.clientWidth);
@@ -192,7 +192,7 @@ const DesktopPlayer = () => {
     }
   }, [currentTrack]);
   
-  // Эффект для извлечения цвета из обложки при смене трека
+  
   useEffect(() => {
     if (currentTrack?.cover_path) {
       getColorFromImage(
@@ -243,13 +243,13 @@ const DesktopPlayer = () => {
     }
   };
 
-  // Add share function
+  
   const handleShare = () => {
     if (!currentTrack) return;
     
     const trackLink = `${window.location.origin}/music?track=${currentTrack.id}`;
     
-    // Просто копируем ссылку в буфер обмена вместо использования Web Share API
+    
     copyToClipboard(trackLink);
   };
   
@@ -272,7 +272,7 @@ const DesktopPlayer = () => {
       });
   };
   
-  // Handle closing the snackbar
+  
   const handleCloseSnackbar = (event, reason) => {
     if (reason === 'clickaway') {
       return;
@@ -310,7 +310,7 @@ const DesktopPlayer = () => {
         onMouseEnter={() => setIsPlayerHovered(true)}
         onMouseLeave={() => setIsPlayerHovered(false)}
       >
-        {/* Левая секция - обложка и информация о треке */}
+        {}
         <Box 
           sx={{ 
             display: 'flex', 
@@ -406,7 +406,7 @@ const DesktopPlayer = () => {
               {currentTrack.is_liked ? <Favorite fontSize="small" /> : <FavoriteBorder fontSize="small" />}
             </IconButton>
             
-            {/* Add Share Button */}
+            {}
             <IconButton 
               size="small" 
               onClick={handleShare}
@@ -424,7 +424,7 @@ const DesktopPlayer = () => {
           </Box>
         </Box>
         
-        {/* Центральная секция - прогресс-бар и кнопки управления */}
+        {}
         <Box 
           sx={{ 
             display: 'flex', 
@@ -436,7 +436,7 @@ const DesktopPlayer = () => {
             zIndex: 1
           }}
         >
-          {/* Кнопки управления */}
+          {}
           <Box sx={{ 
             display: 'flex', 
             alignItems: 'center',
@@ -520,7 +520,7 @@ const DesktopPlayer = () => {
             </IconButton>
           </Box>
           
-          {/* Прогресс-бар с временем */}
+          {}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="caption" sx={{ mr: 1, minWidth: 32, textAlign: 'right', color: 'rgba(255,255,255,0.8)', fontSize: '0.65rem' }}>
               {formatDuration(currentTime)}
@@ -546,7 +546,7 @@ const DesktopPlayer = () => {
           </Box>
         </Box>
         
-        {/* Правая секция - дополнительные кнопки и громкость */}
+        {}
         <Box sx={{ 
           display: 'flex', 
           alignItems: 'center',
@@ -596,7 +596,7 @@ const DesktopPlayer = () => {
         </Box>
       </PlayerContainer>
 
-      {/* Snackbar for share notifications */}
+      {}
       <Snackbar 
         open={shareSnackbar.open} 
         autoHideDuration={4000} 

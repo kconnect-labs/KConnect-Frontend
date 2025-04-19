@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useContext } from 'react';
+import React, { useState, useEffect, useMemo, useContext, lazy, Suspense, useTransition } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -6,41 +6,48 @@ import ProfileService from './services/ProfileService';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import AppBottomNavigation from './components/BottomNavigation';
 import { MusicProvider } from './context/MusicContext';
-import { Box } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
 import { HelmetProvider } from 'react-helmet-async';
 import SEO from './components/SEO';
 
-// Страницы
-import Login from './pages/Login';
-import Register from './pages/Register';
-import RegisterProfile from './pages/RegisterProfile';
-import EmailConfirmation from './pages/EmailConfirmation';
-import ElementAuth from './pages/ElementAuth'; // Новая страница для Element авторизации
 
-// Новые компоненты для улучшенного интерфейса
-import MainLayout from './components/Layout/MainLayout';
-import ProfilePage from './pages/ProfilePage'; // Улучшенный профиль
-import MainPage from './pages/MainPage'; // Новая главная страница
-import PostDetailPage from './pages/PostDetailPage'; // Страница деталей поста
-import SettingsPage from './pages/SettingsPage'; // Страница настроек профиля
-import NotificationsPage from './pages/NotificationsPage';
-import SearchPage from './pages/SearchPage'; // Страница поиска
-import MusicPage from './pages/MusicPage'; // Страница музыки
-import SubscriptionsPage from './pages/SubscriptionsPage'; // Страница подписок
-import BugReportPage from './pages/BugReportPage'; // Страница баг-репортов
-import LeaderboardPage from './pages/LeaderboardPage'; // Страница лидерборда
-import RulesPage from './pages/RulesPage'; // Страница правил
-import MorePage from './pages/MorePage'; // Страница "Еще" для мобильного вида
-import NotFound from './pages/NotFound';
-import AdminPage from './pages/AdminPage';
-import ModeratorPage from './pages/ModeratorPage'; // Страница модератора
-import MessengerPage from './pages/Messenger/MessengerPage'; // Новая страница мессенджера
-import SharePreviewTest from './components/SharePreviewTest'; // Компонент тестирования превью
-import BadgeShopPage from './pages/BadgeShopPage'; // Страница магазина бейджиков
-import BalancePage from './pages/BalancePage'; // Новая страница баланса
-import SimpleApiDocsPage from './pages/SimpleApiDocsPage'; // Простая страница документации API
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const RegisterProfile = lazy(() => import('./pages/RegisterProfile'));
+const EmailConfirmation = lazy(() => import('./pages/EmailConfirmation'));
+const ElementAuth = lazy(() => import('./pages/ElementAuth'));
 
-// Создание контекста для темы
+
+const MainLayout = lazy(() => import('./components/Layout/MainLayout'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const MainPage = lazy(() => import('./pages/MainPage'));
+const PostDetailPage = lazy(() => import('./pages/PostDetailPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
+const SearchPage = lazy(() => import('./pages/SearchPage'));
+const MusicPage = lazy(() => import('./pages/MusicPage'));
+const SubscriptionsPage = lazy(() => import('./pages/SubscriptionsPage'));
+const BugReportPage = lazy(() => import('./pages/BugReportPage'));
+const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
+const RulesPage = lazy(() => import('./pages/RulesPage'));
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
+const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage'));
+const MorePage = lazy(() => import('./pages/MorePage'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const AdminPage = lazy(() => import('./pages/Admin/AdminPage'));
+const ModeratorPage = lazy(() => import('./pages/Admin/ModeratorPage'));
+const MessengerPage = lazy(() => import('./pages/Messenger/MessengerPage'));
+const SharePreviewTest = lazy(() => import('./components/SharePreviewTest'));
+const BadgeShopPage = lazy(() => import('./pages/BadgeShopPage'));
+const BalancePage = lazy(() => import('./pages/BalancePage'));
+const SimpleApiDocsPage = lazy(() => import('./pages/SimpleApiDocsPage'));
+const SubPlanes = lazy(() => import('./pages/SubPlanes'));
+const ClickerPage = lazy(() => import('./pages/MiniGames/ClickerPage'));
+const MiniGamesPage = lazy(() => import('./pages/MiniGames/MiniGamesPage'));
+const CupsGamePage = lazy(() => import('./pages/MiniGames/CupsGamePage'));
+const LuckyNumberGame = lazy(() => import('./pages/MiniGames/LuckyNumberGame'));
+
+
 export const ThemeSettingsContext = React.createContext({
   themeSettings: {
     mode: 'dark',
@@ -50,44 +57,45 @@ export const ThemeSettingsContext = React.createContext({
   updateThemeSettings: () => {}
 });
 
-// Мемоизированные компоненты страниц для предотвращения перерисовки
-const MemoizedMainPage = React.memo(MainPage);
-const MemoizedProfilePage = React.memo(ProfilePage);
-const MemoizedPostDetailPage = React.memo(PostDetailPage);
-const MemoizedSettingsPage = React.memo(SettingsPage);
-const MemoizedNotificationsPage = React.memo(NotificationsPage);
-const MemoizedSearchPage = React.memo(SearchPage);
-const MemoizedMusicPage = React.memo(MusicPage);
-const MemoizedSubscriptionsPage = React.memo(SubscriptionsPage);
-const MemoizedBugReportPage = React.memo(BugReportPage);
-const MemoizedLeaderboardPage = React.memo(LeaderboardPage); // Мемоизируем компонент лидерборда
-const MemoizedRulesPage = React.memo(RulesPage); // Мемоизируем компонент правил
-const MemoizedMorePage = React.memo(MorePage); // Мемоизируем страницу "Еще"
-const MemoizedNotFound = React.memo(NotFound);
-const MemoizedAdminPage = React.memo(AdminPage); // Мемоизируем страницу админа
-const MemoizedModeratorPage = React.memo(ModeratorPage); // Мемоизируем страницу модератора
-const MemoizedMessengerPage = React.memo(MessengerPage); // Мемоизируем компонент мессенджера
-const MemoizedSharePreviewTest = React.memo(SharePreviewTest); // Мемоизируем компонент тестирования превью
-const MemoizedBadgeShopPage = React.memo(BadgeShopPage);
-const MemoizedBalancePage = React.memo(BalancePage); // Мемоизируем страницу баланса
-const MemoizedSimpleApiDocsPage = React.memo(SimpleApiDocsPage); // Мемоизируем новую страницу документации API
 
-// Обертка для анимации перехода между страницами
+const SuspenseFallback = () => {
+  const theme = useTheme();
+  
+  return (
+    <Box 
+      sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        backgroundColor: theme.palette.background.default
+      }}
+    >
+      <CircularProgress 
+        color="primary" 
+        size={40} 
+        thickness={4} 
+        sx={{ 
+          color: theme.palette.primary.main,
+          filter: 'drop-shadow(0 0 8px rgba(208, 188, 255, 0.4))'
+        }}
+      />
+    </Box>
+  );
+};
+
+
 const PageTransition = ({ children }) => {
   return children;
 };
 
-// Индикатор загрузки приложения
+
 const LoadingIndicator = () => {
   const theme = useTheme();
   
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3, delay: 0.2 }}
-      style={{ 
+    <Box
+      sx={{ 
         display: 'flex', 
         flexDirection: 'column',
         justifyContent: 'center', 
@@ -101,20 +109,18 @@ const LoadingIndicator = () => {
         backgroundColor: theme.palette.background.default
       }}
     >
-      <motion.div
-        animate={{ 
-          scale: [1, 1.2, 1],
-          opacity: [0.7, 1, 0.7] 
-        }}
-        transition={{ 
-          duration: 1.5, 
-          repeat: Infinity,
-          ease: "easeInOut" 
+      <Box 
+        sx={{
+          animation: 'pulse 1.5s infinite ease-in-out',
+          '@keyframes pulse': {
+            '0%, 100%': { opacity: 0.7, transform: 'scale(1)' },
+            '50%': { opacity: 1, transform: 'scale(1.2)' },
+          }
         }}
       >
         <Box 
           component="img" 
-          src="/static/logo-icon.png" 
+          src="/icon-512.png" 
           alt="K-Connect"
           sx={{ 
             width: 80, 
@@ -122,20 +128,23 @@ const LoadingIndicator = () => {
             filter: 'drop-shadow(0 0 8px rgba(208, 188, 255, 0.4))'
           }} 
         />
-      </motion.div>
-    </motion.div>
+      </Box>
+    </Box>
   );
 };
 
-// Компонент для статичного отображения контента (общий для всех страниц)
+
 const AppRoutes = () => {
   const { user, isAuthenticated, loading, checkAuth, error, setUser } = useContext(AuthContext);
   const location = useLocation();
   const theme = useTheme();
   
-  // Проверяем авторизацию только один раз при монтировании и не делаем это на странице логина
+  
+  const [isPending, startTransition] = useTransition();
+  
+  
   useEffect(() => {
-    // Страницы входа и регистрации - не проверяем авторизацию автоматически
+    
     const isAuthPage = ['/login', '/register', '/register/profile', '/confirm-email', '/auth_elem'].some(
       path => location.pathname.startsWith(path)
     );
@@ -143,20 +152,24 @@ const AppRoutes = () => {
     const hasSavedLoginError = !!localStorage.getItem('login_error');
     const authSuccessFlag = localStorage.getItem('auth_success') === 'true';
     
-    // Если был успешный вход и пользователь перенаправлен на главную, очищаем флаг
+    
     if (authSuccessFlag && location.pathname === '/') {
       console.log('Обнаружен флаг успешной авторизации, применяем сессию');
       localStorage.removeItem('auth_success');
-      // Принудительно проверяем состояние авторизации
-      checkAuth(true);
+      
+      startTransition(() => {
+        checkAuth(true);
+      });
       return;
     }
     
     if (!isAuthPage && !error && !hasSavedLoginError) {
       console.log('Проверка авторизации при загрузке страницы...');
       const initAuth = async () => {
-        // Принудительно проверяем авторизацию при каждой загрузке любой страницы, кроме auth страниц
-        await checkAuth(true);
+        
+        startTransition(() => {
+          checkAuth(true);
+        });
       };
       
       initAuth();
@@ -167,31 +180,33 @@ const AppRoutes = () => {
     } else if (hasSavedLoginError) {
       console.log('Пропускаем проверку авторизации из-за наличия сохраненной ошибки входа');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]); // Зависимость от пути страницы
+    
+  }, [location.pathname]); 
   
-  // ПРОСТАЯ ЛОГИКА: Только на /login и /register показываем формы логина
-  // На всех остальных страницах показываем основной контент
+  
+  
   const currentPath = location.pathname;
   const isLoginPage = currentPath === '/login';
   const isRegisterPage = currentPath === '/register';
   const isElementAuthPage = currentPath.startsWith('/auth_elem') || currentPath === '/element-auth';
   
-  // Отображаем адаптированную страницу логина/регистрации только если пользователь
-  // специально перешел на эти страницы
+  
+  
   if (isLoginPage || isRegisterPage) {
     return (
       <Box sx={{ minHeight: '100vh', background: theme.palette.background.default, display: 'flex', flexDirection: 'column' }}>
-        <Routes location={location}>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register setUser={setUser} />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
+        <Suspense fallback={<SuspenseFallback />}>
+          <Routes location={location}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register setUser={setUser} />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </Suspense>
       </Box>
     );
   }
   
-  // Для страниц Element Auth показываем только компонент авторизации без основного layout
+  
   if (isElementAuthPage) {
     return (
       <Box sx={{ minHeight: '100vh', background: theme.palette.background.default, display: 'flex', flexDirection: 'column' }}>
@@ -205,40 +220,47 @@ const AppRoutes = () => {
     );
   }
   
-  // Для всех остальных страниц показываем основную структуру с навигацией
+  
   return (
     <MainLayout>
       <PageTransition>
         <Routes location={location}>
           <Route path="/register/profile" element={<RegisterProfile setUser={setUser} />} />
           <Route path="/confirm-email/:token" element={<EmailConfirmation />} />
-          <Route path="/bugs" element={<MemoizedBugReportPage />} />
-          <Route path="/" element={<MemoizedMainPage />} />
+          <Route path="/bugs" element={<BugReportPage />} />
+          <Route path="/" element={<MainPage />} />
           <Route path="/feed" element={<Navigate to="/" replace />} />
           <Route path="/main" element={<Navigate to="/" replace />} />
-          <Route path="/post/:postId" element={<MemoizedPostDetailPage />} />
-          <Route path="/profile" element={<MemoizedProfilePage />} />
-          <Route path="/profile/:username" element={<MemoizedProfilePage />} />
-          <Route path="/profile/:username/followers" element={<MemoizedSubscriptionsPage tabIndex={0} />} />
-          <Route path="/profile/:username/following" element={<MemoizedSubscriptionsPage tabIndex={1} />} />
-          <Route path="/subscriptions" element={<MemoizedSubscriptionsPage />} />
-          <Route path="/settings" element={<MemoizedSettingsPage />} />
-          <Route path="/notifications" element={<MemoizedNotificationsPage />} />
-          <Route path="/search" element={<MemoizedSearchPage />} />
-          <Route path="/music" element={<MemoizedMusicPage />} />
-          <Route path="/messenger" element={<MemoizedMessengerPage />} />
-          <Route path="/messenger/:userId" element={<MemoizedMessengerPage />} />
-          <Route path="/share-preview-test" element={<MemoizedSharePreviewTest />} />
-          <Route path="/bugs" element={<MemoizedBugReportPage />} />
-          <Route path="/leaderboard" element={<MemoizedLeaderboardPage />} />
-          <Route path="/rules" element={<MemoizedRulesPage />} />
-          <Route path="/more" element={<MemoizedMorePage />} />
-          <Route path="/admin" element={<MemoizedAdminPage />} />
-          <Route path="/moderator" element={<MemoizedModeratorPage />} />
-          <Route path="/badge-shop" element={<MemoizedBadgeShopPage />} />
-          <Route path="/balance" element={<MemoizedBalancePage />} />
-          <Route path="/api-docs" element={<MemoizedSimpleApiDocsPage />} />
-          <Route path="*" element={<MemoizedNotFound />} />
+          <Route path="/post/:postId" element={<PostDetailPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/:username" element={<ProfilePage />} />
+          <Route path="/profile/:username/followers" element={<SubscriptionsPage tabIndex={0} />} />
+          <Route path="/profile/:username/following" element={<SubscriptionsPage tabIndex={1} />} />
+          <Route path="/subscriptions" element={<SubscriptionsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/music" element={<MusicPage />} />
+          <Route path="/messenger" element={<MessengerPage />} />
+          <Route path="/messenger/:userId" element={<MessengerPage />} />
+          <Route path="/share-preview-test" element={<SharePreviewTest />} />
+          <Route path="/bugs" element={<BugReportPage />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
+          <Route path="/rules" element={<RulesPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+          <Route path="/more" element={<MorePage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/moderator" element={<ModeratorPage />} />
+          <Route path="/badge-shop" element={<BadgeShopPage />} />
+          <Route path="/clicker" element={<ClickerPage />} />
+          <Route path="/minigames" element={<MiniGamesPage />} />
+          <Route path="/minigames/cups" element={<CupsGamePage />} />
+          <Route path="/minigames/lucky-number" element={<LuckyNumberGame />} />
+          <Route path="/balance" element={<BalancePage />} />
+          <Route path="/api-docs" element={<SimpleApiDocsPage />} />
+          <Route path="/sub-planes" element={<SubPlanes />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </PageTransition>
       <AppBottomNavigation user={user} />
@@ -246,12 +268,12 @@ const AppRoutes = () => {
   );
 };
 
-// Мемоизированный AppRoutes для предотвращения лишних перерисовок
+
 const MemoizedAppRoutes = React.memo(AppRoutes);
 
-// Preload required images for music player
+
 const preloadMusicImages = () => {
-  // Paths to check - try both with and without /static prefix
+  
   const basePaths = [
     '/static/uploads/system',
     '/uploads/system'
@@ -265,7 +287,7 @@ const preloadMusicImages = () => {
     'playlist_placeholder.jpg'
   ];
   
-  // Try all combinations of paths
+  
   basePaths.forEach(basePath => {
     imageFiles.forEach(file => {
       const path = `${basePath}/${file}`;
@@ -278,7 +300,7 @@ const preloadMusicImages = () => {
   });
 };
 
-// Создаем компонент DefaultSEO для установки дефолтных SEO-метаданных
+
 const DefaultSEO = () => {
   return (
     <SEO 
@@ -295,45 +317,41 @@ const DefaultSEO = () => {
 };
 
 function App() {
+  
+  const [isPending, startTransition] = useTransition();
   const [themeSettings, setThemeSettings] = useState({
-    mode: localStorage.getItem('themeMode') || 'dark',
-    primaryColor: '#D0BCFF',
-    secondaryColor: '#f28c9a',
-    backgroundColor: '#131313',
-    paperColor: '#1A1A1A',
-    headerColor: '#1A1A1A',
-    bottomNavColor: '#1A1A1A',
-    contentColor: '#1A1A1A',
-    textColor: '#FFFFFF',
+    mode: localStorage.getItem('theme') || 'dark',
+    primaryColor: localStorage.getItem('primaryColor') || '#D0BCFF',
+    secondaryColor: localStorage.getItem('secondaryColor') || '#f28c9a'
   });
   
-  // Preload images when app starts
+  
   useEffect(() => {
     preloadMusicImages();
   }, []);
 
-  // Function to calculate contrast color (black or white) based on background
+  
   const getContrastTextColor = (hexColor) => {
-    // Remove the # if present
+    
     const color = hexColor.charAt(0) === '#' ? hexColor.substring(1) : hexColor;
     
-    // Convert to RGB
+    
     const r = parseInt(color.substr(0, 2), 16);
     const g = parseInt(color.substr(2, 2), 16);
     const b = parseInt(color.substr(4, 2), 16);
     
-    // Calculate relative luminance (per WCAG 2.0)
+    
     const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
     
-    // Return black for light colors, white for dark ones
+    
     return luminance > 0.5 ? '#000000' : '#FFFFFF';
   };
 
-  // Загрузка настроек темы из сервера
+  
   const loadThemeSettings = async (forceDefault = false) => {
     try {
       if (forceDefault) {
-        // Use default settings
+        
         const defaultSettings = {
           background_color: '#131313',
           container_color: '#1A1A1A',
@@ -353,7 +371,7 @@ function App() {
       }
     } catch (error) {
       console.error('Error loading theme settings:', error);
-      // Fallback to default settings on error
+      
       applyThemeSettings({
         background_color: '#131313',
         container_color: '#1A1A1A',
@@ -366,9 +384,9 @@ function App() {
     }
   };
 
-  // Function to apply theme settings
+  
   const applyThemeSettings = (settings) => {
-    // Extract background colors for each UI element
+    
     const backgroundColor = settings.background_color || '#131313';
     const containerColor = settings.container_color || '#1A1A1A';
     const headerColor = settings.header_color || settings.container_color || '#1A1A1A';
@@ -377,14 +395,14 @@ function App() {
     const welcomeBubbleColor = settings.welcome_bubble_color || '#131313';
     const primaryColor = settings.avatar_border_color || '#D0BCFF';
 
-    // Calculate contrast text colors
+    
     const backgroundTextColor = getContrastTextColor(backgroundColor);
     const containerTextColor = getContrastTextColor(containerColor);
     const headerTextColor = getContrastTextColor(headerColor);
     const contentTextColor = getContrastTextColor(contentColor);
     const bottomNavTextColor = getContrastTextColor(bottomNavColor);
 
-    // Update theme settings state
+    
     updateThemeSettings({
       backgroundColor: backgroundColor,
       paperColor: containerColor,
@@ -395,7 +413,7 @@ function App() {
       textColor: containerTextColor
     });
     
-    // Apply settings to CSS variables
+    
     document.documentElement.style.setProperty('--background-color', backgroundColor);
     document.documentElement.style.setProperty('--container-color', containerColor);
     document.documentElement.style.setProperty('--header-color', headerColor);
@@ -404,34 +422,34 @@ function App() {
     document.documentElement.style.setProperty('--welcome-bubble-color', welcomeBubbleColor);
     document.documentElement.style.setProperty('--avatar-border-color', primaryColor);
     
-    // Apply text colors
+    
     document.documentElement.style.setProperty('--background-text-color', backgroundTextColor);
     document.documentElement.style.setProperty('--container-text-color', containerTextColor);
     document.documentElement.style.setProperty('--header-text-color', headerTextColor);
     document.documentElement.style.setProperty('--content-text-color', contentTextColor);
     document.documentElement.style.setProperty('--bottom-nav-text-color', bottomNavTextColor);
     
-    // Set accent colors
+    
     document.documentElement.style.setProperty('--primary', primaryColor);
     document.documentElement.style.setProperty('--primary-light', primaryColor);
     document.documentElement.style.setProperty('--primary-dark', primaryColor);
   };
   
-  // Hook to Auth context to detect login/logout
+  
   const authContextValue = useContext(AuthContext) || {};
   
-  // Watch for auth state changes to load or reset theme settings
+  
   useEffect(() => {
     if (authContextValue.isAuthenticated) {
-      // User logged in - load their theme settings
+      
       loadThemeSettings();
     } else if (!authContextValue.loading) {
-      // User logged out and not in loading state - reset to defaults
+      
       loadThemeSettings(true);
     }
   }, [authContextValue.isAuthenticated, authContextValue.loading]);
   
-  // Функция для обновления настроек темы
+  
   const updateThemeSettings = (newSettings) => {
     setThemeSettings(prev => ({
       ...prev,
@@ -439,7 +457,7 @@ function App() {
     }));
   };
 
-  // Создаем тему на основе настроек
+  
   const theme = useMemo(() => {
     const themeObj = createTheme({
       palette: {
@@ -461,7 +479,7 @@ function App() {
           secondary: themeSettings.mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
         },
         header: {
-          main: themeSettings.headerColor || '#1A1A1A',
+          main: themeSettings.headerColor || '#000000',
           contrastText: getContrastTextColor(themeSettings.headerColor || '#1A1A1A'),
         },
         bottomNav: {
@@ -483,13 +501,13 @@ function App() {
         h6: { fontSize: '1rem', fontWeight: 500 },
       },
       shape: {
-        borderRadius: 12, // Скругление для всех элементов 12px
+        borderRadius: 12, 
       },
       components: {
         MuiButton: {
           styleOverrides: {
             root: {
-              borderRadius: '12px', // Скругление для кнопок
+              borderRadius: '12px', 
               textTransform: 'none',
               fontWeight: 500,
             },
@@ -498,7 +516,7 @@ function App() {
         MuiCard: {
           styleOverrides: {
             root: {
-              borderRadius: '15px', // Скругление для карточек
+              borderRadius: '15px', 
               overflow: 'hidden',
               backgroundColor: themeSettings.contentColor || themeSettings.paperColor || '#1A1A1A',
             },
@@ -507,7 +525,7 @@ function App() {
         MuiPaper: {
           styleOverrides: {
             root: {
-              borderRadius: '12px', // Скругление для Paper
+              borderRadius: '12px', 
             },
           },
         },
@@ -537,7 +555,7 @@ function App() {
           styleOverrides: {
             root: {
               '& .MuiOutlinedInput-root': {
-                borderRadius: '10px', // Скругление для текстовых полей
+                borderRadius: '10px', 
                 '& fieldset': {
                   borderColor: themeSettings.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
                 },
@@ -545,13 +563,13 @@ function App() {
                   borderColor: themeSettings.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)',
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: themeSettings.primaryColor || '#D0BCFF', // Основной цвет для обводки при фокусе
+                  borderColor: themeSettings.primaryColor || '#D0BCFF', 
                 },
               },
               '& .MuiInputLabel-root': {
                 color: themeSettings.mode === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)',
                 '&.Mui-focused': {
-                  color: themeSettings.primaryColor || '#D0BCFF', // Основной цвет для лейбла при фокусе
+                  color: themeSettings.primaryColor || '#D0BCFF', 
                 },
               },
             },
@@ -562,19 +580,28 @@ function App() {
     return themeObj;
   }, [themeSettings]);
 
+  
+  const themeContextValue = useMemo(() => ({
+    themeSettings,
+    updateThemeSettings,
+    loadThemeSettings
+  }), [themeSettings]);
+
   return (
     <HelmetProvider>
-      <ThemeSettingsContext.Provider value={{ themeSettings, updateThemeSettings, loadThemeSettings }}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <AuthProvider>
+      <AuthProvider>
+        <ThemeSettingsContext.Provider value={themeContextValue}>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
             <MusicProvider>
-              <DefaultSEO />
-              <MemoizedAppRoutes />
+              <Suspense fallback={<LoadingIndicator />}>
+                <DefaultSEO />
+                <AppRoutes />
+              </Suspense>
             </MusicProvider>
-          </AuthProvider>
-        </ThemeProvider>
-      </ThemeSettingsContext.Provider>
+          </ThemeProvider>
+        </ThemeSettingsContext.Provider>
+      </AuthProvider>
     </HelmetProvider>
   );
 }

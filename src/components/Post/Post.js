@@ -21,9 +21,22 @@ import {
   TextField,
   CircularProgress,
   Paper,
-  Skeleton
+  Skeleton,
+  Alert,
+  FormControlLabel,
+  Checkbox,
+  List,
+  ListItem,
+  CardActions,
+  CardHeader,
+  Chip,
+  Divider,
+  Badge,
+  Tooltip,
+  Collapse,
+  Zoom
 } from '@mui/material';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
@@ -34,14 +47,22 @@ import LightBox from '../LightBox';
 import VideoPlayer from '../VideoPlayer';
 import { optimizeImage } from '../../utils/imageUtils';
 import { linkRenderers, URL_REGEX, USERNAME_MENTION_REGEX, processTextWithLinks } from '../../utils/LinkUtils';
+import { Icon } from '@iconify/react';
 
-// Material UI Icons
+
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
 import RepeatIcon from '@mui/icons-material/Repeat';
+import ShareIcon from '@mui/icons-material/Share';
+import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
+import ThumbUpRoundedIcon from '@mui/icons-material/ThumbUpRounded';
+import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
+import CommentRoundedIcon from '@mui/icons-material/CommentRounded';
+import CommentOutlinedIcon from '@mui/icons-material/CommentOutlined';
 import ImageGrid from './ImageGrid';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -51,15 +72,19 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import LinkIcon from '@mui/icons-material/Link';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import FlagIcon from '@mui/icons-material/Flag';
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
+import EditIcon from '@mui/icons-material/Edit';
+import PhotoIcon from '@mui/icons-material/Photo';
+import VideocamIcon from '@mui/icons-material/Videocam';
 
-// Styled components
+
 const PostCard = styled(Card)(({ theme }) => ({
   marginBottom: 10,
   borderRadius: '10px',
   overflow: 'hidden',
   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
   background: '#1A1A1A',
-  cursor: 'pointer',
   [theme.breakpoints.down('sm')]: {
     boxShadow: 'none',
     marginBottom: 2,
@@ -67,7 +92,7 @@ const PostCard = styled(Card)(({ theme }) => ({
   }
 }));
 
-// Define the MarkdownContent component with height limits
+
 const MarkdownContent = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'isExpanded'
 })(({ theme, isExpanded }) => ({
@@ -93,7 +118,7 @@ const MarkdownContent = styled(Box, {
   '& code': {
     fontFamily: 'monospace',
     backgroundColor: theme.palette.action.hover,
-    padding: theme.spacing(0.3, 0.6),
+    padding: theme.spacing(0, 0.6),
     borderRadius: 3,
   },
   '& pre': {
@@ -113,7 +138,23 @@ const MarkdownContent = styled(Box, {
   transition: 'max-height 0.3s ease',
 }));
 
-// Show More button component
+
+const BlurredMenu = styled(Menu)(({ theme }) => ({
+  '& .MuiPaper-root': {
+    background: 'linear-gradient(135deg, rgb(49 49 49 / 50%) 0%, rgb(62 62 62 / 60%) 100%)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    boxShadow: '0 4px 20px rgba(97, 76, 147, 0.3)',
+    borderRadius: '12px',
+    '& .MuiMenuItem-root': {
+      '&:hover': {
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      },
+    }
+  }
+}));
+
+
 const ShowMoreButton = styled(Button)(({ theme }) => ({
   margin: '8px auto 0',
   display: 'flex',
@@ -134,7 +175,7 @@ const ShowMoreButton = styled(Button)(({ theme }) => ({
   }
 }));
 
-// Custom styled action button
+
 const ActionButton = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'active'
 })(({ theme, active, position }) => ({
@@ -144,6 +185,8 @@ const ActionButton = styled(Box, {
   cursor: 'pointer',
   transition: 'all 0.2s ease',
   backgroundColor: active ? 'rgba(140, 82, 255, 0.08)' : 'transparent',
+  position: 'relative',
+  zIndex: 2,
   '&:hover': {
     backgroundColor: active ? 'rgba(140, 82, 255, 0.12)' : 'rgba(255, 255, 255, 0.04)',
   },
@@ -151,7 +194,7 @@ const ActionButton = styled(Box, {
   borderRight: position === 'left' ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
 }));
 
-// Action button container for pill style
+
 const ActionButtonContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -159,9 +202,33 @@ const ActionButtonContainer = styled(Box)(({ theme }) => ({
   overflow: 'hidden',
   border: '1px solid rgba(255, 255, 255, 0.08)',
   marginRight: theme.spacing(1),
+  backgroundColor: 'rgba(40, 40, 50, 0.4)',
+  position: 'relative',
+  transition: 'all 0.25s ease',
+  '&:hover': {
+    backgroundColor: 'rgba(50, 50, 60, 0.5)',
+    transform: 'translateY(-2px)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+    '&:after': {
+      opacity: 1,
+      transform: 'translateX(100%)'
+    }
+  },
+  '&:after': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)',
+    opacity: 0,
+    transition: 'all 0.5s ease',
+    zIndex: 1
+  }
 }));
 
-// Music track component
+
 const MusicTrack = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -179,8 +246,171 @@ const MusicTrack = styled(Box)(({ theme }) => ({
   }
 }));
 
+
+
+
+const SharePill = styled(motion.div)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '6px 14px',
+  backgroundColor: 'rgba(40, 40, 50, 0.4)',
+  borderRadius: '20px',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  cursor: 'pointer',
+  marginLeft: theme.spacing(1),
+  transition: 'all 0.25s ease',
+  position: 'relative',
+  overflow: 'hidden',
+  '&:hover': {
+    backgroundColor: 'rgba(50, 50, 60, 0.5)',
+    transform: 'translateY(-2px)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+    '&:after': {
+      opacity: 1,
+      transform: 'translateX(100%)'
+    }
+  },
+  '&:after': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)',
+    opacity: 0,
+    transition: 'all 0.5s ease',
+    zIndex: 1
+  }
+}));
+
+
+const CommentPill = styled(motion.div)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '6px 14px',
+  backgroundColor: 'rgba(40, 40, 50, 0.4)',
+  borderRadius: '20px',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  cursor: 'pointer',
+  marginLeft: theme.spacing(1),
+  transition: 'all 0.25s ease',
+  position: 'relative',
+  overflow: 'hidden',
+  '&:hover': {
+    backgroundColor: 'rgba(50, 50, 60, 0.5)',
+    transform: 'translateY(-2px)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+    '&:after': {
+      opacity: 1,
+      transform: 'translateX(100%)'
+    }
+  },
+  '&:after': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)',
+    opacity: 0,
+    transition: 'all 0.5s ease',
+    zIndex: 1
+  }
+}));
+
+
+const LikePill = styled(motion.div)(({ theme, active }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '6px 14px',
+  backgroundColor: active ? 'rgba(140, 82, 255, 0.08)' : 'rgba(40, 40, 50, 0.4)',
+  borderRadius: '20px',
+  border: active ? '1px solid rgba(140, 82, 255, 0.2)' : '1px solid rgba(255, 255, 255, 0.1)',
+  cursor: 'pointer',
+  marginRight: theme.spacing(1),
+  transition: 'all 0.25s ease',
+  position: 'relative',
+  overflow: 'hidden',
+  '&:hover': {
+    backgroundColor: active ? 'rgba(140, 82, 255, 0.12)' : 'rgba(50, 50, 60, 0.5)',
+    transform: 'translateY(-2px)',
+    boxShadow: active ? '0 4px 12px rgba(140, 82, 255, 0.2)' : '0 4px 12px rgba(0, 0, 0, 0.2)',
+    '&:after': {
+      opacity: 1,
+      transform: 'translateX(100%)'
+    }
+  },
+  '&:after': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)',
+    opacity: 0,
+    transition: 'all 0.5s ease',
+    zIndex: 1
+  }
+}));
+
+
+const ActionsPill = styled(motion.div)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  borderRadius: '20px',
+  overflow: 'hidden',
+  backgroundColor: 'rgba(40, 40, 50, 0.4)',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  marginRight: theme.spacing(1),
+  position: 'relative',
+  transition: 'all 0.25s ease',
+  '&:hover': {
+    backgroundColor: 'rgba(50, 50, 60, 0.5)',
+    transform: 'translateY(-2px)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+    '&:after': {
+      opacity: 1,
+      transform: 'translateX(100%)'
+    }
+  },
+  '&:after': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)',
+    opacity: 0,
+    transition: 'all 0.5s ease',
+    zIndex: 1
+  }
+}));
+
+
+const ActionItem = styled(Box)(({ theme, active, isLike }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  padding: '6px 14px',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+  backgroundColor: active && isLike ? 'rgba(140, 82, 255, 0.08)' : 'transparent',
+  position: 'relative',
+  zIndex: 2,
+  '&:hover': {
+    backgroundColor: active && isLike ? 'rgba(140, 82, 255, 0.12)' : 'rgba(255, 255, 255, 0.04)',
+  },
+  borderRight: isLike ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
+}));
+
 const Post = ({ post, onDelete, onOpenLightbox }) => {
-  // Защита от отсутствия данных
+  
   if (!post || typeof post !== 'object') {
     console.error('Post component received invalid post data:', post);
     return null;
@@ -199,40 +429,94 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
   const [snackbarMessage, setSnackbarMessage] = useState("Ссылка скопирована в буфер обмена");
   const [lastLikedUsers, setLastLikedUsers] = useState([]);
   
-  // State for music player
+  
   const [musicTracks, setMusicTracks] = useState([]);
   
-  // State for showing full content
+  
   const [isExpanded, setIsExpanded] = useState(false);
   const [needsExpandButton, setNeedsExpandButton] = useState(false);
   const contentRef = useRef(null);
   
-  // Состояние для модального окна репоста
+  
   const [repostModalOpen, setRepostModalOpen] = useState(false);
   const [repostText, setRepostText] = useState('');
   const [isReposting, setIsReposting] = useState(false);
   
-  // State for the processed content with clickable @username mentions
+  
   const [processedContent, setProcessedContent] = useState('');
   
-  // Update state when post prop changes
+  
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'error'
+  });
+  
+  
+  const [deleteDialog, setDeleteDialog] = useState({
+    open: false,
+    deleting: false,
+    deleted: false
+  });
+  
+  
+  const [reportDialog, setReportDialog] = useState({
+    open: false,
+    reason: '',
+    submitting: false,
+    submitted: false,
+    error: null
+  });
+  
+  
+  const [editDialog, setEditDialog] = useState({
+    open: false,
+    content: post?.content || '',
+    submitting: false,
+    deleteImages: false,
+    deleteVideo: false,
+    deleteMusic: false,
+    newImages: [],
+    newVideo: null,
+    previews: [],
+    error: null
+  });
+  
+  
+  const reportReasons = [
+    "Спам",
+    "Оскорбления",
+    "Неприемлемый контент",
+    "Нарушение правил",
+    "Дезинформация",
+    "Вредоносный контент",
+    "Другое"
+  ];
+  
+  
   useEffect(() => {
     if (post) {
       setLiked(post.user_liked || post.is_liked || false);
       setLikesCount(post.likes_count || 0);
       setViewsCount(post.views_count || 0);
       
-      // Reset expanded state when post changes
+      
       setIsExpanded(false);
       
-      // Process post content to make @username mentions clickable
+      
+      setEditDialog(prev => ({
+        ...prev,
+        content: post.content || ''
+      }));
+      
+      
       if (post.content) {
-        // Replace @username with markdown links
+        
         let content = post.content;
-        // Reset the regex lastIndex to ensure it starts from the beginning
+        
         USERNAME_MENTION_REGEX.lastIndex = 0;
         
-        // Replace all @username mentions with markdown links
+        
         content = content.replace(USERNAME_MENTION_REGEX, (match, username) => {
           return `[${match}](/profile/${username})`;
         });
@@ -242,24 +526,24 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         setProcessedContent('');
       }
       
-      // Проверка на лайки с использованием кэша
+      
       if (post.id && post.likes_count > 0) {
-        // Проверяем кэш перед запросом
+        
         const postLikesCache = window._postLikesCache || {};
         const cachedData = postLikesCache[post.id];
         const now = Date.now();
         
         if (cachedData && cachedData.timestamp && (now - cachedData.timestamp < 5 * 60 * 1000)) {
-          // Используем кэшированные данные
+          
           console.log(`Using cached likes data for post ${post.id} (from useEffect)`);
           setLastLikedUsers(cachedData.users);
         } else {
-          // Кэш отсутствует или устарел - делаем запрос
+          
           fetchLastLikedUsers(post.id);
         }
       }
       
-      // Parse music tracks if available
+      
       try {
         if (post.music) {
           console.log('Processing music data:', post.music);
@@ -290,32 +574,32 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     }
   }, [post]);
   
-  // Get cover path with fallback
+  
   const getCoverPath = (track) => {
     if (!track || !track.cover_path) {
       return '/uploads/system/album_placeholder.jpg';
     }
     
-    // If the path already includes /static/, use it directly as it might be a complete path
+    
     if (track.cover_path.startsWith('/static/')) {
       return track.cover_path;
     }
     
-    // Handle paths that don't start with slash
+    
     if (track.cover_path.startsWith('static/')) {
       return `/${track.cover_path}`;
     }
     
-    // Direct URL paths
+    
     if (track.cover_path.startsWith('http')) {
       return track.cover_path;
     }
     
-    // Legacy path format
+    
     return `/static/music/${track.cover_path}`;
   };
   
-  // Format track duration
+  
   const formatDuration = (seconds) => {
     if (!seconds) return '0:00';
     const minutes = Math.floor(seconds / 60);
@@ -323,25 +607,25 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
   
-  // Handle play/pause for a specific track using the music context
+  
   const handleTrackPlay = (track, event) => {
-    if (event) event.stopPropagation(); // Prevent post click event
+    if (event) event.stopPropagation(); 
     
-    // Check if this is the currently playing track
+    
     const isCurrentlyPlaying = currentTrack && currentTrack.id === track.id;
     
     if (isCurrentlyPlaying) {
-      // Toggle play/pause state
+      
       togglePlay();
     } else {
-      // Play the new track
+      
       playTrack(track, 'post');
     }
   };
   
-  // Check if content needs "Show more" button
+  
   useEffect(() => {
-    // Use requestAnimationFrame to ensure DOM has updated
+    
     const checkHeight = () => {
       if (contentRef.current) {
         const contentHeight = contentRef.current.scrollHeight;
@@ -349,7 +633,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
       }
     };
     
-    // Allow time for React Markdown to render
+    
     const timeoutId = setTimeout(() => {
       checkHeight();
     }, 100);
@@ -357,21 +641,21 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     return () => clearTimeout(timeoutId);
   }, [post?.content]);
 
-  // Fetch last liked users
+  
   const fetchLastLikedUsers = async (postId) => {
     try {
-      // Абсолютный запрет частых запросов (не чаще чем раз в 3 секунды глобально)
+      
       if (window._globalLastLikesFetch && Date.now() - window._globalLastLikesFetch < 3000) {
         console.log(`Global likes fetch rate limit in effect, skipping fetch for post ${postId}`);
         return;
       }
       
-      // Создаем глобальный кэш лайков, если он еще не существует
+      
       if (!window._postLikesCache) {
         window._postLikesCache = {};
       }
       
-      // Проверяем, есть ли данные в кэше и не устарели ли они (кэш на 5 минут)
+      
       const now = Date.now();
       if (
         window._postLikesCache[postId] && 
@@ -383,24 +667,24 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         return;
       }
       
-      // Проверяем, не выполняется ли уже запрос для этого поста
+      
       if (window._postLikesFetching && window._postLikesFetching[postId]) {
         console.log(`Likes fetch already in progress for post ${postId}`);
         return;
       }
       
-      // Устанавливаем флаг запроса
+      
       if (!window._postLikesFetching) {
         window._postLikesFetching = {};
       }
       window._postLikesFetching[postId] = true;
-      window._globalLastLikesFetch = now; // Устанавливаем время последнего запроса глобально
+      window._globalLastLikesFetch = now; 
       
       const response = await axios.get(`/api/posts/${postId}/likes?limit=3`);
       if (response.data && Array.isArray(response.data.users)) {
         console.log(`Received like data for post ${postId}:`, response.data.users);
         
-        // Сохраняем данные в кэше
+        
         window._postLikesCache[postId] = {
           users: response.data.users,
           timestamp: now
@@ -411,98 +695,98 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     } catch (error) {
       console.error('Error fetching liked users:', error);
     } finally {
-      // Снимаем флаг запроса
+      
       if (window._postLikesFetching) {
         window._postLikesFetching[postId] = false;
       }
     }
   };
 
-  // Lightbox state
+  
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
-  // Process images for the post
+  
   const processImages = () => {
-    // If post has an images array, use it
+    
     if (post?.images && Array.isArray(post.images) && post.images.length > 0) {
       return post.images;
     }
     
-    // If post has a single image string that contains delimiters
+    
     if (post?.image && typeof post.image === 'string') {
       if (post.image.includes('||') || post.image.includes(',')) {
-        // Split by || or , and filter out empty strings
+        
         return post.image.split(/[||,]/).map(url => url.trim()).filter(Boolean);
       }
-      // Single image
+      
       return [post.image];
     }
     
     return [];
   };
   
-  // Check if post has a video
+  
   const hasVideo = () => {
     return post?.video && typeof post.video === 'string' && post.video.trim() !== '';
   };
   
-  // Format video URL
+  
   const formatVideoUrl = (url) => {
     if (!url) return '';
     
-    // If the URL is already absolute, return it as is
-    if (url.startsWith('http') || url.startsWith('//')) {
+    
+    if (url.startsWith('http') || url.startsWith('
       return url;
     }
     
-    // Если URL уже содержит /static/uploads/post/, не добавляем этот путь снова
+    
     if (url.startsWith('/static/uploads/post/')) {
       return url;
     }
     
-    // For relative paths, add the proper base path
+    
     return `/static/uploads/post/${post.id}/${url}`;
   };
   
   const images = processImages();
   const videoUrl = hasVideo() ? formatVideoUrl(post.video) : null;
   
-  // Функция для открытия изображения через лайтбокс с WebP оптимизацией
+  
   const handleOpenImage = async (index) => {
     const allImages = processImages();
     if (allImages.length > 0) {
       try {
-        // Оптимизируем выбранное изображение перед показом
+        
         const currentImageUrl = allImages[index];
         const optimizedImage = await optimizeImage(currentImageUrl, {
-          quality: 0.9, // Высокое качество для просмотра
-          maxWidth: 1920 // Ограничение максимальной ширины
+          quality: 0.9, 
+          maxWidth: 1920 
         });
         
         setCurrentImageIndex(index);
-        // Сохраняем исходное и оптимизированное изображение для лайтбокса
+        
         setLightboxOpen(true);
       } catch (error) {
         console.error('Error optimizing image for lightbox:', error);
-        // Запасной вариант если оптимизация не сработала
+        
         setCurrentImageIndex(index);
         setLightboxOpen(true);
       }
     }
   };
   
-  // Закрытие лайтбокса
+  
   const handleCloseLightbox = () => {
     setLightboxOpen(false);
   };
   
-  // Переход к следующему изображению
+  
   const handleNextImage = () => {
     setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
   };
   
-  // Переход к предыдущему изображению
+  
   const handlePrevImage = () => {
     setCurrentImageIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
   };
@@ -510,27 +794,57 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
   const handleLike = async (e) => {
     e.stopPropagation();
     
-    // Сохраняем текущее состояние перед обновлением
+    
     const wasLiked = liked;
     const prevCount = likesCount;
     
     try {
-      // Сначала обновляем UI для моментальной реакции
+      
       setLiked(!wasLiked);
       setLikesCount(wasLiked ? Math.max(0, prevCount - 1) : prevCount + 1);
       
-      // Затем делаем запрос к API
+      
       const response = await axios.post(`/api/posts/${post.id}/like`);
       if (response.data) {
-        // Обновляем UI данными с сервера
+        
         setLiked(response.data.liked);
         setLikesCount(response.data.likes_count);
       }
     } catch (error) {
       console.error('Error liking post:', error);
-      // Откатываем изменения при ошибке
+      
       setLiked(wasLiked);
       setLikesCount(prevCount);
+      
+      
+      if (error.response && error.response.status === 429) {
+        const rateLimit = error.response.data.rate_limit;
+        let errorMessage = error.response.data.error || "Слишком много лайков. ";
+        
+        if (rateLimit && rateLimit.reset) {
+          
+          const resetTime = new Date(rateLimit.reset * 1000);
+          const now = new Date();
+          const diffSeconds = Math.round((resetTime - now) / 1000);
+          
+          if (!errorMessage.includes("подождите")) {
+            if (diffSeconds > 60) {
+              const minutes = Math.floor(diffSeconds / 60);
+              const seconds = diffSeconds % 60;
+              errorMessage += ` Пожалуйста, подождите ${minutes} мин. ${seconds} сек.`;
+            } else {
+              errorMessage += ` Пожалуйста, подождите ${diffSeconds} сек.`;
+            }
+          }
+        }
+        
+        
+        setSnackbar({
+          open: true,
+          message: errorMessage,
+          severity: 'warning'
+        });
+      }
     }
   };
 
@@ -543,25 +857,236 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     setMenuAnchorEl(null);
   };
 
-  const handleDelete = async () => {
+  
+  const handleDelete = () => {
+    handleMenuClose();
+    setDeleteDialog({ ...deleteDialog, open: true });
+  };
+
+  
+  const handleEdit = () => {
     handleMenuClose();
     
+    if (!isPostEditable()) {
+      setSnackbar({
+        open: true,
+        message: "Редактирование доступно только в течение 3 часов после публикации",
+        severity: 'warning'
+      });
+      return;
+    }
+    
+    setEditDialog({
+      ...editDialog,
+      open: true,
+      content: post.content || '',
+      deleteImages: false,
+      deleteVideo: false,
+      deleteMusic: false,
+      newImages: [],
+      newVideo: null,
+      previews: [],
+      error: null
+    });
+  };
+
+  
+  const handleCloseEditDialog = () => {
+    setEditDialog({
+      ...editDialog,
+      open: false,
+      error: null,
+      previews: []
+    });
+  };
+
+  
+  const handleEditContentChange = (e) => {
+    setEditDialog({
+      ...editDialog,
+      content: e.target.value
+    });
+  };
+
+  
+  const handleEditImageSelect = (e) => {
+    const files = Array.from(e.target.files);
+    
+    
+    const fileObjects = files.map(file => ({
+      file,
+      preview: URL.createObjectURL(file)
+    }));
+    
+    setEditDialog({
+      ...editDialog,
+      newImages: [...editDialog.newImages, ...files],
+      previews: [...editDialog.previews, ...fileObjects.map(fo => fo.preview)]
+    });
+  };
+
+  
+  const handleEditVideoSelect = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      setEditDialog({
+        ...editDialog,
+        newVideo: file
+      });
+    }
+  };
+
+  
+  const handleToggleDeleteImages = () => {
+    setEditDialog({
+      ...editDialog,
+      deleteImages: !editDialog.deleteImages
+    });
+  };
+
+  
+  const handleToggleDeleteVideo = () => {
+    setEditDialog({
+      ...editDialog,
+      deleteVideo: !editDialog.deleteVideo
+    });
+  };
+
+  
+  const handleToggleDeleteMusic = () => {
+    setEditDialog({
+      ...editDialog,
+      deleteMusic: !editDialog.deleteMusic
+    });
+  };
+
+  
+  const handleSubmitEdit = async () => {
     try {
-      const response = await axios.delete(`/api/posts/${post.id}`);
-      if (response.data && response.data.success) {
-        if (onDelete) {
-          onDelete(post.id);
+      
+      if (!isPostEditable()) {
+        setEditDialog({ 
+          ...editDialog, 
+          error: "Время редактирования истекло. Посты можно редактировать только в течение 3 часов после публикации." 
+        });
+        return;
+      }
+
+      setEditDialog({ ...editDialog, submitting: true, error: null });
+      
+      
+      const formData = new FormData();
+      formData.append('content', editDialog.content);
+      
+      
+      formData.append('delete_images', editDialog.deleteImages);
+      formData.append('delete_video', editDialog.deleteVideo);
+      formData.append('delete_music', editDialog.deleteMusic);
+      
+      
+      editDialog.newImages.forEach((image, index) => {
+        formData.append(`images[${index}]`, image);
+      });
+      
+      
+      if (editDialog.newVideo) {
+        formData.append('video', editDialog.newVideo);
+      }
+      
+      
+      const response = await axios.post(`/api/posts/${post.id}/edit`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
         }
+      });
+      
+      if (response.data.success) {
+        
+        const updatedPost = response.data.post;
+        
+        
+        if (onDelete) {
+          
+          onDelete(post.id, updatedPost);
+        } else {
+          
+          window.location.reload();
+        }
+        
+        
+        setEditDialog({
+          open: false,
+          content: '',
+          submitting: false,
+          deleteImages: false,
+          deleteVideo: false,
+          deleteMusic: false,
+          newImages: [],
+          newVideo: null,
+          previews: [],
+          error: null
+        });
+        
+        
+        setSnackbar({
+          open: true,
+          message: "Пост успешно обновлен",
+          severity: 'success'
+        });
+      } else {
+        throw new Error(response.data.error || 'Ошибка при обновлении поста');
       }
     } catch (error) {
+      console.error('Error updating post:', error);
+      setEditDialog({
+        ...editDialog,
+        submitting: false,
+        error: error.response?.data?.error || error.message || 'Ошибка при обновлении поста'
+      });
+    }
+  };
+
+  
+  const confirmDelete = async () => {
+    try {
+      
+      setDeleteDialog({ ...deleteDialog, deleting: true });
+      
+      
+      if (onDelete) {
+        onDelete(post.id);
+      }
+      
+      
+      setDeleteDialog({ open: true, deleting: false, deleted: true });
+      
+      
+      const response = await axios.delete(`/api/posts/${post.id}`);
+      
+      
+      setTimeout(() => {
+        setDeleteDialog({ open: false, deleting: false, deleted: true });
+      }, 1500);
+      
+    } catch (error) {
       console.error('Error deleting post:', error);
+      
+      setDeleteDialog({ open: true, deleting: false, deleted: false });
+      
+      
+      setSnackbar({
+        open: true,
+        message: "Не удалось удалить пост. Попробуйте позже.",
+        severity: 'error'
+      });
     }
   };
   
   const handleRepostClick = (e) => {
     e.stopPropagation();
     if (!currentUser) {
-      // Перенаправляем на логин если юзер не авторизован
+      
       navigate('/login');
       return;
     }
@@ -570,7 +1095,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     setRepostModalOpen(true);
   };
   
-  // Для диалога репоста
+  
   const handleOpenRepostModal = (e) => {
     e.stopPropagation();
     setRepostModalOpen(true);
@@ -580,27 +1105,27 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     setRepostModalOpen(false);
   };
   
-  // Подсветка упоминаний в тексте репоста
+  
   const renderRepostInputWithMentions = () => {
-    // Пропускаем обработку если текст пустой
+    
     if (!repostText) return null;
     
-    // Ищем все @упоминания в тексте
+    
     const parts = [];
     let lastIndex = 0;
     
-    // Сбрасываем состояние регулярки
+    
     USERNAME_MENTION_REGEX.lastIndex = 0;
     
-    // Ищем все совпадения
+    
     let match;
     while ((match = USERNAME_MENTION_REGEX.exec(repostText)) !== null) {
-      // Добавляем текст до текущего совпадения
+      
       if (match.index > lastIndex) {
         parts.push(<span key={`text-${lastIndex}`}>{repostText.substring(lastIndex, match.index)}</span>);
       }
       
-      // Добавляем подсвеченное упоминание
+      
       parts.push(
         <span 
           key={`mention-${match.index}`}
@@ -619,7 +1144,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
       lastIndex = match.index + match[0].length;
     }
     
-    // Добавляем оставшийся текст после последнего совпадения
+    
     if (lastIndex < repostText.length) {
       parts.push(<span key={`text-end`}>{repostText.substring(lastIndex)}</span>);
     }
@@ -634,7 +1159,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         padding: '16.5px 14px',
         color: 'rgba(255, 255, 255, 0.9)',
         fontSize: '0.95rem',
-        pointerEvents: 'none', // Пропускаем клики до реального поля ввода
+        pointerEvents: 'none', 
         overflow: 'hidden',
         display: 'flex',
         flexWrap: 'wrap',
@@ -645,9 +1170,9 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     );
   };
   
-  // Создание репоста
+  
   const handleCreateRepost = async () => {
-    // Блокируем повторную отправку
+    
     if (isReposting) return;
     
     try {
@@ -657,23 +1182,23 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         text: repostText
       });
       
-      // Проверяем ответ
+      
       if (response.data.success) {
-        // Показываем уведомление об успехе
+        
         setSnackbarMessage('Пост успешно добавлен в вашу ленту');
         setSnackbarOpen(true);
         
-        // Закрываем модальное окно и сбрасываем форму
+        
         setRepostModalOpen(false);
         setRepostText('');
       } else {
-        // Показываем сообщение об ошибке
+        
         setSnackbarMessage(response.data.error || 'Произошла ошибка при репосте');
         setSnackbarOpen(true);
       }
     } catch (error) {
       console.error('Error creating repost:', error);
-      // Показываем сообщение об ошибке от сервера или общей ошибке
+      
       setSnackbarMessage(
         error.response?.data?.error || 'Произошла ошибка при репосте'
       );
@@ -682,45 +1207,61 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
       setIsReposting(false);
     }}
 
-  // Handle comment button click to navigate to post detail
+  
   const handleCommentClick = (e) => {
     e.stopPropagation();
     navigate(`/post/${post.id}`);
   };
+  
+  
+  const handleShare = (e) => {
+    e.stopPropagation();
+    const postUrl = `${window.location.origin}/post/${post.id}`;
+    navigator.clipboard.writeText(postUrl)
+      .then(() => {
+        setSnackbarMessage("Ссылка скопирована в буфер обмена");
+        setSnackbarOpen(true);
+      })
+      .catch(err => {
+        console.error('Не удалось скопировать ссылку:', err);
+        setSnackbarMessage("Не удалось скопировать ссылку");
+        setSnackbarOpen(true);
+      });
+  };
 
-  // Toggle expanded state
+  
   const toggleExpanded = (e) => {
-    e.stopPropagation(); // Prevent post click event
+    e.stopPropagation(); 
     setIsExpanded(!isExpanded);
   };
 
-  // Make sure music tracks are received
+  
   useEffect(() => {
     if (post && post.id) {
       console.log(`Post ${post.id} music data:`, post.music);
     }
   }, [post]);
   
-  // Explicitly log when a post with music is rendered
+  
   useEffect(() => {
     if (musicTracks.length > 0) {
       console.log(`Rendering post ${post.id} with ${musicTracks.length} music tracks:`, musicTracks);
     }
   }, [musicTracks, post.id]);
 
-  // Add the getOptimizedImageUrl function
+  
   const getOptimizedImageUrl = (url) => {
     if (!url) return '/static/uploads/avatar/system/avatar.png';
     
-    // Если URL уже содержит параметр format=webp, не модифицируем
+    
     if (url.includes('format=webp')) {
       return url;
     }
     
-    // Проверяем поддержку WebP в браузере
+    
     const supportsWebP = 'imageRendering' in document.documentElement.style;
     
-    // Если браузер поддерживает WebP и URL указывает на наш сервер, добавляем параметр
+    
     if (supportsWebP && (url.startsWith('/static/') || url.startsWith('/uploads/'))) {
       return `${url}${url.includes('?') ? '&' : '?'}format=webp`;
     }
@@ -728,39 +1269,50 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     return url;
   };
 
-  // Функция для увеличения счетчика просмотров при просмотре поста
+  
+  const isPostEditable = () => {
+    if (!post?.timestamp) return false;
+    
+    const postTime = new Date(post.timestamp);
+    const currentTime = new Date();
+    const timeDifference = (currentTime - postTime) / (1000 * 60 * 60); 
+    
+    return timeDifference <= 3;
+  };
+
+  
   const incrementViewCount = async () => {
-    // Проверяем, есть ли у поста ID, и что пост был открыт
+    
     if (post && post.id) {
       try {
-        // Защита от повторных вызовов на данной странице
+        
         const viewKey = `post_viewed_${post.id}`;
         if (sessionStorage.getItem(viewKey)) {
           return;
         }
 
-        // Устанавливаем флаг просмотра в sessionStorage чтобы избежать повторных запросов
+        
         sessionStorage.setItem(viewKey, 'true');
 
-        // Функция для выполнения запроса с повторными попытками
+        
         const attemptViewCount = async (retries = 3) => {
           try {
-            // Делаем запрос на увеличение счетчика просмотров
+            
             const response = await axios.post(`/api/posts/${post.id}/view`);
             if (response.data && response.data.success) {
-              // Обновляем счетчик просмотров в состоянии только если получили ответ
+              
               setViewsCount(response.data.views_count);
             }
           } catch (error) {
             console.error(`Error incrementing view count (attempt ${4-retries}/3):`, error);
-            // Повторяем попытку, если еще есть доступные попытки
+            
             if (retries > 1) {
-              setTimeout(() => attemptViewCount(retries - 1), 1000); // Пауза 1 секунда перед следующей попыткой
+              setTimeout(() => attemptViewCount(retries - 1), 1000); 
             }
           }
         };
 
-        // Запускаем функцию с повторными попытками
+        
         attemptViewCount();
       } catch (error) {
         console.error('Error incrementing view count:', error);
@@ -768,7 +1320,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     }
   };
 
-  // Используем Intersection Observer для отслеживания видимости поста
+  
   const postRef = useRef(null);
 
   useEffect(() => {
@@ -776,28 +1328,83 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
       (entries) => {
         const [entry] = entries;
         if (entry.isIntersecting) {
-          // Пост стал видимым в viewport, увеличиваем счетчик просмотров
+          
           incrementViewCount();
-          // Отключаем отслеживание этого поста после одного срабатывания
+          
           observer.unobserve(entry.target);
         }
       },
-      { threshold: 0.5 } // Пост должен быть виден как минимум на 50% для срабатывания
+      { threshold: 0.5 } 
     );
 
-    // Начинаем отслеживать пост
+    
     if (postRef.current) {
       observer.observe(postRef.current);
     }
 
     return () => {
-      // Очищаем observer при размонтировании компонента
+      
       if (postRef.current) {
         observer.unobserve(postRef.current);
       }
     };
-  }, [post?.id]); // Пересоздаем observer при изменении ID поста
+  }, [post?.id]); 
 
+  
+  const handleReportSubmit = async () => {
+    if (!reportDialog.reason) {
+      setReportDialog({...reportDialog, error: "Пожалуйста, выберите причину жалобы"});
+      return;
+    }
+    
+    setReportDialog({...reportDialog, submitting: true, error: null});
+    
+    try {
+      
+      
+      const reportMessage = `🚨 *ЖАЛОБА НА ПОСТ*\n\n` +
+        `📝 *ID поста*: ${post.id}\n` +
+        `👤 *Автор*: ${post.user?.name} (@${post.user?.username})\n` +
+        `🚩 *Причина*: ${reportDialog.reason}\n` +
+        `👮 *Отправитель*: ${currentUser?.name} (@${currentUser?.username})\n` +
+        `⏰ *Время*: ${new Date().toLocaleString()}` +
+        (post.content ? `\n\n📄 *Текст поста*:\n${post.content?.substring(0, 300)}${post.content?.length > 300 ? '...' : ''}` : `\n\n📄 *Пост содержит медиа-контент без текста*`);
+      
+      
+      const response = await axios.post('/api/report/send-to-telegram', {
+        message: reportMessage,
+        post_id: post.id,
+        reason: reportDialog.reason,
+        post_author: post.user?.username,
+        reporter: currentUser?.username
+      });
+      
+      if (response.data && response.data.success) {
+        setReportDialog({...reportDialog, submitting: false, submitted: true});
+        
+        setTimeout(() => {
+          setReportDialog({open: false, reason: '', submitting: false, submitted: false, error: null});
+        }, 2000);
+      } else {
+        throw new Error(response.data?.error || "Ошибка при отправке жалобы");
+      }
+    } catch (error) {
+      console.error("Error submitting report:", error);
+      setReportDialog({
+        ...reportDialog, 
+        submitting: false, 
+        error: error.response?.data?.error || "Не удалось отправить жалобу. Попробуйте позже."
+      });
+    }
+  };
+  
+  
+  const handleReportClick = () => {
+    handleMenuClose();
+    setReportDialog({...reportDialog, open: true});
+  };
+
+  
   return (
     <React.Fragment>
       <PostCard 
@@ -805,7 +1412,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         sx={{ mb: 0.5 }}
       >
         <CardContent sx={{ p: { xs: 1.5, sm: 3 } }}>
-          {/* Header with avatar and name */}
+          {}
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
             <Avatar 
               src={post.user ? getOptimizedImageUrl(post.user?.avatar_url || `/static/uploads/avatar/${post.user?.id}/${post.user?.photo}`) : '/static/uploads/avatar/system/avatar.png'} 
@@ -877,47 +1484,67 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
               </Typography>
             </Box>
             
-            {isCurrentUserPost && (
-              <React.Fragment>
-                <IconButton 
-                  size="small"
-                  aria-label="Действия с постом"
-                  onClick={handleMenuOpen}
-                  sx={{ 
-                    p: 0.5, 
-                    bgcolor: 'rgba(255, 255, 255, 0.05)', 
-                    '&:hover': {
-                      bgcolor: 'rgba(255, 255, 255, 0.1)'
-                    },
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <MoreVertIcon fontSize="small" />
-                </IconButton>
-                <Menu
-                  anchorEl={menuAnchorEl}
-                  open={menuOpen}
-                  onClose={handleMenuClose}
-                  onClick={(e) => e.stopPropagation()}
-                  PaperProps={{
-                    sx: {
-                      bgcolor: '#1E1E1E',
-                      boxShadow: '0 5px 15px rgba(0, 0, 0, 0.2)',
-                      mt: 1
-                    }
-                  }}
-                  transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                  anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-                >
-                  <MenuItem onClick={handleDelete} sx={{ color: '#f44336' }}>
-                    <ListItemIcon>
-                      <DeleteIcon fontSize="small" sx={{ color: '#f44336' }} />
-                    </ListItemIcon>
-                    <ListItemText primary="Удалить" />
-                  </MenuItem>
-                </Menu>
-              </React.Fragment>
-            )}
+            {}
+            <IconButton 
+              size="small"
+              aria-label="Действия с постом"
+              onClick={handleMenuOpen}
+              sx={{ 
+                p: 0.5, 
+                bgcolor: 'rgba(255, 255, 255, 0.05)', 
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 0.1)'
+                },
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <Icon icon="solar:menu-dots-bold" width="20" height="20" />
+            </IconButton>
+            <BlurredMenu
+              anchorEl={menuAnchorEl}
+              open={menuOpen}
+              onClose={handleMenuClose}
+              onClick={(e) => e.stopPropagation()}
+              PaperProps={{
+                sx: {
+                  bgcolor: '#1E1E1E',
+                  boxShadow: '0 5px 15px rgba(0, 0, 0, 0.2)',
+                  mt: 1
+                }
+              }}
+              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            >
+              {}
+              {isCurrentUserPost && (
+                <MenuItem onClick={handleDelete} sx={{ color: '#f44336' }}>
+                  <ListItemIcon>
+                    <DeleteIcon fontSize="small" sx={{ color: '#f44336' }} />
+                  </ListItemIcon>
+                  <ListItemText primary="Удалить" />
+                </MenuItem>
+              )}
+              
+              {}
+              {isCurrentUserPost && (
+                <MenuItem onClick={handleEdit} sx={{ color: '#2196f3' }}>
+                  <ListItemIcon>
+                    <EditIcon fontSize="small" sx={{ color: '#2196f3' }} />
+                  </ListItemIcon>
+                  <ListItemText primary="Изменить" />
+                </MenuItem>
+              )}
+              
+              {}
+              {!isCurrentUserPost && (
+                <MenuItem onClick={handleReportClick} sx={{ color: '#ff9800' }}>
+                  <ListItemIcon>
+                    <FlagIcon fontSize="small" sx={{ color: '#ff9800' }} />
+                  </ListItemIcon>
+                  <ListItemText primary="Пожаловаться" />
+                </MenuItem>
+              )}
+            </BlurredMenu>
           </Box>
 
           <Box sx={{ position: 'relative' }}>
@@ -931,12 +1558,12 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                 overflowWrap: 'break-word',
               }}
             >
-              {/* Process plain text content first, then pass to ReactMarkdown */}
+              {}
               {processedContent && (
                 <ReactMarkdown 
                   components={linkRenderers}
                   skipHtml={false}
-                  transformLinkUri={null} // Don't transform or escape URIs
+                  transformLinkUri={null} 
                   remarkPlugins={[]}
                   rehypePlugins={[]}
                 >
@@ -950,7 +1577,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                 <Typography variant="body2" sx={{ mr: 1 }}>
                   Показать полностью
                 </Typography>
-                <KeyboardArrowDownIcon fontSize="small" />
+                <Icon icon="solar:alt-arrow-down-bold" width="20" height="20" />
               </ShowMoreButton>
             )}
             
@@ -959,7 +1586,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                 variant="text"
                 size="small"
                 onClick={toggleExpanded}
-                startIcon={<KeyboardArrowUpIcon />}
+                startIcon={<Icon icon="solar:alt-arrow-up-bold" width="20" height="20" />}
                 sx={{ 
                   display: 'flex',
                   mt: 1,
@@ -972,7 +1599,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             )}
           </Box>
           
-          {/* Post media - Video */}
+          {}
           {videoUrl && (
             <Box sx={{ mb: 2 }}>
               <VideoPlayer 
@@ -982,7 +1609,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             </Box>
           )}
           
-          {/* Post media - Images */}
+          {}
           {images.length > 0 && (
             <Box sx={{ px: { xs: 1.5, sm: 2 }, mb: 2 }}>
               <ImageGrid 
@@ -992,7 +1619,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             </Box>
           )}
           
-          {/* Post media - Music */}
+          {}
           {musicTracks.length > 0 && (
             <Box sx={{ mt: 0, mb: 0 }}>
               {musicTracks.map((track, index) => (
@@ -1076,90 +1703,158 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             </Box>
           )}
           
-          {/* Post actions */}
-          <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, px: 1 }}>
-            <ActionButtonContainer>
-              {/* Like Button */}
-              <ActionButton active={liked} onClick={handleLike} position="left">
-                {liked ? (
-                  <FavoriteIcon fontSize="small" color="primary" />
-                ) : (
-                  <FavoriteBorderIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-                )}
-                
-                <Box sx={{ display: 'flex', alignItems: 'center', ml: 0.5 }}>
-                  {lastLikedUsers.length > 0 && (
-                    <AvatarGroup 
-                      max={3}
+          {}
+          <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, px: 1, justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              {}
+              <ActionsPill whileTap={{ scale: 0.98 }}>
+                {}
+                <ActionItem 
+                  onClick={handleLike} 
+                  active={liked}
+                  isLike={true}
+                >
+                  {liked ? (
+                    <FavoriteIcon 
                       sx={{ 
-                        mr: 0.5,
-                        '& .MuiAvatar-root': { 
-                          width: 18, 
-                          height: 18, 
-                          fontSize: '0.65rem',
-                          border: '1px solid #1A1A1A'
-                        } 
+                        color: 'primary.main',
+                        position: 'relative', 
+                        zIndex: 2,
+                        fontSize: { xs: 16, sm: 19 }
+                      }}
+                    />
+                  ) : (
+                    <FavoriteBorderIcon 
+                      sx={{ 
+                        color: 'text.secondary',
+                        position: 'relative',
+                        zIndex: 2,
+                        fontSize: { xs: 16, sm: 19 }
+                      }}
+                    />
+                  )}
+                  
+                  <Box sx={{ display: 'flex', alignItems: 'center', ml: 0.5, position: 'relative', zIndex: 2 }}>
+                    {lastLikedUsers.length > 0 && (
+                      <AvatarGroup 
+                        max={3}
+                        sx={{ 
+                          mr: 0.5,
+                          '& .MuiAvatar-root': { 
+                            width: 18, 
+                            height: 18, 
+                            fontSize: '0.65rem',
+                            border: '1px solid #1A1A1A'
+                          } 
+                        }}
+                      >
+                        {lastLikedUsers.map(user => {
+                          
+                          let avatarUrl = user.avatar || user.photo || '';
+                          
+                          
+                          if (avatarUrl && !avatarUrl.startsWith('/') && !avatarUrl.startsWith('http')) {
+                            avatarUrl = `/static/uploads/avatar/${user.id}/${avatarUrl}`;
+                          }
+                          
+                          
+                          if (avatarUrl && !avatarUrl.includes('format=webp') && 'imageRendering' in document.documentElement.style) {
+                            
+                            if (avatarUrl.startsWith('/static/')) {
+                              avatarUrl = `${avatarUrl}${avatarUrl.includes('?') ? '&' : '?'}format=webp`;
+                            }
+                          }
+                          
+                          return (
+                            <Avatar 
+                              key={user.id} 
+                              src={avatarUrl}
+                              alt={user.name}
+                              sx={{ width: 18, height: 18 }}
+                              onError={(e) => {
+                                console.log(`Error loading avatar for user ${user.id}`);
+                                e.target.onerror = null; 
+                                e.target.src = `/static/uploads/avatar/system/avatar.png`;
+                              }}
+                            >
+                              {user.name ? user.name[0] : '?'}
+                            </Avatar>
+                          );
+                        })}
+                      </AvatarGroup>
+                    )}
+                    {likesCount > 0 && (
+                      <Typography 
+                        variant="body2" 
+                        color={liked ? 'primary' : 'text.secondary'}
+                      >
+                        {likesCount}
+                      </Typography>
+                    )}
+                  </Box>
+                </ActionItem>
+                
+                {}
+                <ActionItem
+                  onClick={handleCommentClick}
+                  isLike={false}
+                >
+                  {post?.total_comments_count > 0 || post?.comments_count > 0 ? (
+                    <ChatBubbleIcon 
+                      sx={{ 
+                        color: 'text.secondary',
+                        position: 'relative', 
+                        zIndex: 2,
+                        fontSize: { xs: 16, sm: 19 }
+                      }}
+                    />
+                  ) : (
+                    <ChatBubbleOutlineIcon 
+                      sx={{ 
+                        color: 'text.secondary',
+                        position: 'relative',
+                        zIndex: 2,
+                        fontSize: { xs: 16, sm: 19 }
+                      }}
+                    />
+                  )}
+                  {(post?.total_comments_count > 0 || post?.comments_count > 0) && (
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary" 
+                      sx={{ 
+                        ml: 0.5,
+                        position: 'relative',
+                        zIndex: 2
                       }}
                     >
-                      {lastLikedUsers.map(user => {
-                        // Правильно сформируем URL аватарки
-                        let avatarUrl = user.avatar || user.photo || '';
-                        
-                        // Если URL не начинается с http или slash, добавляем путь
-                        if (avatarUrl && !avatarUrl.startsWith('/') && !avatarUrl.startsWith('http')) {
-                          avatarUrl = `/static/uploads/avatar/${user.id}/${avatarUrl}`;
-                        }
-                        
-                        // Добавляем параметр webp для оптимизации если браузер поддерживает
-                        if (avatarUrl && !avatarUrl.includes('format=webp') && 'imageRendering' in document.documentElement.style) {
-                          // Добавляем параметр только если это URL нашего сервера
-                          if (avatarUrl.startsWith('/static/')) {
-                            avatarUrl = `${avatarUrl}${avatarUrl.includes('?') ? '&' : '?'}format=webp`;
-                          }
-                        }
-                        
-                        return (
-                          <Avatar 
-                            key={user.id} 
-                            src={avatarUrl}
-                            alt={user.name}
-                            sx={{ width: 18, height: 18 }}
-                            onError={(e) => {
-                              console.log(`Error loading avatar for user ${user.id}`);
-                              e.target.onerror = null; // Предотвращаем рекурсию
-                              e.target.src = `/static/uploads/avatar/system/avatar.png`;
-                            }}
-                          >
-                            {user.name ? user.name[0] : '?'}
-                          </Avatar>
-                        );
-                      })}
-                    </AvatarGroup>
+                      {post?.total_comments_count || post?.comments_count}
+                    </Typography>
                   )}
-                  <Typography 
-                    variant="body2" 
-                    color={liked ? 'primary' : 'text.secondary'}
-                  >
-                    {likesCount > 0 ? likesCount : ''}
-                  </Typography>
-                </Box>
-              </ActionButton>
+                </ActionItem>
+              </ActionsPill>
               
-              {/* Comment Button - Use handleCommentClick to navigate to post detail */}
-              <ActionButton onClick={handleCommentClick} position="right">
-                <ChatBubbleOutlineIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-                <Typography variant="body2" color="text.secondary" sx={{ ml: 0.5 }}>
-                  {post?.comments_count > 0 ? post.comments_count : ''}
-                </Typography>
-              </ActionButton>
-            </ActionButtonContainer>
+              {}
+              <SharePill 
+                onClick={handleShare}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <ShareRoundedIcon sx={{ 
+                  fontSize: { xs: 16, sm: 19 },
+                  color: 'text.secondary',
+                  position: 'relative',
+                  zIndex: 2
+                }} />
+              </SharePill>
+            </Box>
             
-            {/* Views Counter */}
+            {}
             <Box 
               sx={{ 
                 display: 'flex', 
-                alignItems: 'center', 
-                ml: 'auto', 
+                alignItems: 'center',
+                ml: 'auto',
                 color: 'text.secondary',
                 backgroundColor: 'rgba(255, 255, 255, 0.03)',
                 borderRadius: '16px',
@@ -1185,7 +1880,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       />
       
-      {/* Модальное окно для репоста */}
+      {}
       <Dialog
         open={repostModalOpen}
         onClose={handleCloseRepostModal}
@@ -1229,7 +1924,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             width: '18px',
             height: '18px',
             marginRight: '10px',
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%237B68EE'%3E%3Cpath d='M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z'%3E%3C/path%3E%3C/svg%3E")`,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http:
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat'
           }
@@ -1268,8 +1963,8 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                   },
                   '& .MuiOutlinedInput-input': {
                     fontSize: '0.95rem',
-                    color: 'transparent',  // Make the actual input text transparent
-                    caretColor: 'rgba(255, 255, 255, 0.9)'  // Keep the cursor visible
+                    color: 'transparent',  
+                    caretColor: 'rgba(255, 255, 255, 0.9)'  
                   }
                 },
                 '& .MuiFormHelperText-root': {
@@ -1282,7 +1977,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             {renderRepostInputWithMentions()}
           </Box>
           
-          {/* Предпросмотр оригинального поста */}
+          {}
           <Box 
             sx={{ 
               p: 2.5, 
@@ -1415,7 +2110,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         </DialogActions>
       </Dialog>
       
-      {/* Lightbox for displaying images */}
+      {}
       {lightboxOpen && (
         <LightBox
           isOpen={lightboxOpen}
@@ -1434,6 +2129,666 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
           currentIndex={currentImageIndex}
         />
       )}
+      
+      {}
+      <Dialog
+        open={deleteDialog.open}
+        onClose={() => !deleteDialog.deleting && !deleteDialog.deleted && setDeleteDialog({ ...deleteDialog, open: false })}
+        PaperProps={{
+          sx: {
+            bgcolor: 'rgba(32, 32, 36, 0.8)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+            width: '100%',
+            maxWidth: '400px',
+            borderRadius: '16px',
+            border: '1px solid rgba(100, 90, 140, 0.1)',
+            '&:before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              borderRadius: '16px',
+              background: 'linear-gradient(145deg, rgba(30, 30, 30, 0.6), rgba(20, 20, 20, 0.75))',
+              backdropFilter: 'blur(30px)',
+              zIndex: -1
+            }
+          }
+        }}
+      >
+        <Box sx={{ p: 3 }}>
+          {deleteDialog.deleted ? (
+            <>
+              <Box sx={{ textAlign: 'center', py: 2 }}>
+                <CheckCircleIcon sx={{ fontSize: 56, color: '#4CAF50', mb: 2 }} />
+                <Typography variant="h6" sx={{ mb: 1, color: 'white' }}>
+                  Пост удален
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                  Пост был успешно удален
+                </Typography>
+              </Box>
+            </>
+          ) : (
+            <>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  mb: 2, 
+                  color: '#f44336',
+                  fontWeight: 'medium',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
+                <DeleteIcon sx={{ mr: 1 }} /> Удаление поста
+              </Typography>
+              <Typography sx={{ mb: 3, color: 'rgba(255, 255, 255, 0.7)' }}>
+                Вы уверены, что хотите удалить этот пост? Это действие нельзя отменить.
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                <Button 
+                  onClick={() => setDeleteDialog({ ...deleteDialog, open: false })}
+                  disabled={deleteDialog.deleting}
+                  sx={{ 
+                    borderRadius: '10px',
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    px: 2,
+                    '&:hover': {
+                      bgcolor: 'rgba(255, 255, 255, 0.08)',
+                      color: 'rgba(255, 255, 255, 0.9)'
+                    }
+                  }}
+                >
+                  Отмена
+                </Button>
+                <Button 
+                  onClick={confirmDelete}
+                  disabled={deleteDialog.deleting}
+                  variant="contained" 
+                  color="error"
+                  sx={{ 
+                    borderRadius: '10px',
+                    boxShadow: 'none',
+                    px: 2
+                  }}
+                  endIcon={deleteDialog.deleting ? <CircularProgress size={16} color="inherit" /> : null}
+                >
+                  {deleteDialog.deleting ? 'Удаление...' : 'Удалить'}
+                </Button>
+              </Box>
+            </>
+          )}
+        </Box>
+      </Dialog>
+      
+      {}
+      <Dialog
+        open={reportDialog.open}
+        onClose={() => !reportDialog.submitting && !reportDialog.submitted && setReportDialog({...reportDialog, open: false})}
+        PaperProps={{
+          sx: {
+            bgcolor: 'rgba(32, 32, 36, 0.8)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+            width: '100%',
+            maxWidth: '450px',
+            borderRadius: '16px',
+            border: '1px solid rgba(100, 90, 140, 0.1)',
+            '&:before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              borderRadius: '16px',
+              background: 'linear-gradient(145deg, rgba(30, 30, 30, 0.6), rgba(20, 20, 20, 0.75))',
+              backdropFilter: 'blur(30px)',
+              zIndex: -1
+            }
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          borderBottom: '1px solid rgba(100, 90, 140, 0.1)',
+          px: 3,
+          py: 2,
+          color: 'white',
+          fontWeight: 500,
+          fontSize: '1.1rem',
+          display: 'flex',
+          alignItems: 'center',
+          '&:before': {
+            content: '""',
+            display: 'inline-block',
+            width: '18px',
+            height: '18px',
+            marginRight: '10px',
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http:
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat'
+          }
+        }}>
+          Пожаловаться на пост
+        </DialogTitle>
+        
+        {reportDialog.submitted ? (
+          <Box sx={{ p: 3, textAlign: 'center' }}>
+            <CheckCircleIcon sx={{ fontSize: 56, color: '#4CAF50', mb: 2 }} />
+            <Typography variant="h6" sx={{ mb: 1, color: 'white' }}>
+              Жалоба отправлена
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+              Спасибо за вашу бдительность! Модераторы рассмотрят вашу жалобу.
+            </Typography>
+          </Box>
+        ) : (
+          <>
+            <DialogContent sx={{ pt: 3, px: 3 }}>
+              <Typography variant="body2" sx={{ mb: 3, color: 'rgba(255, 255, 255, 0.7)' }}>
+                Выберите причину жалобы, и наши модераторы рассмотрят этот пост. Спасибо за помощь в поддержании порядка!
+              </Typography>
+              
+              {reportDialog.error && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {reportDialog.error}
+                </Alert>
+              )}
+              
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: 1.5,
+                  mb: 2
+                }}
+              >
+                {reportReasons.map(reason => (
+                  <Button
+                    key={reason}
+                    variant={reportDialog.reason === reason ? "contained" : "outlined"}
+                    color={reportDialog.reason === reason ? "warning" : "inherit"}
+                    onClick={() => setReportDialog({...reportDialog, reason, error: null})}
+                    sx={{
+                      borderRadius: '10px',
+                      justifyContent: 'flex-start',
+                      textTransform: 'none',
+                      py: 1,
+                      backgroundColor: reportDialog.reason === reason ? 'rgba(255, 152, 0, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                      borderColor: reportDialog.reason === reason ? 'rgba(255, 152, 0, 0.5)' : 'rgba(255, 255, 255, 0.1)',
+                      '&:hover': {
+                        backgroundColor: reportDialog.reason === reason ? 'rgba(255, 152, 0, 0.15)' : 'rgba(255, 255, 255, 0.1)',
+                        borderColor: reportDialog.reason === reason ? 'rgba(255, 152, 0, 0.6)' : 'rgba(255, 255, 255, 0.2)',
+                      }
+                    }}
+                  >
+                    {reason}
+                  </Button>
+                ))}
+              </Box>
+              
+              {reportDialog.reason === "Другое" && (
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  placeholder="Укажите причину жалобы"
+                  variant="outlined"
+                  value={reportDialog.customReason || ''}
+                  onChange={(e) => setReportDialog({...reportDialog, customReason: e.target.value})}
+                  sx={{
+                    mb: 2,
+                    '& .MuiOutlinedInput-root': {
+                      bgcolor: 'rgba(255, 255, 255, 0.05)',
+                      borderRadius: '10px',
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(255, 152, 0, 0.5)'
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#ff9800',
+                        borderWidth: '1px'
+                      }
+                    }
+                  }}
+                />
+              )}
+              
+              {}
+              <Box 
+                sx={{ 
+                  p: 2, 
+                  border: '1px solid rgba(255, 152, 0, 0.3)', 
+                  borderRadius: '10px',
+                  bgcolor: 'rgba(255, 152, 0, 0.05)',
+                }}
+              >
+                <Typography variant="caption" sx={{ display: 'block', color: 'rgba(255, 255, 255, 0.5)', mb: 1 }}>
+                  Пост пользователя {post?.user?.name}
+                </Typography>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    fontSize: '0.8rem'
+                  }}
+                >
+                  {post?.content}
+                </Typography>
+              </Box>
+            </DialogContent>
+            <DialogActions sx={{ p: 2, justifyContent: 'space-between' }}>
+              <Button 
+                onClick={() => setReportDialog({...reportDialog, open: false})}
+                disabled={reportDialog.submitting}
+                sx={{ 
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  '&:hover': {
+                    bgcolor: 'rgba(255, 255, 255, 0.05)'
+                  }
+                }}
+              >
+                Отмена
+              </Button>
+              <Button 
+                onClick={handleReportSubmit}
+                disabled={reportDialog.submitting || !reportDialog.reason}
+                variant="contained" 
+                color="warning"
+                startIcon={reportDialog.submitting ? <CircularProgress size={16} color="inherit" /> : <ReportProblemIcon />}
+                sx={{ 
+                  bgcolor: '#ff9800',
+                  '&:hover': {
+                    bgcolor: '#f57c00'
+                  }
+                }}
+              >
+                {reportDialog.submitting ? 'Отправка...' : 'Отправить жалобу'}
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+      
+      {}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={5000}
+        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} 
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+      
+      {}
+      <Dialog
+        open={editDialog.open}
+        onClose={() => !editDialog.submitting && handleCloseEditDialog()}
+        PaperProps={{
+          sx: {
+            borderRadius: '16px',
+            bgcolor: 'rgba(32, 32, 36, 0.8)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+            width: '95%',
+            maxWidth: '600px',
+            border: '1px solid rgba(100, 90, 140, 0.1)',
+            '&:before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              borderRadius: '16px',
+              background: 'linear-gradient(145deg, rgba(30, 30, 30, 0.6), rgba(20, 20, 20, 0.75))',
+              backdropFilter: 'blur(30px)',
+              zIndex: -1
+            }
+          }
+        }}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle sx={{ 
+          borderBottom: '1px solid rgba(100, 90, 140, 0.1)',
+          px: 3,
+          py: 2,
+          color: 'white',
+          fontWeight: 500,
+          fontSize: '1.1rem',
+          display: 'flex',
+          alignItems: 'center',
+          '&:before': {
+            content: '""',
+            display: 'inline-block',
+            width: '18px',
+            height: '18px',
+            marginRight: '10px',
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http:
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat'
+          }
+        }}>
+          Редактировать пост
+        </DialogTitle>
+        <DialogContent sx={{ pt: 3, px: 3 }}>
+          <Typography variant="caption" sx={{ display: 'block', color: 'rgba(255, 255, 255, 0.6)', mb: 2 }}>
+            Редактирование доступно только в течение 3 часов после публикации
+          </Typography>
+          
+          {editDialog.error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {editDialog.error}
+            </Alert>
+          )}
+          
+          {}
+          <TextField
+            fullWidth
+            multiline
+            minRows={3}
+            maxRows={8}
+            label="Текст поста"
+            value={editDialog.content}
+            onChange={handleEditContentChange}
+            margin="normal"
+            disabled={editDialog.submitting}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                bgcolor: 'rgba(255, 255, 255, 0.08)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.09)',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 0.1)',
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(100, 90, 140, 0.3)'
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#2196f3',
+                  borderWidth: '1px'
+                }
+              },
+              '& .MuiInputLabel-root': {
+                color: 'rgba(255, 255, 255, 0.7)'
+              },
+              '& .MuiInputBase-input': {
+                color: 'rgba(255, 255, 255, 0.9)'
+              }
+            }}
+          />
+          
+          {}
+          {(post.images?.length > 0 || post.image) && !editDialog.deleteImages && (
+            <Box sx={{ mt: 2, mb: 1 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Текущие изображения
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {post.images ? post.images.map((img, idx) => (
+                  <Box 
+                    key={`current-img-${idx}`}
+                    component="img"
+                    src={img}
+                    alt={`Изображение ${idx + 1}`}
+                    sx={{ 
+                      width: 80, 
+                      height: 80, 
+                      objectFit: 'cover',
+                      borderRadius: 1
+                    }}
+                  />
+                )) : post.image && (
+                  <Box 
+                    component="img"
+                    src={post.image}
+                    alt="Изображение поста"
+                    sx={{ 
+                      width: 80, 
+                      height: 80, 
+                      objectFit: 'cover',
+                      borderRadius: 1
+                    }}
+                  />
+                )}
+              </Box>
+              <FormControlLabel
+                control={
+                  <Checkbox 
+                    checked={editDialog.deleteImages}
+                    onChange={handleToggleDeleteImages}
+                    disabled={editDialog.submitting}
+                    sx={{
+                      color: 'rgba(255, 255, 255, 0.5)',
+                      '&.Mui-checked': {
+                        color: '#2196f3',
+                      }
+                    }}
+                  />
+                }
+                label="Удалить существующие изображения"
+                sx={{ 
+                  mt: 1,
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  '& .MuiFormControlLabel-label': {
+                    fontSize: '0.9rem'
+                  }
+                }}
+              />
+            </Box>
+          )}
+          
+          {}
+          {post.video && !editDialog.deleteVideo && (
+            <Box sx={{ mt: 2, mb: 1 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Текущее видео
+              </Typography>
+              <Box 
+                component="video"
+                src={post.video}
+                controls
+                sx={{ 
+                  maxWidth: '100%',
+                  height: 120,
+                  borderRadius: 1
+                }}
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox 
+                    checked={editDialog.deleteVideo}
+                    onChange={handleToggleDeleteVideo}
+                    disabled={editDialog.submitting}
+                    sx={{
+                      color: 'rgba(255, 255, 255, 0.5)',
+                      '&.Mui-checked': {
+                        color: '#2196f3',
+                      }
+                    }}
+                  />
+                }
+                label="Удалить существующее видео"
+                sx={{ 
+                  mt: 1, 
+                  display: 'block',
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  '& .MuiFormControlLabel-label': {
+                    fontSize: '0.9rem'
+                  }
+                }}
+              />
+            </Box>
+          )}
+          
+          {}
+          {post.music && post.music.length > 0 && !editDialog.deleteMusic && (
+            <Box sx={{ mt: 2, mb: 1 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Текущие аудиотреки
+              </Typography>
+              <List dense>
+                {post.music.map((track, idx) => (
+                  <ListItem key={`music-${idx}`} sx={{ py: 0.5 }}>
+                    <ListItemIcon sx={{ minWidth: 36 }}>
+                      <MusicNoteIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={track.title} 
+                      secondary={track.artist}
+                      primaryTypographyProps={{ noWrap: true, variant: 'body2' }}
+                      secondaryTypographyProps={{ noWrap: true, variant: 'caption' }}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+              <FormControlLabel
+                control={
+                  <Checkbox 
+                    checked={editDialog.deleteMusic}
+                    onChange={handleToggleDeleteMusic}
+                    disabled={editDialog.submitting}
+                    sx={{
+                      color: 'rgba(255, 255, 255, 0.5)',
+                      '&.Mui-checked': {
+                        color: '#2196f3',
+                      }
+                    }}
+                  />
+                }
+                label="Удалить музыку"
+                sx={{ 
+                  mt: 0.5,
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  '& .MuiFormControlLabel-label': {
+                    fontSize: '0.9rem'
+                  }
+                }}
+              />
+            </Box>
+          )}
+          
+          {}
+          <Box sx={{ mt: 2 }}>
+            <Button
+              variant="outlined"
+              component="label"
+              startIcon={<PhotoIcon />}
+              disabled={editDialog.submitting}
+              sx={{ 
+                mr: 1, 
+                mb: 1,
+                borderRadius: '10px',
+                backdropFilter: 'blur(5px)',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                color: 'rgba(255, 255, 255, 0.8)',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  borderColor: 'rgba(255, 255, 255, 0.2)',
+                }
+              }}
+            >
+              Добавить изображения
+              <input
+                type="file"
+                multiple
+                accept="image}
+          {editDialog.previews.length > 0 && (
+            <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {editDialog.previews.map((preview, idx) => (
+                <Box
+                  key={`preview-${idx}`}
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: '10px',
+                    overflow: 'hidden',
+                    position: 'relative',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                  }}
+                >
+                  <img
+                    src={preview}
+                    alt={`Preview ${idx + 1}`}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover'
+                    }}
+                  />
+                </Box>
+              ))}
+            </Box>
+          )}
+          
+          {}
+          {editDialog.newVideo && (
+            <Box sx={{ 
+              mt: 2,
+              p: 1.5,
+              borderRadius: '10px',
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.1)'
+            }}>
+              <Typography variant="caption" color="rgba(255, 255, 255, 0.7)">
+                Новое видео выбрано: {editDialog.newVideo.name}
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button 
+            onClick={handleCloseEditDialog} 
+            variant="outlined" 
+            color="primary"
+            disabled={editDialog.submitting}
+            sx={{
+              borderRadius: '10px',
+              borderColor: 'rgba(33, 150, 243, 0.3)',
+              color: 'rgba(255, 255, 255, 0.8)',
+              '&:hover': {
+                borderColor: 'rgba(33, 150, 243, 0.5)',
+                backgroundColor: 'rgba(33, 150, 243, 0.05)'
+              }
+            }}
+          >
+            Отмена
+          </Button>
+          <Button 
+            onClick={handleSubmitEdit} 
+            variant="contained" 
+            color="primary"
+            disabled={editDialog.submitting}
+            startIcon={editDialog.submitting ? <CircularProgress size={16} color="inherit" /> : null}
+            sx={{
+              borderRadius: '10px',
+              backgroundColor: '#2196f3',
+              '&:hover': {
+                backgroundColor: '#1976d2'
+              }
+            }}
+          >
+            {editDialog.submitting ? 'Сохранение...' : 'Сохранить изменения'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </React.Fragment>
   );
 };

@@ -1,10 +1,7 @@
 import React from 'react';
 import { Box } from '@mui/material';
 
-/**
- * ContentLoader component with no animations
- * Directly renders content without any transitions
- */
+
 const ContentLoader = ({ 
   loading, 
   children, 

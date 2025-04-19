@@ -2,47 +2,41 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Dialog, 
   DialogContent, 
-  IconButton, 
   Box,
-  Typography,
   Fade,
-  Slide
+  IconButton,
+  useMediaQuery,
+  useTheme,
+  Typography,
+  Paper
 } from '@mui/material';
 
-// Icons
-import CloseIcon from '@mui/icons-material/Close';
+
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
-import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import CommentIcon from '@mui/icons-material/Comment';
-import ShareIcon from '@mui/icons-material/Share';
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
+import DownloadIcon from '@mui/icons-material/Download';
+import CloseIcon from '@mui/icons-material/Close';
 
-// Import our imageUtils for WebP optimization
+
 import { optimizeImage } from '../utils/imageUtils';
 
-/**
- * LightBox component for displaying images with navigation and actions
- */
+
 const LightBox = ({ 
   isOpen, 
   onClose, 
-  imageSrc, 
-  title,
-  caption,
-  liked,
-  likesCount,
-  onLike,
-  onComment,
-  onShare,
+  imageSrc,
   onNext,
   onPrev,
-  totalImages,
-  currentIndex
+  caption,
+  title,
+  hasNext = false,
+  hasPrev = false,
+  totalImages = 1,
+  currentIndex = 0
 }) => {
-  // State for zoom and position
+  
   const [zoom, setZoom] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -50,10 +44,18 @@ const LightBox = ({
   const [optimizedImage, setOptimizedImage] = useState(null);
   const [imageLoading, setImageLoading] = useState(true);
   
-  // Ref for tracking if component is mounted
+  
+  const [touchStartDistance, setTouchStartDistance] = useState(null);
+  const [touchStartX, setTouchStartX] = useState(null);
+  
+  
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  
+  
   const isMounted = useRef(true);
   
-  // Optimize image when imageSrc changes
+  
   useEffect(() => {
     if (!imageSrc) return;
     
@@ -61,19 +63,19 @@ const LightBox = ({
       setImageLoading(true);
       try {
         const optimized = await optimizeImage(imageSrc, {
-          quality: 0.9, // Higher quality for lightbox
-          maxWidth: window.innerWidth > 1920 ? 1920 : window.innerWidth, // Limit to screen width
+          quality: 0.9, 
+          maxWidth: window.innerWidth > 1920 ? 1920 : window.innerWidth, 
           cacheResults: true
         });
         
-        // Only update state if component is still mounted
+        
         if (isMounted.current) {
           setOptimizedImage(optimized);
           setImageLoading(false);
         }
       } catch (error) {
         console.error('Error optimizing lightbox image:', error);
-        // Fallback to original image
+        
         if (isMounted.current) {
           setOptimizedImage({ src: imageSrc, originalSrc: imageSrc });
           setImageLoading(false);
@@ -83,41 +85,44 @@ const LightBox = ({
     
     loadOptimizedImage();
     
-    // Reset zoom and position when image changes
+    
     setZoom(1);
     setPosition({ x: 0, y: 0 });
     
-    // Cleanup function
+    
     return () => {
       isMounted.current = false;
     };
   }, [imageSrc]);
   
-  // Set isMounted to false when unmounting
+  
   useEffect(() => {
     return () => {
       isMounted.current = false;
     };
   }, []);
   
-  // Function to handle zoom in
-  const handleZoomIn = () => {
-    if (zoom < 3) {
-      setZoom(prevZoom => Math.min(prevZoom + 0.5, 3));
-    }
-  };
   
-  // Function to handle zoom out
-  const handleZoomOut = () => {
-    if (zoom > 1) {
-      setZoom(prevZoom => Math.max(prevZoom - 0.5, 1));
-      if (zoom - 0.5 <= 1) {
-        setPosition({ x: 0, y: 0 });
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!isOpen) return;
+      
+      if (e.key === 'ArrowRight' && hasNext && onNext) {
+        onNext();
+      } else if (e.key === 'ArrowLeft' && hasPrev && onPrev) {
+        onPrev();
+      } else if (e.key === 'Escape') {
+        onClose();
       }
-    }
-  };
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onNext, onPrev, hasNext, hasPrev, onClose]);
   
-  // Mouse drag handlers
+  
   const handleMouseDown = (e) => {
     if (zoom > 1) {
       setIsDragging(true);
@@ -125,6 +130,11 @@ const LightBox = ({
         x: e.clientX - position.x,
         y: e.clientY - position.y
       });
+    } else {
+      
+      if (e.detail === 2) {
+        setZoom(prevZoom => Math.min(prevZoom + 1, 3));
+      }
     }
   };
   
@@ -141,40 +151,118 @@ const LightBox = ({
     setIsDragging(false);
   };
   
-  // Function to handle key presses
-  const handleKeyDown = (e) => {
-    if (isOpen) {
-      if (e.key === 'Escape') {
-        onClose();
-      } else if (e.key === 'ArrowLeft' && onPrev) {
-        onPrev();
-      } else if (e.key === 'ArrowRight' && onNext) {
-        onNext();
-      } else if (e.key === '+' || e.key === '=') {
-        handleZoomIn();
-      } else if (e.key === '-') {
-        handleZoomOut();
+  
+  const handleWheel = (e) => {
+    e.preventDefault();
+    if (e.deltaY < 0) {
+      
+      setZoom(prevZoom => Math.min(prevZoom + 0.5, 3));
+    } else {
+      
+      setZoom(prevZoom => Math.max(prevZoom - 0.5, 1));
+      if (zoom - 0.5 <= 1) {
+        setPosition({ x: 0, y: 0 });
       }
     }
   };
   
-  // Add event listener for key presses
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen, onNext, onPrev]);
   
-  // Determine if we should show the background blur
+  const handleTouchStart = (e) => {
+    
+    if (e.touches.length === 1) {
+      setTouchStartX(e.touches[0].clientX);
+      
+      if (zoom > 1) {
+        setIsDragging(true);
+        setDragStart({
+          x: e.touches[0].clientX - position.x,
+          y: e.touches[0].clientY - position.y
+        });
+      }
+    }
+    
+    
+    if (e.touches.length > 1) {
+      e.preventDefault();
+    }
+  };
+  
+  const handleTouchMove = (e) => {
+    
+    e.preventDefault();
+    
+    
+    if (e.touches.length === 1 && isDragging && zoom > 1) {
+      
+      setPosition({
+        x: e.touches[0].clientX - dragStart.x,
+        y: e.touches[0].clientY - dragStart.y
+      });
+    }
+  };
+  
+  const handleTouchEnd = (e) => {
+    
+    if (touchStartX !== null && zoom === 1 && e.changedTouches.length === 1) {
+      const touchEndX = e.changedTouches[0].clientX;
+      const diffX = touchEndX - touchStartX;
+      
+      
+      if (Math.abs(diffX) > 50) {
+        if (diffX > 0 && hasPrev && onPrev) {
+          
+          onPrev();
+        } else if (diffX < 0 && hasNext && onNext) {
+          
+          onNext();
+        }
+      }
+    }
+    
+    setIsDragging(false);
+    setTouchStartDistance(null);
+    setTouchStartX(null);
+  };
+  
+  
+  const handleZoomIn = () => {
+    setZoom(prevZoom => Math.min(prevZoom + 0.5, 3));
+  };
+  
+  
+  const handleZoomOut = () => {
+    setZoom(prevZoom => Math.max(prevZoom - 0.5, 1));
+    if (zoom - 0.5 <= 1) {
+      setPosition({ x: 0, y: 0 });
+    }
+  };
+  
+  
+  const handleDownload = () => {
+    if (!optimizedImage) return;
+    
+    
+    const link = document.createElement('a');
+    
+    
+    link.href = optimizedImage.originalSrc;
+    link.download = `image_${Date.now()}.jpg`; 
+    
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
+  
   const showBackgroundBlur = !imageLoading && optimizedImage;
   
   return (
     <Dialog
       open={isOpen}
       onClose={onClose}
-      maxWidth="xl"
-      fullWidth
+      maxWidth={false}
+      fullScreen
       TransitionComponent={Fade}
       transitionDuration={300}
       PaperProps={{
@@ -182,15 +270,21 @@ const LightBox = ({
           bgcolor: 'rgba(0, 0, 0, 0.9)',
           boxShadow: 'none',
           borderRadius: 0,
-          height: '100%',
-          m: 0
+          height: '100vh',
+          width: '100vw',
+          m: 0,
+          p: 0,
+          overflow: 'hidden',
+          zIndex: 1000000000 
         }
       }}
     >
       <DialogContent
         sx={{
           p: 0,
-          height: '100%',
+          m: 0,
+          height: '100vh',
+          width: '100vw',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
@@ -202,166 +296,54 @@ const LightBox = ({
           }
         }}
       >
-        {/* Close button */}
+        {}
         <IconButton
           onClick={onClose}
           sx={{
             position: 'absolute',
-            top: 16,
-            right: 16,
-            bgcolor: 'rgba(0, 0, 0, 0.5)',
+            top: 20,
+            right: 20,
+            backgroundColor: 'rgba(255, 255, 255, 0.15)',
             color: 'white',
-            zIndex: 10,
             '&:hover': {
-              bgcolor: 'rgba(0, 0, 0, 0.7)',
-            }
+              backgroundColor: 'rgba(255, 255, 255, 0.3)'
+            },
+            width: 40,
+            height: 40,
+            boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+            zIndex: 3
           }}
         >
           <CloseIcon />
         </IconButton>
-        
-        {/* Zoom controls */}
+
+        {}
         <Box
           sx={{
             position: 'absolute',
-            bottom: 16,
-            left: 16,
-            display: 'flex',
-            gap: 1,
-            zIndex: 10
-          }}
-        >
-          <IconButton
-            onClick={handleZoomOut}
-            disabled={zoom <= 1}
-            sx={{
-              bgcolor: 'rgba(0, 0, 0, 0.5)',
-              color: 'white',
-              '&:hover': {
-                bgcolor: 'rgba(0, 0, 0, 0.7)',
-              },
-              '&.Mui-disabled': {
-                color: 'rgba(255, 255, 255, 0.3)',
-                bgcolor: 'rgba(0, 0, 0, 0.3)',
-              }
-            }}
-          >
-            <ZoomOutIcon />
-          </IconButton>
-          <IconButton
-            onClick={handleZoomIn}
-            disabled={zoom >= 3}
-            sx={{
-              bgcolor: 'rgba(0, 0, 0, 0.5)',
-              color: 'white',
-              '&:hover': {
-                bgcolor: 'rgba(0, 0, 0, 0.7)',
-              },
-              '&.Mui-disabled': {
-                color: 'rgba(255, 255, 255, 0.3)',
-                bgcolor: 'rgba(0, 0, 0, 0.3)',
-              }
-            }}
-          >
-            <ZoomInIcon />
-          </IconButton>
-        </Box>
-        
-        {/* Navigation buttons for multiple images */}
-        {totalImages > 1 && (
-          <>
-            <IconButton
-              onClick={onPrev}
-              sx={{
-                position: 'absolute',
-                left: 16,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                bgcolor: 'rgba(0, 0, 0, 0.5)',
-                color: 'white',
-                zIndex: 10,
-                '&:hover': {
-                  bgcolor: 'rgba(0, 0, 0, 0.7)',
-                }
-              }}
-            >
-              <NavigateBeforeIcon />
-            </IconButton>
-            <IconButton
-              onClick={onNext}
-              sx={{
-                position: 'absolute',
-                right: 16,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                bgcolor: 'rgba(0, 0, 0, 0.5)',
-                color: 'white',
-                zIndex: 10,
-                '&:hover': {
-                  bgcolor: 'rgba(0, 0, 0, 0.7)',
-                }
-              }}
-            >
-              <NavigateNextIcon />
-            </IconButton>
-          </>
-        )}
-        
-        {/* Image counter */}
-        {totalImages > 1 && (
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 16,
-              left: 16,
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-              borderRadius: '12px',
-              px: 1.5,
-              py: 0.5,
-              zIndex: 10
-            }}
-          >
-            <Typography variant="body2" color="white">
-              {currentIndex + 1} / {totalImages}
-            </Typography>
-          </Box>
-        )}
-
-        {/* Loading indicator */}
-        {imageLoading && (
-          <Box
-            sx={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              color: 'white'
-            }}
-          >
-            <Typography>Loading...</Typography>
-          </Box>
-        )}
-
-        {/* Image */}
-        <Box
-          sx={{
-            height: '100%',
-            width: '100%',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             overflow: 'hidden',
             cursor: isDragging ? 'grabbing' : zoom > 1 ? 'grab' : 'default',
-            position: 'relative',
-            visibility: imageLoading ? 'hidden' : 'visible'
+            visibility: imageLoading ? 'hidden' : 'visible',
+            touchAction: 'none', 
+            WebkitOverflowScrolling: 'touch', 
+            msContentZooming: 'none', 
+            msOverflowStyle: 'none' 
           }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
+          onWheel={handleWheel}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           {showBackgroundBlur && (
             <Box
@@ -382,19 +364,29 @@ const LightBox = ({
           )}
           
           {!imageLoading && optimizedImage && (
-            <picture>
+            <picture
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
               {optimizedImage.type === 'image/webp' && (
                 <source srcSet={optimizedImage.src} type="image/webp" />
               )}
               <img
                 src={optimizedImage.originalSrc}
-                alt={caption || "Image"}
+                alt="Image"
                 style={{
                   transform: `scale(${zoom}) translate(${position.x / zoom}px, ${position.y / zoom}px)`,
-                  maxHeight: zoom === 1 ? 'calc(100% - 100px)' : 'none',
-                  maxWidth: zoom === 1 ? '100%' : 'none',
-                  transition: isDragging ? 'none' : 'transform 0.3s ease',
+                  maxHeight: zoom === 1 ? '100vh' : 'none', 
+                  maxWidth: zoom === 1 ? '100vw' : 'none', 
+                  width: zoom === 1 ? 'auto' : 'auto', 
+                  height: zoom === 1 ? 'auto' : 'auto', 
                   objectFit: 'contain',
+                  transition: isDragging ? 'none' : 'transform 0.3s ease',
                   zIndex: 1
                 }}
                 draggable={false}
@@ -402,64 +394,128 @@ const LightBox = ({
             </picture>
           )}
         </Box>
-
-        {/* Info and action bar */}
-        {(title || caption || onLike || onComment || onShare) && (
-          <Slide direction="up" in={true} mountOnEnter unmountOnExit>
-            <Box
+        
+        {}
+        {hasPrev && (
+          <IconButton 
+            onClick={onPrev}
+            sx={{
+              position: 'absolute',
+              left: 20,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              backgroundColor: 'rgba(255, 255, 255, 0.15)',
+              color: 'white',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.3)'
+              },
+              width: isMobile ? 40 : 50,
+              height: isMobile ? 40 : 50,
+              boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+              zIndex: 2
+            }}
+          >
+            <NavigateBeforeIcon fontSize={isMobile ? 'medium' : 'large'} />
+          </IconButton>
+        )}
+        
+        {hasNext && (
+          <IconButton 
+            onClick={onNext}
+            sx={{
+              position: 'absolute',
+              right: 20,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              backgroundColor: 'rgba(255, 255, 255, 0.15)',
+              color: 'white',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.3)'
+              },
+              width: isMobile ? 40 : 50,
+              height: isMobile ? 40 : 50,
+              boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+              zIndex: 2
+            }}
+          >
+            <NavigateNextIcon fontSize={isMobile ? 'medium' : 'large'} />
+          </IconButton>
+        )}
+        
+        {}
+        {!isMobile && (
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 20,
+              left: 20,
+              display: 'flex',
+              gap: 1,
+              zIndex: 2
+            }}
+          >
+            <IconButton
+              onClick={handleZoomOut}
+              disabled={zoom <= 1}
               sx={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                bgcolor: 'rgba(0, 0, 0, 0.7)',
-                p: 2,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 1,
-                zIndex: 5
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.3)'
+                },
+                '&.Mui-disabled': {
+                  color: 'rgba(255, 255, 255, 0.3)',
+                },
+                width: 40,
+                height: 40,
+                boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
               }}
             >
-              {title && (
-                <Typography variant="h6" color="white" fontWeight="bold">
-                  {title}
-                </Typography>
-              )}
-              {caption && (
-                <Typography variant="body2" color="white">
-                  {caption}
-                </Typography>
-              )}
-              {(onLike || onComment || onShare) && (
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                  {onLike && (
-                    <IconButton
-                      onClick={onLike}
-                      sx={{ color: liked ? 'error.main' : 'white' }}
-                    >
-                      {liked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                    </IconButton>
-                  )}
-                  {likesCount > 0 && (
-                    <Typography variant="body2" color="white">
-                      {likesCount} {likesCount === 1 ? 'Like' : 'Likes'}
-                    </Typography>
-                  )}
-                  {onComment && (
-                    <IconButton onClick={onComment} sx={{ color: 'white' }}>
-                      <CommentIcon />
-                    </IconButton>
-                  )}
-                  {onShare && (
-                    <IconButton onClick={onShare} sx={{ color: 'white' }}>
-                      <ShareIcon />
-                    </IconButton>
-                  )}
-                </Box>
-              )}
-            </Box>
-          </Slide>
+              <ZoomOutIcon />
+            </IconButton>
+            
+            <IconButton
+              onClick={handleZoomIn}
+              disabled={zoom >= 3}
+              sx={{
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.3)'
+                },
+                '&.Mui-disabled': {
+                  color: 'rgba(255, 255, 255, 0.3)',
+                },
+                width: 40,
+                height: 40,
+                boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
+              }}
+            >
+              <ZoomInIcon />
+            </IconButton>
+          </Box>
         )}
+        
+        {}
+        <IconButton
+          onClick={handleDownload}
+          sx={{
+            position: 'absolute',
+            bottom: 20,
+            right: 20,
+            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+            color: 'white',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 255, 255, 0.3)'
+            },
+            width: 40,
+            height: 40,
+            boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+            zIndex: 2
+          }}
+        >
+          <DownloadIcon />
+        </IconButton>
       </DialogContent>
     </Dialog>
   );

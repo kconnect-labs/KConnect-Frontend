@@ -19,33 +19,36 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
-import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
-import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
-import GroupRoundedIcon from '@mui/icons-material/GroupRounded';
-import MusicNoteRoundedIcon from '@mui/icons-material/MusicNoteRounded';
-import MessageRoundedIcon from '@mui/icons-material/MessageRounded';
-import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
-import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
-import KeyboardArrowUpRoundedIcon from '@mui/icons-material/KeyboardArrowUpRounded';
-import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
-import EventRoundedIcon from '@mui/icons-material/EventRounded';
-import VideogameAssetRoundedIcon from '@mui/icons-material/VideogameAssetRounded';
-import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded';
-import BugReportRoundedIcon from '@mui/icons-material/BugReportRounded';
-import AdminPanelSettingsRoundedIcon from '@mui/icons-material/AdminPanelSettingsRounded';
-import ChatRoundedIcon from '@mui/icons-material/ChatRounded';
-import LeaderboardRoundedIcon from '@mui/icons-material/LeaderboardRounded';
-import SupervisorAccountRoundedIcon from '@mui/icons-material/SupervisorAccountRounded';
-import GavelRoundedIcon from '@mui/icons-material/GavelRounded';
-import MoreHorizRoundedIcon from '@mui/icons-material/MoreHorizRounded';
-import StorefrontRoundedIcon from '@mui/icons-material/StorefrontRounded';
-import ApiRoundedIcon from '@mui/icons-material/ApiRounded';
+import { Icon } from '@iconify/react';
+import homeIcon from '@iconify-icons/solar/home-bold';
+import personIcon from '@iconify-icons/solar/user-bold';
+import groupIcon from '@iconify-icons/solar/users-group-rounded-bold';
+import musicIcon from '@iconify-icons/solar/music-notes-bold';
+import messageIcon from '@iconify-icons/solar/chat-round-dots-bold';
+import settingsIcon from '@iconify-icons/solar/settings-bold';
+import searchIcon from '@iconify-icons/solar/magnifer-bold';
+import arrowDownIcon from '@iconify-icons/solar/alt-arrow-down-bold';
+import arrowUpIcon from '@iconify-icons/solar/alt-arrow-up-bold';
+import bookmarkIcon from '@iconify-icons/solar/bookmark-bold';
+import eventIcon from '@iconify-icons/solar/calendar-bold';
+import gameIcon from '@iconify-icons/solar/gamepad-bold';
+import peopleIcon from '@iconify-icons/solar/users-group-two-rounded-bold';
+import bugIcon from '@iconify-icons/solar/bug-bold';
+import adminIcon from '@iconify-icons/solar/shield-user-bold';
+import chatIcon from '@iconify-icons/solar/chat-round-bold';
+import leaderboardIcon from '@iconify-icons/solar/chart-bold';
+import moderatorIcon from '@iconify-icons/solar/shield-star-bold';
+import rulesIcon from '@iconify-icons/solar/document-text-bold';
+import moreIcon from '@iconify-icons/solar/menu-dots-bold';
+import shopIcon from '@iconify-icons/solar/shop-bold';
+import apiIcon from '@iconify-icons/solar/code-bold';
+import starIcon from '@iconify-icons/solar/star-bold';
+import subscriptionIcon from '@iconify-icons/solar/crown-bold';
 import { AuthContext } from '../../context/AuthContext';
 import { ThemeSettingsContext } from '../../App';
 import axios from 'axios';
 
-// Обновленные стилизованные компоненты
+
 const SidebarContainer = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2, 1.5),
   borderRadius: theme.spacing(2),
@@ -54,16 +57,18 @@ const SidebarContainer = styled(Paper)(({ theme }) => ({
   top: '84px',
   overflowY: 'auto',
   overflowX: 'hidden',
-  boxShadow: '0 10px 40px rgba(0, 0, 0, 0.25), 0 0 20px rgba(0, 0, 0, 0.1)',
-  background: 'linear-gradient(135deg, rgb(35, 37, 38) 0%, rgb(18, 18, 18) 100%)',
-  backdropFilter: 'blur(12px)',
+  boxShadow: '0 4px 15px rgba(0, 0, 0, 0.07)',
+  background: 'rgba(255, 255, 255, 0.03)',
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)', 
+  border: '1px solid rgba(255, 255, 255, 0.08)',
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'space-between',
   transition: 'all 0.3s ease',
-  scrollbarWidth: 'none', // Firefox
+  scrollbarWidth: 'none', 
   '&::-webkit-scrollbar': {
-    width: '0px', // Скрываем скроллбар, но оставляем функциональность
+    width: '0px', 
     background: 'transparent',
   },
   '&::-webkit-scrollbar-track': {
@@ -73,15 +78,15 @@ const SidebarContainer = styled(Paper)(({ theme }) => ({
     backgroundColor: 'transparent',
   },
   '&:hover': {
-    boxShadow: '0 15px 50px rgba(0, 0, 0, 0.3), 0 0 25px rgba(0, 0, 0, 0.15)',
+    boxShadow: '0 6px 20px rgba(0, 0, 0, 0.1)',
   },
-  // Сохраняем оригинальное позиционирование
+  
   [theme.breakpoints.up('md')]: {
     width: '230px',
     marginRight: 0,
     marginLeft: 'auto',
   },
-  // Адаптивность
+  
   [theme.breakpoints.down('lg')]: {
     padding: theme.spacing(1.5, 1.2),
     width: '220px',
@@ -96,45 +101,45 @@ const UserProfile = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  padding: theme.spacing(1.8, 1, 2, 1),
+  padding: theme.spacing(1.5, 1, 1.8, 1),
   position: 'relative',
   '&::after': {
     content: '""',
     position: 'absolute',
     bottom: 0,
-    left: '10%',
-    right: '10%',
+    left: '15%',
+    right: '15%',
     height: '1px',
-    background: `linear-gradient(90deg, transparent, ${alpha(theme.palette.divider, 0.5)}, transparent)`,
+    background: `linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)`,
   },
   [theme.breakpoints.down('lg')]: {
-    padding: theme.spacing(1.5, 1, 1.8, 1),
+    padding: theme.spacing(1.2, 1, 1.5, 1),
   },
   [theme.breakpoints.down('md')]: {
-    padding: theme.spacing(1.2, 0.8, 1.5, 0.8),
+    padding: theme.spacing(1, 0.8, 1.2, 0.8),
   }
 }));
 
 const StyledAvatar = styled(Avatar)(({ theme, themecolor }) => ({
-  width: 76,
-  height: 76,
-  border: `3px solid ${themecolor || theme.palette.primary.main}`,
-  boxShadow: `0 8px 25px ${alpha(themecolor || theme.palette.primary.main, 0.25)}`,
+  width: 70,
+  height: 70,
+  border: `1px solid rgba(255, 255, 255, 0.15)`,
+  boxShadow: `0 4px 12px rgba(0, 0, 0, 0.12)`,
   transition: 'all 0.35s ease',
   position: 'relative',
   '&:hover': {
     transform: 'scale(1.05)',
-    boxShadow: `0 10px 30px ${alpha(themecolor || theme.palette.primary.main, 0.35)}`,
+    boxShadow: `0 6px 16px rgba(0, 0, 0, 0.16)`,
   },
   '&::after': {
     content: '""',
     position: 'absolute',
-    top: '-8px',
-    left: '-8px',
-    right: '-8px',
-    bottom: '-8px',
+    top: '-4px',
+    left: '-4px',
+    right: '-4px',
+    bottom: '-4px',
     borderRadius: '50%',
-    background: `linear-gradient(135deg, ${alpha(themecolor || theme.palette.primary.main, 0)} 0%, ${alpha(themecolor || theme.palette.primary.main, 0.2)} 100%)`,
+    background: `linear-gradient(135deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.1) 100%)`,
     opacity: 0,
     transition: 'opacity 0.3s ease',
     zIndex: -1,
@@ -143,8 +148,8 @@ const StyledAvatar = styled(Avatar)(({ theme, themecolor }) => ({
     opacity: 1,
   },
   [theme.breakpoints.down('lg')]: {
-    width: 68,
-    height: 68,
+    width: 65,
+    height: 65,
   },
   [theme.breakpoints.down('md')]: {
     width: 60,
@@ -153,44 +158,42 @@ const StyledAvatar = styled(Avatar)(({ theme, themecolor }) => ({
 }));
 
 const UserName = styled(Typography)(({ theme, themecolor }) => ({
-  fontWeight: '700',
-  fontSize: '1.15rem',
-  marginTop: theme.spacing(1.2),
+  fontWeight: '600',
+  fontSize: '1rem',
+  marginTop: theme.spacing(1),
   marginBottom: theme.spacing(0.2),
-  letterSpacing: '0.5px',
-  background: `linear-gradient(90deg, ${themecolor || theme.palette.primary.main}, ${alpha(themecolor || theme.palette.primary.main, 0.7)})`,
-  WebkitBackgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
-  textShadow: `0 2px 10px ${alpha(themecolor || theme.palette.primary.main, 0.3)}`,
+  letterSpacing: '0.4px',
+  color: 'rgba(255, 255, 255, 0.95)',
+  textShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
   [theme.breakpoints.down('lg')]: {
-    fontSize: '1rem',
-    marginTop: theme.spacing(1),
-  },
-  [theme.breakpoints.down('md')]: {
     fontSize: '0.9rem',
     marginTop: theme.spacing(0.8),
+  },
+  [theme.breakpoints.down('md')]: {
+    fontSize: '0.85rem',
+    marginTop: theme.spacing(0.6),
   }
 }));
 
 const UserNameTag = styled(Typography)(({ theme }) => ({
-  color: alpha(theme.palette.text.secondary, 0.8),
-  fontSize: '0.8rem',
+  color: 'rgba(255, 255, 255, 0.7)',
+  fontSize: '0.75rem',
   letterSpacing: '0.3px',
-  marginBottom: theme.spacing(1.5),
+  marginBottom: theme.spacing(1),
   [theme.breakpoints.down('lg')]: {
-    fontSize: '0.75rem',
-    marginBottom: theme.spacing(1.2),
+    fontSize: '0.7rem',
+    marginBottom: theme.spacing(0.8),
   },
   [theme.breakpoints.down('md')]: {
-    fontSize: '0.7rem',
-    marginBottom: theme.spacing(1),
+    fontSize: '0.65rem',
+    marginBottom: theme.spacing(0.6),
   }
 }));
 
 const EditButton = styled(Button)(({ theme, themecolor }) => ({
   marginTop: theme.spacing(0.5),
-  padding: theme.spacing(0.5, 2.5),
-  borderRadius: '12px',
+  padding: theme.spacing(0.4, 2),
+  borderRadius: '10px',
   textTransform: 'none',
   fontWeight: 'bold',
   fontSize: '0.8rem',
@@ -202,96 +205,101 @@ const EditButton = styled(Button)(({ theme, themecolor }) => ({
     transform: 'translateY(-2px)',
   },
   [theme.breakpoints.down('lg')]: {
-    padding: theme.spacing(0.4, 2),
-    fontSize: '0.75rem',
+    padding: theme.spacing(0.3, 1.8),
+    fontSize: '0.7rem',
   },
   [theme.breakpoints.down('md')]: {
-    padding: theme.spacing(0.3, 1.5),
-    fontSize: '0.7rem',
+    padding: theme.spacing(0.25, 1.6),
+    fontSize: '0.65rem',
   }
 }));
 
 const NavItem = styled(ListItem)(({ theme, active, isSpecial, themecolor }) => ({
-  borderRadius: theme.spacing(1.8),
-  marginBottom: theme.spacing(0.6),
-  padding: theme.spacing(0.8, 1.5),
+  borderRadius: theme.spacing(1.5),
+  marginBottom: theme.spacing(0.5),
+  padding: theme.spacing(0.7, 1.3),
   backgroundColor: active ? 
-    alpha(isSpecial ? '#f44336' : themecolor || theme.palette.primary.main, 0.15) : 
+    'rgba(255, 255, 255, 0.08)' : 
     'transparent',
   position: 'relative',
   overflow: 'hidden',
   transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
   '&:hover': {
     backgroundColor: active ? 
-      alpha(isSpecial ? '#f44336' : themecolor || theme.palette.primary.main, 0.2) : 
-      alpha(isSpecial ? '#f44336' : themecolor || theme.palette.primary.main, 0.08),
-    transform: 'translateX(3px)',
+      'rgba(255, 255, 255, 0.12)' : 
+      'rgba(255, 255, 255, 0.05)',
+    transform: 'translateX(2px)',
   },
   '&::before': {
     content: '""',
     position: 'absolute',
     left: 0,
-    top: '15%',
-    height: '70%',
-    width: active ? '4px' : '0px',
-    backgroundColor: isSpecial ? '#f44336' : themecolor || theme.palette.primary.main,
-    borderRadius: '0 4px 4px 0',
+    top: '30%',
+    height: '40%',
+    width: active ? '2px' : '0px',
+    backgroundColor: isSpecial ? '#f44336' : (themecolor || theme.palette.primary.main),
+    borderRadius: '0 2px 2px 0',
     transition: 'width 0.2s ease',
   },
   '&:hover::before': {
-    width: active ? '4px' : '2px',
+    width: active ? '2px' : '1px',
   },
   [theme.breakpoints.down('lg')]: {
-    padding: theme.spacing(0.7, 1.3),
-    marginBottom: theme.spacing(0.5),
-  },
-  [theme.breakpoints.down('md')]: {
     padding: theme.spacing(0.6, 1.1),
     marginBottom: theme.spacing(0.4),
+  },
+  [theme.breakpoints.down('md')]: {
+    padding: theme.spacing(0.5, 1),
+    marginBottom: theme.spacing(0.3),
   }
 }));
 
 const NavIcon = styled(ListItemIcon)(({ theme, active, isSpecial, themecolor }) => ({
-  minWidth: '36px',
+  minWidth: '32px',
   color: active ? 
     (isSpecial ? '#f44336' : themecolor || theme.palette.primary.main) : 
-    theme.palette.text.secondary,
+    'rgba(255, 255, 255, 0.7)',
   transition: 'all 0.25s ease',
   '& .MuiSvgIcon-root': {
-    fontSize: '1.25rem',
+    fontSize: '1.15rem',
     transition: 'transform 0.25s ease',
+    filter: active ? 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))' : 'none',
   },
   '.MuiListItem-root:hover &': {
+    color: active ? 
+      (isSpecial ? '#f44336' : themecolor || theme.palette.primary.main) : 
+      'rgba(255, 255, 255, 0.9)',
     '& .MuiSvgIcon-root': {
-      transform: 'scale(1.15)',
+      transform: 'scale(1.12)',
     }
   },
   [theme.breakpoints.down('lg')]: {
-    minWidth: '32px',
+    minWidth: '30px',
     '& .MuiSvgIcon-root': {
-      fontSize: '1.15rem',
+      fontSize: '1.1rem',
     },
   },
   [theme.breakpoints.down('md')]: {
-    minWidth: '28px',
+    minWidth: '26px',
     '& .MuiSvgIcon-root': {
-      fontSize: '1.1rem',
+      fontSize: '1rem',
     },
   }
 }));
 
 const NavText = styled(ListItemText)(({ theme, active, isSpecial, themecolor }) => ({
   '& .MuiListItemText-primary': {
-    fontWeight: active ? 600 : 500,
-    fontSize: '0.9rem',
+    fontWeight: active ? 500 : 400,
+    fontSize: '0.85rem',
     color: active ? 
       (isSpecial ? '#f44336' : themecolor || theme.palette.primary.main) : 
-      theme.palette.text.primary,
+      'rgba(255, 255, 255, 0.85)',
     letterSpacing: active ? '0.3px' : '0.2px',
     transition: 'all 0.25s ease',
+    textShadow: active ? '0 1px 2px rgba(0, 0, 0, 0.1)' : 'none',
   },
   '.MuiListItem-root:hover & .MuiListItemText-primary': {
-    letterSpacing: '0.35px',
+    letterSpacing: '0.3px',
   },
   [theme.breakpoints.down('lg')]: {
     '& .MuiListItemText-primary': {
@@ -313,36 +321,46 @@ const MoreButton = styled(NavItem)(({ theme, active, themecolor }) => ({
   '& .arrow-icon': {
     transition: 'transform 0.3s ease',
     transform: active ? 'rotate(180deg)' : 'rotate(0deg)',
-    color: active ? themecolor || theme.palette.primary.main : theme.palette.text.secondary,
+    color: active ? (themecolor || theme.palette.primary.main) : 'rgba(255, 255, 255, 0.7)',
   }
 }));
 
 const NestedItem = styled(NavItem)(({ theme }) => ({
-  marginBottom: theme.spacing(0.5),
-  padding: theme.spacing(0.8, 1.3, 0.8, 2.2),
-  borderRadius: theme.spacing(1.5),
+  marginBottom: theme.spacing(0.4),
+  padding: theme.spacing(0.6, 1.2, 0.6, 2),
+  borderRadius: theme.spacing(1.2),
 }));
 
 const SidebarFooter = styled(Box)(({ theme, themecolor }) => ({
   marginTop: 'auto',
-  padding: theme.spacing(2, 1, 1),
+  padding: theme.spacing(1.5, 1, 0.8),
   textAlign: 'center',
   position: 'relative',
   '&::before': {
     content: '""',
     position: 'absolute',
     top: 0,
-    left: '10%',
-    right: '10%',
+    left: '15%',
+    right: '15%',
     height: '1px',
-    background: `linear-gradient(90deg, transparent, ${alpha(theme.palette.divider, 0.5)}, transparent)`,
+    background: `linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)`,
   },
   [theme.breakpoints.down('lg')]: {
-    padding: theme.spacing(1.5, 1, 0.8),
+    padding: theme.spacing(1.2, 1, 0.6),
   }
 }));
 
-// Основной компонент сайдбара
+
+const FooterTypography = styled(Typography)(({ theme }) => ({
+  color: 'rgba(255, 255, 255, 0.6)',
+  fontSize: {
+    xs: '0.6rem',
+    sm: '0.65rem',
+    md: '0.7rem'
+  }
+}));
+
+
 const Sidebar = ({ mobile, closeDrawer }) => {
   const { user } = useContext(AuthContext);
   const { themeSettings } = useContext(ThemeSettingsContext);
@@ -351,7 +369,7 @@ const Sidebar = ({ mobile, closeDrawer }) => {
   const [isModeratorUser, setIsModeratorUser] = useState(false);
   const theme = useTheme();
 
-  // Проверка активного пути
+  
   const isActive = (path) => {
     if (path === '/' && location.pathname === '/') {
       return true;
@@ -359,39 +377,39 @@ const Sidebar = ({ mobile, closeDrawer }) => {
     return location.pathname === path;
   };
 
-  // Проверка является ли пользователь админом (id === 3)
+  
   const isAdmin = user?.id === 3;
   
-  // Проверяем, есть ли пользователь в таблице moderator_permission
+  
   useEffect(() => {
     if (user) {
       checkModeratorStatus();
     }
   }, [user]);
 
-  // Кэш и время последней проверки модератора
+  
   const [lastModeratorCheck, setLastModeratorCheck] = useState(0);
 
   const checkModeratorStatus = async () => {
     try {
-      // Проверяем, не выполняется ли уже проверка
+      
       if (window._moderatorCheckInProgress) {
         console.log('Moderator check already in progress, skipping...');
         return;
       }
       
-      // Используем кэш, если проверка была недавно (в течение 15 минут)
+      
       const now = Date.now();
       if (now - lastModeratorCheck < 15 * 60 * 1000) {
         console.log('Using cached moderator status');
         return;
       }
       
-      // Быстрая проверка, только для UI - использует легкий endpoint
-      // Устанавливаем флаг, что проверка выполняется
+      
+      
       window._moderatorCheckInProgress = true;
       
-      // Используем endpoint quick-status, который не требует полных прав модератора
+      
       const response = await axios.get('/api/moderator/quick-status');
       if (response.data && response.data.is_moderator) {
         setIsModeratorUser(true);
@@ -399,44 +417,46 @@ const Sidebar = ({ mobile, closeDrawer }) => {
         setIsModeratorUser(false);
       }
       
-      // Обновляем время последней проверки
+      
       setLastModeratorCheck(now);
     } catch (error) {
       console.error('Error checking moderator status:', error);
       setIsModeratorUser(false);
     } finally {
-      // Сбрасываем флаг
+      
       window._moderatorCheckInProgress = false;
     }
   };
   
-  // Основные пункты меню с обновленными иконками
+  
   const mainMenuItems = [
-    { text: 'Мой профиль', icon: <PersonRoundedIcon />, path: `/profile/${user?.username || user?.id}` },
-    { text: 'Лента', icon: <HomeRoundedIcon />, path: '/' },
-    { text: 'Лидерборд', icon: <LeaderboardRoundedIcon />, path: '/leaderboard' },
-    { text: 'Подписки', icon: <PeopleAltRoundedIcon />, path: '/subscriptions' },
-    { text: 'Музыка', icon: <MusicNoteRoundedIcon />, path: '/music' },
-    { text: 'Поиск', icon: <SearchRoundedIcon />, path: '/search' },
-    { text: 'Магазин бейджиков', icon: <StorefrontRoundedIcon />, path: '/badge-shop' },
+    { text: 'Мой профиль', icon: 'user', path: `/profile/${user?.username || user?.id}` },
+    { text: 'Лента', icon: 'home', path: '/' },
+    { text: 'Музыка', icon: 'music-notes', path: '/music' },
+    { text: 'Подписки', icon: 'users-group-two-rounded', path: '/subscriptions' },
+    { text: 'Поиск', icon: 'magnifer', path: '/search' },
+    { text: 'Мини-игры', icon: 'gamepad', path: '/minigames' },
+    { text: 'Магазин бейджиков', icon: 'shop', path: '/badge-shop' },
+    { text: 'Планы подписок', icon: 'crown', path: '/sub-planes' },
   ];
 
-  // Дополнительные пункты меню (для раздела "Еще")
+  
   const moreMenuItems = [
-    { text: 'Баг-репорты', icon: <BugReportRoundedIcon />, path: '/bugs' },
-    { text: 'Правила', icon: <GavelRoundedIcon />, path: '/rules' },
-    { text: 'API Документация', icon: <ApiRoundedIcon />, path: '/api-docs' },
+    { text: 'Лидерборд', icon: 'chart', path: '/leaderboard' },
+    { text: 'Баг-репорты', icon: 'bug', path: '/bugs' },
+    { text: 'Правила', icon: 'document-text', path: '/rules' },
+    { text: 'API Документация', icon: 'code', path: '/api-docs' },
   ];
 
   const toggleExpandMore = () => {
     setExpandMore(!expandMore);
   };
 
-  // Определяем основной цвет темы
+  
   const primaryColor = themeSettings?.primaryColor || theme.palette.primary.main;
 
   return (
-    <SidebarContainer elevation={5}>
+    <SidebarContainer elevation={2}>
       <Box>
         {user && (
           <UserProfile>
@@ -446,7 +466,7 @@ const Sidebar = ({ mobile, closeDrawer }) => {
               themecolor={primaryColor}
               onError={(e) => {
                 console.error(`Failed to load avatar for ${user?.username}`);
-                e.target.onerror = null; // Prevent infinite recursion
+                e.target.onerror = null; 
                 e.target.src = `/static/uploads/avatar/system/avatar.png`;
               }}
             />
@@ -470,7 +490,7 @@ const Sidebar = ({ mobile, closeDrawer }) => {
         )}
 
         <List component="nav" sx={{ p: 1, mt: 1 }}>
-          {/* Профиль */}
+          {}
           <NavItem
             button
             component={RouterLink}
@@ -482,7 +502,7 @@ const Sidebar = ({ mobile, closeDrawer }) => {
               active={isActive(`/profile/${user?.username || user?.id}`) ? 1 : 0}
               themecolor={primaryColor}
             >
-              <PersonRoundedIcon />
+              <Icon icon={personIcon} width="20" height="20" />
             </NavIcon>
             <NavText 
               primary="Мой профиль" 
@@ -491,7 +511,7 @@ const Sidebar = ({ mobile, closeDrawer }) => {
             />
           </NavItem>
           
-          {/* Модератор */}
+          {}
           {isModeratorUser && (
             <NavItem
               button
@@ -504,7 +524,7 @@ const Sidebar = ({ mobile, closeDrawer }) => {
                 active={isActive('/moderator') ? 1 : 0}
                 isSpecial={1}
               >
-                <SupervisorAccountRoundedIcon />
+                <Icon icon={moderatorIcon} width="20" height="20" />
               </NavIcon>
               <NavText 
                 primary="Модерировать" 
@@ -514,31 +534,154 @@ const Sidebar = ({ mobile, closeDrawer }) => {
             </NavItem>
           )}
           
-          {/* Основные пункты меню (кроме профиля, который уже отдельно) */}
-          {mainMenuItems.slice(1).map((item, index) => (
-            <NavItem
-              key={index}
-              button
-              component={RouterLink}
-              to={item.path}
-              active={isActive(item.path) ? 1 : 0}
+          {}
+          <NavItem
+            button
+            component={RouterLink}
+            to="/"
+            active={isActive('/') ? 1 : 0}
+            themecolor={primaryColor}
+          >
+            <NavIcon 
+              active={isActive('/') ? 1 : 0}
               themecolor={primaryColor}
             >
-              <NavIcon 
-                active={isActive(item.path) ? 1 : 0}
-                themecolor={primaryColor}
-              >
-                {item.icon}
-              </NavIcon>
-              <NavText 
-                primary={item.text} 
-                active={isActive(item.path) ? 1 : 0}
-                themecolor={primaryColor}
-              />
-            </NavItem>
-          ))}
+              <Icon icon={homeIcon} width="20" height="20" />
+            </NavIcon>
+            <NavText 
+              primary="Лента" 
+              active={isActive('/') ? 1 : 0}
+              themecolor={primaryColor}
+            />
+          </NavItem>
           
-          {/* Админка */}
+          {}
+          <NavItem
+            button
+            component={RouterLink}
+            to="/music"
+            active={isActive('/music') ? 1 : 0}
+            themecolor={primaryColor}
+          >
+            <NavIcon 
+              active={isActive('/music') ? 1 : 0}
+              themecolor={primaryColor}
+            >
+              <Icon icon={musicIcon} width="20" height="20" />
+            </NavIcon>
+            <NavText 
+              primary="Музыка" 
+              active={isActive('/music') ? 1 : 0}
+              themecolor={primaryColor}
+            />
+          </NavItem>
+          
+          {}
+          <NavItem
+            button
+            component={RouterLink}
+            to="/subscriptions"
+            active={isActive('/subscriptions') ? 1 : 0}
+            themecolor={primaryColor}
+          >
+            <NavIcon 
+              active={isActive('/subscriptions') ? 1 : 0}
+              themecolor={primaryColor}
+            >
+              <Icon icon={peopleIcon} width="20" height="20" />
+            </NavIcon>
+            <NavText 
+              primary="Подписки" 
+              active={isActive('/subscriptions') ? 1 : 0}
+              themecolor={primaryColor}
+            />
+          </NavItem>
+          
+          {}
+          <NavItem
+            button
+            component={RouterLink}
+            to="/search"
+            active={isActive('/search') ? 1 : 0}
+            themecolor={primaryColor}
+          >
+            <NavIcon 
+              active={isActive('/search') ? 1 : 0}
+              themecolor={primaryColor}
+            >
+              <Icon icon={searchIcon} width="20" height="20" />
+            </NavIcon>
+            <NavText 
+              primary="Поиск" 
+              active={isActive('/search') ? 1 : 0}
+              themecolor={primaryColor}
+            />
+          </NavItem>
+          
+          {}
+          <NavItem
+            button
+            component={RouterLink}
+            to="/minigames"
+            active={isActive('/minigames') ? 1 : 0}
+            themecolor={primaryColor}
+          >
+            <NavIcon 
+              active={isActive('/minigames') ? 1 : 0}
+              themecolor={primaryColor}
+            >
+              <Icon icon={gameIcon} width="20" height="20" />
+            </NavIcon>
+            <NavText 
+              primary="Мини-игры" 
+              active={isActive('/minigames') ? 1 : 0}
+              themecolor={primaryColor}
+            />
+          </NavItem>
+          
+          {}
+          <NavItem
+            button
+            component={RouterLink}
+            to="/badge-shop"
+            active={isActive('/badge-shop') ? 1 : 0}
+            themecolor={primaryColor}
+          >
+            <NavIcon 
+              active={isActive('/badge-shop') ? 1 : 0}
+              themecolor={primaryColor}
+            >
+              <Icon icon={shopIcon} width="20" height="20" />
+            </NavIcon>
+            <NavText 
+              primary="Магазин бейджиков" 
+              active={isActive('/badge-shop') ? 1 : 0}
+              themecolor={primaryColor}
+            />
+          </NavItem>
+          
+          {}
+          <NavItem
+            button
+            component={RouterLink}
+            to="/sub-planes"
+            active={isActive('/sub-planes') ? 1 : 0}
+            themecolor={primaryColor}
+          >
+            <NavIcon 
+              active={isActive('/sub-planes') ? 1 : 0}
+              themecolor={primaryColor}
+            >
+              <Icon icon={subscriptionIcon} width="20" height="20" />
+            </NavIcon>
+            <NavText 
+              primary="Планы подписок" 
+              active={isActive('/sub-planes') ? 1 : 0}
+              themecolor={primaryColor}
+            />
+          </NavItem>
+          
+          {}
           {isAdmin && (
             <NavItem
               button
@@ -551,7 +694,7 @@ const Sidebar = ({ mobile, closeDrawer }) => {
                 active={isActive('/admin') ? 1 : 0}
                 themecolor={primaryColor}
               >
-                <AdminPanelSettingsRoundedIcon />
+                <Icon icon={adminIcon} width="20" height="20" />
               </NavIcon>
               <NavText 
                 primary="Админ Панель" 
@@ -561,7 +704,7 @@ const Sidebar = ({ mobile, closeDrawer }) => {
             </NavItem>
           )}
 
-          {/* Раздел "Еще" с выпадающим списком */}
+          {}
           <MoreButton 
             button 
             onClick={toggleExpandMore}
@@ -573,7 +716,7 @@ const Sidebar = ({ mobile, closeDrawer }) => {
                 active={expandMore ? 1 : 0}
                 themecolor={primaryColor}
               >
-                <MoreHorizRoundedIcon />
+                <Icon icon={moreIcon} width="20" height="20" />
               </NavIcon>
               <NavText 
                 primary="Еще" 
@@ -582,81 +725,124 @@ const Sidebar = ({ mobile, closeDrawer }) => {
               />
             </Box>
             <Box className="arrow-icon">
-              {expandMore ? <KeyboardArrowUpRoundedIcon /> : <KeyboardArrowDownRoundedIcon />}
+              {expandMore ? <Icon icon={arrowUpIcon} width="20" height="20" /> : <Icon icon={arrowDownIcon} width="20" height="20" />}
             </Box>
           </MoreButton>
 
           <Collapse in={expandMore} timeout="auto" unmountOnExit>
             <List component="div" disablePadding sx={{ pl: 1.5, pt: 0.5 }}>
-              {moreMenuItems.map((item, index) => (
-                <NestedItem
-                  key={index}
-                  button
-                  component={RouterLink}
-                  to={item.path}
-                  active={isActive(item.path) ? 1 : 0}
+              {}
+              <NestedItem
+                button
+                component={RouterLink}
+                to="/leaderboard"
+                active={isActive('/leaderboard') ? 1 : 0}
+                themecolor={primaryColor}
+              >
+                <NavIcon 
+                  active={isActive('/leaderboard') ? 1 : 0}
                   themecolor={primaryColor}
                 >
-                  <NavIcon 
-                    active={isActive(item.path) ? 1 : 0}
-                    themecolor={primaryColor}
-                  >
-                    {item.icon}
-                  </NavIcon>
-                  <NavText 
-                    primary={item.text} 
-                    active={isActive(item.path) ? 1 : 0}
-                    themecolor={primaryColor}
-                  />
-                </NestedItem>
-              ))}
+                  <Icon icon={leaderboardIcon} width="20" height="20" />
+                </NavIcon>
+                <NavText 
+                  primary="Лидерборд" 
+                  active={isActive('/leaderboard') ? 1 : 0}
+                  themecolor={primaryColor}
+                />
+              </NestedItem>
+              
+              {}
+              <NestedItem
+                button
+                component={RouterLink}
+                to="/bugs"
+                active={isActive('/bugs') ? 1 : 0}
+                themecolor={primaryColor}
+              >
+                <NavIcon 
+                  active={isActive('/bugs') ? 1 : 0}
+                  themecolor={primaryColor}
+                >
+                  <Icon icon={bugIcon} width="20" height="20" />
+                </NavIcon>
+                <NavText 
+                  primary="Баг-репорты" 
+                  active={isActive('/bugs') ? 1 : 0}
+                  themecolor={primaryColor}
+                />
+              </NestedItem>
+              
+              {}
+              <NestedItem
+                button
+                component={RouterLink}
+                to="/rules"
+                active={isActive('/rules') ? 1 : 0}
+                themecolor={primaryColor}
+              >
+                <NavIcon 
+                  active={isActive('/rules') ? 1 : 0}
+                  themecolor={primaryColor}
+                >
+                  <Icon icon={rulesIcon} width="20" height="20" />
+                </NavIcon>
+                <NavText 
+                  primary="Правила" 
+                  active={isActive('/rules') ? 1 : 0}
+                  themecolor={primaryColor}
+                />
+              </NestedItem>
+              
+              {}
+              <NestedItem
+                button
+                component={RouterLink}
+                to="/api-docs"
+                active={isActive('/api-docs') ? 1 : 0}
+                themecolor={primaryColor}
+              >
+                <NavIcon 
+                  active={isActive('/api-docs') ? 1 : 0}
+                  themecolor={primaryColor}
+                >
+                  <Icon icon={apiIcon} width="20" height="20" />
+                </NavIcon>
+                <NavText 
+                  primary="API Документация" 
+                  active={isActive('/api-docs') ? 1 : 0}
+                  themecolor={primaryColor}
+                />
+              </NestedItem>
             </List>
           </Collapse>
         </List>
       </Box>
 
-      {/* Футер сайдбара с информацией */}
+      {}
       <SidebarFooter themecolor={primaryColor}>
         <Typography 
           variant="subtitle2" 
           sx={{ 
-            fontWeight: 600, 
-            background: `linear-gradient(90deg, ${primaryColor}, ${alpha(primaryColor, 0.7)})`,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            mb: 1,
-            letterSpacing: '0.5px',
+            fontWeight: 500, 
+            color: 'rgba(255, 255, 255, 0.9)',
+            mb: 0.8,
+            letterSpacing: '0.4px',
             fontSize: {
-              xs: '0.75rem',
-              sm: '0.8rem',
-              md: '0.85rem',
+              xs: '0.7rem',
+              sm: '0.75rem',
+              md: '0.8rem',
             }
           }}
         >
-          К-Коннект v2.2
+          К-Коннект v2.3
         </Typography>
-        <Typography variant="caption" display="block" sx={{ 
-          opacity: 0.8, 
-          fontSize: {
-            xs: '0.65rem',
-            sm: '0.7rem',
-            md: '0.75rem'
-          }
-        }}>
+        <FooterTypography variant="caption" display="block">
           Правообладателям
-        </Typography>
-        <Typography variant="caption" display="block" sx={{ 
-          opacity: 0.8, 
-          pt: 0.2, 
-          fontWeight: 500,
-          fontSize: {
-            xs: '0.65rem',
-            sm: '0.7rem',
-            md: '0.75rem'
-          }
-        }}>
+        </FooterTypography>
+        <FooterTypography variant="caption" display="block" sx={{ pt: 0.2 }}>
           verif@k-connect.ru
-        </Typography>
+        </FooterTypography>
       </SidebarFooter>
     </SidebarContainer>
   );

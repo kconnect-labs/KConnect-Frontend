@@ -36,7 +36,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import axios from 'axios';
 import { formatDateTimeShort } from '../../utils/dateUtils';
 
-// Styled components for modern design
+
 const StyledMenu = styled(Menu)(({ theme }) => ({
   '& .MuiPaper-root': {
     borderRadius: 12,
@@ -117,7 +117,7 @@ const EmptyNotifications = styled(Box)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-// Animated container for notifications
+
 const AnimatedItem = styled(Box)(({ theme, delay = 0 }) => ({
   animation: `fadeInUp 0.3s ease forwards ${delay}s`,
   opacity: 0,
@@ -133,7 +133,7 @@ const AnimatedItem = styled(Box)(({ theme, delay = 0 }) => ({
   },
 }));
 
-// Get notification icon based on type
+
 const getNotificationIcon = (type) => {
   switch (type) {
     case 'comment_like':
@@ -151,29 +151,29 @@ const getNotificationIcon = (type) => {
   }
 };
 
-// Function to get proper avatar URL
+
 const getAvatarUrl = (sender) => {
   if (!sender) return '/static/uploads/avatar/system/avatar.png';
   
-  // If avatar_url is provided, use it directly
+  
   if (sender.avatar_url) {
-    // Check if the URL already has the full path to avoid duplicating
+    
     if (sender.avatar_url.startsWith('/static/uploads/avatar/')) {
       return sender.avatar_url;
     }
     return sender.avatar_url;
   }
   
-  // Otherwise construct from id and photo name
+  
   if (sender.id && sender.photo) {
-    // Make sure we're not duplicating paths
+    
     if (sender.photo.startsWith('/static/uploads/avatar/')) {
       return sender.photo;
     }
     return `/static/uploads/avatar/${sender.id}/${sender.photo}`;
   }
   
-  // Fallback
+  
   return `/static/uploads/avatar/system/avatar.png`;
 };
 
@@ -181,7 +181,7 @@ const NotificationGroup = ({ notifications, onNotificationClick }) => {
   const [open, setOpen] = useState(false);
   const theme = useTheme();
   
-  // Проверяем, что notifications существует и является массивом
+  
   if (!Array.isArray(notifications) || notifications.length === 0) {
     return null;
   }
@@ -204,7 +204,7 @@ const NotificationGroup = ({ notifications, onNotificationClick }) => {
     }
   };
 
-  // Get sender name and avatar
+  
   const senderName = firstNotification.sender_user?.name || 'Пользователь';
   const avatar = getAvatarUrl(firstNotification.sender_user);
 
@@ -225,7 +225,7 @@ const NotificationGroup = ({ notifications, onNotificationClick }) => {
               border: hasUnread ? `2px solid ${theme.palette.primary.main}` : 'none',
             }}
             onError={(e) => {
-              // Fallback to system avatar if image fails to load
+              
               if (e.currentTarget && e.currentTarget.setAttribute) {
                 e.currentTarget.setAttribute('src', '/static/uploads/avatar/system/avatar.png');
               }
@@ -311,7 +311,7 @@ const NotificationList = () => {
   const navigate = useNavigate();
   const theme = useTheme();
 
-  // Group notifications by sender id
+  
   const groupedNotifications = React.useMemo(() => {
     if (!Array.isArray(notifications) || notifications.length === 0) return [];
     
@@ -326,11 +326,11 @@ const NotificationList = () => {
       groups[senderId].push(notification);
     });
     
-    // Filter out empty groups just in case
+    
     return Object.values(groups).filter(group => group.length > 0);
   }, [notifications]);
 
-  // Fetch notifications with debug logging
+  
   const fetchNotifications = async () => {
     try {
       console.log('Fetching notifications...');
@@ -355,7 +355,7 @@ const NotificationList = () => {
     }
   };
 
-  // Mark all notifications as read
+  
   const markAllAsRead = async () => {
     try {
       console.log('Marking all notifications as read');
@@ -363,7 +363,7 @@ const NotificationList = () => {
       console.log('Mark all read response:', response.data);
       
       if (response.data && response.data.success) {
-        // Update local state to mark all as read
+        
         setNotifications(prev => 
           prev.map(n => ({ ...n, is_read: true }))
         );
@@ -376,7 +376,7 @@ const NotificationList = () => {
 
   useEffect(() => {
     fetchNotifications();
-    // Увеличиваем интервал до 60 секунд для уменьшения нагрузки на сервер
+    
     const interval = setInterval(fetchNotifications, 60000);
     return () => clearInterval(interval);
   }, []);
@@ -388,17 +388,17 @@ const NotificationList = () => {
       console.log('Marking notification as read:', notification.id);
       await axios.post(`/api/notifications/${notification.id}/read`);
       
-      // Update local state
+      
       setNotifications(prev => 
         prev.map(n => n.id === notification.id ? { ...n, is_read: true } : n)
       );
       
-      // Update unread count
+      
       if (!notification.is_read) {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
       
-      // Navigate to the relevant page based on notification type
+      
       if (notification.data && notification.data.url) {
         navigate(notification.data.url);
         handleMenuClose();
@@ -410,7 +410,7 @@ const NotificationList = () => {
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
-    // Optionally pre-fetch notifications when menu is opened
+    
     if (notifications.length === 0 || loading) {
       fetchNotifications();
     }

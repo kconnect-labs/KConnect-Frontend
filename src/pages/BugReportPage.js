@@ -4,7 +4,7 @@ import { styled } from '@mui/material/styles';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 
-// Icons
+
 import BugReportIcon from '@mui/icons-material/BugReport';
 import SendIcon from '@mui/icons-material/Send';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
@@ -14,7 +14,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import PendingIcon from '@mui/icons-material/Pending';
 
-// Styled components
+
 const BugContainer = styled(Box)(({ theme }) => ({
   marginTop: theme.spacing(4),
   marginBottom: theme.spacing(8),
@@ -57,7 +57,7 @@ const ImagePreview = styled('img')(({ theme }) => ({
   marginTop: theme.spacing(1),
 }));
 
-// Helper function to format date
+
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   return new Intl.DateTimeFormat('ru-RU', {
@@ -69,9 +69,9 @@ const formatDate = (dateString) => {
   }).format(date);
 };
 
-// Status badge component
+
 const StatusBadge = ({ status }) => {
-  // Map unknown status to default display
+  
   if (!status || status === 'Неизвестно') {
     return (
       <Chip 
@@ -116,7 +116,7 @@ const StatusBadge = ({ status }) => {
     );
   }
   
-  // Default case
+  
   return (
     <Chip 
       icon={<PendingIcon />} 
@@ -144,7 +144,7 @@ const BugReportPage = () => {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Fetch bugs on component mount
+  
   useEffect(() => {
     loadBugs();
   }, []);
@@ -212,7 +212,7 @@ const BugReportPage = () => {
       });
 
       if (response.data.success) {
-        // Reset form
+        
         setNewBug({
           subject: '',
           text: '',
@@ -220,7 +220,7 @@ const BugReportPage = () => {
         });
         setImageFile(null);
         setImagePreview('');
-        // Reload bugs
+        
         loadBugs();
       }
     } catch (err) {
@@ -240,7 +240,7 @@ const BugReportPage = () => {
       });
       
       if (response.data.success) {
-        // Add new comment to the list
+        
         setSelectedBug(prev => ({
           ...prev,
           comments: [...prev.comments, response.data.comment]
@@ -259,7 +259,7 @@ const BugReportPage = () => {
       const response = await axios.post(`/api/bugs/${bugId}/reaction`);
       
       if (response.data.success) {
-        // Update bugs list
+        
         setBugs(prev => prev.map(bug => {
           if (bug.id === bugId) {
             return {
@@ -273,7 +273,7 @@ const BugReportPage = () => {
           return bug;
         }));
         
-        // Update selected bug if needed
+        
         if (selectedBug && selectedBug.id === bugId) {
           setSelectedBug(prev => ({
             ...prev,
@@ -290,7 +290,7 @@ const BugReportPage = () => {
   };
 
   const handleChangeStatus = async (bugId, newStatus) => {
-    // Check if user is admin
+    
     if (!isAuthenticated || ![3, 54, 57].includes(user?.id)) return;
     
     try {
@@ -299,13 +299,13 @@ const BugReportPage = () => {
       });
       
       if (response.data.success) {
-        // Update selected bug
+        
         setSelectedBug(prev => ({
           ...prev,
           status: response.data.status
         }));
         
-        // Update bugs list
+        
         setBugs(prev => prev.map(bug => {
           if (bug.id === bugId) {
             return { ...bug, status: response.data.status };
@@ -320,7 +320,7 @@ const BugReportPage = () => {
 
   const isAdmin = isAuthenticated && user && [3, 54, 57].includes(user.id);
 
-  // Render main bug list view
+  
   if (!selectedBug) {
     return (
       <Container maxWidth="md">
@@ -341,7 +341,7 @@ const BugReportPage = () => {
             </Grid>
           </BugHeader>
 
-          {/* New bug form */}
+          {}
           <Paper sx={{ padding: 3, marginBottom: 4 }}>
             <Typography variant="h6" component="h2" gutterBottom>
               Сообщить о проблеме
@@ -402,43 +402,7 @@ const BugReportPage = () => {
                     <input
                       type="file"
                       hidden
-                      accept="image/*"
-                      onChange={handleImageChange}
-                    />
-                  </Button>
-                </Grid>
-                {imagePreview && (
-                  <Grid item xs={12}>
-                    <ImagePreview src={imagePreview} alt="Preview" />
-                  </Grid>
-                )}
-                {error && (
-                  <Grid item xs={12}>
-                    <Typography color="error">{error}</Typography>
-                  </Grid>
-                )}
-                <Grid item xs={12}>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    color="primary"
-                    disabled={submitLoading}
-                    startIcon={
-                      submitLoading ? (
-                        <CircularProgress size={20} color="inherit" />
-                      ) : (
-                        <SendIcon />
-                      )
-                    }
-                  >
-                    Отправить
-                  </Button>
-                </Grid>
-              </Grid>
-            </form>
-          </Paper>
-
-          {/* Bug list */}
+                      accept="image}
           <Typography variant="h6" component="h2" gutterBottom>
             Список проблем
           </Typography>
@@ -505,7 +469,7 @@ const BugReportPage = () => {
     );
   }
 
-  // Render bug detail view
+  
   return (
     <Container maxWidth="md">
       <BugContainer>
@@ -536,7 +500,7 @@ const BugReportPage = () => {
               <Grid item xs={12}>
                 <Box
                   component="img"
-                  src={`https://${window.location.hostname}${selectedBug.image_url}`}
+                  src={`https:
                   alt="Bug report"
                   sx={{
                     maxWidth: '100%',
@@ -544,7 +508,7 @@ const BugReportPage = () => {
                     borderRadius: 1,
                     cursor: 'pointer'
                   }}
-                  onClick={() => window.open(`https://${window.location.hostname}${selectedBug.image_url}`, '_blank')}
+                  onClick={() => window.open(`https:
                 />
               </Grid>
             )}
@@ -623,7 +587,7 @@ const BugReportPage = () => {
           Комментарии ({selectedBug.comments?.length || 0})
         </Typography>
         
-        {/* Comments list */}
+        {}
         {selectedBug.comments?.length > 0 ? (
           selectedBug.comments.map(comment => (
             <CommentCard key={comment.id}>
@@ -655,7 +619,7 @@ const BugReportPage = () => {
           </Typography>
         )}
         
-        {/* New comment form */}
+        {}
         <Paper sx={{ padding: 2, mt: 2 }}>
           <TextField
             fullWidth

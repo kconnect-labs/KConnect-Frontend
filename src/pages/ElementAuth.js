@@ -11,10 +11,7 @@ import {
   Chip
 } from '@mui/material';
 
-/**
- * Компонент для обработки авторизации через Element
- * Принимает token из query параметров и отправляет запрос на сервер
- */
+
 const ElementAuth = () => {
   const { token } = useParams();
   const navigate = useNavigate();
@@ -31,7 +28,7 @@ const ElementAuth = () => {
     return () => clearTimeout(timeoutId);
   }, [token]);
 
-  // Проверяем статус сервиса авторизации
+  
   const checkServiceStatus = async () => {
     try {
       const response = await fetch('/api/auth/status');
@@ -70,10 +67,10 @@ const ElementAuth = () => {
         setStatus("Авторизация успешна. Перенаправляем...");
         console.log("[BROWSER] Перенаправление на:", result.redirect);
         
-        // Если была успешная привязка Element аккаунта, устанавливаем флаг в localStorage
+        
         if (result.elem_connected) {
           localStorage.setItem('elem_connected', 'true');
-          // Также сообщаем об успешном подключении через event для других вкладок
+          
           window.dispatchEvent(new StorageEvent('storage', {
             key: 'elem_connected',
             newValue: 'true'
@@ -82,11 +79,11 @@ const ElementAuth = () => {
         
         navigate(result.redirect);
       } else if (result.status === "error" && result.message.includes("недоступен")) {
-        // Если сервис недоступен, показываем ошибку и предлагаем проверить статус
+        
         setError(result.message);
         setStatus("Проблема с сервисом авторизации");
         setIsLoading(false);
-        // Повторно проверяем статус соединения
+        
         await checkServiceStatus();
       } else {
         console.error("[BROWSER] ❌ Ошибка авторизации:", result.message);
@@ -99,12 +96,12 @@ const ElementAuth = () => {
       setError(`Ошибка связи: ${err.message}`);
       setStatus("Ошибка авторизации");
       setIsLoading(false);
-      // Проверяем статус соединения при ошибке
+      
       await checkServiceStatus();
     }
   };
 
-  // Обработчик повторной попытки
+  
   const handleRetry = () => {
     setError('');
     setIsLoading(true);

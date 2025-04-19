@@ -50,10 +50,25 @@ input, textarea, select {
   font-family: 'Inter', sans-serif;
 }
 
-/* Scrollbar */
+
+.selectable {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+.non-selectable {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 1px;
+  height: 1px;
 }
 
 ::-webkit-scrollbar-track {
@@ -62,7 +77,7 @@ input, textarea, select {
 
 ::-webkit-scrollbar-thumb {
   background-color: var(--primary-dark);
-  border-radius: 4px;
+  border-radius: 1px;
 }
 
 ::-webkit-scrollbar-thumb:hover {

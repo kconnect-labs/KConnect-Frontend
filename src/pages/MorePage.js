@@ -19,23 +19,9 @@ import { styled } from '@mui/material/styles';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
+import { Icon } from '@iconify/react';
 
-// Иконки
-import EditIcon from '@mui/icons-material/Edit';
-import PeopleIcon from '@mui/icons-material/People';
-import SearchIcon from '@mui/icons-material/Search';
-import LeaderboardIcon from '@mui/icons-material/Leaderboard';
-import BugReportIcon from '@mui/icons-material/BugReport';
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
-import LogoutIcon from '@mui/icons-material/Logout';
-import VerifiedIcon from '@mui/icons-material/Verified';
-import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
-import GavelIcon from '@mui/icons-material/Gavel';
-import StorefrontIcon from '@mui/icons-material/Storefront';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import ApiIcon from '@mui/icons-material/Api';
 
-// Стилизованные компоненты
 const ProfileBanner = styled(Box)(({ theme }) => ({
   position: 'relative',
   height: 160,
@@ -116,12 +102,12 @@ const MorePage = () => {
   const theme = useTheme();
   const [userPoints, setUserPoints] = useState(0);
   
-  // Проверяем является ли пользователь админом
-  const isAdmin = user?.id === 3; // Такое же условие как в Sidebar.js
   
-  // Проверяем, является ли пользователь модератором
+  const isAdmin = user?.id === 3; 
+  
+  
   const [isModeratorUser, setIsModeratorUser] = useState(false);
-  // Кэш и время последней проверки модератора
+  
   const [lastModeratorCheck, setLastModeratorCheck] = useState(0);
   
   useEffect(() => {
@@ -133,20 +119,20 @@ const MorePage = () => {
 
   const checkModeratorStatus = async () => {
     try {
-      // Проверяем, не выполняется ли уже проверка
+      
       if (window._moderatorCheckInProgress) {
         console.log('MorePage: Moderator check already in progress, skipping...');
         return;
       }
       
-      // Используем кэш, если проверка была недавно (в течение 15 минут)
+      
       const now = Date.now();
       if (now - lastModeratorCheck < 15 * 60 * 1000) {
         console.log('MorePage: Using cached moderator status');
         return;
       }
       
-      // Устанавливаем флаг, что проверка выполняется
+      
       window._moderatorCheckInProgress = true;
       
       const response = await axios.get('/api/moderator/status');
@@ -156,18 +142,18 @@ const MorePage = () => {
         setIsModeratorUser(false);
       }
       
-      // Обновляем время последней проверки
+      
       setLastModeratorCheck(now);
     } catch (error) {
       console.error('Error checking moderator status:', error);
       setIsModeratorUser(false);
     } finally {
-      // Сбрасываем флаг
+      
       window._moderatorCheckInProgress = false;
     }
   };
   
-  // Функция для получения баланса пользователя
+  
   const fetchUserPoints = async () => {
     try {
       const response = await axios.get('/api/user/points');
@@ -178,13 +164,13 @@ const MorePage = () => {
     }
   };
   
-  // Функция для выхода из аккаунта
+  
   const handleLogout = async () => {
     try {
       await logout();
-      // Logout and redirect handled in AuthContext
+      
     } catch (error) {
-      // Fallback if logout from AuthContext fails
+      
       navigate('/login');
     }
   };
@@ -223,18 +209,21 @@ const MorePage = () => {
         </ProfileAvatar>
       </ProfileBanner>
 
-      {/* Информация о профиле */}
+      {}
       <Box sx={{ mb: 4, px: 2 }}>
         <ProfileName variant="h5">
           {user?.name || 'Пользователь'}
           {user?.verification && user.verification.status > 0 && (
-            <VerifiedIcon 
-              sx={{ 
-                ml: 0.5, 
+            <Icon 
+              icon="solar:verified-check-bold" 
+              width="24" 
+              height="24"
+              style={{ 
+                marginLeft: '4px', 
                 color: user.verification.status === 1 ? '#9e9e9e' : 
-                       user.verification.status === 2 ? '#d67270' : 
-                       user.verification.status === 3 ? '#b39ddb' : 
-                       'primary.main'
+                      user.verification.status === 2 ? '#d67270' : 
+                      user.verification.status === 3 ? '#b39ddb' : 
+                      theme.palette.primary.main 
               }} 
             />
           )}
@@ -259,11 +248,11 @@ const MorePage = () => {
           @{user?.username || 'username'}
         </Typography>
         
-        {/* Кнопка редактирования профиля */}
+        {}
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
           <Button
             variant="contained"
-            startIcon={<EditIcon />}
+            startIcon={<Icon icon="solar:pen-bold" width="20" height="20" />}
             component={Link}
             to="/settings"
             sx={{
@@ -279,7 +268,7 @@ const MorePage = () => {
         </Box>
       </Box>
 
-      {/* Меню */}
+      {}
       <Paper 
         elevation={2} 
         sx={{ 
@@ -289,7 +278,7 @@ const MorePage = () => {
         }}
       >
         <List sx={{ p: 1 }}>
-          {/* Баланс и Магазин в одном блоке */}
+          {}
           <Box 
             sx={{ 
               display: 'flex', 
@@ -313,13 +302,13 @@ const MorePage = () => {
               }}
             >
               <MenuItemIcon>
-                <AccountBalanceWalletIcon />
+                <Icon icon="solar:wallet-money-bold" width="24" height="24" />
               </MenuItemIcon>
               <ListItemText 
                 primary="Баланс"
                 secondary={`${userPoints} баллов`}
-                primaryTypographyProps={{ fontSize: '0.95rem' }}
-                secondaryTypographyProps={{ fontSize: '0.85rem' }}
+                primaryTypographyProps={{ fontSize: '0.8rem' }}
+                secondaryTypographyProps={{ fontSize: '0.55rem' }}
               />
             </MenuListItem>
 
@@ -337,54 +326,92 @@ const MorePage = () => {
               }}
             >
               <MenuItemIcon>
-                <StorefrontIcon />
+                <Icon icon="solar:shop-bold" width="24" height="24" />
               </MenuItemIcon>
               <ListItemText 
                 primary="Магазин"
                 secondary="Бейджики"
-                primaryTypographyProps={{ fontSize: '0.95rem' }}
-                secondaryTypographyProps={{ fontSize: '0.85rem' }}
+                primaryTypographyProps={{ fontSize: '0.8rem' }}
+                secondaryTypographyProps={{ fontSize: '0.55rem' }}
               />
             </MenuListItem>
           </Box>
 
+          {}
+          <MenuListItem 
+            button 
+            component={Link} 
+            to="/minigames"
+            sx={{
+              backgroundColor: theme.palette.mode === 'dark' 
+                ? alpha(theme.palette.secondary.dark, 0.15)
+                : alpha(theme.palette.secondary.light, 0.15),
+              borderRadius: '16px',
+              mb: 2
+            }}
+          >
+            <MenuItemIcon sx={{ color: theme.palette.secondary.main }}>
+              <Icon icon="solar:gamepad-bold" width="24" height="24" />
+            </MenuItemIcon>
+            <ListItemText 
+              primary="Мини-игры" 
+              secondary="Кликер, Три чаши и другие"
+              primaryTypographyProps={{ 
+                sx: { 
+                  color: theme.palette.secondary.main,
+                  fontWeight: 600
+                }
+              }}
+            />
+          </MenuListItem>
+
+
+
           <MenuListItem button component={Link} to="/search">
             <MenuItemIcon>
-              <SearchIcon />
+              <Icon icon="solar:magnifer-bold" width="24" height="24" />
             </MenuItemIcon>
             <ListItemText primary="Поиск" />
           </MenuListItem>
 
           <MenuListItem button component={Link} to="/leaderboard">
             <MenuItemIcon>
-              <LeaderboardIcon />
+              <Icon icon="solar:chart-bold" width="24" height="24" />
             </MenuItemIcon>
             <ListItemText primary="Лидерборд" />
           </MenuListItem>
           <MenuListItem button component={Link} to="/subscriptions">
             <MenuItemIcon>
-              <PeopleIcon />
+              <Icon icon="solar:users-group-rounded-bold" width="24" height="24" />
             </MenuItemIcon>
             <ListItemText primary="Подписки" />
           </MenuListItem>
           
-          {/* Кнопка "Правила" */}
+          {}
+          <MenuListItem button component={Link} to="/sub-planes">
+            <MenuItemIcon>
+              <Icon icon="solar:star-bold" width="24" height="24" />
+            </MenuItemIcon>
+            <ListItemText primary="Планы подписок" />
+          </MenuListItem>
+          
+          {}
           <MenuListItem button component={Link} to="/rules">
             <MenuItemIcon>
-              <GavelIcon />
+              <Icon icon="solar:document-text-bold" width="24" height="24" />
             </MenuItemIcon>
             <ListItemText primary="Правила" />
           </MenuListItem>
           
-          {/* API Документация */}
+          {}
           <MenuListItem button component={Link} to="/api-docs">
             <MenuItemIcon>
-              <ApiIcon />
+              <Icon icon="solar:code-bold" width="24" height="24" />
             </MenuItemIcon>
             <ListItemText primary="API Документация" />
           </MenuListItem>
           
-          {/* Moderator Panel button - only visible if user is a moderator */}
+          {}
           {isModeratorUser && (
             <MenuListItem 
               button 
@@ -398,7 +425,7 @@ const MorePage = () => {
               }}
             >
               <MenuItemIcon sx={{ color: '#f44336' }}>
-                <SupervisorAccountIcon />
+                <Icon icon="solar:shield-star-bold" width="24" height="24" style={{ color: '#f44336' }} />
               </MenuItemIcon>
               <ListItemText 
                 primary="Модерировать" 
@@ -414,16 +441,16 @@ const MorePage = () => {
 
           <MenuListItem button component={Link} to="/bugs">
             <MenuItemIcon>
-              <BugReportIcon />
+              <Icon icon="solar:bug-bold" width="24" height="24" />
             </MenuItemIcon>
             <ListItemText primary="Баг-репорты" />
           </MenuListItem>
 
-          {/* Админ-панель только для админов */}
+          {}
           {isAdmin && (
             <MenuListItem button component={Link} to="/admin">
               <MenuItemIcon>
-                <AdminPanelSettingsIcon />
+                <Icon icon="solar:shield-user-bold" width="24" height="24" />
               </MenuItemIcon>
               <ListItemText primary="Админ-панель" />
             </MenuListItem>
@@ -431,7 +458,7 @@ const MorePage = () => {
         </List>
       </Paper>
 
-      {/* Кнопка выхода */}
+      {}
       <Paper 
         elevation={2} 
         sx={{ 
@@ -443,7 +470,7 @@ const MorePage = () => {
         <List sx={{ p: 1 }}>
           <MenuListItem button onClick={handleLogout}>
             <MenuItemIcon sx={{ color: 'error.main' }}>
-              <LogoutIcon />
+              <Icon icon="solar:logout-3-bold" width="24" height="24" style={{ color: theme.palette.error.main }} />
             </MenuItemIcon>
             <ListItemText 
               primary="Выйти из аккаунта" 
@@ -455,10 +482,10 @@ const MorePage = () => {
         </List>
       </Paper>
 
-      {/* Подвал */}
+      {}
       <FooterSection>
         <Typography variant="caption" display="block" gutterBottom sx={{ fontWeight: 500, color: alpha(theme.palette.primary.main, 0.85) }}>
-          K-Connect v2.2 React
+          К-Коннект v2.3 React
         </Typography>
         <Typography variant="caption" display="block" sx={{ opacity: 0.7 }}>
           Правообладателям

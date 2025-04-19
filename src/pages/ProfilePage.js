@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useRef, useMemo, useCallback, Suspense, lazy } from 'react';
 import { 
   Box, 
   Typography, 
@@ -50,14 +50,14 @@ import 'react-medium-image-zoom/dist/styles.css';
 import { ThemeSettingsContext } from '../App';
 import ImageGrid from '../components/ImageGrid';
 import { formatTimeAgo, getRussianWordForm, formatDate } from '../utils/dateUtils';
-import Post from '../components/Post/Post'; // Import Post component
+import Post from '../components/Post/Post'; 
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RepostItem from '../components/RepostItem';
 import PostSkeleton from '../components/Post/PostSkeleton';
 import ContentLoader from '../components/UI/ContentLoader';
 import TabContentLoader from '../components/UI/TabContentLoader';
 
-// Material UI Icons
+
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import FeedIcon from '@mui/icons-material/Feed';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
@@ -91,8 +91,10 @@ import TodayIcon from '@mui/icons-material/Today';
 import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
+import CollectionsIcon from '@mui/icons-material/Collections';
+import DiamondIcon from '@mui/icons-material/Diamond';
 
-// Styled components for profile
+
 const ProfileHeader = styled(Box)(({ theme }) => ({
   position: 'relative',
   overflow: 'hidden',
@@ -241,23 +243,23 @@ const PostCard = styled(Card)(({ theme }) => ({
   cursor: 'pointer'
 }));
 
-// UpdateCreatePostCard style
+
 const CreatePostCard = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
   background: 'linear-gradient(145deg, rgba(30, 30, 30, 0.8) 0%, rgba(20, 20, 20, 0.9) 100%)',
   backdropFilter: 'blur(10px)',
   border: '1px solid rgba(255, 255, 255, 0.05)',
   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
-  borderRadius: '16px',
+  borderRadius: '10px',
   transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-  marginBottom: theme.spacing(3),
+  marginBottom: theme.spacing(0),
   '&:hover': {
     boxShadow: '0 6px 25px rgba(0, 0, 0, 0.3)',
     transform: 'translateY(-2px)'
   }
 }));
 
-// Update PostInput style
+
 const PostInput = styled(TextField)(({ theme }) => ({
   '& .MuiInputBase-root': {
     background: 'rgba(0, 0, 0, 0.2)',
@@ -283,7 +285,7 @@ const PostInput = styled(TextField)(({ theme }) => ({
   width: '100%'
 }));
 
-// Update PostActions style
+
 const PostActions = styled(Box)(({ theme }) => ({
   display: 'flex',
   justifyContent: 'space-between',
@@ -351,17 +353,16 @@ const MarkdownContent = styled(Box)(({ theme }) => ({
   },
 }));
 
-// Update PublishButton style
+
 const PublishButton = styled(Button)(({ theme }) => ({
-  borderRadius: '24px',
+  borderRadius: '18px',
   textTransform: 'none',
-  fontSize: '0.875rem',
+  fontSize: '0.8rem',
   fontWeight: 600,
   boxShadow: '0 2px 8px rgba(124, 77, 255, 0.25)',
-  padding: theme.spacing(0.6, 2),
-  background: 'linear-gradient(90deg, #7c4dff 0%, #8f6aff 100%)',
+  padding: theme.spacing(0.4, 1.5),
+  background: 'linear-gradient(90deg, rgb(180 163 220) 0%, rgb(177 161 216) 100%)',
   '&:hover': {
-    background: 'linear-gradient(90deg, #8f6aff 0%, #a485ff 100%)',
     boxShadow: '0 4px 12px rgba(124, 77, 255, 0.35)',
   },
   '&.Mui-disabled': {
@@ -370,17 +371,17 @@ const PublishButton = styled(Button)(({ theme }) => ({
   }
 }));
 
-// Определение компонента значка верификации
+
 const VerificationBadge = ({ status, size }) => {
   if (!status) return null;
   
   const getColorAndTitle = (status) => {
-    // Проверяем, является ли status числом или строкой 'verified'
+    
     if (status === 'verified') {
       return { color: '#D0BCFF', title: 'Верифицирован' };
     }
     
-    // Обработка числовых статусов
+    
     switch(Number(status)) {
       case 1:
         return { color: '#9e9e9e', title: 'Верифицирован' };
@@ -412,7 +413,7 @@ const VerificationBadge = ({ status, size }) => {
   );
 };
 
-// Create Post Component
+
 const CreatePost = ({ onPostCreated }) => {
   const { user } = useContext(AuthContext);
   const { themeSettings } = useContext(ThemeSettingsContext);
@@ -426,12 +427,18 @@ const CreatePost = ({ onPostCreated }) => {
   const fileInputRef = useRef(null);
   const [isFocused, setIsFocused] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [error, setError] = useState('');
   
-  // Music selection state
+  
   const [musicSelectOpen, setMusicSelectOpen] = useState(false);
   const [selectedTracks, setSelectedTracks] = useState([]);
 
-  // Обработчики для drag-and-drop
+  
+  useEffect(() => {
+    if (error) setError('');
+  }, [content, selectedFiles, selectedTracks, error]);
+
+  
   const dragCounter = useRef(0);
   
   const handleDragEnter = (e) => {
@@ -446,7 +453,7 @@ const CreatePost = ({ onPostCreated }) => {
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    // Не обновляем состояние здесь, чтобы избежать повторного рендеринга
+    
   };
   
   const handleDragLeave = (e) => {
@@ -470,24 +477,31 @@ const CreatePost = ({ onPostCreated }) => {
     }
   };
   
-  // Общая функция для обработки файлов
+  
   const processFiles = (files) => {
+    if (!files || files.length === 0) {
+      console.error('No files to process');
+      return;
+    }
+    
+    console.log(`processFiles: Processing ${files.length} files`);
+    
     if (files.length > 0) {
-      // Reset previous files and previews
+      
       setSelectedFiles([]);
       setPreviewUrls([]);
       setMediaFile(null);
       setMediaPreview('');
       
-      // Store all selected files
+      
       setSelectedFiles(files);
       
-      // Check if it's a single file - keep compatibility with old code
+      
       if (files.length === 1) {
         setMediaFile(files[0]);
         setMediaType(files[0].type.startsWith('image/') ? 'image' : 'video');
         
-        // Create a preview
+        
         const reader = new FileReader();
         reader.onloadend = () => {
           setMediaPreview(reader.result);
@@ -495,7 +509,7 @@ const CreatePost = ({ onPostCreated }) => {
         reader.readAsDataURL(files[0]);
       }
       
-      // Create previews for all files
+      
       files.forEach(file => {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -507,7 +521,16 @@ const CreatePost = ({ onPostCreated }) => {
   };
 
   const handleMediaChange = (e) => {
+    e.preventDefault(); 
+    
+    
+    if (!e.target.files || e.target.files.length === 0) {
+      console.error('No files selected or invalid files');
+      return;
+    }
+    
     const files = Array.from(e.target.files);
+    console.log(`handleMediaChange: Selected ${files.length} files`, files);
     processFiles(files);
   };
   
@@ -520,18 +543,18 @@ const CreatePost = ({ onPostCreated }) => {
     }
   };
   
-  // Handle music selection from dialog
+  
   const handleMusicSelect = (tracks) => {
     setSelectedTracks(tracks);
   };
   
-  // Handle removing a music track
+  
   const handleRemoveTrack = (trackId) => {
     setSelectedTracks(prev => prev.filter(track => track.id !== trackId));
   };
   
   const handleSubmit = async () => {
-    // Check if we have either content or files or music
+    
     if (!content.trim() && selectedFiles.length === 0 && selectedTracks.length === 0) return;
     
     setIsSubmitting(true);
@@ -540,29 +563,29 @@ const CreatePost = ({ onPostCreated }) => {
       const formData = new FormData();
       formData.append('content', content.trim());
       
-      // Handle multiple images if available
+      
       if (selectedFiles.length > 1) {
         console.log(`Adding ${selectedFiles.length} images to form data`);
         selectedFiles.forEach((file, index) => {
           formData.append(`images[${index}]`, file);
         });
       } 
-      // Otherwise fall back to single file method
+      
       else if (selectedFiles.length === 1) {
         console.log('Adding single file to form data');
         if (mediaType) {
           formData.append(mediaType, selectedFiles[0]);
         } else {
-          // Auto-detect type
+          
           const fileType = selectedFiles[0].type.startsWith('image/') ? 'image' : 'video';
           formData.append(fileType, selectedFiles[0]);
         }
       }
       
-      // Add music tracks if selected
+      
       if (selectedTracks.length > 0) {
         console.log(`Adding ${selectedTracks.length} music tracks to post`);
-        // Convert tracks to JSON string and append to form data
+        
         const trackData = selectedTracks.map(track => ({
           id: track.id,
           title: track.title,
@@ -574,7 +597,7 @@ const CreatePost = ({ onPostCreated }) => {
         formData.append('music', JSON.stringify(trackData));
       }
       
-      // Debug form data
+      
       console.log('Creating post with form data:');
       for (const pair of Array.from(formData.entries())) {
         if (pair[1] instanceof File) {
@@ -588,7 +611,7 @@ const CreatePost = ({ onPostCreated }) => {
       console.log('Post created:', response);
       
       if (response && response.success) {
-        // Reset form
+        
         setContent('');
         setMediaFile(null);
         setMediaPreview('');
@@ -600,17 +623,48 @@ const CreatePost = ({ onPostCreated }) => {
           fileInputRef.current.value = '';
         }
         
-        // Update the feed with the new post
+        
         if (onPostCreated && response.post) {
           onPostCreated(response.post);
         }
         
-        // Show success message
+        
         console.log('Post created successfully');
       }
     } catch (error) {
       console.error('Error creating post:', error);
-      console.error('Failed to create post');
+      
+      
+      if (error.response && error.response.status === 429) {
+        const rateLimit = error.response.data.rate_limit;
+        let errorMessage = "Превышен лимит публикации постов. ";
+        
+        if (rateLimit && rateLimit.reset) {
+          
+          const resetTime = new Date(rateLimit.reset * 1000);
+          const now = new Date();
+          const diffSeconds = Math.round((resetTime - now) / 1000);
+          
+          if (diffSeconds > 60) {
+            const minutes = Math.floor(diffSeconds / 60);
+            const seconds = diffSeconds % 60;
+            errorMessage += `Следующий пост можно опубликовать через ${minutes} мин. ${seconds} сек.`;
+          } else {
+            errorMessage += `Следующий пост можно опубликовать через ${diffSeconds} сек.`;
+          }
+        } else {
+          errorMessage += "Пожалуйста, повторите попытку позже.";
+        }
+        
+        
+        setError(errorMessage);
+      } else if (error.response && error.response.data && error.response.data.error) {
+        
+        setError(error.response.data.error);
+      } else {
+        
+        setError("Произошла ошибка при создании поста. Пожалуйста, попробуйте еще раз.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -619,20 +673,30 @@ const CreatePost = ({ onPostCreated }) => {
   if (!user) return null;
   
   return (
-    <CreatePostCard 
-      sx={{ 
-        background: `linear-gradient(145deg, rgba(30, 30, 30, 0.9) 0%, rgba(20, 20, 20, 0.95) 100%)`,
-        position: 'relative',
-        borderRadius: '16px',
-        border: isDragging ? '2px dashed #D0BCFF' : 'none',
-        p: isDragging ? 3 : 2,
-        mb: 1
+    <Paper
+      elevation={0}
+      sx={{
+        p: 2,
+        mb: 2,
+        borderRadius: '10px',
+        backgroundColor: themeSettings?.postBackgroundColor || '#1E1E1E',
+        position: 'relative'
       }}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
+      {error && (
+        <Alert 
+          severity="error" 
+          sx={{ mb: 2 }}
+          onClose={() => setError('')}
+        >
+          {error}
+        </Alert>
+      )}
+      
       {isDragging && (
         <Box 
           sx={{
@@ -646,7 +710,7 @@ const CreatePost = ({ onPostCreated }) => {
             justifyContent: 'center',
             flexDirection: 'column',
             backgroundColor: 'rgba(26, 26, 26, 0.8)',
-            borderRadius: '16px',
+            borderRadius: '10px',
             zIndex: 10,
             opacity: isDragging ? 1 : 0,
             transition: 'opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'
@@ -680,9 +744,10 @@ const CreatePost = ({ onPostCreated }) => {
           placeholder="Что у вас нового?"
           multiline
           minRows={1}
-          maxRows={isFocused ? 6 : 1}
           onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onBlur={() => {
+
+          }}
           value={content}
           onChange={(e) => setContent(e.target.value)}
           sx={{
@@ -690,19 +755,17 @@ const CreatePost = ({ onPostCreated }) => {
             '& .MuiInputBase-root': {
               transition: 'all 0.3s ease',
               minHeight: '40px !important',
-              maxHeight: isFocused ? '200px' : '40px',
               fontSize: '0.95rem'
             },
             '& textarea': {
               lineHeight: '1.4 !important',
-              paddingTop: '8px !important',
-              paddingBottom: '8px !important',
+
             }
           }}
         />
       </Box>
       
-      {/* Preview box - support both old and new methods */}
+      {}
       {mediaPreview ? (
         <Box sx={{ position: 'relative', mt: 1 }}>
           <img
@@ -716,11 +779,13 @@ const CreatePost = ({ onPostCreated }) => {
             }}
           />
           <IconButton
+            size="small"
             sx={{
               position: 'absolute',
               top: 5,
               right: 5,
               bgcolor: 'rgba(0,0,0,0.5)',
+              padding: '4px',
               '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' }
             }}
             onClick={() => {
@@ -734,7 +799,7 @@ const CreatePost = ({ onPostCreated }) => {
               }
             }}
           >
-            <CloseIcon sx={{ color: 'white' }} />
+            <CloseIcon sx={{ fontSize: 16 }} />
           </IconButton>
         </Box>
       ) : previewUrls.length > 1 ? (
@@ -759,11 +824,13 @@ const CreatePost = ({ onPostCreated }) => {
             ))}
           </ImageList>
           <IconButton
+            size="small"
             sx={{
               position: 'absolute',
               top: 5,
               right: 5,
               bgcolor: 'rgba(0,0,0,0.5)',
+              padding: '4px',
               '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' }
             }}
             onClick={() => {
@@ -776,12 +843,12 @@ const CreatePost = ({ onPostCreated }) => {
               }
             }}
           >
-            <CloseIcon sx={{ color: 'white' }} />
+            <CloseIcon sx={{ fontSize: 16 }} />
           </IconButton>
         </Box>
       ) : null}
       
-      {/* Display selected music tracks */}
+      {}
       {selectedTracks.length > 0 && (
         <Box sx={{ mt: 2, mb: 1 }}>
           {selectedTracks.map(track => (
@@ -853,49 +920,17 @@ const CreatePost = ({ onPostCreated }) => {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*,video/*"
-            onChange={handleMediaChange}
-            multiple
-            style={{ display: 'none' }}
-            id="media-upload-profile"
-          />
-          <label htmlFor="media-upload-profile">
-            <Button
-              component="span"
-              startIcon={<ImageOutlinedIcon />}
-              sx={{
-                color: selectedFiles.length > 0 ? 'primary.main' : 'text.secondary',
-                borderRadius: '24px',
-                textTransform: 'none',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                border: selectedFiles.length > 0 
-                  ? '1px solid rgba(208, 188, 255, 0.5)'
-                  : '1px solid rgba(255, 255, 255, 0.12)',
-                padding: '6px 12px',
-                '&:hover': {
-                  backgroundColor: 'rgba(208, 188, 255, 0.08)',
-                  borderColor: 'rgba(208, 188, 255, 0.4)'
-                }
-              }}
-              size="small"
-              onClick={() => fileInputRef.current && fileInputRef.current.click()}
-            >
-              {selectedFiles.length ? `Файлы (${selectedFiles.length})` : 'Фото/видео'}
-            </Button>
-          </label>
-          
-          {/* Music selection button */}
+            accept="image}
           <Button
             onClick={() => setMusicSelectOpen(true)}
-            startIcon={<MusicNoteIcon />}
+            startIcon={<MusicNoteIcon sx={{ fontSize: 18 }} />}
             sx={{
               color: selectedTracks.length > 0 ? 'primary.main' : 'text.secondary',
-              borderRadius: '24px',
+              borderRadius: '10px',
               textTransform: 'none',
-              fontSize: '0.875rem',
+              fontSize: '0.8rem',
               fontWeight: 500,
-              padding: '6px 12px',
+              padding: '4px 10px',
               border: selectedTracks.length > 0 
                 ? '1px solid rgba(208, 188, 255, 0.5)' 
                 : '1px solid rgba(255, 255, 255, 0.12)',
@@ -914,24 +949,25 @@ const CreatePost = ({ onPostCreated }) => {
           variant="contained" 
           onClick={handleSubmit}
           disabled={isSubmitting || (!content.trim() && !mediaFile && selectedFiles.length === 0 && selectedTracks.length === 0)}
-          endIcon={isSubmitting ? <CircularProgress size={16} color="inherit" /> : null}
+          endIcon={isSubmitting ? <CircularProgress size={14} color="inherit" /> : null}
+          size="small"
         >
           Опубликовать
         </PublishButton>
       </PostActions>
       
-      {/* Music selection dialog */}
+      {}
       <MusicSelectDialog
         open={musicSelectOpen}
         onClose={() => setMusicSelectOpen(false)}
         onSelectTracks={handleMusicSelect}
         maxTracks={3}
       />
-    </CreatePostCard>
+    </Paper>
   );
 };
 
-// Определение TabPanel
+
 const TabPanel = ({ children, value, index, ...other }) => {
   return (
     <div
@@ -952,10 +988,10 @@ const TabPanel = ({ children, value, index, ...other }) => {
   );
 };
 
-// ProfilePage Component
+
 const ProfilePage = () => {
   const { username } = useParams();
-  const { user: currentUser } = useContext(AuthContext);
+  const { user: currentUser, isAuthenticated } = useContext(AuthContext);
   const [user, setUser] = useState(null);
   const [ownedUsernames, setOwnedUsernames] = useState([]);
   const [posts, setPosts] = useState([]);
@@ -1000,11 +1036,11 @@ const ProfilePage = () => {
   const [previewUrls, setPreviewUrls] = useState([]);
   const [statsExpanded, setStatsExpanded] = useState(false);
   const [totalLikes, setTotalLikes] = useState(0);
-  // Добавляем состояния для онлайн-статуса
+  
   const [isOnline, setIsOnline] = useState(false);
   const [lastActive, setLastActive] = useState(null);
   
-  // Функция для открытия лайтбокса
+  
   const openLightbox = (imageUrl) => {
     console.log("Opening lightbox for image:", imageUrl);
     if (typeof imageUrl === 'string') {
@@ -1015,12 +1051,12 @@ const ProfilePage = () => {
     }
   };
   
-  // Функция для закрытия лайтбокса
+  
   const closeLightbox = () => {
     setLightboxIsOpen(false);
   };
   
-  // Функция отображения уведомлений
+  
   const showNotification = (severity, message) => {
     setSnackbar({
       open: true,
@@ -1037,12 +1073,17 @@ const ProfilePage = () => {
     setTabValue(newValue);
   };
   
-  // Обновлено для работы с новым переключателем
+  
   const handleTabClick = (index) => {
     setTabValue(index);
   };
   
   const handleFollow = async () => {
+    
+    if (!requireAuth(currentUser, isAuthenticated, navigate)) {
+      return;
+    }
+    
     try {
       const response = await axios.post('/api/profile/follow', {
         followed_id: user.id
@@ -1059,41 +1100,60 @@ const ProfilePage = () => {
   
   const handlePostCreated = (newPost) => {
     if (newPost && newPost.id) {
-      // Проверяем, принадлежит ли пост текущему пользователю
+      
       if (newPost.user_id === user.id || 
           (newPost.user && newPost.user.id === user.id)) {
         
-        // Проверяем, есть ли уже этот пост в списке (избегаем дублирования)
+        
         const existingPostIndex = posts.findIndex(p => p && p.id === newPost.id);
         
         if (existingPostIndex !== -1) {
-          // Если пост уже существует, обновляем его
+          
           setPosts(current => {
             const newPosts = [...current];
             newPosts[existingPostIndex] = newPost;
             return newPosts;
           });
         } else {
-          // Иначе добавляем новый пост в начало списка
+          
           setPosts(current => [newPost, ...current.filter(p => p && p.id)]);
           
-          // Обновляем счетчик постов
+          
           setPostsCount(prev => prev + 1);
         }
       }
     }
   };
 
-  const handleDeletePost = async (postId) => {
+  const handleDeletePost = async (postId, updatedPost) => {
+    
+    if (!requireAuth(currentUser, isAuthenticated, navigate)) {
+      return;
+    }
+    
     try {
+      
+      if (updatedPost) {
+        console.log('Updating post with ID:', postId, 'New data:', updatedPost);
+        
+        
+        setPosts(prevPosts => prevPosts.map(post => 
+          post.id.toString() === postId.toString() ? updatedPost : post
+        ));
+        
+        
+        showNotification('success', 'Пост успешно обновлен');
+        return;
+      }
+      
       console.log('Deleting post/repost with ID:', postId);
       let response;
       
-      // Проверяем, является ли это репостом (ID с префиксом repost-)
+      
       const isRepost = postId.toString().startsWith('repost-');
       
       if (isRepost) {
-        // Удаляем префикс repost- для получения фактического ID репоста
+        
         const repostId = postId.substring(7);
         console.log('Deleting repost with ID:', repostId);
         response = await axios.delete(`/api/reposts/${repostId}`);
@@ -1103,17 +1163,17 @@ const ProfilePage = () => {
       }
       
       if (response.data && response.data.success) {
-        // Обновляем состояние после успешного удаления поста или репоста
+        
         setPosts(prevPosts => prevPosts.filter(post => {
           if (isRepost) {
-            // Для репостов проверяем id с префиксом repost-
+            
             return `repost-${post.id}` !== postId;
           }
-          // Для обычных постов просто сравниваем id
+          
           return post.id.toString() !== postId.toString();
         }));
         
-        // Показываем уведомление об успехе
+        
         showNotification('success', isRepost ? 'Репост успешно удален' : 'Пост успешно удален');
       }
     } catch (error) {
@@ -1122,32 +1182,32 @@ const ProfilePage = () => {
     }
   };
   
-  // Функция загрузки постов по скроллу - определяем до использования в useEffect
+  
   const loadMorePosts = async () => {
     if (loadingPosts || !hasMorePosts) return;
     
     try {
       setLoadingPosts(true);
       
-      // Ensure posts is an array before accessing its elements
-      const currentPosts = Array.isArray(posts) ? posts : [];
-      const lastPost = currentPosts.length > 0 ? currentPosts[currentPosts.length - 1] : null;
+      
+      const nextPage = page + 1;
+      setPage(nextPage);
       
       const response = await axios.get(`/api/profile/${username}/posts`, {
         params: {
-          cursor: lastPost ? lastPost.id : null,
-          limit: 10
+          page: nextPage,
+          per_page: 10
         }
       });
       
-      if (response.data.success && Array.isArray(response.data.posts)) {
+      if (response.data.posts && Array.isArray(response.data.posts)) {
         const newPosts = response.data.posts;
         setPosts(prev => {
-          // Make sure prev is an array
+          
           const prevArray = Array.isArray(prev) ? prev : [];
           return [...prevArray, ...newPosts];
         });
-        setHasMorePosts(newPosts.length === 10);
+        setHasMorePosts(response.data.has_next);
       } else {
         setHasMorePosts(false);
       }
@@ -1164,25 +1224,25 @@ const ProfilePage = () => {
     try {
       setLoadingPhotos(true);
       
-      // Ensure photos is an array before accessing its elements
-      const currentPhotos = Array.isArray(photos) ? photos : [];
-      const lastPhoto = currentPhotos.length > 0 ? currentPhotos[currentPhotos.length - 1] : null;
+      
+      const nextPage = photoPage + 1;
+      setPhotoPage(nextPage);
       
       const response = await axios.get(`/api/profile/${username}/photos`, {
         params: {
-          cursor: lastPhoto ? lastPhoto.id : null,
-          limit: 12
+          page: nextPage,
+          per_page: 12
         }
       });
       
-      if (response.data.success && Array.isArray(response.data.photos)) {
-        const newPhotos = response.data.photos;
+      if (response.data.media && Array.isArray(response.data.media)) {
+        const newPhotos = response.data.media;
         setPhotos(prev => {
-          // Make sure prev is an array
+          
           const prevArray = Array.isArray(prev) ? prev : [];
           return [...prevArray, ...newPhotos];
         });
-        setHasMorePhotos(newPhotos.length === 12);
+        setHasMorePhotos(response.data.has_next);
       } else {
         setHasMorePhotos(false);
       }
@@ -1199,25 +1259,25 @@ const ProfilePage = () => {
     try {
       setLoadingVideos(true);
       
-      // Ensure videos is an array before accessing its elements
-      const currentVideos = Array.isArray(videos) ? videos : [];
-      const lastVideo = currentVideos.length > 0 ? currentVideos[currentVideos.length - 1] : null;
+      
+      const nextPage = videoPage + 1;
+      setVideoPage(nextPage);
       
       const response = await axios.get(`/api/profile/${username}/videos`, {
         params: {
-          cursor: lastVideo ? lastVideo.id : null,
-          limit: 8
+          page: nextPage,
+          per_page: 8
         }
       });
       
-      if (response.data.success && Array.isArray(response.data.videos)) {
-        const newVideos = response.data.videos;
+      if (response.data.media && Array.isArray(response.data.media)) {
+        const newVideos = response.data.media;
         setVideos(prev => {
-          // Make sure prev is an array
+          
           const prevArray = Array.isArray(prev) ? prev : [];
           return [...prevArray, ...newVideos];
         });
-        setHasMoreVideos(newVideos.length === 8);
+        setHasMoreVideos(response.data.has_next);
       } else {
         setHasMoreVideos(false);
       }
@@ -1228,7 +1288,7 @@ const ProfilePage = () => {
     }
   };
   
-  // Load user profile
+  
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
@@ -1238,21 +1298,21 @@ const ProfilePage = () => {
         const response = await axios.get(`/api/profile/${username}`);
         console.log("Profile API response:", response.data);
         
-        // Debug achievement data
+        
         console.log("Profile achievement data:", {
           rootAchievement: response.data.achievement_data,
           userAchievement: response.data.user?.achievement
         });
         
-        // Check if we received a user object directly
+        
         if (response.data.user) {
-          // Copy verification from the root to the user object if not present
+          
           if (response.data.user.verification_status === undefined && response.data.verification) {
             response.data.user.verification_status = response.data.verification.status || null;
           }
           
-          // Copy achievement data from the root to the user object
-          // The API returns achievement data at the root level, not in the user object
+          
+          
           if (response.data.achievement) {
             response.data.user.achievement = response.data.achievement;
             console.log('Copied achievement data from root to user object:', response.data.achievement);
@@ -1260,13 +1320,24 @@ const ProfilePage = () => {
           
           setUser(response.data.user);
           
-          // Set total likes directly from API
+          
           if (response.data.user.total_likes !== undefined) {
             setTotalLikes(response.data.user.total_likes);
           }
           
+          
+          if (response.data.subscription) {
+            response.data.user.subscription = response.data.subscription;
+            console.log('Subscription data found:', response.data.subscription);
+          } else if (response.data.user.subscription) {
+            console.log('Subscription data found in user object:', response.data.user.subscription);
+          } else {
+            console.log('No subscription data found in API response');
+            console.log('Full API response:', response.data);
+          }
+          
           if (response.data.user.posts) {
-            // Ensure posts is an array
+            
             const postsData = Array.isArray(response.data.user.posts) ? response.data.user.posts : [];
             setPosts(postsData);
             setHasMorePosts(postsData.length >= 10);
@@ -1275,7 +1346,7 @@ const ProfilePage = () => {
           }
           
           if (response.data.user.photos) {
-            // Ensure photos is an array
+            
             const photosData = Array.isArray(response.data.user.photos) ? response.data.user.photos : [];
             setPhotos(photosData);
             setHasMorePhotos(photosData.length >= 12);
@@ -1284,7 +1355,7 @@ const ProfilePage = () => {
           }
           
           if (response.data.user.videos) {
-            // Ensure videos is an array
+            
             const videosData = Array.isArray(response.data.user.videos) ? response.data.user.videos : [];
             setVideos(videosData);
             setHasMoreVideos(videosData.length >= 8);
@@ -1292,7 +1363,7 @@ const ProfilePage = () => {
             setVideos([]);
           }
           
-          // Set followers and following counts
+          
           if (response.data.user.followers_count !== undefined) {
             setFollowersCount(response.data.user.followers_count);
           }
@@ -1301,7 +1372,7 @@ const ProfilePage = () => {
             setFollowingCount(response.data.user.following_count);
           }
           
-          // Handle is_following from different places in the API response
+          
           if (response.data.user.is_following !== undefined) {
             setFollowing(response.data.user.is_following);
           } else if (response.data.is_following !== undefined) {
@@ -1314,12 +1385,12 @@ const ProfilePage = () => {
             setPostsCount(response.data.posts_count);
           }
           
-          // Set socials if available
+          
           if (response.data.socials) {
             setSocials(response.data.socials);
           }
           
-          // Fetch owned usernames for any user
+          
           try {
             const usernamesResponse = await axios.get(`/api/username/purchased/${response.data.user.id}`);
             if (usernamesResponse.data.success) {
@@ -1335,12 +1406,12 @@ const ProfilePage = () => {
           }
         } else {
           console.error('User data not found in response', response.data);
-          setUser(null); // Explicitly set user to null if not found
+          setUser(null); 
         }
       } catch (error) {
         console.error('Error fetching profile', error);
         if (error.response && error.response.status === 404) {
-          // User not found - set user to null
+          
           setUser(null);
         }
       } finally {
@@ -1348,11 +1419,11 @@ const ProfilePage = () => {
       }
     };
     
-    // Запускаем загрузку профиля
+    
     fetchUserProfile();
   }, [username, setLoading, setUser, setPosts, setHasMorePosts, setPhotos, setHasMorePhotos, setVideos, setHasMoreVideos, setFollowersCount, setFollowingCount, setFollowing, setPostsCount, setSocials, setTotalLikes]);
   
-  // Load user posts
+  
   useEffect(() => {
     const fetchUserPosts = async () => {
       if (!user) return;
@@ -1362,7 +1433,7 @@ const ProfilePage = () => {
         const profileUsername = username || (user && user.username);
         if (!profileUsername) return;
         
-        // Сбрасываем состояние пагинации при первой загрузке
+        
         setPage(1);
         
         const response = await axios.get(`/api/profile/${profileUsername}/posts?page=1`);
@@ -1380,7 +1451,7 @@ const ProfilePage = () => {
     }
   }, [username, user, tabValue]);
   
-  // Загрузка фото пользователя
+  
   useEffect(() => {
     const fetchUserPhotos = async () => {
       if (!user) return;
@@ -1390,7 +1461,7 @@ const ProfilePage = () => {
         const profileUsername = username || (user && user.username);
         if (!profileUsername) return;
         
-        // Сбрасываем состояние пагинации
+        
         setPhotoPage(1);
         
         const response = await axios.get(`/api/profile/${profileUsername}/photos?page=1`);
@@ -1411,7 +1482,7 @@ const ProfilePage = () => {
     }
   }, [username, user, tabValue]);
   
-  // Загрузка видео пользователя
+  
   useEffect(() => {
     const fetchUserVideos = async () => {
       if (!user) return;
@@ -1421,7 +1492,7 @@ const ProfilePage = () => {
         const profileUsername = username || (user && user.username);
         if (!profileUsername) return;
         
-        // Сбрасываем состояние пагинации
+        
         setVideoPage(1);
         
         const response = await axios.get(`/api/profile/${profileUsername}/videos?page=1`);
@@ -1442,60 +1513,60 @@ const ProfilePage = () => {
     }
   }, [username, user, tabValue]);
 
-  // Obtain follower and following lists
+  
   useEffect(() => {
-    // Always fetch followers and following when user is loaded
+    
     if (user && user.id) {
       setLoadingFollowers(true);
       setLoadingFollowing(true);
       
       console.log(`Загрузка подписчиков для пользователя ${user.id}`);
-      // Загрузка подписчиков
+      
       axios.get(`/api/profile/${user.id}/followers`)
         .then(response => {
           console.log('Ответ API подписчиков:', response.data);
           if (response.data && response.data.followers) {
-            // Ensure we only set valid data
+            
             const followersData = Array.isArray(response.data.followers) 
               ? response.data.followers.filter(f => f && typeof f === 'object') 
               : [];
             console.log(`Получено ${followersData.length} подписчиков`);
             setFollowers(followersData);
           } else {
-            // If no valid data, set empty array
+            
             console.warn('Нет данных о подписчиках в ответе API');
             setFollowers([]);
           }
         })
         .catch(error => {
           console.error('Ошибка загрузки подписчиков:', error);
-          setFollowers([]); // Set empty array on error
+          setFollowers([]); 
         })
         .finally(() => {
           setLoadingFollowers(false);
         });
       
       console.log(`Загрузка подписок для пользователя ${user.id}`);
-      // Загрузка подписок
+      
       axios.get(`/api/profile/${user.id}/following`)
         .then(response => {
           console.log('Ответ API подписок:', response.data);
           if (response.data && response.data.following) {
-            // Ensure we only set valid data
+            
             const followingData = Array.isArray(response.data.following) 
               ? response.data.following.filter(f => f && typeof f === 'object') 
               : [];
             console.log(`Получено ${followingData.length} подписок`);
             setFollowingList(followingData);
           } else {
-            // If no valid data, set empty array
+            
             console.warn('Нет данных о подписках в ответе API');
             setFollowingList([]);
           }
         })
         .catch(error => {
           console.error('Ошибка загрузки подписок:', error);
-          setFollowingList([]); // Set empty array on error
+          setFollowingList([]); 
         })
         .finally(() => {
           setLoadingFollowing(false);
@@ -1503,13 +1574,13 @@ const ProfilePage = () => {
     }
   }, [user]);
 
-  // Добавляем обработчик скролла для бесконечной загрузки
+  
   useEffect(() => {
     const handleScroll = () => {
-      // Проверяем, что мы на вкладке постов
+      
       if (tabValue !== 0) return;
       
-      // Проверяем, находимся ли мы близко к концу страницы
+      
       if (
         window.innerHeight + document.documentElement.scrollTop + 200 >= 
         document.documentElement.offsetHeight
@@ -1522,18 +1593,18 @@ const ProfilePage = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [tabValue, loadMorePosts]);
 
-  // Добавляем обработчик скролла для бесконечной загрузки фото и видео
+  
   useEffect(() => {
     const handleScroll = () => {
-      // Проверяем, что мы на соответствующей вкладке
-      if (tabValue === 1) { // Фото
+      
+      if (tabValue === 1) { 
         if (
           window.innerHeight + document.documentElement.scrollTop + 200 >= 
           document.documentElement.offsetHeight
         ) {
           loadMorePhotos();
         }
-      } else if (tabValue === 2) { // Видео
+      } else if (tabValue === 2) { 
         if (
           window.innerHeight + document.documentElement.scrollTop + 200 >= 
           document.documentElement.offsetHeight
@@ -1558,8 +1629,8 @@ const ProfilePage = () => {
     };
 
     fetchNotifications();
-    // Set up polling for new notifications
-    const interval = setInterval(fetchNotifications, 30000); // Check every 30 seconds
+    
+    const interval = setInterval(fetchNotifications, 30000); 
     return () => clearInterval(interval);
   }, []);
 
@@ -1577,10 +1648,10 @@ const ProfilePage = () => {
     }
   };
 
-  // Добавляем эффект для подсчета общего количества лайков
+  
   useEffect(() => {
     if (posts && posts.length > 0) {
-      // Count all likes on user's posts
+      
       let likesCount = 0;
       posts.forEach(post => {
         if (post && post.likes_count) {
@@ -1588,7 +1659,7 @@ const ProfilePage = () => {
         }
       });
       
-      // Query the backend for more accurate likes count
+      
       const fetchTotalLikes = async () => {
         try {
           if (user && user.id) {
@@ -1609,7 +1680,7 @@ const ProfilePage = () => {
     }
   }, [posts, user]);
 
-  // Функция для получения онлайн-статуса пользователя
+  
   const fetchOnlineStatus = async () => {
     try {
       if (!username) return;
@@ -1625,19 +1696,19 @@ const ProfilePage = () => {
     }
   };
   
-  // useEffect для получения и обновления онлайн-статуса
+  
   useEffect(() => {
     if (username) {
       fetchOnlineStatus();
       
-      // Обновляем статус каждые 30 секунд
+      
       const interval = setInterval(fetchOnlineStatus, 30000);
       
       return () => clearInterval(interval);
     }
   }, [username]);
 
-  // Debug user state after it's set
+  
   useEffect(() => {
     if (user) {
       console.log('User state after setting:', {
@@ -1677,7 +1748,7 @@ const ProfilePage = () => {
   
   const isCurrentUser = currentUser && currentUser.username === user.username;
 
-  // Компонент для отображения фотографий
+  
   const PhotosGrid = () => {
     return (
       <ContentLoader loading={loadingPhotos} skeletonCount={1} height="300px">
@@ -1685,15 +1756,15 @@ const ProfilePage = () => {
           <Box sx={{ mt: 0.5 }}>
             <Grid container spacing={0.5}>
               {photos.map((photo, index) => {
-                // Skip invalid photos
+                
                 if (!photo || typeof photo !== 'object' || !photo.url) {
                   return null;
                 }
                 
-                // Get safe URL
+                
                 const imageUrl = photo.url || '';
                 
-                // Render photo card
+                
                 return (
                   <Grid item xs={12} sm={6} md={4} key={`photo-${index}`}>
                     <Box
@@ -1702,7 +1773,7 @@ const ProfilePage = () => {
                         width: '100%',
                         borderRadius: '10px',
                         overflow: 'hidden',
-                        paddingTop: '100%', // 1:1 Aspect ratio
+                        paddingTop: '100%', 
                         backgroundColor: 'rgba(0,0,0,0.05)',
                         '&:hover': {
                           transform: 'translateY(-4px)',
@@ -1718,7 +1789,7 @@ const ProfilePage = () => {
                         src={imageUrl}
                         alt={photo.content || `Фото ${index + 1}`}
                         onError={(e) => {
-                          // If image fails to load, show placeholder
+                          
                           console.error(`Failed to load image: ${imageUrl}`);
                           e.currentTarget.src = '/static/uploads/system/image_placeholder.jpg';
                         }}
@@ -1757,7 +1828,7 @@ const ProfilePage = () => {
     );
   };
   
-  // Компонент для отображения видео
+  
   const VideosGrid = () => {
     return (
       <ContentLoader loading={loadingVideos} skeletonCount={1} height="300px">
@@ -1823,7 +1894,7 @@ const ProfilePage = () => {
     );
   };
 
-  // PostsTab component - отвечает за отображение постов в профиле
+  
   const PostsTab = () => {
     return (
       <ContentLoader loading={loadingPosts} skeletonCount={3} height="120px">
@@ -1837,7 +1908,7 @@ const ProfilePage = () => {
               )
             ))}
             
-            {/* Load more posts button with smooth transition */}
+            {}
             <Box sx={{ textAlign: 'center', mt: 0.5, mb: 0.5 }}>
               {hasMorePosts ? (
                 <Button 
@@ -1930,9 +2001,9 @@ const ProfilePage = () => {
           flexWrap: { xs: 'nowrap', md: 'nowrap' }
         }}
       >
-        {/* Left column - Profile info */}
+        {}
         <Grid item xs={12} md={5}>
-          {/* User card */}
+          {}
           <Paper sx={{ 
             p: 0, 
             borderRadius: '16px', 
@@ -1947,9 +2018,36 @@ const ProfilePage = () => {
             '&:hover': {
               boxShadow: '0 14px 35px rgba(0, 0, 0, 0.35)',
               transform: 'translateY(-2px)'
-            }
+            },
+            
+            ...(user?.subscription && {
+              border: user.subscription.type === 'premium' 
+                ? '1px solid rgba(186, 104, 200, 0.3)' 
+                : user.subscription.type === 'pick-me'
+                  ? '1px solid rgba(208, 188, 255, 0.3)'
+                  : user.subscription.type === 'ultimate' 
+                    ? '1px solid rgba(124, 77, 255, 0.3)' 
+                    : '1px solid rgba(66, 165, 245, 0.3)',
+              boxShadow: user.subscription.type === 'premium' 
+                ? '0 0 15px rgba(186, 104, 200, 0.2)' 
+                : user.subscription.type === 'pick-me'
+                  ? '0 0 15px rgba(208, 188, 255, 0.2)'
+                  : user.subscription.type === 'ultimate' 
+                    ? '0 0 15px rgba(124, 77, 255, 0.2)' 
+                    : '0 0 15px rgba(66, 165, 245, 0.2)',
+              '&:hover': {
+                boxShadow: user.subscription.type === 'premium' 
+                  ? '0 0 20px rgba(186, 104, 200, 0.3)' 
+                  : user.subscription.type === 'pick-me'
+                    ? '0 0 20px rgba(208, 188, 255, 0.3)'
+                    : user.subscription.type === 'ultimate' 
+                      ? '0 0 20px rgba(124, 77, 255, 0.3)' 
+                      : '0 0 20px rgba(66, 165, 245, 0.3)',
+                transform: 'translateY(-2px)'
+              }
+            })
           }}>
-            {/* Banner */}
+            {}
             {user?.banner_url ? (
               <Box sx={{ 
                 width: '100%',
@@ -1969,9 +2067,12 @@ const ProfilePage = () => {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  background: 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(18,18,18,0.95) 100%)'
+                  background: 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(18,18,18,0.45) 100%)'
                 }
-              }} />
+              }}>
+                {}
+                {}
+              </Box>
             ) : (
               <Box sx={{ 
                 width: '100%',
@@ -1985,7 +2086,7 @@ const ProfilePage = () => {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  background: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z\' fill=\'%23ffffff\' fill-opacity=\'0.05\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")',
+                  background: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http:
                   opacity: 0.4
                 },
                 '&::after': {
@@ -1997,18 +2098,21 @@ const ProfilePage = () => {
                   bottom: 0,
                   background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(18,18,18,0.9) 100%)'
                 }
-              }} />
+              }}>
+                {}
+                {}
+              </Box>
             )}
             
-            {/* Content container */}
+            {}
             <Box sx={{ px: 3, pb: 3, pt: 0, mt: -7 }}>
-              {/* Top section with avatar and actions */}
+              {}
               <Box sx={{ 
                 display: 'flex', 
                 justifyContent: 'space-between',
                 alignItems: 'flex-start'
               }}>
-                {/* Avatar with online indicator */}
+                {}
                 <Box sx={{ position: 'relative' }}>
                   <Avatar 
                     src={user?.avatar_url} 
@@ -2016,14 +2120,44 @@ const ProfilePage = () => {
                     sx={{ 
                       width: { xs: 110, sm: 130 }, 
                       height: { xs: 110, sm: 130 }, 
-                      border: '4px solid #121212',
-                      boxShadow: '0 8px 20px rgba(0, 0, 0, 0.25)',
+                      border: user?.subscription ? 
+                        `4px solid ${
+                          user.subscription.type === 'premium' ? 'rgba(186, 104, 200, 0.6)' :
+                          user.subscription.type === 'pick-me' ? 'rgba(208, 188, 255, 0.6)' : 
+                          user.subscription.type === 'ultimate' ? 'rgba(124, 77, 255, 0.6)' : 
+                          'rgba(66, 165, 245, 0.6)'
+                        }` : 
+                        '4px solid #121212',
+                      boxShadow: user?.subscription ?
+                        (user.subscription.type === 'premium' ? 
+                          '0 0 15px rgba(186, 104, 200, 0.5)' :
+                          user.subscription.type === 'pick-me' ? 
+                          '0 0 15px rgba(208, 188, 255, 0.5)' : 
+                          user.subscription.type === 'ultimate' ? 
+                          '0 0 15px rgba(124, 77, 255, 0.5)' : 
+                          '0 0 15px rgba(66, 165, 245, 0.5)') :
+                        '0 8px 20px rgba(0, 0, 0, 0.25)',
                       bgcolor: 'primary.dark',
                       transition: 'all 0.3s ease',
                       '&:hover': {
                         transform: 'scale(1.03)',
-                        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.35)',
-                        border: '4px solid rgba(208, 188, 255, 0.4)'
+                        boxShadow: user?.subscription ?
+                          (user.subscription.type === 'premium' ? 
+                            '0 0 20px rgba(186, 104, 200, 0.7)' :
+                            user.subscription.type === 'pick-me' ? 
+                            '0 0 20px rgba(208, 188, 255, 0.7)' : 
+                            user.subscription.type === 'ultimate' ? 
+                            '0 0 20px rgba(124, 77, 255, 0.7)' : 
+                            '0 0 20px rgba(66, 165, 245, 0.7)') :
+                          '0 10px 25px rgba(0, 0, 0, 0.35)',
+                        border: user?.subscription ? 
+                          `4px solid ${
+                            user.subscription.type === 'premium' ? 'rgba(186, 104, 200, 0.8)' :
+                            user.subscription.type === 'pick-me' ? 'rgba(208, 188, 255, 0.8)' : 
+                            user.subscription.type === 'ultimate' ? 'rgba(124, 77, 255, 0.8)' : 
+                            'rgba(66, 165, 245, 0.8)'
+                          }` : 
+                          '4px solid rgba(208, 188, 255, 0.4)'
                       }
                     }}
                     onError={(e) => {
@@ -2033,7 +2167,7 @@ const ProfilePage = () => {
                     }}
                   />
                   
-                  {/* Online status indicator on avatar */}
+                  {}
                   {isOnline && (
                     <Box
                       sx={{
@@ -2064,7 +2198,7 @@ const ProfilePage = () => {
                   )}
                 </Box>
                 
-                {/* Follow/message buttons for non-current users */}
+                {}
                 {!isCurrentUser && (
                   <Box sx={{ mt: 8, display: 'flex', gap: 1 }}>
                     <Button 
@@ -2098,7 +2232,7 @@ const ProfilePage = () => {
                 )}
               </Box>
               
-              {/* User info */}
+              {}
               <Box sx={{ mt: 2, whiteSpace: 'nowrap' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Typography 
@@ -2112,6 +2246,8 @@ const ProfilePage = () => {
                     {user?.name || 'Пользователь'}
                   </Typography>
                   <VerificationBadge status={user?.verification_status} size="small" />
+                  
+
                   {user?.achievement && (
                     <Box 
                       component="img" 
@@ -2130,6 +2266,8 @@ const ProfilePage = () => {
                       }}
                     />
                   )}
+                                    {}
+
                 </Box>
                 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
@@ -2197,9 +2335,52 @@ const ProfilePage = () => {
                       {lastActive ? `${lastActive}` : "не в сети"}
                     </Typography>
                   )}
+                                    {user?.subscription && (
+                    <Tooltip title={`Подписка ${user.subscription.type === 'pick-me' ? 'Пикми' : user.subscription.type} активна до ${new Date(user.subscription.expires_at).toLocaleDateString()}`}>
+                      <Chip
+                        icon={<DiamondIcon fontSize="small" />}
+                        label={user.subscription.type === 'pick-me' ? 'Пикми' : 
+                              user.subscription.type.charAt(0).toUpperCase() + user.subscription.type.slice(1)}
+                        size="small"
+                        sx={{
+                          bgcolor: user.subscription.type === 'premium' ? 'rgba(186, 104, 200, 0.15)' : 
+                                  user.subscription.type === 'ultimate' ? 'rgba(124, 77, 255, 0.15)' :
+                                  user.subscription.type === 'pick-me' ? 'rgba(208, 188, 255, 0.15)' : 
+                                  'rgba(66, 165, 245, 0.15)',
+                          color: user.subscription.type === 'premium' ? '#ba68c8' : 
+                                user.subscription.type === 'ultimate' ? '#7c4dff' : 
+                                user.subscription.type === 'pick-me' ? 'rgb(208, 188, 255)' :
+                                '#42a5f5',
+                          fontWeight: 'bold',
+                          border: '1px solid',
+                          borderColor: user.subscription.type === 'premium' ? 'rgba(186, 104, 200, 0.3)' : 
+                                      user.subscription.type === 'ultimate' ? 'rgba(124, 77, 255, 0.3)' :
+                                      user.subscription.type === 'pick-me' ? 'rgba(208, 188, 255, 0.3)' :
+                                      'rgba(66, 165, 245, 0.3)',
+                          '& .MuiChip-icon': {
+                            color: 'inherit'
+                          },
+                          
+                          animation: 'pulse-light 2s infinite',
+                          '@keyframes pulse-light': {
+                            '0%': {
+                              boxShadow: '0 0 0 0 rgba(124, 77, 255, 0.4)'
+                            },
+                            '70%': {
+                              boxShadow: '0 0 0 6px rgba(124, 77, 255, 0)'
+                            },
+                            '100%': {
+                              boxShadow: '0 0 0 0 rgba(124, 77, 255, 0)'
+                            }
+                          }
+                        }}
+                      />
+                    </Tooltip>
+                  )}
+                  
                 </Box>
                   
-                {/* Дополнительные юзернеймы на отдельной строке */}
+                {}
                 {ownedUsernames.length > 0 && (
                   <Box sx={{ 
                     display: 'flex',
@@ -2252,12 +2433,12 @@ const ProfilePage = () => {
                   </Box>
                 )}
                 
-                {/* Bio */}
+                {}
                 {user?.about && (
                   <Typography 
                     variant="body2" 
                     sx={{ 
-                      mt: 1, // Уменьшено с 2 до 1
+                      mt: 1, 
                       lineHeight: 1.5,
                       color: 'rgba(255,255,255,0.8)',
                       p: 1.5,
@@ -2272,14 +2453,14 @@ const ProfilePage = () => {
                 )}
                 
                 
-                {/* Stats cards */}
+                {}
                 <Box sx={{ 
                   display: 'grid', 
                   gridTemplateColumns: 'repeat(3, 1fr)', 
-                  gap: 1, // Уменьшено с 1.5 до 1
-                  mt: 1 // Уменьшено с 2.5 до 1
+                  gap: 1, 
+                  mt: 1 
                 }}>
-                  {/* Posts count */}
+                  {}
                   <Paper sx={{ 
                     p: 1.5, 
                     borderRadius: 2, 
@@ -2301,7 +2482,7 @@ const ProfilePage = () => {
                     </Typography>
                   </Paper>
                   
-                  {/* Followers */}
+                  {}
                   <Paper 
                     component={Link}
                     to={`/profile/${user?.username}/followers`}
@@ -2329,7 +2510,7 @@ const ProfilePage = () => {
                     </Typography>
                   </Paper>
                   
-                  {/* Following */}
+                  {}
                   <Paper 
                     component={Link}
                     to={`/profile/${user?.username}/following`}
@@ -2358,16 +2539,16 @@ const ProfilePage = () => {
                   </Paper>
                 </Box>
                 
-                {/* Followers and following section with avatars */}
-                <Grid container spacing={1} sx={{ mt: 1 }}> {/* Уменьшено spacing с 2 до 1 и mt с 2 до 1 */}
-                  {/* Подписчики */}
+                {}
+                <Grid container spacing={1} sx={{ mt: 1 }}> {}
+                  {}
                   <Grid item xs={6}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                       <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
                         Подписчики
                       </Typography>
                       
-                      {/* Аватары подписчиков */}
+                      {}
                       {loadingFollowers ? (
                         <CircularProgress size={20} />
                       ) : followers.length > 0 ? (
@@ -2416,14 +2597,14 @@ const ProfilePage = () => {
                     </Box>
                   </Grid>
                   
-                  {/* Подписки */}
+                  {}
                   <Grid item xs={6}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                       <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
                         Подписки
                       </Typography>
                       
-                      {/* Аватары подписок */}
+                      {}
                       {loadingFollowing ? (
                         <CircularProgress size={20} />
                       ) : followingList.length > 0 ? (
@@ -2473,7 +2654,7 @@ const ProfilePage = () => {
                   </Grid>
                 </Grid>
                 
-                {/* Social links */}
+                {}
                 {socials && socials.length > 0 && (
                   <Box sx={{ 
                     display: 'flex', 
@@ -2507,24 +2688,24 @@ const ProfilePage = () => {
                           ) : (
                             <Box component="div" sx={{ width: 20, height: 20, fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               {social.name?.toLowerCase().includes('instagram') ? 
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                                <svg xmlns="http:
                               : social.name?.toLowerCase().includes('facebook') ?
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5 1.583-5 4.615v3.385z"/></svg>
+                                <svg xmlns="http:
                               : social.name?.toLowerCase().includes('twitter') || social.name?.toLowerCase().includes('x') ?
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
+                                <svg xmlns="http:
                               : social.name?.toLowerCase().includes('vk') ?
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M13.162 18.994c.609 0 .858-.406.851-.915-.031-1.917.714-2.949 2.059-1.604 1.488 1.488 1.796 2.519 3.603 2.519h3.2c.808 0 1.126-.26 1.126-.668 0-.863-1.421-2.386-2.625-3.504-1.686-1.565-1.765-1.602-.313-3.486 1.801-2.339 4.157-5.336 2.073-5.336h-3.981c-.772 0-.828.435-1.103 1.083-.995 2.347-2.886 5.387-3.604 4.922-.751-.485-.407-2.406-.35-5.261.015-.754.011-1.271-1.141-1.539-.629-.145-1.241-.205-1.809-.205-2.273 0-3.841.953-2.95 1.119 1.571.293 1.42 3.692 1.054 5.16-.638 2.556-3.036-2.024-4.035-4.305-.241-.548-.315-.974-1.175-.974h-3.255c-.492 0-.787.16-.787.516 0 .602 2.96 6.72 5.786 9.77 2.756 2.975 5.48 2.708 7.376 2.708z"/></svg>
+                                <svg xmlns="http:
                               : social.name?.toLowerCase().includes('youtube') ?
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                                <svg xmlns="http:
                               : social.name?.toLowerCase().includes('telegram') ?
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19l-9.5 5.97-4.1-1.34c-.88-.28-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71l-4.14-3.05-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
+                                <svg xmlns="http:
                               : social.name?.toLowerCase().includes('element') ?
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 12.7 12.7" fill="currentColor">
+                                <svg xmlns="http:
                                   <path d="M 4.9717204,2.3834823 A 5.0230292,5.0230292 0 0 0 0.59994682,7.3615548 5.0230292,5.0230292 0 0 0 5.6228197,12.384429 5.0230292,5.0230292 0 0 0 10.645693,7.3615548 5.0230292,5.0230292 0 0 0 10.630013,6.9628311 3.8648402,3.8648402 0 0 1 8.6139939,7.532543 3.8648402,3.8648402 0 0 1 4.7492118,3.6677608 3.8648402,3.8648402 0 0 1 4.9717204,2.3834823 Z" />
                                   <circle cx="8.6142359" cy="3.6677198" r="3.5209935" />
                                 </svg>
                               : 
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6.188 8.719c.439-.439.926-.801 1.444-1.087 2.887-1.591 6.589-.745 8.445 2.069l-2.246 2.245c-.644-1.469-2.243-2.305-3.834-1.949-.599.134-1.168.433-1.633.898l-4.304 4.306c-1.307 1.307-1.307 3.433 0 4.74 1.307 1.307 3.433 1.307 4.74 0l1.327-1.327c1.207.479 2.501.67 3.779.575l-2.929 2.929c-2.511 2.511-6.582 2.511-9.093 0s-2.511-6.582 0-9.093l4.304-4.306zm6.836-6.836l-2.929 2.929c1.277-.096 2.572.096 3.779.574l1.326-1.326c1.307-1.307 3.433-1.307 4.74 0 1.307 1.307 1.307 3.433 0 4.74l-4.305 4.305c-1.311 1.311-3.44 1.3-4.74 0-.303-.303-.564-.68-.727-1.051l-2.246 2.245c.236.358.481.667.796.982.812.812 1.846 1.417 3.036 1.704 1.542.371 3.194.166 4.613-.617.518-.286 1.005-.648 1.444-1.087l4.304-4.305c2.512-2.511 2.512-6.582.001-9.093-2.511-2.51-6.581-2.51-9.092 0z"/></svg>
+                                <svg xmlns="http:
                               }
                             </Box>
                           )}
@@ -2534,40 +2715,15 @@ const ProfilePage = () => {
                   </Box>
                 )}
                 
-                {/* Mobile follow button */}
-                {!isCurrentUser && (
-                  <Box sx={{ display: { xs: 'block', sm: 'none' }, mt: 3 }}>
-                    <Button 
-                      variant="contained" 
-                      color="primary"
-                      fullWidth
-                      startIcon={following ? <PersonRemoveIcon /> : <PersonAddIcon />}
-                      onClick={handleFollow}
-                      sx={{ 
-                        borderRadius: 6,
-                        py: 0.8,
-                        fontWeight: 'bold',
-                        textTransform: 'none',
-                        boxShadow: '0 2px 8px rgba(208, 188, 255, 0.25)',
-                        backgroundColor: following ? 'rgba(255, 255, 255, 0.1)' : 'primary.main',
-                        color: following ? 'text.primary' : '#fff',
-                        '&:hover': {
-                          backgroundColor: following ? 'rgba(255, 255, 255, 0.15)' : 'primary.dark',
-                        }
-                      }}
-                    >
-                      {following ? 'Отписаться' : 'Подписаться'}
-                    </Button>
-                  </Box>
-                )}
+                {}
               </Box>
             </Box>
           </Paper>
         </Grid>
         
-        {/* Right column - Content */}
+        {}
         <Grid item xs={12} md={7} sx={{ pt: 0, ml: { xs: 0, md: '5px' }, mb: '100px' }}>
-        {/* Tabs for profile content */}
+        {}
           <Paper sx={{ 
             borderRadius: '16px', 
             background: 'linear-gradient(135deg, #232526 0%, #121212 100%)',
@@ -2598,13 +2754,11 @@ const ProfilePage = () => {
               }}
             >
               <Tab label="Публикации" />
-              <Tab label="Фото" />
-              <Tab label="Видео" />
               <Tab label="Информация" />
             </Tabs>
           </Paper>
           
-          {/* Tab Panels */}
+          {}
           <TabPanel value={tabValue} index={0} sx={{ p: 0, mt: 1 }}>
             {isCurrentUser && (
               <CreatePost onPostCreated={handlePostCreated} />
@@ -2614,14 +2768,6 @@ const ProfilePage = () => {
           </TabPanel>
           
           <TabPanel value={tabValue} index={1} sx={{ p: 0, mt: 1 }}>
-            <PhotosGrid />
-          </TabPanel>
-          
-          <TabPanel value={tabValue} index={2} sx={{ p: 0, mt: 1 }}>
-            <VideosGrid />
-          </TabPanel>
-          
-          <TabPanel value={tabValue} index={3} sx={{ p: 0, mt: 1 }}>
             <Paper sx={{ 
               p: 3, 
               borderRadius: '16px',
@@ -2685,7 +2831,7 @@ const ProfilePage = () => {
                         </Typography>
                         <Typography variant="body2">
                           <Link href={user.website} target="_blank" rel="noopener noreferrer" sx={{ color: 'primary.main' }}>
-                            {user.website.replace(/^https?:\/\//, '')}
+                            {user.website.replace(/^https?:\/\
                           </Link>
                         </Typography>
                       </Box>
@@ -2732,7 +2878,7 @@ const ProfilePage = () => {
                           Юзернеймы
                         </Typography>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                          {/* Показываем все юзернеймы вместо только первых 3 */}
+                          {}
                           {user.purchased_usernames.map((username, idx) => (
                             <Chip 
                               key={idx}
@@ -2766,7 +2912,7 @@ const ProfilePage = () => {
           </Box>
         )}
       
-      {/* Лайтбокс для просмотра изображений */}
+      {}
       {lightboxIsOpen && (
         <div 
           style={{

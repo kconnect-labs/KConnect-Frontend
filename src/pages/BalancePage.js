@@ -30,9 +30,10 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
+  DialogActions as MuiDialogActions,
   TextField,
-  Snackbar
+  Snackbar,
+  InputAdornment
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { AuthContext } from '../context/AuthContext';
@@ -60,8 +61,15 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import TagIcon from '@mui/icons-material/Tag';
+import CloseIcon from '@mui/icons-material/Close';
+import DownloadIcon from '@mui/icons-material/Download';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import { downloadPdfReceipt } from '../utils/pdfGenerator';
+import TouchAppIcon from '@mui/icons-material/TouchApp';
+import CallMadeIcon from '@mui/icons-material/CallMade';
+import CallReceivedIcon from '@mui/icons-material/CallReceived';
 
-// Создаем стилизованные компоненты
+
 const BalanceHeader = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
@@ -135,14 +143,21 @@ const StatsCard = styled(Paper)(({ theme }) => ({
   },
 }));
 
+
 const TransactionItem = styled(ListItem)(({ theme }) => ({
-  borderRadius: 12,
-  marginBottom: theme.spacing(1),
-  background: alpha(theme.palette.background.paper, 0.3),
-  transition: 'transform 0.2s ease, background 0.2s ease',
+  borderRadius: 16,
+  marginBottom: theme.spacing(1.5),
+  background: alpha(theme.palette.background.paper, 0.4),
+  backdropFilter: 'blur(10px)',
+  transition: 'all 0.2s ease',
+  cursor: 'pointer',
+  padding: theme.spacing(1.5, 2),
+  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+  border: `1px solid ${alpha(theme.palette.divider, 0.05)}`,
   '&:hover': {
-    background: alpha(theme.palette.background.paper, 0.6),
-    transform: 'translateX(5px)',
+    background: alpha(theme.palette.background.paper, 0.7),
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+    transform: 'translateY(-2px)',
   },
 }));
 
@@ -178,7 +193,7 @@ const PointsIcon = styled(Box)(({ theme }) => ({
   }
 }));
 
-// Новые стилизованные компоненты
+
 const BadgeCard = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
   marginBottom: theme.spacing(2),
@@ -229,7 +244,7 @@ const ActionCircleIcon = styled(Box)(({ theme }) => ({
   width: 44,
   height: 44,
   borderRadius: '50%',
-  backgroundColor: '#614C93', // Более темный из градиента
+  backgroundColor: '#614C93', 
   marginBottom: theme.spacing(0.8),
   '& svg': {
     color: '#fff',
@@ -238,7 +253,7 @@ const ActionCircleIcon = styled(Box)(({ theme }) => ({
 }));
 
 const ActionButtonText = styled(Typography)(({ theme }) => ({
-  fontSize: '0.875rem',
+  fontSize: '0.6rem',
   fontWeight: 500,
   color: '#fff',
   textAlign: 'center',
@@ -258,7 +273,7 @@ const TabPanel = ({ children, value, index, ...other }) => (
   </div>
 );
 
-// Новый компонент для карточек действий в стиле Тинькофф
+
 const ActionCardsContainer = styled(Box)(({ theme }) => ({
   display: 'grid',
   gridTemplateColumns: 'repeat(3, 1fr)',
@@ -332,148 +347,442 @@ const ActionSubtitle = styled(Typography)(({ theme }) => ({
   textAlign: 'center',
 }));
 
-// Add new styled components for the dialog design
+
 const StyledDialog = styled(Dialog)(({ theme }) => ({
-  '& .MuiDialog-paper': {
+  "& .MuiDialog-container": {
+    zIndex: 999999999999
+  },
+  "& .MuiDialog-paper": {
     borderRadius: 16,
-    backgroundImage: 'linear-gradient(to bottom, #1a1a1a, #242424)',
-    boxShadow: '0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
+    background: theme.palette.mode === 'dark' 
+      ? 'rgba(18, 18, 18, 0.8)' 
+      : 'rgba(255, 255, 255, 0.8)',
+    backdropFilter: 'blur(10px)',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+    border: theme.palette.mode === 'dark' 
+      ? '1px solid rgba(255, 255, 255, 0.1)'
+      : '1px solid rgba(208, 188, 255, 0.3)',
     overflow: 'hidden',
+    maxWidth: '450px',
+    width: '100%',
+    margin: theme.spacing(2),
+    [theme.breakpoints.down('sm')]: {
+      margin: theme.spacing(1.5),
+      maxWidth: '95%',
+    },
+  },
+  "& .MuiDialogTitle-root": {
+    fontSize: '1.2rem',
+    fontWeight: 500
   }
 }));
 
 const DialogHeader = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(3),
-  background: 'linear-gradient(135deg, #9E77ED 0%, #614C93 100%)',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  textAlign: 'center',
   position: 'relative',
+  overflow: 'hidden',
+  padding: theme.spacing(2),
+  borderBottom: `1px solid ${theme.palette.mode === 'dark' 
+    ? 'rgba(255, 255, 255, 0.1)'
+    : 'rgba(208, 188, 255, 0.2)'}`,
+  background: theme.palette.mode === 'dark'
+    ? 'linear-gradient(90deg, rgba(208, 188, 255, 0.2) 0%, rgba(0, 0, 0, 0) 100%)'
+    : 'linear-gradient(90deg, rgba(208, 188, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%)',
 }));
 
-const DialogAvatar = styled(Box)(({ theme }) => ({
-  width: 64,
-  height: 64,
+const HeaderGlow = styled(Box)(({ theme }) => ({
+  position: 'absolute',
+  top: -50,
+  right: -50,
+  width: 150,
+  height: 150,
   borderRadius: '50%',
-  backgroundColor: 'rgba(255,255,255,0.1)',
+  background: 'radial-gradient(circle, rgba(208, 188, 255, 0.3) 0%, rgba(208, 188, 255, 0) 70%)',
+  zIndex: 0
+}));
+
+const DialogHeaderContent = styled(Box)(({ theme }) => ({
+  position: 'relative',
+  zIndex: 1,
+  display: 'flex',
+  alignItems: 'center'
+}));
+
+const DialogActions = styled(MuiDialogActions)(({ theme }) => ({
+  padding: theme.spacing(2),
+  paddingLeft: theme.spacing(3),
+  paddingRight: theme.spacing(3),
+  justifyContent: 'space-between',
+  backgroundColor: theme.palette.mode === 'dark'
+    ? 'rgba(0, 0, 0, 0.4)'
+    : 'rgba(255, 255, 255, 0.6)',
+  borderTop: `1px solid ${theme.palette.mode === 'dark' 
+    ? 'rgba(255, 255, 255, 0.1)'
+    : 'rgba(208, 188, 255, 0.2)'}`,
+}));
+
+const CancelButton = styled(Button)(({ theme }) => ({
+  borderRadius: 12,
+  paddingLeft: theme.spacing(3),
+  paddingRight: theme.spacing(3),
+  borderColor: theme.palette.mode === 'dark'
+    ? 'rgba(255, 255, 255, 0.2)'
+    : 'rgba(0, 0, 0, 0.2)',
+  color: theme.palette.mode === 'dark'
+    ? 'rgba(255, 255, 255, 0.7)'
+    : 'rgba(0, 0, 0, 0.7)',
+  '&:hover': {
+    borderColor: theme.palette.mode === 'dark'
+      ? 'rgba(255, 255, 255, 0.4)'
+      : 'rgba(0, 0, 0, 0.4)',
+    background: theme.palette.mode === 'dark'
+      ? 'rgba(255, 255, 255, 0.05)'
+      : 'rgba(0, 0, 0, 0.05)'
+  }
+}));
+
+const ActionButton = styled(Button)(({ theme }) => ({
+  borderRadius: 12,
+  paddingLeft: theme.spacing(4),
+  paddingRight: theme.spacing(4),
+  paddingTop: theme.spacing(0.75),
+  paddingBottom: theme.spacing(0.75),
+  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+  background: 'linear-gradient(45deg, #6200ee 30%, #9c64f2 90%)',
+  color: '#fff',
+  '&:hover': {
+    boxShadow: '0 6px 16px rgba(0, 0, 0, 0.25)',
+  }
+}));
+
+const ContentBox = styled(Box)(({ theme }) => ({
+  position: 'relative',
+  padding: theme.spacing(2.5),
+  borderRadius: 8,
+  backgroundColor: theme.palette.mode === 'dark'
+    ? 'rgba(208, 188, 255, 0.05)'
+    : 'rgba(208, 188, 255, 0.1)',
+  border: `1px solid ${theme.palette.mode === 'dark' 
+    ? 'rgba(208, 188, 255, 0.2)'
+    : 'rgba(208, 188, 255, 0.3)'}`,
+  marginBottom: theme.spacing(2),
+}));
+
+const KeyTextField = styled(TextField)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: 12,
+    backgroundColor: theme.palette.mode === 'dark' 
+      ? 'rgba(0, 0, 0, 0.3)' 
+      : 'rgba(255, 255, 255, 0.8)',
+    '&:hover': {
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: theme.palette.primary.main,
+      }
+    },
+    '&.Mui-focused': {
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: theme.palette.primary.main,
+        borderWidth: 2,
+      }
+    }
+  },
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderColor: theme.palette.mode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.2)' 
+      : 'rgba(0, 0, 0, 0.1)',
+  },
+  '& .MuiInputLabel-root': {
+    color: theme.palette.mode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.7)' 
+      : 'rgba(0, 0, 0, 0.7)',
+  }
+}));
+
+
+const DialogAvatar = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  margin: 'auto',
-  marginBottom: theme.spacing(2),
-  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-  border: '2px solid rgba(255,255,255,0.2)',
+  width: 48,
+  height: 48,
+  borderRadius: '50%',
+  backgroundColor: 'rgba(156, 100, 242, 0.2)',
+  marginRight: theme.spacing(2),
   '& svg': {
-    fontSize: 36,
-    color: 'white',
+    color: '#9c64f2',
+    fontSize: 28,
   }
 }));
 
 const InputContainer = styled(Box)(({ theme }) => ({
-  position: 'relative',
   marginBottom: theme.spacing(3),
 }));
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    transition: 'all 0.3s ease',
-    backdropFilter: 'blur(5px)',
+    backgroundColor: theme.palette.mode === 'dark' 
+      ? 'rgba(0, 0, 0, 0.3)' 
+      : 'rgba(255, 255, 255, 0.8)',
     '&:hover': {
-      backgroundColor: 'rgba(255,255,255,0.07)',
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: theme.palette.primary.main,
+      }
     },
     '&.Mui-focused': {
-      backgroundColor: 'rgba(255,255,255,0.07)',
-      boxShadow: '0 0 0 2px rgba(158, 119, 237, 0.5)',
-    },
-    '& fieldset': {
-      borderColor: 'rgba(255,255,255,0.1)',
-    },
-    '&:hover fieldset': {
-      borderColor: 'rgba(158, 119, 237, 0.3)',
-    },
-    '&.Mui-focused fieldset': {
-      borderColor: 'rgba(158, 119, 237, 0.5)',
-    },
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: theme.palette.primary.main,
+        borderWidth: 2,
+      }
+    }
+  },
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderColor: theme.palette.mode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.2)' 
+      : 'rgba(0, 0, 0, 0.1)',
   },
   '& .MuiInputLabel-root': {
-    color: 'rgba(255,255,255,0.7)',
-  },
-  '& .MuiInputBase-input': {
-    padding: theme.spacing(1.5, 2),
-  },
+    color: theme.palette.mode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.7)' 
+      : 'rgba(0, 0, 0, 0.7)',
+  }
 }));
 
 const SuggestionsContainer = styled(Box)(({ theme }) => ({
-  background: 'rgba(255,255,255,0.03)',
-  borderRadius: 12,
-  margin: theme.spacing(0, 0, 3),
+  marginTop: -2,
+  marginBottom: theme.spacing(3),
+  borderRadius: '0 0 12px 12px',
+  backgroundColor: 'rgba(30, 30, 30, 0.95)',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  borderTop: 'none',
   overflow: 'hidden',
-  border: '1px solid rgba(255,255,255,0.05)',
-  backdropFilter: 'blur(5px)',
 }));
 
 const SuggestionItem = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(1, 2),
   display: 'flex',
   alignItems: 'center',
-  padding: theme.spacing(1.5, 2),
   cursor: 'pointer',
-  transition: 'all 0.2s ease',
+  transition: 'background-color 0.2s',
   '&:hover': {
-    backgroundColor: 'rgba(158, 119, 237, 0.2)',
-  },
-  '&:not(:last-child)': {
-    borderBottom: '1px solid rgba(255,255,255,0.05)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   }
 }));
 
 const UserAvatar = styled(Avatar)(({ theme }) => ({
-  width: 36,
-  height: 36,
-  backgroundColor: 'rgba(158, 119, 237, 0.3)',
-  marginRight: theme.spacing(2),
-  border: '1px solid rgba(255,255,255,0.1)',
+  width: 32,
+  height: 32,
+  fontSize: '0.9rem',
+  marginRight: theme.spacing(1.5),
+  backgroundColor: theme.palette.primary.main,
 }));
 
 const GradientButton = styled(Button)(({ theme }) => ({
-  backgroundImage: 'linear-gradient(135deg, #9E77ED 0%, #614C93 100%)',
   borderRadius: 12,
-  padding: theme.spacing(1.2, 3),
-  fontWeight: 600,
-  textTransform: 'none',
-  transition: 'all 0.3s ease',
-  boxShadow: '0 4px 12px rgba(97, 76, 147, 0.3)',
+  paddingLeft: theme.spacing(3),
+  paddingRight: theme.spacing(3),
+  background: 'linear-gradient(45deg, #6200ee 30%, #9c64f2 90%)',
+  color: '#fff',
+  boxShadow: '0 4px 10px rgba(98, 0, 238, 0.25)',
   '&:hover': {
-    boxShadow: '0 6px 16px rgba(97, 76, 147, 0.4)',
-    transform: 'translateY(-2px)',
+    boxShadow: '0 6px 12px rgba(98, 0, 238, 0.4)',
   },
-  '&:active': {
-    boxShadow: '0 2px 8px rgba(97, 76, 147, 0.3)',
-    transform: 'translateY(0)',
-  },
-  '&.Mui-disabled': {
-    background: 'rgba(255,255,255,0.1)',
+  '&:disabled': {
+    background: theme.palette.mode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.12)' 
+      : 'rgba(0, 0, 0, 0.12)',
+    color: theme.palette.mode === 'dark'
+      ? 'rgba(255, 255, 255, 0.3)'
+      : 'rgba(0, 0, 0, 0.26)',
   }
 }));
 
-const CancelButton = styled(Button)(({ theme }) => ({
-  borderRadius: 12,
-  padding: theme.spacing(1.2, 3),
-  fontWeight: 600,
-  textTransform: 'none',
-  backgroundColor: 'rgba(255,255,255,0.05)',
-  backdropFilter: 'blur(5px)',
-  color: 'rgba(255,255,255,0.8)',
+
+const ReceiptIconButton = styled(Button)(({ theme }) => ({
+  marginTop: theme.spacing(2),
+  marginBottom: theme.spacing(1),
+  padding: theme.spacing(1.5),
+  borderRadius: 16,
+  backgroundColor: alpha(theme.palette.primary.main, 0.1),
+  color: theme.palette.primary.main,
   '&:hover': {
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: alpha(theme.palette.primary.main, 0.2),
   }
 }));
 
-// Главный компонент страницы
+const SuccessIconWrapper = styled(Box)(({ theme }) => ({
+  width: 80,
+  height: 80,
+  borderRadius: '50%',
+  backgroundColor: alpha(theme.palette.success.main, 0.2),
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  margin: '0 auto',
+  marginBottom: theme.spacing(2),
+}));
+
+
+const generateReceiptForTransaction = async (transaction) => {
+  try {
+    
+    const transactionId = `TR-${transaction.id || Date.now().toString().slice(-8)}`;
+    
+    
+    const response = await axios.post('/api/user/generate-receipt', {
+      transaction_data: {
+        transactionId: transactionId,
+        amount: Math.abs(transaction.amount),
+        recipientUsername: transaction.type === 'transfer' ? 
+          (transaction.amount < 0 ? transaction.recipient_username : transaction.sender_username) : '',
+        senderUsername: transaction.type === 'transfer' ? 
+          (transaction.amount < 0 ? transaction.sender_username : transaction.recipient_username) : '',
+        date: transaction.date,
+      }
+    });
+    
+    if (response.data && response.data.success) {
+      
+      const pdfDataUrl = `data:application/pdf;base64,${response.data.pdf_data}`;
+      
+      
+      downloadPdfReceipt(pdfDataUrl, transactionId, response.data.file_path);
+    } else {
+      throw new Error('Не удалось сгенерировать чек на сервере');
+    }
+  } catch (error) {
+    console.error('Ошибка при создании чека для транзакции:', error);
+  }
+};
+
+
+const TransactionDetailDialog = styled(Dialog)(({ theme }) => ({
+  '& .MuiDialog-paper': {
+    borderRadius: 20,
+    background: theme.palette.mode === 'dark' ? 
+      'linear-gradient(135deg, rgba(35, 35, 40, 0.95) 0%, rgba(20, 20, 25, 0.95) 100%)' : 
+      'linear-gradient(135deg, rgba(250, 250, 255, 0.95) 0%, rgba(240, 240, 250, 0.95) 100%)',
+    backdropFilter: 'blur(20px)',
+    boxShadow: '0 20px 80px rgba(0, 0, 0, 0.2)',
+    overflow: 'hidden',
+    maxWidth: '500px',
+  }
+}));
+
+const TransactionDetailHeader = styled(Box)(({ theme, type }) => ({
+  padding: theme.spacing(3, 3, 3.5, 3),
+  background: type === 'income' ?
+    'linear-gradient(135deg, rgba(46, 125, 50, 0.1) 0%, rgba(76, 175, 80, 0.2) 100%)' :
+    'linear-gradient(135deg, rgba(211, 47, 47, 0.1) 0%, rgba(244, 67, 54, 0.2) 100%)',
+  borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+  position: 'relative',
+  overflow: 'hidden',
+}));
+
+const TransactionDetailAmount = styled(Typography)(({ theme, type }) => ({
+  fontWeight: 700,
+  fontSize: '2.2rem',
+  lineHeight: 1.2,
+  color: type === 'income' ? theme.palette.success.main : theme.palette.error.main,
+  marginTop: theme.spacing(1),
+  marginBottom: theme.spacing(0.5),
+}));
+
+const TransactionStatusChip = styled(Chip)(({ theme, status }) => ({
+  borderRadius: 12,
+  height: 24,
+  fontSize: '0.7rem',
+  fontWeight: 600,
+  backgroundColor: status === 'completed' ? 
+    alpha(theme.palette.success.main, 0.1) : 
+    alpha(theme.palette.grey[500], 0.1),
+  color: status === 'completed' ? 
+    theme.palette.success.main : 
+    theme.palette.grey[500],
+  border: `1px solid ${status === 'completed' ? 
+    alpha(theme.palette.success.main, 0.3) : 
+    alpha(theme.palette.grey[500], 0.3)}`,
+  margin: theme.spacing(0, 0.5),
+}));
+
+const DetailRow = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  padding: theme.spacing(1.5, 0),
+  borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+  '&:last-child': {
+    borderBottom: 'none',
+  }
+}));
+
+const DetailLabel = styled(Typography)(({ theme }) => ({
+  color: alpha(theme.palette.text.primary, 0.6),
+  fontSize: '0.85rem',
+  fontWeight: 500,
+}));
+
+const DetailValue = styled(Typography)(({ theme }) => ({
+  color: theme.palette.text.primary,
+  fontSize: '0.85rem',
+  fontWeight: 600,
+  textAlign: 'right',
+  wordBreak: 'break-word',
+  maxWidth: '50%',
+}));
+
+const TransactionAvatar = styled(Avatar)(({ theme, transactionType }) => ({
+  width: 46,
+  height: 46,
+  borderRadius: 14,
+  backgroundColor: transactionType === 'positive' ? 
+    alpha(theme.palette.success.main, 0.15) : 
+    alpha(theme.palette.error.main, 0.15),
+  border: `1px solid ${transactionType === 'positive' ? 
+    alpha(theme.palette.success.main, 0.3) : 
+    alpha(theme.palette.error.main, 0.3)}`,
+  padding: theme.spacing(0.7),
+  '& .MuiSvgIcon-root': {
+    fontSize: '1.4rem',
+  }
+}));
+
+const BankStyleTransactionItem = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  width: '100%',
+  padding: theme.spacing(0.5),
+}));
+
+const TransactionInfo = styled(Box)(({ theme }) => ({
+  marginLeft: theme.spacing(2),
+  flex: 1,
+  width: '100%',
+  overflow: 'hidden',
+}));
+
+const TransactionTitle = styled(Typography)(({ theme }) => ({
+  fontWeight: 600,
+  fontSize: '0.95rem',
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  maxWidth: '260px',
+  '@media (max-width: 600px)': {
+    maxWidth: '160px',
+  },
+}));
+
+const TransactionDate = styled(Typography)(({ theme }) => ({
+  fontSize: '0.75rem',
+  color: alpha(theme.palette.text.secondary, 0.8),
+  marginTop: 2,
+}));
+
+const TransactionDetailContent = styled(DialogContent)(({ theme }) => ({
+  padding: theme.spacing(3),
+}));
+
+
 const BalancePage = () => {
   const { user } = useContext(AuthContext);
   const theme = useTheme();
@@ -498,15 +807,28 @@ const BalancePage = () => {
     suggestions: [],
     timer: null
   });
+  const [openKeyDialog, setOpenKeyDialog] = useState(false);
+  const [keyValue, setKeyValue] = useState('');
+  const [isSubmittingKey, setIsSubmittingKey] = useState(false);
+  const [keyError, setKeyError] = useState('');
+  const [keySuccess, setKeySuccess] = useState(null);
+  const [activeTopupTab, setActiveTopupTab] = useState(0);
+  const [transferSuccess, setTransferSuccess] = useState(false);
+  const [receiptData, setReceiptData] = useState(null);
+  const [subscription, setSubscription] = useState(null);
+  
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
 
-  // Объединяем историю покупок и роялти в единую историю транзакций
+  
   const allTransactions = React.useMemo(() => {
     const purchases = purchaseHistory.map(purchase => ({
       ...purchase,
       type: 'purchase',
       date: new Date(purchase.purchase_date),
       amount: -purchase.price_paid,
-      description: `Покупка бейджика "${purchase.badge.name}"`,
+      title: `Покупка бейджика`,
+      description: `"${purchase.badge.name}"`,
       icon: <ShoppingCartIcon sx={{ color: 'error.main' }} />
     }));
 
@@ -515,56 +837,64 @@ const BalancePage = () => {
       type: 'royalty',
       date: new Date(royalty.purchase_date),
       amount: royalty.royalty_amount,
-      description: `${royalty.buyer.name} купил бейджик "${royalty.badge_name}"`,
+      title: `Роялти от покупки`,
+      description: `${royalty.buyer.name}`,
+      buyer_name: royalty.buyer.name,
+      badge_name: royalty.badge_name,
       icon: <MonetizationOnIcon sx={{ color: 'success.main' }} />
     }));
 
     const transfers = transferHistory.map(transfer => {
-      // Определяем, является ли текущий пользователь отправителем
-      // Convert both IDs to numbers for reliable comparison
+      
+      
       const senderId = parseInt(transfer.sender_id, 10);
       const userId = parseInt(user.id, 10);
       const is_sender = senderId === userId;
       
-      // Формируем описание перевода с учетом сообщения
-      let description = is_sender 
-        ? `Перевод баллов пользователю ${transfer.recipient_username}`
-        : `Получение баллов от пользователя ${transfer.sender_username}`;
-        
-      // Добавляем сообщение, если оно есть
-      if (transfer.message) {
-        description += `: "${transfer.message}"`;
-      }
+      
+      const isClickerWithdrawal = transfer.sender_id === transfer.recipient_id && 
+                                 transfer.message === "Вывод баллов из кликера";
+      
+      
+      let title = isClickerWithdrawal ? 'Вывод из кликера' : 
+                 (is_sender ? 'Перевод' : 'Пополнение');
+      let description = isClickerWithdrawal ? 'Баллы из кликера' : 
+                       (is_sender ? transfer.recipient_username : transfer.sender_username);
       
       return {
         ...transfer,
         type: 'transfer',
         date: new Date(transfer.date),
-        amount: is_sender ? -transfer.amount : transfer.amount,
+        amount: isClickerWithdrawal ? transfer.amount : (is_sender ? -transfer.amount : transfer.amount),
+        title: title,
         description: description,
-        icon: is_sender 
-          ? <SendIcon sx={{ color: 'error.main' }} />
-          : <AccountBalanceWalletIcon sx={{ color: 'success.main' }} />
+        is_sender: isClickerWithdrawal ? false : is_sender,
+        icon: isClickerWithdrawal 
+          ? <TouchAppIcon sx={{ color: 'success.main' }} />
+          : (is_sender 
+              ? <SendIcon sx={{ color: 'error.main' }} />
+              : <AccountBalanceWalletIcon sx={{ color: 'success.main' }} />)
       };
     });
 
-    // Добавляем покупки юзернеймов
+    
     const usernames = usernamePurchases.map(purchase => ({
       ...purchase,
       type: 'username',
       date: new Date(purchase.purchase_date),
       amount: -purchase.price_paid,
-      description: `Покупка юзернейма "@${purchase.username}"`,
+      title: `Покупка юзернейма`,
+      description: `@${purchase.username}`,
       icon: <AccountCircleIcon sx={{ color: 'error.main' }} />
     }));
 
-    // Сортируем по дате (новые сначала)
+    
     return [...purchases, ...royalties, ...transfers, ...usernames].sort((a, b) => b.date - a.date);
   }, [purchaseHistory, royaltyHistory, transferHistory, usernamePurchases, user?.id]);
 
   useEffect(() => {
     if (user) {
-      // Загружаем данные при монтировании компонента
+      
       fetchUserPoints();
       fetchWeeklyEstimate();
       fetchPurchaseHistory();
@@ -572,10 +902,16 @@ const BalancePage = () => {
       fetchCreatedBadges();
       fetchTransferHistory();
       fetchUsernamePurchases();
+      fetchSubscriptionStatus();
     }
   }, [user]);
 
-  // Получение текущего баланса баллов
+  
+  useEffect(() => {
+    console.log('Subscription state changed:', subscription);
+  }, [subscription]);
+
+  
   const fetchUserPoints = async () => {
     try {
       const response = await axios.get('/api/user/points');
@@ -586,10 +922,10 @@ const BalancePage = () => {
     }
   };
 
-  // Получение оценки баллов за текущую неделю
+  
   const fetchWeeklyEstimate = async () => {
     try {
-      // Получаем данные из лидерборда за текущую неделю
+      
       const response = await axios.get('/api/leaderboard/user/' + user.id + '?period=week');
       setWeeklyEstimate(response.data.score || 0);
     } catch (error) {
@@ -598,11 +934,11 @@ const BalancePage = () => {
     }
   };
 
-  // Получение истории покупок
+  
   const fetchPurchaseHistory = async () => {
     try {
       const response = await axios.get('/api/badges/purchases');
-      // Сортируем покупки по дате (новые сначала)
+      
       const sortedPurchases = response.data.purchases.sort((a, b) => 
         new Date(b.purchase_date) - new Date(a.purchase_date)
       );
@@ -615,11 +951,11 @@ const BalancePage = () => {
     }
   };
 
-  // Получение истории роялти от бейджиков
+  
   const fetchRoyaltyHistory = async () => {
     try {
       const response = await axios.get('/api/badges/royalties');
-      // Данные уже отсортированы на бэкенде
+      
       console.log('Received royalty data:', response.data);
       setRoyaltyHistory(response.data.royalties || []);
     } catch (error) {
@@ -628,7 +964,7 @@ const BalancePage = () => {
     }
   };
 
-  // Получение созданных пользователем бейджиков
+  
   const fetchCreatedBadges = async () => {
     try {
       const response = await axios.get('/api/badges/created');
@@ -640,7 +976,7 @@ const BalancePage = () => {
     }
   };
 
-  // Новая функция для получения истории переводов
+  
   const fetchTransferHistory = async () => {
     try {
       const response = await axios.get('/api/user/transfer-history');
@@ -649,11 +985,11 @@ const BalancePage = () => {
       }
     } catch (error) {
       console.error('Ошибка при получении истории переводов:', error);
-      // Не показываем ошибку пользователю, просто логируем
+      
     }
   };
 
-  // Функция для получения истории покупок юзернеймов
+  
   const fetchUsernamePurchases = async () => {
     try {
       const response = await axios.get('/api/user/username-purchases');
@@ -662,16 +998,16 @@ const BalancePage = () => {
       }
     } catch (error) {
       console.error('Ошибка при получении истории покупок юзернеймов:', error);
-      // Не показываем ошибку пользователю, просто логируем
+      
     }
   };
 
-  // Функция для поиска пользователя с debounce
+  
   const searchUser = useCallback((username) => {
-    // Очищаем предыдущий таймер
+    
     if (userSearch.timer) clearTimeout(userSearch.timer);
     
-    // Если имя пользователя пустое, сбрасываем состояние поиска
+    
     if (!username) {
       setUserSearch(prev => ({
         ...prev,
@@ -680,39 +1016,39 @@ const BalancePage = () => {
         suggestions: [],
         timer: null
       }));
-      // Сбрасываем recipient_id при пустом username
+      
       setTransferData(prev => ({...prev, recipient_id: null}));
       return;
     }
     
-    // Устанавливаем состояние загрузки
+    
     setUserSearch(prev => ({
       ...prev,
       loading: true,
       timer: setTimeout(async () => {
         try {
-          // Запрос на API для проверки/поиска пользователя
+          
           const response = await axios.get(`/api/user/search-recipients?query=${username}`);
           
           if (response.data && response.data.users) {
-            // Проверяем, есть ли точное совпадение
+            
             const exactMatch = response.data.users.find(
               user => user.username.toLowerCase() === username.toLowerCase()
             );
             
-            // Если нашли точное совпадение, сохраняем ID получателя
+            
             if (exactMatch) {
               setTransferData(prev => ({...prev, recipient_id: exactMatch.id}));
             } else {
               setTransferData(prev => ({...prev, recipient_id: null}));
             }
             
-            // Обновляем состояние поиска
+            
             setUserSearch(prev => ({
               ...prev,
               loading: false,
               exists: !!exactMatch,
-              suggestions: response.data.users.slice(0, 3) // Ограничиваем до 3 предложений
+              suggestions: response.data.users.slice(0, 3) 
             }));
           } else {
             setUserSearch(prev => ({
@@ -733,20 +1069,20 @@ const BalancePage = () => {
           }));
           setTransferData(prev => ({...prev, recipient_id: null}));
         }
-      }, 500) // Задержка в 500 мс перед отправкой запроса
+      }, 500) 
     }));
   }, [userSearch.timer]);
   
-  // Обработчик изменения имени пользователя
+  
   const handleUsernameChange = (e) => {
     const username = e.target.value;
     setTransferData(prev => ({...prev, username}));
     
-    // Запускаем поиск пользователя
+    
     searchUser(username);
   };
   
-  // Выбор предложенного пользователя
+  
   const selectSuggestion = (username, userId) => {
     setTransferData(prev => ({...prev, username, recipient_id: userId}));
     setUserSearch(prev => ({
@@ -757,7 +1093,7 @@ const BalancePage = () => {
     }));
   };
 
-  // Функция перевода баллов
+  
   const handleTransferPoints = async () => {
     const errors = {};
     if (!transferData.username) errors.username = 'Введите имя пользователя';
@@ -777,28 +1113,56 @@ const BalancePage = () => {
 
     setTransferErrors({});
     try {
-      // Отправляем и ID, и username для двойной верификации
-      await axios.post('/api/user/transfer-points', {
+      
+      const response = await axios.post('/api/user/transfer-points', {
         recipient_username: transferData.username,
         recipient_id: transferData.recipient_id,
         amount: parseInt(transferData.amount),
         message: transferData.message
       });
       
-      // Обновляем баланс
+      
       fetchUserPoints();
       
-      // Закрываем диалог
+      
       setTransferDialogOpen(false);
       
-      // Показываем уведомление об успешном переводе
-      setSnackbar({
-        open: true,
-        message: `Успешно переведено ${transferData.amount} баллов пользователю ${transferData.username}`,
-        severity: 'success'
-      });
       
-      // Сбрасываем данные формы
+      try {
+        const now = new Date();
+        const transactionId = `TR-${Date.now().toString().slice(-8)}`;
+        
+        
+        const response = await axios.post('/api/user/generate-receipt', {
+          transaction_data: {
+            transactionId: transactionId,
+            amount: parseInt(transferData.amount),
+            recipientUsername: transferData.username,
+            senderUsername: user.username,
+            date: now.toISOString(),
+          }
+        });
+        
+        if (response.data && response.data.success) {
+          
+          const receiptData = {
+            dataUrl: `data:application/pdf;base64,${response.data.pdf_data}`,
+            filePath: response.data.file_path
+          };
+          
+          setReceiptData(receiptData);
+          setTransferSuccess(true);
+        } else {
+          throw new Error('Не удалось сгенерировать чек на сервере');
+        }
+      } catch (error) {
+        console.error('Ошибка при создании чека:', error);
+      }
+      
+      
+      fetchTransferHistory();
+      
+      
       setTransferData({ username: '', amount: '', message: '', recipient_id: null });
     } catch (error) {
       console.error('Ошибка при переводе баллов:', error);
@@ -810,35 +1174,35 @@ const BalancePage = () => {
     }
   };
 
-  // Функция форматирования даты с учетом часового пояса пользователя
+  
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     
-    // Получаем смещение часового пояса пользователя в минутах
+    
     const userTimezoneOffset = date.getTimezoneOffset();
     
-    // Создаем новую дату с учетом смещения
+    
     const userDate = new Date(date.getTime() - (userTimezoneOffset * 60000));
     
-    // Форматируем дату с учетом локали пользователя
+    
     const formattedDate = userDate.toLocaleString('ru-RU', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false, // Используем 24-часовой формат
-      timeZoneName: 'short' // Добавляем отображение часового пояса
+      hour12: false, 
+      timeZoneName: 'short' 
     });
     
     return formattedDate;
   };
 
-  // Получение информации о границах текущей недели
+  
   const getCurrentWeekRange = () => {
     const now = new Date();
-    const dayOfWeek = now.getDay(); // 0-воскресенье, 1-понедельник, ...
-    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Расчет смещения до понедельника
+    const dayOfWeek = now.getDay(); 
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; 
     
     const monday = new Date(now);
     monday.setDate(now.getDate() + mondayOffset);
@@ -854,7 +1218,7 @@ const BalancePage = () => {
     };
   };
 
-  // Получаем границы текущей недели
+  
   const weekRange = getCurrentWeekRange();
 
   const handleTabChange = (event, newValue) => {
@@ -863,6 +1227,145 @@ const BalancePage = () => {
 
   const handleCloseSnackbar = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
+  };
+
+  
+  const formatKeyInput = (input) => {
+    
+    const cleaned = input.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    
+    
+    let formatted = '';
+    for (let i = 0; i < cleaned.length; i++) {
+      if (i > 0 && i % 4 === 0 && i < 16) {
+        formatted += '-';
+      }
+      if (i < 16) { 
+        formatted += cleaned[i];
+      }
+    }
+    
+    return formatted;
+  };
+  
+  
+  const handleKeyChange = (e) => {
+    const formattedKey = formatKeyInput(e.target.value);
+    setKeyValue(formattedKey);
+    setKeyError('');
+  };
+  
+  
+  const isValidKeyFormat = (key) => {
+    
+    return /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(key);
+  };
+  
+  
+  const handleRedeemKey = async () => {
+    setKeyError('');
+    setKeySuccess(null);
+    setIsSubmittingKey(true);
+    
+    try {
+      const response = await fetch('/api/user/redeem-key', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ key: keyValue }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        setKeyError(data.error || 'Ошибка при активации ключа');
+        setIsSubmittingKey(false);
+        return;
+      }
+      
+      if (data.type === 'points') {
+        
+        setKeySuccess({
+          message: data.message,
+          type: 'points',
+          newBalance: data.new_balance
+        });
+        
+        setUserPoints(data.new_balance);
+      } else if (data.type === 'subscription') {
+        
+        setKeySuccess({
+          message: data.message,
+          type: 'subscription',
+          subscriptionType: data.subscription_type,
+          expiresAt: data.expires_at
+        });
+        
+        fetchSubscriptionStatus();
+      }
+      
+    } catch (error) {
+      console.error('Ошибка при активации ключа:', error);
+      setKeyError('Произошла ошибка при активации ключа');
+    } finally {
+      setIsSubmittingKey(false);
+    }
+  };
+
+  
+  const fetchSubscriptionStatus = async () => {
+    try {
+      console.log('Fetching subscription status...');
+      const response = await axios.get('/api/user/subscription/status');
+      
+      if (response.data) {
+        console.log('Received subscription data:', response.data);
+        
+        
+        if (response.data.active && response.data.subscription_type) {
+          setSubscription({
+            active: true,
+            type: response.data.subscription_type,
+            expires_at: response.data.expiration_date,
+            
+            features: response.data.features || []
+          });
+        } else {
+          
+          setSubscription(null);
+        }
+      } else {
+        console.error('Invalid subscription status response');
+        setSubscription(null);
+      }
+    } catch (error) {
+      console.error('Error fetching subscription status:', error);
+      setSubscription(null);
+    }
+  };
+
+  
+  const handleOpenTransactionDetails = (transaction) => {
+    setSelectedTransaction(transaction);
+    setDetailDialogOpen(true);
+  };
+
+  
+  const handleCloseTransactionDetails = () => {
+    setDetailDialogOpen(false);
+    setSelectedTransaction(null);
+  };
+
+  
+  const formatCurrency = (amount) => {
+    const absAmount = Math.abs(amount);
+    return `${amount < 0 ? '-' : '+'}${absAmount}`;
+  };
+
+  
+  const getTransactionId = (transaction) => {
+    return `TR-${transaction.id || new Date(transaction.date).getTime().toString().slice(-8)}`;
   };
 
   if (loading) {
@@ -902,7 +1405,7 @@ const BalancePage = () => {
             {userPoints}
           </BalanceAmount>
           
-          {/* Новый единый блок с кнопками управления балансом */}
+          {}
           <ActionButtonsContainer>
             <ActionButtonItem onClick={() => navigate('/badge-shop')}>
               <ActionCircleIcon>
@@ -911,13 +1414,13 @@ const BalancePage = () => {
               <ActionButtonText>Оплатить</ActionButtonText>
             </ActionButtonItem>
             
-            <ActionButtonItem onClick={() => window.open('https://www.donationalerts.com/r/qsouls', '_blank')}>
+            <ActionButtonItem onClick={() => setOpenKeyDialog(true)}>
               <ActionCircleIcon>
                 <AddIcon />
               </ActionCircleIcon>
               <ActionButtonText>Пополнить</ActionButtonText>
             </ActionButtonItem>
-            
+
             <ActionButtonItem onClick={() => setTransferDialogOpen(true)}>
               <ActionCircleIcon>
                 <SendIcon />
@@ -972,7 +1475,7 @@ const BalancePage = () => {
         </Tooltip>
       </InfoSection>
 
-      {/* Вкладки для переключения между историей транзакций и активами */}
+      {}
       <Box sx={{ mb: 2 }}>
         <Tabs 
           value={tabValue} 
@@ -1000,13 +1503,20 @@ const BalancePage = () => {
             id="tab-1"
             aria-controls="tabpanel-1"
           />
+          <Tab 
+            icon={<FlashOnIcon />} 
+            iconPosition="start" 
+            label="Подписка" 
+            id="tab-2"
+            aria-controls="tabpanel-2"
+          />
         </Tabs>
       </Box>
 
-      {/* Панель истории транзакций */}
+      {}
       <TabPanel value={tabValue} index={0}>
         <HistoryCard>
-          <CardContent sx={{ p: 3 }}>
+          <CardContent sx={{ p: 1.25 }}>
             <Typography variant="h6" gutterBottom>
               Все транзакции ({allTransactions.length})
             </Typography>
@@ -1024,16 +1534,13 @@ const BalancePage = () => {
             ) : (
               <List sx={{ width: '100%' }}>
                 {allTransactions.map((transaction, index) => (
-                  <TransactionItem key={`${transaction.type}-${transaction.id || index}`}>
-                    <ListItemAvatar>
-                      <Avatar 
-                        variant="rounded" 
-                        sx={{ 
-                          bgcolor: transaction.amount > 0 
-                            ? alpha(theme.palette.success.main, 0.2)
-                            : alpha(theme.palette.error.main, 0.2),
-                          p: 0.5 
-                        }}
+                  <TransactionItem 
+                    key={`${transaction.type}-${transaction.id || index}`}
+                    onClick={() => handleOpenTransactionDetails(transaction)}
+                  >
+                    <BankStyleTransactionItem>
+                      <TransactionAvatar 
+                        transactionType={transaction.amount > 0 ? 'positive' : 'negative'}
                       >
                         {transaction.type === 'purchase' ? (
                           <BadgeImage 
@@ -1041,17 +1548,26 @@ const BalancePage = () => {
                             alt={transaction.badge.name}
                           />
                         ) : transaction.icon}
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={transaction.description}
-                      secondary={formatDate(transaction.date)}
-                    />
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <TransactionAmount type={transaction.amount > 0 ? 'positive' : 'negative'}>
-                        {transaction.amount > 0 ? '+' : ''}{transaction.amount}
-                      </TransactionAmount>
-                    </Box>
+                      </TransactionAvatar>
+                      
+                      <TransactionInfo>
+                        <TransactionTitle>
+                          {transaction.title}
+                        </TransactionTitle>
+                        <TransactionDate>
+                          {formatDate(transaction.date)}
+                        </TransactionDate>
+                      </TransactionInfo>
+                      
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                        <TransactionAmount type={transaction.amount > 0 ? 'positive' : 'negative'}>
+                          {transaction.amount > 0 ? '+' : ''}{transaction.amount}
+                        </TransactionAmount>
+                        <Typography variant="caption" sx={{ mt: 0.5, fontWeight: 500, opacity: 0.7 }}>
+                          {transaction.description}
+                        </Typography>
+                      </Box>
+                    </BankStyleTransactionItem>
                   </TransactionItem>
                 ))}
               </List>
@@ -1060,10 +1576,190 @@ const BalancePage = () => {
         </HistoryCard>
       </TabPanel>
 
-      {/* Панель активов */}
+      {}
+      <TransactionDetailDialog
+        open={detailDialogOpen}
+        onClose={handleCloseTransactionDetails}
+        fullWidth
+        maxWidth="sm"
+      >
+        {selectedTransaction && (
+          <>
+            <TransactionDetailHeader type={selectedTransaction.amount > 0 ? 'income' : 'expense'}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  {selectedTransaction.type === 'transfer' && 
+                   selectedTransaction.sender_id === selectedTransaction.recipient_id && 
+                   selectedTransaction.message === "Вывод баллов из кликера" ? (
+                    <TouchAppIcon sx={{ mr: 1, color: 'success.main' }} />
+                  ) : selectedTransaction.type === 'transfer' && selectedTransaction.is_sender ? (
+                    <CallMadeIcon sx={{ mr: 1, color: 'error.main' }} />
+                  ) : selectedTransaction.type === 'transfer' ? (
+                    <CallReceivedIcon sx={{ mr: 1, color: 'success.main' }} />
+                  ) : selectedTransaction.type === 'purchase' ? (
+                    <ShoppingCartIcon sx={{ mr: 1, color: 'error.main' }} />
+                  ) : selectedTransaction.type === 'username' ? (
+                    <AccountCircleIcon sx={{ mr: 1, color: 'info.main' }} />
+                  ) : (
+                    <DiamondIcon sx={{ mr: 1, color: 'success.main' }} />
+                  )}
+                  <Typography variant="subtitle1" fontWeight={600} color="text.primary">
+                    {selectedTransaction.type === 'transfer' ? 
+                      (selectedTransaction.sender_id === selectedTransaction.recipient_id && 
+                      selectedTransaction.message === "Вывод баллов из кликера" ?
+                      'Вывод из кликера' :
+                      (selectedTransaction.is_sender ? 'Исходящий перевод' : 'Входящий перевод')) :
+                      selectedTransaction.type === 'purchase' ? 'Покупка бейджика' :
+                      selectedTransaction.type === 'royalty' ? 'Роялти от бейджика' :
+                      'Покупка юзернейма'
+                    }
+                  </Typography>
+                </Box>
+                <TransactionStatusChip label="Выполнен" status="completed" />
+              </Box>
+              
+              <TransactionDetailAmount type={selectedTransaction.amount > 0 ? 'income' : 'expense'}>
+                {formatCurrency(selectedTransaction.amount)}
+              </TransactionDetailAmount>
+              
+              <Typography variant="caption" color="text.secondary">
+                {formatDate(selectedTransaction.date)}
+              </Typography>
+            </TransactionDetailHeader>
+            
+            <TransactionDetailContent>
+              <DetailRow>
+                <DetailLabel>ID транзакции</DetailLabel>
+                <DetailValue>{getTransactionId(selectedTransaction)}</DetailValue>
+              </DetailRow>
+              
+              {selectedTransaction.type === 'transfer' && (
+                <>
+                  <DetailRow>
+                    <DetailLabel>Тип</DetailLabel>
+                    <DetailValue>
+                      {selectedTransaction.sender_id === selectedTransaction.recipient_id && 
+                       selectedTransaction.message === "Вывод баллов из кликера" ?
+                       'Вывод из кликера' :
+                       (selectedTransaction.is_sender ? 'Исходящий перевод' : 'Входящий перевод')}
+                    </DetailValue>
+                  </DetailRow>
+                  
+                  {}
+                  {(selectedTransaction.sender_id === selectedTransaction.recipient_id && 
+                   selectedTransaction.message === "Вывод баллов из кликера") ? (
+                    <>
+                      <DetailRow>
+                        <DetailLabel>Источник</DetailLabel>
+                        <DetailValue>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <TouchAppIcon sx={{ fontSize: '1rem', mr: 0.5, color: 'success.main' }} />
+                            <span>Кликер</span>
+                          </Box>
+                        </DetailValue>
+                      </DetailRow>
+                      <DetailRow>
+                        <DetailLabel>Тип операции</DetailLabel>
+                        <DetailValue>Вывод заработанных баллов</DetailValue>
+                      </DetailRow>
+                    </>
+                  ) : (
+                    <>
+                      <DetailRow>
+                        <DetailLabel>Отправитель</DetailLabel>
+                        <DetailValue>{selectedTransaction.sender_username}</DetailValue>
+                      </DetailRow>
+                      <DetailRow>
+                        <DetailLabel>Получатель</DetailLabel>
+                        <DetailValue>{selectedTransaction.recipient_username}</DetailValue>
+                      </DetailRow>
+                    </>
+                  )}
+                  
+                  {selectedTransaction.message && (
+                    <DetailRow>
+                      <DetailLabel>Сообщение</DetailLabel>
+                      <DetailValue>{selectedTransaction.message}</DetailValue>
+                    </DetailRow>
+                  )}
+                </>
+              )}
+              
+              {selectedTransaction.type === 'purchase' && (
+                <>
+                  <DetailRow>
+                    <DetailLabel>Название бейджика</DetailLabel>
+                    <DetailValue>{selectedTransaction.badge.name}</DetailValue>
+                  </DetailRow>
+                  {selectedTransaction.badge.description && (
+                    <DetailRow>
+                      <DetailLabel>Описание</DetailLabel>
+                      <DetailValue>{selectedTransaction.badge.description}</DetailValue>
+                    </DetailRow>
+                  )}
+                </>
+              )}
+              
+              {selectedTransaction.type === 'royalty' && (
+                <>
+                  <DetailRow>
+                    <DetailLabel>Название бейджика</DetailLabel>
+                    <DetailValue>{selectedTransaction.badge_name}</DetailValue>
+                  </DetailRow>
+                  <DetailRow>
+                    <DetailLabel>Покупатель</DetailLabel>
+                    <DetailValue>{selectedTransaction.buyer_name}</DetailValue>
+                  </DetailRow>
+                </>
+              )}
+              
+              {selectedTransaction.type === 'username' && (
+                <DetailRow>
+                  <DetailLabel>Юзернейм</DetailLabel>
+                  <DetailValue>@{selectedTransaction.username}</DetailValue>
+                </DetailRow>
+              )}
+              
+              <DetailRow>
+                <DetailLabel>Сумма</DetailLabel>
+                <DetailValue sx={{ 
+                  color: selectedTransaction.amount > 0 ? 'success.main' : 'error.main',
+                  fontWeight: 700
+                }}>
+                  {formatCurrency(selectedTransaction.amount)}
+                </DetailValue>
+              </DetailRow>
+              
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                {selectedTransaction.type === 'transfer' && 
+                 selectedTransaction.sender_id === selectedTransaction.recipient_id && 
+                 selectedTransaction.message === "Вывод баллов из кликера" && (
+                  <Button
+                    startIcon={<TouchAppIcon />}
+                    variant="outlined"
+                    color="secondary"
+                    onClick={() => generateReceiptForTransaction(selectedTransaction)}
+                    sx={{ ml: 2, borderRadius: 2 }}
+                  >
+                    Чек выплаты
+                  </Button>
+                )}
+                <Button 
+                  onClick={handleCloseTransactionDetails}
+                  sx={{ ml: 2, borderRadius: 2 }}
+                >
+                  Закрыть
+                </Button>
+              </Box>
+            </TransactionDetailContent>
+          </>
+        )}
+      </TransactionDetailDialog>
+
+      {}
       <TabPanel value={tabValue} index={1}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {/* Секция с созданными бейджиками */}
+          {}
           {createdBadges.length > 0 ? (
             <HistoryCard>
               <CardContent sx={{ p: 3 }}>
@@ -1188,7 +1884,7 @@ const BalancePage = () => {
             </Box>
           )}
 
-          {/* Секция с купленными юзернеймами */}
+          {}
           {usernamePurchases.length > 0 && (
             <HistoryCard>
               <CardContent sx={{ p: 3 }}>
@@ -1265,7 +1961,7 @@ const BalancePage = () => {
             </HistoryCard>
           )}
           
-          {/* Если пока нет ни бейджиков, ни юзернеймов */}
+          {}
           {createdBadges.length === 0 && usernamePurchases.length === 0 && (
             <Box sx={{ textAlign: 'center', py: 5, px: 3, bgcolor: alpha(theme.palette.background.paper, 0.4), borderRadius: 4 }}>
               <AccountBalanceWalletIcon sx={{ fontSize: 60, color: 'primary.main', opacity: 0.7, mb: 2 }} />
@@ -1297,7 +1993,101 @@ const BalancePage = () => {
         </Box>
       </TabPanel>
 
-      {/* Диалог для перевода баллов */}
+      {}
+      <TabPanel value={tabValue} index={2}>
+        {subscription && subscription.active ? (
+          <Card elevation={3} sx={{ 
+            borderRadius: 3,
+            background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)} 0%, ${alpha(theme.palette.secondary.dark, 0.3)} 100%)`,
+            backdropFilter: 'blur(10px)',
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+          }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <DiamondIcon sx={{ mr: 1, color: 'primary.main' }} />
+                <Typography variant="h6" fontWeight="bold">
+                  Активная подписка
+                </Typography>
+              </Box>
+              
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Typography variant="body1">
+                  Тип: <Chip 
+                    label={subscription.type.charAt(0).toUpperCase() + subscription.type.slice(1)} 
+                    color={subscription.type === 'premium' ? 'secondary' : subscription.type === 'ultimate' ? 'primary' : 'default'}
+                    size="small"
+                    sx={{ fontWeight: 'bold', ml: 1 }}
+                  />
+                </Typography>
+                
+                <Typography variant="body2">
+                  Истекает: {new Date(subscription.expires_at).toLocaleDateString()} 
+                  <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                    (осталось {Math.ceil((new Date(subscription.expires_at) - new Date()) / (1000 * 60 * 60 * 24))} дней)
+                  </Typography>
+                </Typography>
+                
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="body2" fontWeight="medium">
+                    Возможности подписки:
+                  </Typography>
+                  <List dense sx={{ pl: 2 }}>
+                    {subscription.type === 'basic' && (
+                      <>
+                        <ListItem sx={{ py: 0 }}><ListItemText primary="Ежемесячное пополнение  на 1.000 баллов" /></ListItem>
+
+                        <ListItem sx={{ py: 0 }}><ListItemText primary="Отсутствие рекламы" /></ListItem>
+                        <ListItem sx={{ py: 0 }}><ListItemText primary="Создание до 5 бейджиков" /></ListItem>
+                        <ListItem sx={{ py: 0 }}><ListItemText primary="Покупка до 5 Юзернеймов" /></ListItem>
+                      </>
+                    )}
+                    {subscription.type === 'premium' && (
+                      <>
+                        <ListItem sx={{ py: 0 }}><ListItemText primary="Ежемесячное пополнение  на 5.000 баллов" /></ListItem>
+
+                        <ListItem sx={{ py: 0 }}><ListItemText primary="Расширенные функции платформы" /></ListItem>
+                        <ListItem sx={{ py: 0 }}><ListItemText primary="Приоритетная поддержка" /></ListItem>
+                        <ListItem sx={{ py: 0 }}><ListItemText primary="Создание до 8 бейджиков" /></ListItem>
+                        <ListItem sx={{ py: 0 }}><ListItemText primary="Покупка до 8 Юзернеймов" /></ListItem>
+                      </>
+                    )}
+                    {subscription.type === 'ultimate' && (
+                      <>
+                        <ListItem sx={{ py: 0 }}><ListItemText primary="Все преимущества Premium" /></ListItem>
+                        <ListItem sx={{ py: 0 }}><ListItemText primary="Ежемесячное пополнение  на 10.000 баллов" /></ListItem>
+
+                        <ListItem sx={{ py: 0 }}><ListItemText primary="Создание Анимированных бейджиков" /></ListItem>
+                        <ListItem sx={{ py: 0 }}><ListItemText primary="Безлимитное создание бейджиков" /></ListItem>
+                        <ListItem sx={{ py: 0 }}><ListItemText primary="Покупка неограниченного количества Юзернеймов" /></ListItem>
+                      </>
+                    )}
+                  </List>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        ) : (
+          <Box sx={{ textAlign: 'center', py: 5, px: 3, bgcolor: alpha(theme.palette.background.paper, 0.4), borderRadius: 4 }}>
+            <FlashOnIcon sx={{ fontSize: 60, color: 'primary.main', opacity: 0.7, mb: 2 }} />
+            <Typography variant="h6" gutterBottom>
+              У вас нет активной подписки
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Активируйте подписку, чтобы получить доступ к расширенным возможностям платформы
+            </Typography>
+            <Button 
+              variant="contained" 
+              color="primary"
+              onClick={() => setOpenKeyDialog(true)}
+              startIcon={<AddIcon />}
+            >
+              Активировать ключ
+            </Button>
+          </Box>
+        )}
+      </TabPanel>
+
+      {}
       <StyledDialog 
         open={transferDialogOpen} 
         onClose={() => setTransferDialogOpen(false)}
@@ -1349,7 +2139,7 @@ const BalancePage = () => {
             />
           </InputContainer>
           
-          {/* Предложения похожих пользователей */}
+          {}
           {userSearch.suggestions.length > 0 && !userSearch.exists && (
             <SuggestionsContainer>
               <Box sx={{ p: 2, pb: 1 }}>
@@ -1378,7 +2168,7 @@ const BalancePage = () => {
             </SuggestionsContainer>
           )}
           
-          {/* Показываем блок с подтверждением валидации для безопасности */}
+          {}
           {userSearch.exists && transferData.recipient_id && (
             <Box sx={{ 
               p: 2, 
@@ -1444,7 +2234,321 @@ const BalancePage = () => {
         </Box>
       </StyledDialog>
 
-      {/* Snackbar для уведомлений */}
+      {}
+      <StyledDialog
+        open={openKeyDialog}
+        onClose={() => {
+          if (!isSubmittingKey) {
+            setOpenKeyDialog(false);
+            setKeyValue('');
+            setKeyError('');
+            setKeySuccess(null);
+            setActiveTopupTab(0);
+          }
+        }}
+        fullWidth
+      >
+        <DialogHeader>
+          <HeaderGlow />
+          <DialogHeaderContent>
+            <MonetizationOnIcon color="primary" sx={{ mr: 1.5, fontSize: 24 }} />
+            <Typography variant="h6" fontWeight="bold" color="primary.light">
+              Пополнение баланса
+            </Typography>
+          </DialogHeaderContent>
+          {!isSubmittingKey && (
+            <IconButton
+              aria-label="close"
+              onClick={() => setOpenKeyDialog(false)}
+              sx={{ position: 'absolute', right: 8, top: 8 }}
+            >
+              <CloseIcon />
+            </IconButton>
+          )}
+        </DialogHeader>
+        
+        <DialogContent sx={{ p: 3, pt: 2.5, bgcolor: 'transparent' }}>
+          <Tabs 
+            value={activeTopupTab} 
+            onChange={(e, newValue) => setActiveTopupTab(newValue)}
+            sx={{ mb: 3 }}
+          >
+            <Tab label="У меня есть ключ" />
+            <Tab label="Донат" />
+          </Tabs>
+          
+          {activeTopupTab === 0 && !keySuccess ? (
+            <ContentBox>
+              <Typography variant="body1" gutterBottom>
+                Введите ключ активации для пополнения баланса:
+              </Typography>
+              
+              <KeyTextField
+                fullWidth
+                label="Ключ активации"
+                variant="outlined"
+                placeholder="XXXX-XXXX-XXXX-XXXX"
+                value={keyValue}
+                onChange={handleKeyChange}
+                error={!!keyError}
+                helperText={keyError}
+                disabled={isSubmittingKey}
+                sx={{ mt: 2, mb: 2 }}
+                InputProps={{
+                  endAdornment: keyValue && (
+                    <InputAdornment position="end">
+                      <IconButton 
+                        onClick={() => setKeyValue('')}
+                        edge="end"
+                      >
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
+              />
+              
+              <Typography variant="caption" color="text.secondary">
+                Ключ активации можно получить в результате покупки на нашем сайте или от администратора.
+              </Typography>
+            </ContentBox>
+          ) : activeTopupTab === 1 ? (
+            <ContentBox>
+              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                Пополнение с помощью доната
+              </Typography>
+              <Typography variant="body2" paragraph>
+                Вы можете пополнить баланс рублями через Donation Alerts.
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 2 }}>
+                1 рубль = 5 баллов
+              </Typography>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<MonetizationOnIcon />}
+                fullWidth
+                onClick={() => window.open('https:
+              >
+                Перейти к пополнению
+              </Button>
+            </ContentBox>
+          ) : (
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              py: 4,
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <Box sx={{
+                animation: 'pop-in 0.5s cubic-bezier(0.19, 1, 0.22, 1) forwards',
+                '@keyframes pop-in': {
+                  '0%': { transform: 'scale(0)', opacity: 0 },
+                  '80%': { transform: 'scale(1.1)', opacity: 1 },
+                  '100%': { transform: 'scale(1)', opacity: 1 }
+                },
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                zIndex: 2
+              }}>
+                <CheckCircleIcon color="success" sx={{ fontSize: 80, mb: 2 }} />
+                <Typography variant="h6" gutterBottom align="center">
+                  Ключ успешно активирован!
+                </Typography>
+                <Typography variant="body1" align="center">
+                  {keySuccess.message}
+                </Typography>
+                
+                {keySuccess.type === 'points' ? (
+                  
+                  <Box sx={{ 
+                    mt: 3,
+                    p: 2,
+                    borderRadius: 2,
+                    bgcolor: 'background.paper',
+                    boxShadow: 1,
+                    width: '100%',
+                    maxWidth: 250,
+                    animation: 'fade-in 1s ease-in-out forwards',
+                    '@keyframes fade-in': {
+                      from: { opacity: 0, transform: 'translateY(20px)' },
+                      to: { opacity: 1, transform: 'translateY(0)' }
+                    }
+                  }}>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom align="center">
+                      Новый баланс:
+                    </Typography>
+                    <Typography variant="h6" color="primary" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <AccountBalanceWalletIcon sx={{ mr: 1 }} />
+                      {keySuccess.newBalance} баллов
+                    </Typography>
+                  </Box>
+                ) : (
+                  
+                  <Box sx={{ 
+                    mt: 3,
+                    p: 2,
+                    borderRadius: 2,
+                    bgcolor: 'background.paper',
+                    boxShadow: 1,
+                    width: '100%',
+                    maxWidth: 300,
+                    animation: 'fade-in 1s ease-in-out forwards',
+                    '@keyframes fade-in': {
+                      from: { opacity: 0, transform: 'translateY(20px)' },
+                      to: { opacity: 1, transform: 'translateY(0)' }
+                    }
+                  }}>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom align="center">
+                      Активирована подписка:
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+                      <Chip
+                        label={keySuccess.subscriptionType === 'basic' ? 'Базовая' : 
+                              keySuccess.subscriptionType === 'premium' ? 'Премиум' : 
+                              keySuccess.subscriptionType === 'ultimate' ? 'Ультимейт' : 
+                              keySuccess.subscriptionType}
+                        color="secondary"
+                        sx={{ fontSize: '1rem', py: 2, px: 1 }}
+                      />
+                    </Box>
+                    <Typography variant="body2" color="text.secondary" align="center">
+                      Срок действия до: {keySuccess.expiresAt ? new Date(keySuccess.expiresAt).toLocaleDateString() : 'Бессрочно'}
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        
+        <DialogActions>
+          {!keySuccess ? (
+            <>
+              <CancelButton 
+                onClick={() => setOpenKeyDialog(false)} 
+                variant="outlined"
+                disabled={isSubmittingKey}
+              >
+                Отмена
+              </CancelButton>
+              <ActionButton
+                onClick={handleRedeemKey}
+                disabled={!keyValue || isSubmittingKey || keyValue.length < 19} 
+                startIcon={isSubmittingKey ? <CircularProgress size={16} color="inherit" /> : null}
+              >
+                {isSubmittingKey ? 'Активация...' : 'Активировать ключ'}
+              </ActionButton>
+            </>
+          ) : (
+            <ActionButton
+              onClick={() => {
+                setOpenKeyDialog(false);
+                setKeySuccess(null);
+                setKeyValue('');
+              }}
+              sx={{ mx: 'auto' }}
+            >
+              Готово
+            </ActionButton>
+          )}
+        </DialogActions>
+      </StyledDialog>
+
+      {}
+      <StyledDialog
+        open={transferSuccess}
+        onClose={() => setTransferSuccess(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogHeader>
+          <HeaderGlow />
+          <DialogHeaderContent>
+            <CheckCircleIcon color="success" sx={{ mr: 1.5, fontSize: 24 }} />
+            <Typography variant="h6" fontWeight="bold" color="success.main">
+              Перевод выполнен успешно
+            </Typography>
+          </DialogHeaderContent>
+          <IconButton
+            aria-label="close"
+            onClick={() => setTransferSuccess(false)}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogHeader>
+        
+        <DialogContent sx={{ p: 3, pt: 2.5, bgcolor: 'transparent' }}>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            py: 2,
+            textAlign: 'center'
+          }}>
+            <SuccessIconWrapper>
+              <CheckCircleIcon color="success" sx={{ fontSize: 50 }} />
+            </SuccessIconWrapper>
+            
+            <Typography variant="h5" gutterBottom>
+              Средства успешно переведены
+            </Typography>
+            
+            <Typography variant="body1" color="text.secondary" paragraph>
+              Вы перевели <strong>{transferData.amount} баллов</strong> пользователю <strong>{transferData.username}</strong>
+            </Typography>
+            
+            {transferData.message && (
+              <Typography variant="body2" paragraph sx={{ fontStyle: 'italic', mt: 1 }}>
+                "{transferData.message}"
+              </Typography>
+            )}
+            
+            <Divider sx={{ my: 2, width: '100%' }} />
+            
+            <Typography variant="subtitle2" sx={{ mb: 2 }}>
+              Вы можете скачать справку о переводе в формате PDF
+            </Typography>
+            
+            <ReceiptIconButton
+              onClick={() => {
+                if (receiptData) {
+                  try {
+                    downloadPdfReceipt(receiptData.dataUrl, `TR-${Date.now().toString().slice(-8)}`, receiptData.filePath);
+                  } catch (error) {
+                    console.error('Ошибка при открытии PDF:', error);
+                    
+                    setSnackbar({
+                      open: true,
+                      message: 'Не удалось открыть PDF. Попробуйте позже.',
+                      severity: 'error'
+                    });
+                  }
+                }
+              }}
+              startIcon={<PictureAsPdfIcon />}
+              endIcon={<DownloadIcon />}
+              disabled={!receiptData}
+            >
+              Открыть справку
+            </ReceiptIconButton>
+          </Box>
+        </DialogContent>
+        
+        <DialogActions>
+          <ActionButton onClick={() => setTransferSuccess(false)} sx={{ mx: 'auto' }}>
+            Закрыть
+          </ActionButton>
+        </DialogActions>
+      </StyledDialog>
+
+      {}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
@@ -1454,5 +2558,6 @@ const BalancePage = () => {
     </Container>
   );
 };
+
 
 export default BalancePage; 

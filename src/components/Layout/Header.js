@@ -44,7 +44,7 @@ import NotificationList from '../Notifications/NotificationList';
 import axios from 'axios';
 
 const StyledAppBar = styled(AppBar)(({ theme, telegramMode }) => ({
-  backgroundColor: alpha(theme.palette.background.paper, 0.8),
+  backgroundColor: alpha('#000000', 0.8),
   backdropFilter: 'blur(10px)',
   color: theme.palette.text.primary,
   boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
@@ -157,7 +157,7 @@ const Header = ({ toggleSidebar }) => {
   const [userPoints, setUserPoints] = useState(0);
   const [telegramMode, setTelegramMode] = useState(false);
 
-  // Music context
+  
   const { 
     currentTrack, 
     isPlaying, 
@@ -170,7 +170,7 @@ const Header = ({ toggleSidebar }) => {
     setVolume 
   } = useMusic();
 
-  // Профиль меню
+  
   const [anchorEl, setAnchorEl] = useState(null);
   const isMenuOpen = Boolean(anchorEl);
 
@@ -186,9 +186,9 @@ const Header = ({ toggleSidebar }) => {
     handleMenuClose();
     try {
       await logout();
-      // Logout handled in AuthContext with redirect
+      
     } catch (error) {
-      // Fallback if logout fails in AuthContext
+      
       navigate('/login');
     }
   };
@@ -209,14 +209,14 @@ const Header = ({ toggleSidebar }) => {
     }
   }, [user]);
 
-  // Проверка настройки Telegram Mode в localStorage при монтировании
+  
   useEffect(() => {
     const telegramWebAppMode = localStorage.getItem('telegramWebAppMode') === 'true';
     console.log('Telegram WebApp Mode from localStorage:', telegramWebAppMode);
     
     setTelegramMode(telegramWebAppMode);
     
-    // Если включен режим Telegram, добавляем отступ для body
+    
     if (telegramWebAppMode) {
       document.body.classList.add('telegram-webapp');
       document.documentElement.style.setProperty('--telegram-webapp-padding-top', '70px');
@@ -247,7 +247,7 @@ const Header = ({ toggleSidebar }) => {
           boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
           borderRadius: '10px',
           overflow: 'visible',
-          backgroundColor: alpha(theme.palette.background.paper, 0.8),
+          backgroundColor: alpha('#000000', 0.8),
           backdropFilter: 'blur(10px)',
         }
       }}
@@ -304,7 +304,7 @@ const Header = ({ toggleSidebar }) => {
   return (
     <StyledAppBar telegramMode={telegramMode}>
       <StyledToolbar>
-        {/* Левая часть (лого и название) */}
+        {}
         <LogoSection>
           <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
             <LogoSVG 
@@ -320,11 +320,11 @@ const Header = ({ toggleSidebar }) => {
           </Link>
         </LogoSection>
 
-        {/* Центральная часть (плеер) */}
+        {}
         {currentTrack && (
           <PlayerSection>
             <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-              {/* Трек инфо */}
+              {}
               <Box 
                 component={Link} 
                 to="/music" 
@@ -352,7 +352,7 @@ const Header = ({ toggleSidebar }) => {
                 </Box>
               </Box>
               
-              {/* Плеер контролы */}
+              {}
               <PlayerControls>
                 <IconButton size="small" onClick={prevTrack}>
                   <SkipPreviousIcon fontSize="small" />
@@ -399,7 +399,7 @@ const Header = ({ toggleSidebar }) => {
           </PlayerSection>
         )}
 
-        {/* Правая часть (иконки действий) */}
+        {}
         <ActionsSection>
           {user && (
             <Tooltip title="Ваши баллы">

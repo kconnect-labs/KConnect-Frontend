@@ -24,7 +24,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import QueueMusicIcon from '@mui/icons-material/QueueMusic';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 
-// Стили
+
 const PageContainer = styled(Container)(({ theme }) => ({
   paddingTop: theme.spacing(4),
   paddingBottom: theme.spacing(8),
@@ -134,7 +134,7 @@ const CodeBlock = styled(Box)(({ theme }) => ({
   }
 }));
 
-// Компонент для отображения эндпоинта API
+
 const ApiEndpoint = ({ method, path, description, authRequired, request, response }) => {
   const theme = useTheme();
   
@@ -230,7 +230,7 @@ const SimpleApiDocsPage = () => {
         </Tabs>
       </Paper>
       
-      {/* Раздел авторизации */}
+      {}
       {activeTab === 0 && (
         <>
           <Box sx={{ 
@@ -360,7 +360,7 @@ Content-Type: application/json
         </>
       )}
       
-      {/* Раздел профиля */}
+      {}
       {activeTab === 1 && (
         <>
           <SectionTitle variant="h5">
@@ -528,7 +528,7 @@ Content-Type: application/json
         </>
       )}
       
-      {/* Раздел постов */}
+      {}
       {activeTab === 2 && (
         <>
           <SectionTitle variant="h5">
@@ -736,7 +736,7 @@ Content-Type: application/json
         </>
       )}
       
-      {/* Раздел комментариев */}
+      {}
       {activeTab === 3 && (
         <>
           <SectionTitle variant="h5">
@@ -861,7 +861,7 @@ Content-Type: application/json
         </>
       )}
       
-      {/* Раздел уведомлений */}
+      {}
       {activeTab === 4 && (
         <>
           <SectionTitle variant="h5">
@@ -962,7 +962,7 @@ Content-Type: application/json
 
 {
   "subscription": {
-    "endpoint": "https://fcm.googleapis.com/fcm/send/...",
+    "endpoint": "https:
     "keys": {
       "p256dh": "...",
       "auth": "..."
@@ -988,7 +988,7 @@ Content-Type: application/json
 Content-Type: application/json
 
 {
-  "endpoint": "https://fcm.googleapis.com/fcm/send/..."
+  "endpoint": "https:
 }`
             }
             response={
@@ -1051,7 +1051,7 @@ Content-Type: application/json
         "image_path": "badge.svg"
       }
     },
-    // ... другие пользователи
+    
   ],
   "period": "week",
   "total": 25,
@@ -1151,7 +1151,7 @@ Content-Type: application/json
       "photo": "/static/uploads/avatar/123/avatar.png",
       "about": "Информация о пользователе"
     }
-    // ... другие пользователи
+    
   ],
   "has_next": true,
   "total": 35,
@@ -1181,7 +1181,7 @@ Content-Type: application/json
         "photo": "/static/uploads/avatar/123/avatar.png"
       }
     }
-    // ... другие посты
+    
   ],
   "has_next": true,
   "total": 42,
@@ -1225,7 +1225,7 @@ Content-Type: application/json
       "likes_count": 15,
       "created_at": "2023-06-15T14:30:45"
     }
-    // ... другие треки
+    
   ],
   "total": 100,
   "pages": 5,
@@ -1259,7 +1259,7 @@ Content-Type: application/json
       "likes_count": 15,
       "created_at": "2023-06-15T14:30:45"
     }
-    // ... другие треки пользователя
+    
   ],
   "total": 5,
   "pages": 1,
@@ -1353,7 +1353,7 @@ Content-Type: application/json
       "likes_count": 15,
       "created_at": "2023-06-15T14:30:45"
     }
-    // ... другие популярные треки
+    
   ]
 }`}
           />
@@ -1384,7 +1384,7 @@ Content-Type: application/json
       "likes_count": 15,
       "created_at": "2023-06-15T14:30:45"
     }
-    // ... другие найденные треки
+    
   ],
   "total": 3,
   "pages": 1,
@@ -1436,10 +1436,10 @@ Content-Type: application/json
           },
           "purchase_date": "2023-06-15T14:30:45"
         }
-        // ... другие покупки
+        
       ]
     }
-    // ... другие бейджики
+    
   ]
 }`}
           />
@@ -1498,7 +1498,7 @@ Content-Type: application/json
       "purchase_date": "2023-06-15T14:30:45",
       "achievement_id": 5
     }
-    // ... другие покупки
+    
   ]
 }`}
           />

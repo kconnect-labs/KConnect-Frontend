@@ -20,15 +20,15 @@ import Picker from 'emoji-picker-react';
 import PlyrVideo from '../../components/PlyrVideo';
 import 'plyr/dist/plyr.css';
 
-// Styled components
+
 const ChatContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   width: '100%',
-  height: 'calc(100vh - 64px - 80px)', // Уменьшенная высота на ПК - отступы сверху и снизу
-  maxHeight: '800px', // Максимальная высота для больших экранов
-  margin: '40px auto', // Центрирование и отступы
-  maxWidth: '1200px', // Максимальная ширина для больших экранов
-  borderRadius: theme.spacing(2), // Скругленные углы для ПК версии
+  height: 'calc(100vh - 64px - 80px)', 
+  maxHeight: '800px', 
+  margin: '40px auto', 
+  maxWidth: '1200px', 
+  borderRadius: theme.spacing(2), 
   overflow: 'hidden',
   backgroundColor: theme.palette.mode === 'dark' ? '#1A1A1A' : '#F5F5F5',
   boxShadow: theme.palette.mode === 'dark' 
@@ -40,7 +40,7 @@ const ChatContainer = styled(Box)(({ theme }) => ({
     height: 'calc(100vh - 64px - 40px)',
   },
   [theme.breakpoints.down('sm')]: {
-    height: 'calc(100vh - 56px)', // На мобильных полная высота минус хедер
+    height: 'calc(100vh - 56px)', 
     margin: 0,
     borderRadius: 0,
     boxShadow: 'none',
@@ -268,25 +268,25 @@ const ImageMessage = styled('img')({
   maxHeight: '200px',
   borderRadius: '8px',
   marginTop: '8px',
-  objectFit: 'cover', // Добавляем правильное кадрирование
+  objectFit: 'cover', 
 });
 
-// Use VideoContainer for videos with Plyr styling
+
 const VideoContainer = styled(Box)({
   maxWidth: '100%',
   maxHeight: '250px', 
   borderRadius: '8px',
   marginTop: '8px',
   overflow: 'hidden',
-  // Улучшенные стили для Plyr
+  
   '& .plyr': {
     borderRadius: '8px',
-    '--plyr-color-main': '#8c54ff', // Акцентный цвет для плеера
+    '--plyr-color-main': '#8c54ff', 
     '--plyr-video-control-color': '#fff',
   }
 });
 
-// Mock data for demonstration
+
 const MOCK_CHATS = [
   {
     id: 1,
@@ -345,7 +345,7 @@ const MOCK_MESSAGES = [
   { id: 7, senderId: 1, content: 'Выглядит здорово! Я добавлю эти материалы в презентацию. Спасибо!', timestamp: '10:43', isRead: true },
 ];
 
-// Стиль для текста сообщения
+
 const MessageText = styled(Typography)(({ theme }) => ({
   fontSize: '0.95rem',
   lineHeight: 1.4,
@@ -354,7 +354,7 @@ const MessageText = styled(Typography)(({ theme }) => ({
   wordBreak: 'break-word',
 }));
 
-// Обновляем стиль читаемых меток для максимального сходства с Telegram
+
 const ReadMarks = styled('span')(({ isOwn, isRead, theme }) => ({
   marginLeft: '1px',
   display: 'inline-flex',
@@ -367,7 +367,7 @@ const ReadMarks = styled('span')(({ isOwn, isRead, theme }) => ({
     : (isRead ? '#4fae4e' : theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.5)'),
 }));
 
-// Стилизуем счетчик непрочитанных сообщений
+
 const UnreadBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
     backgroundColor: theme.palette.primary.main,
@@ -414,14 +414,14 @@ const MessengerPage = () => {
   const messagesEndRef = useRef(null);
   const [keyboardActive, setKeyboardActive] = useState(false);
 
-  // Minimum swipe distance required (in px)
+  
   const minSwipeDistance = 50;
 
-  // Add state for emoji picker
+  
   const [emojiAnchorEl, setEmojiAnchorEl] = useState(null);
   const openEmojiPicker = Boolean(emojiAnchorEl);
 
-  // Set initial active chat
+  
   useEffect(() => {
     if (chats.length > 0 && !activeChat) {
       setActiveChat(chats[0]);
@@ -429,17 +429,17 @@ const MessengerPage = () => {
     }
   }, [chats, activeChat]);
 
-  // Scroll to bottom of messages
+  
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Handle keyboard detection on mobile
+  
   useEffect(() => {
     const handleFocus = () => {
       if (isMobile) {
         setKeyboardActive(true);
-        // Scroll to the bottom after a short delay
+        
         setTimeout(() => {
           messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
         }, 300);
@@ -466,18 +466,18 @@ const MessengerPage = () => {
     };
   }, [isMobile]);
 
-  // Добавляем обработчик для предотвращения автоматического скрытия клавиатуры на iOS
+  
   useEffect(() => {
-    // Предотвращаем автоматическое скрытие клавиатуры на iOS
+    
     const preventKeyboardHide = () => {
-      // Только для iOS устройств
+      
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
       if (!isIOS) return;
       
       const inputs = document.querySelectorAll('textarea, input');
       inputs.forEach(input => {
         input.addEventListener('blur', function(e) {
-          // Предотвращаем скрытие клавиатуры, если это была отправка сообщения
+          
           if (e.target.closest('.message-input-container')) {
             setTimeout(() => {
               input.focus();
@@ -486,11 +486,11 @@ const MessengerPage = () => {
         });
       });
       
-      // Предотвращаем появление нативных элементов iOS
+      
       document.addEventListener('touchstart', function(e) {
         const target = e.target;
         if (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT') {
-          // Предотвращаем появление лупы на iOS
+          
           e.preventDefault();
           target.focus();
         }
@@ -515,16 +515,16 @@ const MessengerPage = () => {
   const handleSendMessage = async () => {
     if (!messageText.trim() && selectedFiles.length === 0) return;
 
-    // Simulate sending a message
+    
     setLoading(true);
     
     try {
-      // In the future, this will use the MessengerService
-      // const response = await MessengerService.sendMessage(
-      //   activeChat.id, 
-      //   messageText.trim(), 
-      //   selectedFiles
-      // );
+      
+      
+      
+      
+      
+      
       
       setTimeout(() => {
         const fileAttachments = selectedFiles.map((file, index) => ({
@@ -537,13 +537,13 @@ const MessengerPage = () => {
         
         const newMessage = {
           id: Date.now(),
-          senderId: 1, // Current user id
+          senderId: 1, 
           content: messageText,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           isRead: false,
           media: fileAttachments.length > 0 ? fileAttachments[0] : null,
           attachments: fileAttachments,
-          isNew: true // Маркер нового сообщения для анимации
+          isNew: true 
         };
         
         setMessages([...messages, newMessage]);
@@ -551,18 +551,18 @@ const MessengerPage = () => {
         setSelectedFiles([]);
         setLoading(false);
         
-        // Через небольшую задержку прокручиваем вниз для отображения нового сообщения
+        
         setTimeout(() => {
           messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
           
-          // Сфокусируемся снова на текстовом поле
+          
           const input = document.querySelector('textarea');
           if (input) {
             input.focus();
           }
         }, 100);
         
-        // Update the chat list with the new message
+        
         setChats(chats.map(chat => 
           chat.id === activeChat.id 
             ? { 
@@ -593,7 +593,7 @@ const MessengerPage = () => {
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     setSelectedFiles([...selectedFiles, ...files]);
-    // Reset the input to allow selecting the same file again
+    
     e.target.value = null;
   };
 
@@ -601,7 +601,7 @@ const MessengerPage = () => {
     setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
   };
 
-  // Function to format date/time
+  
   const formatMessageDate = (timestamp) => {
     return timestamp;
   };
@@ -627,36 +627,36 @@ const MessengerPage = () => {
     setTouchEnd(null);
   };
 
-  // Set total pages based on message count
+  
   useEffect(() => {
-    // Calculate total pages
+    
     const messageCount = messages.length;
     const calculatedPages = Math.ceil(messageCount / messagesPerPage);
     setTotalPages(calculatedPages > 0 ? calculatedPages : 1);
   }, [messages, messagesPerPage]);
 
-  // Add function to load messages by page
+  
   const loadMessagesByPage = (pageNum) => {
-    // In a real implementation, this would fetch messages from API
-    // For now, we simulate pagination with the mock data
+    
+    
     setPage(pageNum);
     
-    // Simulate page loading (in real implementation, you'd fetch from backend)
+    
     const startIndex = (pageNum - 1) * messagesPerPage;
     const endIndex = Math.min(startIndex + messagesPerPage, MOCK_MESSAGES.length);
     const paginatedMessages = MOCK_MESSAGES.slice(startIndex, endIndex);
     
-    // In a real implementation we would set these messages,
-    // but for now we'll just log this for demonstration
+    
+    
     console.log(`Loading messages ${startIndex + 1}-${endIndex}`);
   };
   
-  // Update page change handler
+  
   const handlePageChange = (event, value) => {
     loadMessagesByPage(value);
   };
 
-  // Menu handlers
+  
   const handleMenuOpen = (event) => {
     setMenuAnchorEl(event.currentTarget);
   };
@@ -669,8 +669,8 @@ const MessengerPage = () => {
     if (!activeChat) return;
     console.log(`Deleting chat with ${activeChat.name}`);
     
-    // In a real implementation, this would call an API
-    // For now, we'll just simulate it
+    
+    
     setChats(chats.filter(chat => chat.id !== activeChat.id));
     setActiveChat(null);
     setShowChatList(true);
@@ -681,13 +681,13 @@ const MessengerPage = () => {
     if (!activeChat) return;
     console.log(`Clearing history with ${activeChat.name}`);
     
-    // In a real implementation, this would call an API
-    // For now, we'll just simulate it
+    
+    
     setMessages([]);
     handleMenuClose();
   };
 
-  // Update emoji handler function
+  
   const handleEmojiClick = (emojiObject) => {
     setMessageText(prev => prev + emojiObject.emoji);
   };
@@ -700,9 +700,9 @@ const MessengerPage = () => {
     setEmojiAnchorEl(null);
   };
 
-  // Hide app header and navbar when in messenger
+  
   useEffect(() => {
-    // Только скрываем нижнюю навигацию при открытой переписке на мобильных
+    
     const bottomNav = document.querySelector('.MuiBottomNavigation-root')?.parentElement;
     
     if (bottomNav && isMobile && !showChatList && activeChat) {
@@ -715,7 +715,7 @@ const MessengerPage = () => {
     }
   }, [isMobile, showChatList, activeChat]);
 
-  // Стили для emoji picker
+  
   const emojiPickerStyle = {
     width: '100%',
     maxWidth: '320px',
@@ -746,7 +746,7 @@ const MessengerPage = () => {
 
   return (
     <ChatContainer>
-      {/* Chat list */}
+      {}
       <ChatListContainer isMobile={isMobile} showChatList={showChatList}>
         <ChatListHeader>
           <Typography variant="h6">Сообщения</Typography>
@@ -788,7 +788,7 @@ const MessengerPage = () => {
         ))}
       </ChatListContainer>
 
-      {/* Conversation area with touch events for swipe */}
+      {}
       <ConversationContainer 
         isMobile={isMobile} 
         showChatList={showChatList}
@@ -834,7 +834,7 @@ const MessengerPage = () => {
                 <MoreVertIcon />
               </IconButton>
               
-              {/* Chat Options Menu */}
+              {}
               <Menu
                 id="chat-menu"
                 anchorEl={menuAnchorEl}
@@ -861,7 +861,7 @@ const MessengerPage = () => {
             <MessagesContainer keyboardActive={keyboardActive}>
               {messages.length > 0 ? (
                 <>
-                  {/* Show pagination if needed */}
+                  {}
                   {totalPages > 1 && (
                     <Box display="flex" justifyContent="center" my={1}>
                       <Pagination 
@@ -877,37 +877,37 @@ const MessengerPage = () => {
                   )}
                   
                   {messages.map((message, index) => {
-                    const isOwn = message.senderId === 1; // Current user id
+                    const isOwn = message.senderId === 1; 
                     
-                    // Проверяем, нужно ли группировать сообщение с предыдущим
+                    
                     const isPreviousFromSameSender = index > 0 && messages[index - 1].senderId === message.senderId;
                     const isNextFromSameSender = index < messages.length - 1 && messages[index + 1].senderId === message.senderId;
                     
-                    // Определяем стиль закругления углов для сгруппированных сообщений
+                    
                     const getBorderRadius = () => {
                       if (isOwn) {
                         if (isPreviousFromSameSender && isNextFromSameSender) {
-                          return '16px 4px 4px 16px'; // Середина группы своих сообщений
+                          return '16px 4px 4px 16px'; 
                         } else if (isPreviousFromSameSender) {
-                          return '16px 4px 16px 16px'; // Последнее в группе своих сообщений
+                          return '16px 4px 16px 16px'; 
                         } else if (isNextFromSameSender) {
-                          return '16px 16px 4px 16px'; // Первое в группе своих сообщений
+                          return '16px 16px 4px 16px'; 
                         }
-                        return '16px 16px 4px 16px'; // Одиночное своё сообщение
+                        return '16px 16px 4px 16px'; 
                       } else {
                         if (isPreviousFromSameSender && isNextFromSameSender) {
-                          return '4px 16px 16px 4px'; // Середина группы чужих сообщений
+                          return '4px 16px 16px 4px'; 
                         } else if (isPreviousFromSameSender) {
-                          return '4px 16px 16px 16px'; // Последнее в группе чужих сообщений
+                          return '4px 16px 16px 16px'; 
                         } else if (isNextFromSameSender) {
-                          return '16px 16px 16px 4px'; // Первое в группе чужих сообщений
+                          return '16px 16px 16px 4px'; 
                         }
-                        return '16px 16px 16px 4px'; // Одиночное чужое сообщение
+                        return '16px 16px 16px 4px'; 
                       }
                     };
                     
-                    // Определяем, отображать ли время для данного сообщения
-                    // Показываем только для последнего в группе или одиночных
+                    
+                    
                     const showTime = !isNextFromSameSender || index === messages.length - 1;
                     
                     return (
@@ -931,7 +931,7 @@ const MessengerPage = () => {
                           {message.media && message.media.type === 'image' && (
                             <Box 
                               sx={{ 
-                                mt: 0.5, // Уменьшаем отступ от текста до изображения
+                                mt: 0.5, 
                                 maxWidth: '100%',
                                 '& img': { 
                                   display: 'block',
@@ -950,7 +950,7 @@ const MessengerPage = () => {
                             </VideoContainer>
                           )}
                           
-                          {/* Отображение дополнительных вложений */}
+                          {}
                           {message.attachments && message.attachments.length > 1 && (
                             <Box mt={0.5}>
                               {message.attachments.slice(1).map((attachment, index) => (
@@ -1001,13 +1001,13 @@ const MessengerPage = () => {
             </MessagesContainer>
 
             <InputContainer keyboardActive={keyboardActive}>
-              {/* File upload preview */}
+              {}
               <FileUploadPreview 
                 files={selectedFiles}
                 onRemoveFile={handleRemoveFile}
               />
               
-              {/* Hidden file input */}
+              {}
               <input
                 type="file"
                 multiple
@@ -1062,7 +1062,7 @@ const MessengerPage = () => {
                     '-webkit-touch-callout': 'none',
                   },
                   '& textarea': {
-                    // Стили для предотвращения проблем iOS
+                    
                     WebkitAppearance: 'none',
                     '-webkit-user-select': 'text',
                     '-webkit-touch-callout': 'none',
@@ -1082,7 +1082,7 @@ const MessengerPage = () => {
                 }}
               />
               
-              {/* Emoji Picker */}
+              {}
               <Popover
                 open={openEmojiPicker}
                 anchorEl={emojiAnchorEl}

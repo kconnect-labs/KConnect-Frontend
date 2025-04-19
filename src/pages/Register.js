@@ -93,16 +93,16 @@ const Register = ({ setUser }) => {
     try {
       const { username, email, password } = formData;
       
-      console.log('Отправка данных регистрации:', { username, email, password: '***' });
+      console.log('Отправка данных регистрации:', { username, email, password: 'REMOVED' });
       
-      // Вызываем функцию регистрации с правильными параметрами
+      
       const response = await AuthService.register(username, email, password);
       
       console.log('Ответ регистрации:', response);
       
       if (response.success) {
         setSuccess(response.message || 'Регистрация успешна! Пожалуйста, проверьте свою почту для подтверждения аккаунта. После подтверждения вы сможете создать профиль.');
-        // Редирект через 5 секунд
+        
         setTimeout(() => {
           navigate('/login');
         }, 5000);
@@ -116,7 +116,7 @@ const Register = ({ setUser }) => {
         console.error('Ответ сервера:', err.response.data);
         const errorMessage = err.response.data.error || 'Ошибка при регистрации';
         
-        // Проверяем конкретные сообщения об ошибках для более понятной обратной связи
+        
         if (errorMessage.includes('username уже занят')) {
           setError('Это имя пользователя уже занято. Пожалуйста, выберите другое.');
         } else if (errorMessage.includes('email уже зарегистрирован')) {
@@ -232,7 +232,7 @@ const Register = ({ setUser }) => {
           }
           label={
             <span>
-              Я согласен с <Link href="/terms" target="_blank">правилами пользования</Link>
+              Я согласен с <Link href="/terms-of-service" target="_blank">правилами пользования</Link>
             </span>
           }
           sx={{ mb: 2 }}

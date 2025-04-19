@@ -27,17 +27,17 @@ import { useContext } from 'react';
 import FullScreenPlayer from './FullScreenPlayer';
 import { extractDominantColor, getCoverWithFallback } from '../../utils/imageUtils';
 
-// Function to extract color from album cover
+
 const getColorFromImage = extractDominantColor;
 
 const PlayerContainer = styled(Paper)(({ theme, covercolor }) => ({
   position: 'fixed',
-  bottom: 76, // Увеличиваем с 67 до 76 для соответствия новой высоте нижней навигации
+  bottom: 76, 
   left: 0,
   right: 0,
   zIndex: theme.zIndex.appBar - 1,
-  backgroundColor: covercolor ? `rgba(${covercolor}, 0.35)` : 'rgba(10, 10, 10, 0.6)', // Фон с цветом обложки
-  backdropFilter: 'blur(30px)', // Усиленный блюр
+  backgroundColor: covercolor ? `rgba(${covercolor}, 0.35)` : 'rgba(10, 10, 10, 0.6)', 
+  backdropFilter: 'blur(30px)', 
   boxShadow: '0 -2px 15px rgba(0, 0, 0, 0.25)',
   padding: theme.spacing(0.5, 1.5, 1, 1.5),
   display: 'flex',
@@ -64,7 +64,7 @@ const PlayerContainer = styled(Paper)(({ theme, covercolor }) => ({
   }
 }));
 
-// Custom styled progress bar
+
 const ProgressBar = styled(LinearProgress)(({ theme, covercolor }) => ({
   height: 3,
   borderRadius: 0,
@@ -93,14 +93,14 @@ const MobilePlayer = () => {
   const [progressValue, setProgressValue] = useState(0);
   const [fullScreenOpen, setFullScreenOpen] = useState(false);
   const [dominantColor, setDominantColor] = useState(null);
-  // Add state for share notification
+  
   const [shareSnackbar, setShareSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success'
   });
   
-  // Extract color from album cover when track changes
+  
   useEffect(() => {
     if (currentTrack?.cover_path) {
       getColorFromImage(
@@ -132,14 +132,14 @@ const MobilePlayer = () => {
     }
   };
   
-  // Add share function
+  
   const handleShare = (e) => {
     e.stopPropagation();
     if (!currentTrack) return;
     
     const trackLink = `${window.location.origin}/music?track=${currentTrack.id}`;
     
-    // Просто копируем ссылку в буфер обмена вместо использования Web Share API
+    
     copyToClipboard(trackLink);
   };
   
@@ -162,7 +162,7 @@ const MobilePlayer = () => {
       });
   };
   
-  // Handle closing the snackbar
+  
   const handleCloseSnackbar = (event, reason) => {
     if (reason === 'clickaway') {
       return;
@@ -190,7 +190,7 @@ const MobilePlayer = () => {
   return (
     <React.Fragment>
       <PlayerContainer elevation={0} covercolor={dominantColor}>
-        {/* Simple non-interactive progress bar */}
+        {}
         <ProgressBar 
           variant="determinate" 
           value={progressValue} 
@@ -302,7 +302,7 @@ const MobilePlayer = () => {
               {currentTrack.is_liked ? <Favorite /> : <FavoriteBorder />}
             </IconButton>
             
-            {/* Add Share Button */}
+            {}
             <IconButton 
               onClick={handleShare}
               sx={{ 
@@ -363,7 +363,7 @@ const MobilePlayer = () => {
         </Box>
       </PlayerContainer>
 
-      {/* Snackbar for share notifications */}
+      {}
       <Snackbar 
         open={shareSnackbar.open} 
         autoHideDuration={4000} 

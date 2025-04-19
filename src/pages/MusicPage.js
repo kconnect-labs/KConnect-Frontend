@@ -60,7 +60,7 @@ import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import SEO from '../components/SEO';
 
-// Custom debounce implementation
+
 const debounce = (func, wait) => {
   let timeout;
   return function executedFunction(...args) {
@@ -73,7 +73,7 @@ const debounce = (func, wait) => {
   };
 };
 
-// Styled components for Yandex Music-like UI
+
 const DarkPaper = styled(Paper)(({ theme }) => ({
   backgroundColor: 'rgba(18, 18, 18, 0.6)',
   backdropFilter: 'blur(10px)',
@@ -150,20 +150,20 @@ const SearchInput = styled(Box)(({ theme, expanded }) => ({
   }
 }));
 
-// Оборачиваем в React.memo для предотвращения лишних ререндеров
+
 const MusicPage = React.memo(() => {
   const [tabValue, setTabValue] = useState(0);
   const [fullScreenPlayerOpen, setFullScreenPlayerOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [mainTab, setMainTab] = useState(0); // Новое состояние для переключения вкладок Музыка/Плейлисты
-  const [playlists, setPlaylists] = useState([]); // Состояние для списка плейлистов
-  const [isPlaylistsLoading, setIsPlaylistsLoading] = useState(false); // Загрузка плейлистов
-  const [selectedPlaylist, setSelectedPlaylist] = useState(null); // Выбранный плейлист
-  const [playlistDialogOpen, setPlaylistDialogOpen] = useState(false); // Диалог создания/редактирования плейлиста
-  const [playlistTracksDialogOpen, setPlaylistTracksDialogOpen] = useState(false); // Диалог добавления треков в плейлист
-  // Добавляем локальное состояние для отслеживания загрузки
+  const [mainTab, setMainTab] = useState(0); 
+  const [playlists, setPlaylists] = useState([]); 
+  const [isPlaylistsLoading, setIsPlaylistsLoading] = useState(false); 
+  const [selectedPlaylist, setSelectedPlaylist] = useState(null); 
+  const [playlistDialogOpen, setPlaylistDialogOpen] = useState(false); 
+  const [playlistTracksDialogOpen, setPlaylistTracksDialogOpen] = useState(false); 
+  
   const [localLoading, setLocalLoading] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -173,18 +173,18 @@ const MusicPage = React.memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Track context menu
+  
   const [contextMenu, setContextMenu] = useState(null);
   const [selectedTrack, setSelectedTrack] = useState(null);
   
-  // Snackbar for copy notification
+  
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success'
   });
   
-  // Мемоизация контекстных данных для предотвращения лишних ререндеров
+  
   const musicContext = useMusic();
   const { 
     tracks, 
@@ -204,23 +204,23 @@ const MusicPage = React.memo(() => {
     setRandomTracks
   } = musicContext;
 
-  // Добавляем поддержку для старой версии контекста, где может не быть функций для бесконечной прокрутки
+  
   const loadMoreTracks = musicContext.loadMoreTracks || (async () => console.warn('loadMoreTracks not implemented'));
   const [hasMoreTracks, setHasMoreTracks] = useState(musicContext.hasMoreTracks || false);
 
-  // Состояние и refs для бесконечной прокрутки
+  
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const loaderRef = useRef(null);
   const prevTabValue = useRef(tabValue);
   
-  // При первом рендере сразу устанавливаем секцию "liked" и активную вкладку 0
+  
   useEffect(() => {
-    // Устанавливаем секцию "liked" при первом рендере
+    
     if (typeof setCurrentSection === 'function') {
       console.log('Инициализация страницы музыки, устанавливаем секцию "liked"');
       setCurrentSection('liked');
       
-      // Если треки Мне нравится еще не загружены, сбрасываем пагинацию
+      
       if (!likedTracks || likedTracks.length === 0) {
         if (musicContext.resetPagination) {
           console.log('Сбрасываем пагинацию для секции "liked" при первой загрузке');
@@ -230,7 +230,7 @@ const MusicPage = React.memo(() => {
     }
   }, []);
 
-  // Получение плейлистов пользователя
+  
   const fetchUserPlaylists = useCallback(async () => {
     try {
       setIsPlaylistsLoading(true);
@@ -247,14 +247,14 @@ const MusicPage = React.memo(() => {
     }
   }, []);
 
-  // Загружаем плейлисты при переключении на вкладку плейлистов
+  
   useEffect(() => {
     if (mainTab === 1) {
       fetchUserPlaylists();
     }
   }, [mainTab, fetchUserPlaylists]);
 
-  // Функция для создания нового плейлиста
+  
   const createPlaylist = async (playlistData) => {
     try {
       const formData = new FormData();
@@ -273,7 +273,7 @@ const MusicPage = React.memo(() => {
       });
 
       if (response.data.success) {
-        // Обновляем список плейлистов
+        
         fetchUserPlaylists();
         setSnackbar({
           open: true,
@@ -300,7 +300,7 @@ const MusicPage = React.memo(() => {
     }
   };
 
-  // Функция для обновления плейлиста
+  
   const updatePlaylist = async (playlistId, playlistData) => {
     try {
       const formData = new FormData();
@@ -317,7 +317,7 @@ const MusicPage = React.memo(() => {
       });
 
       if (response.data.success) {
-        // Обновляем список плейлистов
+        
         fetchUserPlaylists();
         setSnackbar({
           open: true,
@@ -344,13 +344,13 @@ const MusicPage = React.memo(() => {
     }
   };
 
-  // Функция для удаления плейлиста
+  
   const deletePlaylist = async (playlistId) => {
     try {
       const response = await axios.delete(`/api/playlists/${playlistId}`);
 
       if (response.data.success) {
-        // Обновляем список плейлистов
+        
         fetchUserPlaylists();
         setSnackbar({
           open: true,
@@ -377,7 +377,7 @@ const MusicPage = React.memo(() => {
     }
   };
 
-  // Функция для добавления трека в плейлист
+  
   const addTrackToPlaylist = async (playlistId, trackId) => {
     try {
       const response = await axios.post(`/api/playlists/${playlistId}/tracks`, {
@@ -410,7 +410,7 @@ const MusicPage = React.memo(() => {
     }
   };
 
-  // Функция для удаления трека из плейлиста
+  
   const removeTrackFromPlaylist = async (playlistId, trackId) => {
     try {
       const response = await axios.delete(`/api/playlists/${playlistId}/tracks/${trackId}`);
@@ -441,21 +441,21 @@ const MusicPage = React.memo(() => {
     }
   };
 
-  // Функция для воспроизведения плейлиста
+  
   const playPlaylist = useCallback(async (playlistId) => {
     try {
       const response = await axios.get(`/api/playlists/${playlistId}`);
       
       if (response.data.success && response.data.playlist.tracks.length > 0) {
-        // Устанавливаем текущую секцию как имя плейлиста для отслеживания
+        
         const playlistSection = `playlist_${playlistId}`;
         setCurrentSection(playlistSection);
         
-        // Воспроизводим первый трек
+        
         const firstTrack = response.data.playlist.tracks[0];
         playTrack(firstTrack, playlistSection);
         
-        // Сохраняем треки плейлиста в контексте музыки
+        
         if (typeof musicContext.setPlaylistTracks === 'function') {
           musicContext.setPlaylistTracks(response.data.playlist.tracks, playlistSection);
         }
@@ -480,22 +480,22 @@ const MusicPage = React.memo(() => {
     }
   }, [playTrack, setCurrentSection, musicContext]);
 
-  // Мемоизируем обработчики для предотвращения ререндеров
+  
   const handleTabChange = useCallback((event, newValue) => {
-    // Сохраняем текущее значение для сравнения
+    
     const oldValue = tabValue;
     
-    // Обновляем значение вкладки
+    
     setTabValue(newValue);
     
-    // Если действительно сменилась вкладка
+    
     if (oldValue !== newValue) {
       console.log(`Переключение вкладки с ${oldValue} на ${newValue}`);
       
-      // Прокручиваем к началу страницы
+      
       window.scrollTo(0, 0);
       
-      // Очищаем поисковый запрос
+      
       if (searchQuery) {
         setSearchQuery('');
         if (searchInputRef.current) {
@@ -503,7 +503,7 @@ const MusicPage = React.memo(() => {
         }
       }
       
-      // Получаем тип для новой вкладки
+      
       const tabToType = {
         0: 'liked',
         1: 'all',
@@ -512,38 +512,38 @@ const MusicPage = React.memo(() => {
       
       const newType = tabToType[newValue] || 'all';
       
-      // Устанавливаем флаг загрузки
+      
       setLocalLoading(true);
       
-      // Отладочная информация для диагностики
+      
       console.log("Текущее состояние треков:");
       console.log(`- liked: ${likedTracks ? likedTracks.length : 0} треков`);
       console.log(`- all: ${tracks ? tracks.length : 0} треков`);
       console.log(`- random: ${randomTracks ? randomTracks.length : 0} треков`);
       
-      // Принудительный сброс пагинации и загрузка новых треков при переключении
+      
       if (musicContext.resetPagination) {
         console.log(`Сбрасываем пагинацию для типа ${newType}`);
         musicContext.resetPagination(newType);
       }
       
-      // Обновляем секцию в контексте музыки
+      
       if (musicContext.setCurrentSection) {
         console.log(`Устанавливаем секцию ${newType} в контексте`);
         musicContext.setCurrentSection(newType);
       }
       
-      // Для вкладки "Случайные" добавляем перемешивание списка при переключении
+      
       if (newType === 'random' && randomTracks && randomTracks.length > 0) {
-        // Создаем временную копию треков для перемешивания
+        
         const reshuffledTracks = [...randomTracks].sort(() => Math.random() - 0.5);
-        // Обновляем состояние через контекст
+        
         if (typeof musicContext.setRandomTracks === 'function') {
           musicContext.setRandomTracks(reshuffledTracks);
         }
       }
       
-      // Сбрасываем флаг загрузки через небольшую задержку
+      
       setTimeout(() => {
         setLocalLoading(false);
       }, 800);
@@ -561,7 +561,7 @@ const MusicPage = React.memo(() => {
 
   const handleCloseFullScreenPlayer = useCallback(() => {
     setFullScreenPlayerOpen(false);
-    // Ensure scroll is restored when closing fullscreen player
+    
     document.body.style.overflow = '';
     document.body.style.touchAction = '';
   }, []);
@@ -574,44 +574,44 @@ const MusicPage = React.memo(() => {
     setUploadDialogOpen(false);
   }, []);
 
-  // Обработчик переключения основных вкладок (Музыка/Плейлисты)
+  
   const handleMainTabChange = useCallback((event, newValue) => {
     setMainTab(newValue);
   }, []);
 
-  // Открыть диалог создания плейлиста
+  
   const handleOpenPlaylistDialog = useCallback((playlist = null) => {
     setSelectedPlaylist(playlist);
     setPlaylistDialogOpen(true);
   }, []);
 
-  // Закрыть диалог создания плейлиста
+  
   const handleClosePlaylistDialog = useCallback(() => {
     setSelectedPlaylist(null);
     setPlaylistDialogOpen(false);
   }, []);
 
-  // Открыть диалог добавления треков в плейлист
+  
   const handleOpenPlaylistTracksDialog = useCallback((playlist) => {
     setSelectedPlaylist(playlist);
     setPlaylistTracksDialogOpen(true);
   }, []);
 
-  // Закрыть диалог добавления треков в плейлист
+  
   const handleClosePlaylistTracksDialog = useCallback(() => {
     setSelectedPlaylist(null);
     setPlaylistTracksDialogOpen(false);
   }, []);
 
-  // Определяем текущий список треков в зависимости от выбранной вкладки
-  // Мемоизируем для предотвращения лишних вычислений при ререндерах
+  
+  
   const currentTracks = useMemo(() => {
     if (tabValue === 0) return likedTracks;
     if (tabValue === 2) return randomTracks;
     return tracks;
   }, [tabValue, tracks, likedTracks, randomTracks]);
 
-  // Debounce search to avoid too many API calls
+  
   const debouncedSearch = useCallback(
     debounce((query) => {
       if (query.trim()) {
@@ -621,19 +621,19 @@ const MusicPage = React.memo(() => {
     [searchTracks]
   );
 
-  // Handle search input change
+  
   const handleSearchChange = (e) => {
     const query = e.target.value;
     setSearchQuery(query);
     
-    // Если поисковый запрос пуст, сбрасываем состояние поиска и возвращаемся к обычному списку
+    
     if (!query.trim()) {
-      // Вызываем очистку поиска вместо простого сброса запроса
+      
       clearSearch();
       return;
     }
     
-    // Call the debounced search function
+    
     debouncedSearch(query);
   };
   
@@ -647,24 +647,24 @@ const MusicPage = React.memo(() => {
     }, 200);
   };
 
-  // Функция для очистки поискового запроса
+  
   const clearSearch = () => {
     setSearchQuery('');
     if (searchInputRef.current) {
       searchInputRef.current.value = '';
     }
     
-    // Запрашиваем треки заново на основе текущей вкладки
+    
     const tabToType = {
       0: 'liked',
       1: 'all',
       2: 'random'
     };
     
-    // Определяем текущий тип
+    
     const currentType = tabToType[tabValue] || 'all';
     
-    // Сбрасываем пагинацию для текущего типа и загружаем треки заново
+    
     if (musicContext.resetPagination) {
       musicContext.resetPagination(currentType);
     }
@@ -672,49 +672,49 @@ const MusicPage = React.memo(() => {
     console.log('Поисковый запрос очищен');
   };
 
-  // Use search results when searching, otherwise use the current tab's tracks
+  
   const displayedTracks = useMemo(() => {
     return searchQuery.trim() ? searchResults : currentTracks;
   }, [searchQuery, searchResults, currentTracks]);
 
-  // Определяем состояние загрузки на основе контекста и локального состояния
+  
   const effectiveLoading = useMemo(() => {
     return isLoading || localLoading;
   }, [isLoading, localLoading]);
 
-  // Обработчик для InterSection Observer (бесконечная прокрутка)
+  
   useEffect(() => {
-    // Если функция загрузки дополнительных треков не определена в контексте, не создаем observer
+    
     if (typeof loadMoreTracks !== 'function') {
       console.warn('Infinite scroll functionality requires loadMoreTracks function');
       return;
     }
 
-    // Преобразование индекса вкладки в тип данных
+    
     const tabToType = {
       0: 'liked',
       1: 'all',
       2: 'random'
     };
     
-    // Определяем текущий тип на основе активной вкладки
+    
     const currentType = tabToType[tabValue] || 'all';
     
-    // Проверяем флаг наличия дополнительных треков для текущего типа
+    
     const currentHasMore = typeof musicContext.hasMoreByType === 'object' 
       ? musicContext.hasMoreByType[currentType] !== false 
       : hasMoreTracks;
 
     console.log(`Настройка бесконечного скролла для вкладки ${tabValue}, тип: ${currentType}, есть еще треки: ${currentHasMore}`);
 
-    // Флаг для отслеживания, был ли запрос на загрузку
+    
     let isLoadingData = false;
 
     const observer = new IntersectionObserver(
       async (entries) => {
         const [entry] = entries;
         
-        // Проверяем видимость элемента и возможность загрузки
+        
         if (entry.isIntersecting && !isLoadingMore && !isLoadingData && !effectiveLoading && currentHasMore) {
           setIsLoadingMore(true);
           isLoadingData = true;
@@ -723,7 +723,7 @@ const MusicPage = React.memo(() => {
             console.log(`Загружаем треки для вкладки ${tabValue}, тип: ${currentType}`);
             const result = await loadMoreTracks(currentType);
             
-            // Обновляем флаг наличия дополнительных треков на основе результата
+            
             if (result === false) {
               console.log(`Больше нет треков для типа: ${currentType}`);
               setHasMoreTracks(false);
@@ -737,10 +737,10 @@ const MusicPage = React.memo(() => {
           }
         }
       },
-      { threshold: 0.2 } // Порог для раннего обнаружения прокрутки
+      { threshold: 0.2 } 
     );
 
-    // Регистрация observer только если у нас есть элемент и есть еще треки
+    
     if (loaderRef.current && currentHasMore && !effectiveLoading) {
       observer.observe(loaderRef.current);
     }
@@ -752,42 +752,42 @@ const MusicPage = React.memo(() => {
     };
   }, [hasMoreTracks, isLoadingMore, loadMoreTracks, tabValue, musicContext.hasMoreByType, effectiveLoading]);
 
-  // При изменении вкладки обновляем состояние и сбрасываем пагинацию
+  
   useEffect(() => {
     if (prevTabValue.current !== tabValue) {
       prevTabValue.current = tabValue;
       
-      // Прокручиваем к началу при смене вкладки
+      
       window.scrollTo(0, 0);
       
-      // Преобразование индекса вкладки в тип данных
+      
       const tabToType = {
         0: 'liked',
         1: 'all',
         2: 'random'
       };
       
-      // Определяем текущий тип на основе активной вкладки
+      
       const currentType = tabToType[tabValue] || 'all';
       
-      // Сбрасываем состояние поиска при смене вкладки
+      
       if (searchQuery) {
         setSearchQuery('');
       }
       
-      // Сбрасываем пагинацию для текущего типа
+      
       if (musicContext.resetPagination) {
         musicContext.resetPagination(currentType);
       }
       
-      // Обновляем текущую секцию в контексте
+      
       if (musicContext.setCurrentSection) {
         musicContext.setCurrentSection(currentType);
       }
       
       console.log(`Переключение на вкладку ${tabValue}, тип: ${currentType}`);
       
-      // Обновляем флаг hasMoreTracks на основе значения для текущего типа
+      
       if (typeof musicContext.hasMoreByType === 'object') {
         const hasMore = musicContext.hasMoreByType[currentType];
         setHasMoreTracks(hasMore !== false);
@@ -795,7 +795,7 @@ const MusicPage = React.memo(() => {
     }
   }, [tabValue, musicContext.hasMoreByType, musicContext.resetPagination, musicContext.setCurrentSection, searchQuery]);
 
-  // Get section data based on tabValue
+  
   const getSectionData = () => {
     const coverTypes = ['liked', 'all', 'random'];
     const type = coverTypes[tabValue] || 'all';
@@ -838,16 +838,16 @@ const MusicPage = React.memo(() => {
   
   const sectionData = getSectionData();
 
-  // Component cleanup
+  
   useEffect(() => {
     return () => {
-      // Always ensure scroll is enabled when navigating away from music page
+      
       document.body.style.overflow = '';
       document.body.style.touchAction = '';
     };
   }, []);
 
-  // Function to copy track link to clipboard
+  
   const copyTrackLink = (track, event) => {
     if (event) {
       event.stopPropagation();
@@ -871,24 +871,24 @@ const MusicPage = React.memo(() => {
         });
       });
     
-    // Close context menu if it's open
+    
     handleCloseContextMenu();
   };
   
-  // Function to share a track
+  
   const shareTrack = (track, event) => {
     if (event) {
       event.stopPropagation();
     }
     
-    // Просто копируем ссылку в буфер обмена вместо использования Web Share API
+    
     copyTrackLink(track);
     
-    // Close context menu if it's open
+    
     handleCloseContextMenu();
   };
   
-  // Handle context menu open
+  
   const handleContextMenu = (event, track) => {
     event.preventDefault();
     event.stopPropagation();
@@ -899,12 +899,12 @@ const MusicPage = React.memo(() => {
     });
   };
   
-  // Handle context menu close
+  
   const handleCloseContextMenu = () => {
     setContextMenu(null);
   };
   
-  // Handle closing the snackbar
+  
   const handleCloseSnackbar = (event, reason) => {
     if (reason === 'clickaway') {
       return;
@@ -912,14 +912,14 @@ const MusicPage = React.memo(() => {
     setSnackbar({...snackbar, open: false});
   };
   
-  // Check for track parameter in URL when component mounts
+  
   useEffect(() => {
     const trackId = searchParams.get('track');
     if (trackId) {
-      // If we have a trackId in the URL, fetch and play that track
+      
       const playTrackFromUrl = async () => {
         try {
-          // Fetch the track info from the API
+          
           const response = await fetch(`/api/music/${trackId}`);
           if (!response.ok) {
             throw new Error('Failed to fetch track');
@@ -928,9 +928,9 @@ const MusicPage = React.memo(() => {
           const data = await response.json();
           if (data.success && data.track) {
             console.log('Playing track from URL parameter:', data.track);
-            // Play the track using the context
+            
             playTrack(data.track);
-            // Optionally open full screen player
+            
             setFullScreenPlayerOpen(true);
           }
         } catch (error) {
@@ -944,7 +944,7 @@ const MusicPage = React.memo(() => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 2, mb: { xs: 10, md: 14 }, px: { xs: 1, md: 3 } }}>
-      {/* SEO компонент для страницы музыки */}
+      {}
       {currentTrack ? (
         <SEO
           title={`${currentTrack.title} - ${currentTrack.artist || 'Неизвестный исполнитель'}`}
@@ -972,9 +972,9 @@ const MusicPage = React.memo(() => {
         />
       )}
       
-      {/* Header with navigation buttons */}
+      {}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', my: 2 }}>
-        <Box sx={{ width: '40px' }}></Box> {/* Spacer to maintain layout */}
+        <Box sx={{ width: '40px' }}></Box> {}
         
         <SearchInput expanded={isSearchFocused}>
           <Search sx={{ fontSize: 20, mr: 1 }} />
@@ -1017,7 +1017,7 @@ const MusicPage = React.memo(() => {
         )}
       </Box>
       
-      {/* Featured Section - Hidden during search */}
+      {}
       {!searchQuery && (
         <DarkPaper elevation={0}>
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { xs: 'flex-start', md: 'center' } }}>
@@ -1072,7 +1072,7 @@ const MusicPage = React.memo(() => {
         </DarkPaper>
       )}
       
-      {/* Main Tabs - Hidden during search */}
+      {}
       {!searchQuery && (
         <Box sx={{ mb: 3 }}>
           <Tabs 
@@ -1091,7 +1091,7 @@ const MusicPage = React.memo(() => {
         </Box>
       )}
       
-      {/* Search header - Only visible when searching */}
+      {}
       {searchQuery && (
         <Box sx={{ mb: 3, mt: 2 }}>
           <Typography variant="h5" fontWeight="bold">
@@ -1108,7 +1108,7 @@ const MusicPage = React.memo(() => {
         </Box>
       )}
       
-      {/* Список треков */}
+      {}
       <Box sx={{ mb: 4 }}>
         {isLoading || isSearching ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
@@ -1123,7 +1123,7 @@ const MusicPage = React.memo(() => {
                     key={track.id}
                     in={true}
                     style={{ transformOrigin: '0 0 0' }}
-                    timeout={300 + index % 10 * 50} // Создаем эффект волны с задержкой для каждого трека
+                    timeout={300 + index % 10 * 50} 
                   >
                     <ListItem 
                       sx={{
@@ -1135,12 +1135,12 @@ const MusicPage = React.memo(() => {
                           : 'transparent',
                         cursor: 'pointer',
                         mb: 0.5,
-                        transition: 'all 0.2s ease-in-out', // Добавляем анимацию при наведении
+                        transition: 'all 0.2s ease-in-out', 
                         transform: 'translateY(0)',
                         '&:hover': {
                           backgroundColor: 'rgba(255,255,255,0.03)',
-                          transform: 'translateY(-2px)', // Немного поднимаем элемент при наведении
-                          boxShadow: '0 4px 8px rgba(0,0,0,0.1)' // Добавляем тень при наведении
+                          transform: 'translateY(-2px)', 
+                          boxShadow: '0 4px 8px rgba(0,0,0,0.1)' 
                         }
                       }}
                       onClick={() => handleTrackClick(track)}
@@ -1186,7 +1186,7 @@ const MusicPage = React.memo(() => {
                             mr: 2,
                             transition: 'transform 0.3s ease',
                             '&:hover': {
-                              transform: 'scale(1.05)' // Увеличиваем обложку при наведении
+                              transform: 'scale(1.05)' 
                             }
                           }}
                         />
@@ -1293,7 +1293,7 @@ const MusicPage = React.memo(() => {
               )}
             </List>
             
-            {/* Элемент для отслеживания прокрутки - Only show when not searching */}
+            {}
             {!searchQuery && hasMoreTracks && (
               <Box 
                 ref={loaderRef} 
@@ -1321,7 +1321,7 @@ const MusicPage = React.memo(() => {
         )}
       </Box>
       
-      {/* Playlists Section - Only show if we're not searching */}
+      {}
       {!searchQuery && (
         <Box sx={{ mb: 4 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -1367,23 +1367,23 @@ const MusicPage = React.memo(() => {
         </Box>
       )}
 
-      {/* Мобильный плеер (только для мобильных устройств) */}
+      {}
       {isMobile && <MobilePlayer />}
       
-      {/* Полноэкранный плеер */}
+      {}
       <FullScreenPlayer 
         open={fullScreenPlayerOpen} 
         onClose={handleCloseFullScreenPlayer} 
       />
 
-      {/* Диалог загрузки музыки */}
+      {}
       <MusicUploadDialog 
         open={uploadDialogOpen} 
         onClose={handleCloseUploadDialog} 
         onSuccess={() => {}} 
       />
 
-      {/* Context Menu for Tracks */}
+      {}
       <Menu
         open={contextMenu !== null}
         onClose={handleCloseContextMenu}
@@ -1432,7 +1432,7 @@ const MusicPage = React.memo(() => {
         )}
       </Menu>
       
-      {/* Snackbar for notifications */}
+      {}
       <Snackbar 
         open={snackbar.open} 
         autoHideDuration={4000} 

@@ -15,7 +15,7 @@ import axios from 'axios';
 const EmailConfirmation = () => {
   const { token } = useParams();
   const navigate = useNavigate();
-  const [status, setStatus] = useState('loading'); // loading, success, error
+  const [status, setStatus] = useState('loading'); 
   const [message, setMessage] = useState('');
   const [chatId, setChatId] = useState('');
 
@@ -27,22 +27,22 @@ const EmailConfirmation = () => {
           setStatus('success');
           setMessage(response.data.message);
           
-          // Сохраняем chat_id, если он есть в ответе
+          
           if (response.data.chat_id) {
             setChatId(response.data.chat_id);
-            // Сохраняем chat_id в localStorage для использования при регистрации профиля
+            
             localStorage.setItem('k-connect-chat-id', response.data.chat_id);
             console.log('Сохранен chat_id в localStorage:', response.data.chat_id);
           }
           
-          // Проверяем, нужно ли создать профиль
+          
           if (response.data.needs_profile_setup) {
-            // Если да, то через 2 секунды перенаправляем на страницу создания профиля
+            
             setTimeout(() => {
               navigate('/register/profile', { replace: true });
             }, 2000);
           } else {
-            // Иначе через 2 секунды перенаправляем на страницу входа
+            
             setTimeout(() => {
               navigate('/login', { replace: true });
             }, 2000);

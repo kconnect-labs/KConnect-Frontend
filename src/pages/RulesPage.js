@@ -37,7 +37,7 @@ import DiamondIcon from '@mui/icons-material/Diamond';
 import ShieldIcon from '@mui/icons-material/Shield';
 import { motion } from 'framer-motion';
 
-// Styled components
+
 const PageContainer = styled(Container)(({ theme }) => ({
   paddingTop: theme.spacing(4),
   paddingBottom: theme.spacing(8),
@@ -199,7 +199,7 @@ const RulesPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
-  // Animation variants for motion components
+  
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -286,7 +286,96 @@ const RulesPage = () => {
   };
 
   return (
-    <PageContainer maxWidth="md">
+    <PageContainer maxWidth="lg">
+      {}
+      <Paper
+        elevation={0}
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 3,
+          p: 2,
+          mb: 3,
+          borderRadius: 2,
+          background: `linear-gradient(90deg, ${theme.palette.background.paper} 0%, rgba(208, 188, 255, 0.1) 100%)`,
+          border: '1px solid rgba(208, 188, 255, 0.2)'
+        }}
+      >
+        <Typography 
+          variant="body2" 
+          color="text.secondary"
+          sx={{ display: { xs: 'block', sm: 'none' } }}
+        >
+          Юридические документы:
+        </Typography>
+        
+        <Box 
+          component="a" 
+          href="/rules"
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            textDecoration: 'none',
+            color: theme.palette.primary.main,
+            fontWeight: 'medium',
+            py: 0.5,
+            px: 1.5,
+            borderRadius: 1,
+            backgroundColor: 'rgba(208, 188, 255, 0.15)',
+            '&:hover': { 
+              backgroundColor: 'rgba(208, 188, 255, 0.25)',
+            }
+          }}
+        >
+          <RuleIcon sx={{ mr: 1, fontSize: 20 }} />
+          <Typography variant="body2">Правила сообщества</Typography>
+        </Box>
+        
+        <Box 
+          component="a" 
+          href="/privacy-policy"
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            textDecoration: 'none',
+            color: 'text.primary',
+            fontWeight: 'medium',
+            py: 0.5,
+            px: 1.5,
+            borderRadius: 1,
+            '&:hover': { 
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            }
+          }}
+        >
+          <SecurityIcon sx={{ mr: 1, fontSize: 20 }} />
+          <Typography variant="body2">Политика конфиденциальности</Typography>
+        </Box>
+        
+        <Box 
+          component="a" 
+          href="/terms-of-service"
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            textDecoration: 'none',
+            color: 'text.primary',
+            fontWeight: 'medium',
+            py: 0.5,
+            px: 1.5,
+            borderRadius: 1,
+            '&:hover': { 
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            }
+          }}
+        >
+          <AssignmentIcon sx={{ mr: 1, fontSize: 20 }} />
+          <Typography variant="body2">Условия использования</Typography>
+        </Box>
+      </Paper>
+      
       <motion.div
         initial="hidden"
         animate="visible"
@@ -355,7 +444,7 @@ const RulesPage = () => {
 
         <Divider sx={{ mb: 4 }} />
 
-        {/* Section I: Основные принципы */}
+        {}
         <motion.div variants={itemVariants}>
           <RuleSection>
             <RuleCard>
@@ -411,7 +500,7 @@ const RulesPage = () => {
           </RuleSection>
         </motion.div>
 
-        {/* Section II: Запрещённый контент */}
+        {}
         <motion.div variants={itemVariants}>
           <RuleSection>
             <RuleCard>
@@ -543,7 +632,7 @@ const RulesPage = () => {
           </RuleSection>
         </motion.div>
 
-        {/* Section III: Дополнительные ограничения */}
+        {}
         <motion.div variants={itemVariants}>
           <RuleSection>
             <RuleCard>
@@ -577,6 +666,16 @@ const RulesPage = () => {
                         <ListItemText 
                           primary="Фейковые аккаунты"
                           secondary="Запрещено создавать аккаунты от имени других лиц или организаций."
+                        />
+                      </RuleListItem>
+                      
+                      <RuleListItem>
+                        <ListItemIcon>
+                          <CheckCircleOutlineIcon color="primary" />
+                        </ListItemIcon>
+                        <ListItemText 
+                          primary="Мини-игры и читерство"
+                          secondary="Запрещено использовать сторонние программы, скрипты или любые методы для обхода механик игры, искусственного повышения результатов или получения нечестного преимущества перед другими игроками."
                         />
                       </RuleListItem>
                     </List>
@@ -616,7 +715,7 @@ const RulesPage = () => {
           </RuleSection>
         </motion.div>
 
-        {/* Section IV: Действия администрации */}
+        {}
         <motion.div variants={itemVariants}>
           <RuleSection>
             <RuleCard>
@@ -664,6 +763,16 @@ const RulesPage = () => {
                       <CheckCircleOutlineIcon color="primary" />
                     </ListItemIcon>
                     <ListItemText 
+                      primary="Баланс баллов" 
+                      secondary="Ваш баланс баллов может изменяться (уменьшаться или увеличиваться) в зависимости от ситуации. Если администрация заметит накрутку или странное поведение в переводах, баллы будут аннулированы."
+                    />
+                  </RuleListItem>
+                  
+                  <RuleListItem>
+                    <ListItemIcon>
+                      <CheckCircleOutlineIcon color="primary" />
+                    </ListItemIcon>
+                    <ListItemText 
                       primary="Обжалование" 
                       secondary="Если вы не согласны с удалением контента, напишите в поддержку в течение 7 дней."
                     />
@@ -674,7 +783,7 @@ const RulesPage = () => {
           </RuleSection>
         </motion.div>
 
-        {/* Section V: Ваши обязательства */}
+        {}
         <motion.div variants={itemVariants}>
           <RuleSection>
             <RuleCard>
@@ -710,7 +819,136 @@ const RulesPage = () => {
           </RuleSection>
         </motion.div>
 
-        {/* Additional Info: Изменения в правилах + Контакты */}
+        {}
+        <motion.div variants={itemVariants}>
+          <RuleSection>
+            <RuleCard>
+              <RuleCardHeader>
+                <DiamondIcon color="primary" fontSize="large" sx={{ mr: 2 }} />
+                <SectionTitle variant="h5">VI. Правила для бейджиков</SectionTitle>
+              </RuleCardHeader>
+              
+              <RuleCardContent>
+                <Typography variant="body1" paragraph>
+                  Бейджики в К-Коннект — это способ самовыражения и уникальной идентификации. Чтобы сохранить 
+                  их ценность и уникальность, пожалуйста, соблюдайте следующие правила:
+                </Typography>
+                
+                <List>
+                  <RuleListItem>
+                    <ListItemIcon>
+                      <CheckCircleOutlineIcon color="primary" />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary="Оригинальность контента" 
+                      secondary="Все бейджики должны быть оригинальными работами. Запрещено копирование, имитация или незначительная модификация существующих бейджиков."
+                    />
+                  </RuleListItem>
+                  
+                  <RuleListItem>
+                    <ListItemIcon>
+                      <CheckCircleOutlineIcon color="primary" />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary="Качество изображения" 
+                      secondary="Бейджики должны быть высокого качества, с четким изображением и хорошим разрешением. Размытые, пиксельные или визуально некачественные бейджики будут отклонены."
+                    />
+                  </RuleListItem>
+                  
+                  <RuleListItem>
+                    <ListItemIcon>
+                      <CheckCircleOutlineIcon color="primary" />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary="Запрет на дублирование" 
+                      secondary="Нельзя создавать множество похожих бейджиков с незначительными отличиями. Каждый бейджик должен иметь уникальную концепцию и дизайн."
+                    />
+                  </RuleListItem>
+                </List>
+                
+                <RuleAccordion>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <ReportProblemIcon color="warning" sx={{ mr: 1.5 }} />
+                      <AccordionTitle>Нарушения авторских прав</AccordionTitle>
+                    </Box>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <List dense>
+                      <ListItem>
+                        <ListItemText 
+                          primary="Запрещено использовать в бейджиках материалы, защищенные авторским правом, без соответствующего разрешения."
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <ListItemText 
+                          primary="Бейджики не должны нарушать права интеллектуальной собственности третьих лиц, включая логотипы и товарные знаки без должной авторизации."
+                        />
+                      </ListItem>
+                    </List>
+                  </AccordionDetails>
+                </RuleAccordion>
+                
+                <RuleAccordion>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <ReportProblemIcon color="warning" sx={{ mr: 1.5 }} />
+                      <AccordionTitle>Модерация бейджиков</AccordionTitle>
+                    </Box>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <List dense>
+                      <ListItem>
+                        <ListItemText 
+                          primary="Все бейджики проходят модерацию перед публикацией."
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <ListItemText 
+                          primary="Администрация оставляет за собой право отклонять бейджики, не соответствующие стандартам качества или нарушающие правила платформы."
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <ListItemText 
+                          primary="В случае обнаружения нарушений после публикации, бейджик может быть удален без предупреждения."
+                        />
+                      </ListItem>
+                    </List>
+                  </AccordionDetails>
+                </RuleAccordion>
+                
+                <Fade in={true}>
+                  <Box sx={{ 
+                    mt: 3, 
+                    display: 'flex', 
+                    justifyContent: 'center',
+                    width: '100%',
+                    height: 150
+                  }}>
+                    <motion.div
+                      initial="initial"
+                      animate="animate"
+                      whileHover="whileHover"
+                      variants={diamondAnimation}
+                    >
+                      <WarningIconWrapper>
+                        <DiamondIcon 
+                          sx={{ 
+                            fontSize: 70, 
+                            color: '#fff',
+                            filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.4))'
+                          }} 
+                        />
+                      </WarningIconWrapper>
+                    </motion.div>
+                  </Box>
+                </Fade>
+              </RuleCardContent>
+            </RuleCard>
+          </RuleSection>
+        </motion.div>
+
+        {}
         <motion.div variants={itemVariants}>
           <RuleSection>
             <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' } }}>
@@ -727,7 +965,7 @@ const RulesPage = () => {
                   
                   <Typography 
                     component="a" 
-                    href="https://t.me/kcon_news" 
+                    href="https:
                     target="_blank"
                     variant="body2"
                     color="primary"
@@ -740,7 +978,7 @@ const RulesPage = () => {
                       }
                     }}
                   >
-                    https://t.me/kcon_news
+                    https:
                   </Typography>
                 </RuleCardContent>
               </RuleCard>
@@ -758,7 +996,7 @@ const RulesPage = () => {
                   
                   <Typography 
                     component="a" 
-                    href="https://t.me/KConnectSUP_bot" 
+                    href="https:
                     target="_blank"
                     variant="body2"
                     color="primary"

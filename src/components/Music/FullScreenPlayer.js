@@ -35,7 +35,7 @@ import { formatDuration } from '../../utils/formatters';
 import { ThemeSettingsContext } from '../../App';
 import { useContext } from 'react';
 
-// Function to extract color from album cover
+
 const getColorFromImage = (imgSrc, callback) => {
   const img = new Image();
   img.crossOrigin = 'Anonymous';
@@ -48,12 +48,12 @@ const getColorFromImage = (imgSrc, callback) => {
     
     context.drawImage(img, 0, 0);
     
-    // Get color from center of image
+    
     const centerX = img.width / 2;
     const centerY = img.height / 2;
     const data = context.getImageData(centerX, centerY, 1, 1).data;
     
-    // Format RGB color string
+    
     callback(`${data[0]}, ${data[1]}, ${data[2]}`);
   };
   
@@ -70,11 +70,11 @@ const FullScreenPlayer = ({ open, onClose }) => {
   const { themeSettings } = useContext(ThemeSettingsContext);
   const [seekPosition, setSeekPosition] = useState(0);
   const [isSeeking, setIsSeeking] = useState(false);
-  const [repeatMode, setRepeatMode] = useState('off'); // 'off', 'all', 'one'
+  const [repeatMode, setRepeatMode] = useState('off'); 
   const [shuffleMode, setShuffleMode] = useState(false);
   const [dominantColor, setDominantColor] = useState(null);
   const progressRef = useRef(null);
-  // Add state for share notification
+  
   const [shareSnackbar, setShareSnackbar] = useState({
     open: false,
     message: '',
@@ -97,7 +97,7 @@ const FullScreenPlayer = ({ open, onClose }) => {
     likeTrack
   } = useMusic();
 
-  // Extract color from album cover when track changes
+  
   useEffect(() => {
     if (currentTrack?.cover_path) {
       getColorFromImage(
@@ -109,7 +109,7 @@ const FullScreenPlayer = ({ open, onClose }) => {
     }
   }, [currentTrack]);
 
-  // Lock body scroll when player is open
+  
   useEffect(() => {
     const enableScroll = () => {
       document.body.style.overflow = '';
@@ -120,17 +120,17 @@ const FullScreenPlayer = ({ open, onClose }) => {
       document.body.style.overflow = 'hidden';
       document.body.style.touchAction = 'none';
     } else {
-      // Ensure scroll is re-enabled when player closes
+      
       enableScroll();
-      // Double-check with timeout to ensure it's applied after animations
+      
       setTimeout(enableScroll, 300);
     }
 
-    // Cleanup function ensures scroll is always re-enabled when component unmounts
+    
     return enableScroll;
   }, [open]);
 
-  // Update slider position during playback
+  
   useEffect(() => {
     if (!isSeeking && duration > 0) {
       setSeekPosition((currentTime / duration) * 100);
@@ -184,13 +184,13 @@ const FullScreenPlayer = ({ open, onClose }) => {
     }
   };
   
-  // Add share function
+  
   const handleShare = () => {
     if (!currentTrack) return;
     
     const trackLink = `${window.location.origin}/music?track=${currentTrack.id}`;
     
-    // Просто копируем ссылку в буфер обмена вместо использования Web Share API
+    
     copyToClipboard(trackLink);
   };
   
@@ -213,7 +213,7 @@ const FullScreenPlayer = ({ open, onClose }) => {
       });
   };
   
-  // Handle closing the snackbar
+  
   const handleCloseSnackbar = (event, reason) => {
     if (reason === 'clickaway') {
       return;
@@ -270,7 +270,7 @@ const FullScreenPlayer = ({ open, onClose }) => {
         right: 0,
         bottom: 0
       }}>
-        {/* Close button */}
+        {}
         <IconButton 
           onClick={onClose}
           sx={{ 
@@ -294,7 +294,7 @@ const FullScreenPlayer = ({ open, onClose }) => {
           <Close />
         </IconButton>
 
-        {/* Like button */}
+        {}
         <IconButton 
           onClick={handleLike}
           sx={{ 
@@ -318,13 +318,13 @@ const FullScreenPlayer = ({ open, onClose }) => {
           {currentTrack.is_liked ? <Favorite /> : <FavoriteBorder />}
         </IconButton>
         
-        {/* Share button */}
+        {}
         <IconButton 
           onClick={handleShare}
           sx={{ 
             position: 'absolute',
             top: isMobile ? 16 : 24,
-            left: isMobile ? (16 + 50) : (24 + 50), // Position next to like button
+            left: isMobile ? (16 + 50) : (24 + 50), 
             color: 'white',
             bgcolor: 'rgba(0,0,0,0.5)',
             backdropFilter: 'blur(8px)',
@@ -342,7 +342,7 @@ const FullScreenPlayer = ({ open, onClose }) => {
           <Share />
         </IconButton>
 
-        {/* Background image with blur and color overlay */}
+        {}
         <Box sx={{ 
           position: 'absolute',
           top: 0,
@@ -380,7 +380,7 @@ const FullScreenPlayer = ({ open, onClose }) => {
           padding: isMobile ? '16px' : '24px',
           zIndex: 10
         }}>
-          {/* Album cover with reflective effect */}
+          {}
           <Box sx={{ 
             width: '100%',
             maxWidth: isMobile ? '280px' : '350px',
@@ -414,7 +414,7 @@ const FullScreenPlayer = ({ open, onClose }) => {
             />
           </Box>
 
-          {/* Track info with Apple-style typography */}
+          {}
           <Box sx={{ width: '100%', mb: 4, textAlign: 'center' }}>
             <Typography 
               variant="h4" 
@@ -443,7 +443,7 @@ const FullScreenPlayer = ({ open, onClose }) => {
             </Typography>
           </Box>
 
-          {/* Now playing indicator in Apple Music style */}
+          {}
           <Box sx={{ 
             display: 'flex', 
             justifyContent: 'center', 
@@ -473,7 +473,7 @@ const FullScreenPlayer = ({ open, onClose }) => {
             )}
           </Box>
 
-          {/* Progress bar with styled slider */}
+          {}
           <Box sx={{ width: '100%', mb: 3, px: 1 }} ref={progressRef} onClick={handleClickProgress}>
             <Slider
               value={seekPosition}
@@ -518,9 +518,9 @@ const FullScreenPlayer = ({ open, onClose }) => {
             </Box>
           </Box>
 
-          {/* Playback controls with styled buttons */}
+          {}
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', mb: 4 }}>
-            {/* Shuffle button */}
+            {}
             <IconButton 
               onClick={handleShuffleClick}
               sx={{ 
@@ -534,7 +534,7 @@ const FullScreenPlayer = ({ open, onClose }) => {
               <Shuffle sx={{ fontSize: 24 }} />
             </IconButton>
             
-            {/* Main playback controls */}
+            {}
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <IconButton 
                 onClick={prevTrack}
@@ -587,7 +587,7 @@ const FullScreenPlayer = ({ open, onClose }) => {
               </IconButton>
             </Box>
             
-            {/* Repeat button */}
+            {}
             <IconButton 
               onClick={handleRepeatClick}
               sx={{ 
@@ -602,7 +602,7 @@ const FullScreenPlayer = ({ open, onClose }) => {
             </IconButton>
           </Box>
 
-          {/* Volume slider */}
+          {}
           <Box 
             sx={{ 
               display: 'flex', 
@@ -680,7 +680,7 @@ const FullScreenPlayer = ({ open, onClose }) => {
           </Box>
         </Box>
         
-        {/* Snackbar for share notifications */}
+        {}
         <Snackbar 
           open={shareSnackbar.open} 
           autoHideDuration={4000} 

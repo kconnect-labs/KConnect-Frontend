@@ -1,16 +1,14 @@
 import React from 'react';
 import { Box } from '@mui/material';
 
-/**
- * Component for displaying multiple images in a grid layout
- */
+
 const ImageGrid = ({ images, maxImages = 4, onImageClick }) => {
-  // Normalize image URLs 
+  
   const normalizedImages = images.filter(Boolean).slice(0, maxImages);
   const totalImages = images.length;
   const hasMoreImages = totalImages > maxImages;
 
-  // Configure grid based on number of images
+  
   const getGridConfig = () => {
     switch (normalizedImages.length) {
       case 1:
@@ -26,7 +24,7 @@ const ImageGrid = ({ images, maxImages = 4, onImageClick }) => {
 
   const gridConfig = getGridConfig();
 
-  // Single image display
+  
   if (normalizedImages.length === 1) {
     return (
       <Box 
@@ -56,7 +54,7 @@ const ImageGrid = ({ images, maxImages = 4, onImageClick }) => {
     );
   }
 
-  // Grid display for multiple images
+  
   return (
     <Box
       sx={{
@@ -94,7 +92,7 @@ const ImageGrid = ({ images, maxImages = 4, onImageClick }) => {
             loading="lazy"
           />
           
-          {/* Show counter for additional images */}
+          {}
           {index === normalizedImages.length - 1 && hasMoreImages && (
             <Box sx={{
               position: 'absolute',
