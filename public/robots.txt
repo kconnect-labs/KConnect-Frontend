@@ -1,0 +1,10 @@
+# Allow crawling of all content
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://k-connect.ru/sitemap.xml
+
+# Specify longer crawl delay for heavier pages
+User-agent: *
+Crawl-delay: 2 

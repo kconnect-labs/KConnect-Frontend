@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Обновление приложения</title>
+    <style>
+      /* Основные стили для страницы */
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #131313;
+        color: #d0bcff;
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        overflow: hidden;
+      }
+      
+      .container {
+        text-align: center;
+      }
+      
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+      }
+      
+      p {
+        font-size: 1.2rem;
+      }
+      
+      /* Анимация спиннера */
+      .spinner {
+        margin: 2rem auto;
+        width: 60px;
+        height: 60px;
+        border: 6px solid rgba(208, 188, 255, 0.3);
+        border-top-color: #d0bcff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+    <script>
+      // Service Worker Registration for Push Notifications
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+              console.log('Service Worker registered with scope:', registration.scope);
+            })
+            .catch(error => {
+              console.error('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Обновление приложения</h1>
+      <div class="spinner"></div>
+      <p>Пожалуйста, ожидайте обновления.<br>Приложение перезагрузится через 10 секунд.</p>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no" />
+  <title>K-Connect - Авторизация через Telegram</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    @font-face {
+      font-family: 'SF Pro Display';
+      src: url('/static/font/sf-pro-display-medium.otf') format('opentype');
+      font-weight: normal;
+      font-style: normal;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #181818;
+      color: #fff;
+      font-family: 'SF Pro Display', sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      text-align: center;
+    }
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+    .dots {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 20px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      background-color: #fff;
+      border-radius: 50%;
+      animation: bounce 1.5s infinite;
+    }
+    .dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    @keyframes bounce {
+      0%, 80%, 100% {
+        transform: translateY(0);
+      }
+      40% {
+        transform: translateY(-8px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Авторизация через Telegram</h2>
+    <div class="dots">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+    <div id="telegram-login-container"></div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      const scriptTag = document.createElement('script');
+      scriptTag.src = 'https://telegram.org/js/telegram-widget.js?22';
+      scriptTag.setAttribute('data-telegram-login', 'KConnect_bot');
+      scriptTag.setAttribute('data-size', 'large');
+      scriptTag.setAttribute('data-auth-url', window.location.origin + '/api/auth/telegram-callback');
+      scriptTag.setAttribute('data-request-access', 'write');
+      scriptTag.setAttribute('data-radius', '8');
+      document.getElementById('telegram-login-container').appendChild(scriptTag);
+    }
+
+    window.Telegram.WebApp.ready();
+
+    const user = window.Telegram.WebApp.initDataUnsafe?.user;
+
+    if (user) {
+      fetch('/api/auth/telegram', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chat_id: user.id,
+          username: user.username
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          if (data.user && data.user.id) {
+            window.location.href = `/profile/${data.user.id}`;
+          } else if (data.needs_profile_setup) {
+            window.location.href = '/register/profile';
+          } else if (data.redirect) {
+            window.location.href = data.redirect;
+          } else {
+            window.location.href = '/';
+          }
+        } else {
+          alert('Ошибка авторизации: ' + (data.message || 'Неизвестная ошибка'));
+        }
+      })
+      .catch(error => {
+        console.error('Ошибка авторизации:', error);
+        alert('Ошибка авторизации');
+      });
+    }
+
+    function onTelegramAuth(user) {
+      fetch('/api/auth/telegram', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chat_id: user.id,
+          username: user.username,
+          first_name: user.first_name,
+          last_name: user.last_name
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          if (data.user && data.user.id) {
+            window.location.href = `/profile/${data.user.id}`;
+          } else if (data.needs_profile_setup) {
+            window.location.href = '/register/profile';
+          } else if (data.redirect) {
+            window.location.href = data.redirect;
+          } else {
+            window.location.href = '/';
+          }
+        } else {
+          alert('Ошибка авторизации: ' + (data.message || 'Неизвестная ошибка'));
+        }
+      })
+      .catch(error => {
+        console.error('Ошибка авторизации:', error);
+        alert('Ошибка авторизации');
+      });
+    }
+  </script>
+</body>
+</html> 

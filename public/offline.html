@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>К-Коннект - Офлайн режим</title>
+  <style>
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      background-color: #121212;
+      color: #E0E0E0;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+    }
+    
+    .container {
+      max-width: 500px;
+      padding: 30px;
+      background-color: #1E1E1E;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+    
+    .logo {
+      width: 100px;
+      height: 100px;
+      margin-bottom: 20px;
+      filter: drop-shadow(0 0 8px rgba(208, 188, 255, 0.4));
+    }
+    
+    h1 {
+      font-size: 24px;
+      margin-bottom: 15px;
+      color: #D0BCFF;
+    }
+    
+    p {
+      font-size: 16px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    
+    .button {
+      background-color: #D0BCFF;
+      color: #1E1E1E;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 25px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-block;
+      text-decoration: none;
+      transition: background-color 0.2s;
+    }
+    
+    .button:hover {
+      background-color: #EADDFF;
+    }
+    
+    .offline-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="/icon-192.png" alt="К-Коннект лого" class="logo">
+    <h1>К-Коннект сейчас недоступен</h1>
+    <div class="offline-icon">📶</div>
+    <p>Похоже, что у вас отсутствует подключение к интернету или сервер временно недоступен.</p>
+    <p>Некоторые ранее посещенные страницы могут быть доступны в офлайн режиме благодаря кэшированию.</p>
+    <button class="button" onclick="window.location.reload()">Повторить попытку</button>
+  </div>
+  
+  <script>
+    // При восстановлении соединения автоматически обновим страницу
+    window.addEventListener('online', () => {
+      window.location.reload();
+    });
+    
+    // Если страница загружена, но нет соединения, проверяем доступность каждые 5 секунд
+    if (!navigator.onLine) {
+      setInterval(() => {
+        fetch('/')
+          .then(() => {
+            window.location.reload();
+          })
+          .catch(() => {
+            // Всё ещё нет соединения
+          });
+      }, 5000);
+    }
+  </script>
+</body>
+</html> 
