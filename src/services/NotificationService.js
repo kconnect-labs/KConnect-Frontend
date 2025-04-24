@@ -175,7 +175,7 @@ class NotificationService {
         ...subscriptionJSON,
         send_test: true,  
         platform: this.getBrowserInfo(), 
-        url: 'https:
+        url: 'https://k-connect.ru'  
       };
       
       console.log('Saving subscription to server:', payload);
@@ -285,7 +285,7 @@ class NotificationService {
     try {
       console.log('Sending test notification request...');
       const response = await axios.post('/api/notifications/test', {
-        url: 'https:
+        url: 'https://k-connect.ru',
         title: 'Тестовое уведомление',
         body: 'Уведомления настроены и работают'
       });

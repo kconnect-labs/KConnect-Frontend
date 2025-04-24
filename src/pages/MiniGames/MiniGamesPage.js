@@ -28,7 +28,6 @@ import NumbersIcon from '@mui/icons-material/Numbers';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import SEO from '../../components/SEO';
 
-
 const PageHeader = styled(Box)(({ theme }) => ({
   textAlign: 'center',
   marginBottom: theme.spacing(4),
@@ -133,7 +132,6 @@ const InfoButton = styled(Button)(({ theme }) => ({
   }
 }));
 
-
 const DEFAULT_GAME_IMAGES = {
   cups: '/static/img/minigames/cups.jpg',
   dice: '/static/img/minigames/dice.jpg',
@@ -174,15 +172,7 @@ const MiniGamesPage = () => {
 
   
   const games = [
-    {
-      id: 'clicker',
-      name: 'Кликер',
-      description: 'Кликай и зарабатывай баллы! Прокачивай свой клик и становись лучшим в таблице лидеров.',
-      icon: <TouchAppIcon sx={{ fontSize: 40 }} />,
-      color: '#3f51b5',
-      path: '/clicker',
-      available: true
-    },
+
     {
       id: 'cups',
       name: 'Три чаши',
@@ -199,6 +189,15 @@ const MiniGamesPage = () => {
       icon: <NumbersIcon sx={{ fontSize: 40 }} />,
       color: '#9c27b0',
       path: '/minigames/lucky-number',
+      available: true
+    },
+    {
+      id: 'clicker',
+      name: 'Кликер',
+      description: 'Кликай и зарабатывай баллы! Прокачивай свой клик и становись лучшим в таблице лидеров.',
+      icon: <TouchAppIcon sx={{ fontSize: 40 }} />,
+      color: '#3f51b5',
+      path: '/clicker',
       available: true
     },
     {
@@ -285,7 +284,9 @@ const MiniGamesPage = () => {
       </Paper>
 
       <Grid container spacing={isMobile ? 2 : 3}>
-        {games.map((game) => (
+        {games.map((game) => {
+            const isClicker = game.id === 'clicker';
+            return (
           <Grid item xs={12} sm={6} md={4} key={game.id}>
             <Card 
               sx={{ 
@@ -364,29 +365,30 @@ const MiniGamesPage = () => {
                 </Typography>
                 
                 <Button
-                  variant="contained"
-                  fullWidth
-                  disabled={!game.available || loading}
-                  onClick={() => checkAPIandNavigate(game)}
-                  sx={{
-                    mt: 'auto',
-                    backgroundColor: game.color,
-                    '&:hover': {
-                      backgroundColor: alpha(game.color, 0.8),
-                    },
-                    borderRadius: 2,
-                    fontWeight: 600,
-                    height: { xs: 40, sm: 44 },
-                    textTransform: 'none',
-                    fontSize: { xs: '0.875rem', sm: '1rem' }
-                  }}
-                >
-                  {loading ? 'Загрузка...' : (game.available ? 'Играть' : 'Скоро')}
+                    variant="contained"
+                    fullWidth
+                    disabled={isClicker || loading}
+                    onClick={() => checkAPIandNavigate(game)}
+                    sx={{
+                      mt: 'auto',
+                      backgroundColor: game.color,
+                      '&:hover': {
+                        backgroundColor: alpha(game.color, 0.8),
+                      },
+                      borderRadius: 2,
+                      fontWeight: 600,
+                      height: { xs: 40, sm: 44 },
+                      textTransform: 'none',
+                      fontSize: { xs: '0.875rem', sm: '1rem' }
+                    }}
+                  >
+                    {isClicker ? 'Сезон закончился' : (loading ? 'Загрузка...' : (game.available ? 'Играть' : 'Скоро'))}
                 </Button>
               </CardContent>
             </Card>
           </Grid>
-        ))}
+        );
+      })}
       </Grid>
     </Container>
   );

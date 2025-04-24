@@ -1,7 +1,6 @@
 import React, { useState, useId, useDeferredValue, useTransition, useMemo } from 'react';
 import { Box, Typography, List, ListItem, ListItemText, TextField, CircularProgress } from '@mui/material';
 
-
 const OptimizedList = ({ 
   items = [], 
   title = 'Список элементов',

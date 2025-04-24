@@ -11,7 +11,6 @@ import {
   Paper
 } from '@mui/material';
 
-
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
@@ -19,9 +18,7 @@ import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import DownloadIcon from '@mui/icons-material/Download';
 import CloseIcon from '@mui/icons-material/Close';
 
-
 import { optimizeImage } from '../utils/imageUtils';
-
 
 const LightBox = ({ 
   isOpen, 
@@ -54,6 +51,17 @@ const LightBox = ({
   
   
   const isMounted = useRef(true);
+  
+  
+  const [touchData, setTouchData] = useState({
+    startX: 0,
+    startY: 0,
+    initialDistance: 0,
+    initialZoom: 1
+  });
+  
+  
+  const containerRef = useRef(null);
   
   
   useEffect(() => {
@@ -182,14 +190,10 @@ const LightBox = ({
     }
     
     
-    if (e.touches.length > 1) {
-      e.preventDefault();
-    }
   };
   
   const handleTouchMove = (e) => {
     
-    e.preventDefault();
     
     
     if (e.touches.length === 1 && isDragging && zoom > 1) {
@@ -257,6 +261,111 @@ const LightBox = ({
   
   const showBackgroundBlur = !imageLoading && optimizedImage;
   
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    
+    
+    const touchStartHandler = (e) => {
+      e.preventDefault(); 
+      
+      
+      if (e.touches.length === 1) {
+        setTouchData(prev => ({
+          ...prev,
+          startX: e.touches[0].clientX,
+          startY: e.touches[0].clientY
+        }));
+        
+        if (zoom > 1) {
+          setIsDragging(true);
+          setDragStart({
+            x: e.touches[0].clientX - position.x,
+            y: e.touches[0].clientY - position.y
+          });
+        }
+      }
+      
+      
+      if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        setTouchData(prev => ({
+          ...prev,
+          initialDistance: distance,
+          initialZoom: zoom
+        }));
+      }
+    };
+    
+    
+    const touchMoveHandler = (e) => {
+      e.preventDefault(); 
+      
+      
+      if (e.touches.length === 1 && zoom > 1) {
+        
+        setPosition({
+          x: e.touches[0].clientX - dragStart.x,
+          y: e.touches[0].clientY - dragStart.y
+        });
+      }
+      
+      
+      if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        
+        let newZoom = (distance / touchData.initialDistance) * touchData.initialZoom;
+        
+        
+        newZoom = Math.min(Math.max(newZoom, 1), 3);
+        
+        
+        setZoom(newZoom);
+      }
+    };
+    
+    
+    const touchEndHandler = (e) => {
+      
+      if (zoom === 1 && e.changedTouches.length === 1) {
+        const touchEndX = e.changedTouches[0].clientX;
+        const diffX = touchEndX - touchData.startX;
+        
+        
+        if (Math.abs(diffX) > 50) {
+          if (diffX > 0 && hasPrev && onPrev) {
+            
+            onPrev();
+          } else if (diffX < 0 && hasNext && onNext) {
+            
+            onNext();
+          }
+        }
+      }
+      
+      
+      setIsDragging(false);
+    };
+    
+    
+    container.addEventListener('touchstart', touchStartHandler, { passive: false });
+    container.addEventListener('touchmove', touchMoveHandler, { passive: false });
+    container.addEventListener('touchend', touchEndHandler);
+    
+    
+    return () => {
+      container.removeEventListener('touchstart', touchStartHandler);
+      container.removeEventListener('touchmove', touchMoveHandler);
+      container.removeEventListener('touchend', touchEndHandler);
+    };
+  }, [zoom, position, dragStart, hasNext, hasPrev, onNext, onPrev, touchData]);
+  
   return (
     <Dialog
       open={isOpen}
@@ -319,6 +428,8 @@ const LightBox = ({
 
         {}
         <Box
+          component="div"
+          ref={containerRef}
           sx={{
             position: 'absolute',
             top: 0,
@@ -341,9 +452,6 @@ const LightBox = ({
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
           onWheel={handleWheel}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
         >
           {showBackgroundBlur && (
             <Box

@@ -11,7 +11,6 @@ import './index.css';
 
 import './services/axiosConfig';
 
-
 async function setupCaching() {
   console.debug('[Cache] Настройка кэширования...');
   
@@ -128,9 +127,7 @@ async function setupCaching() {
   }
 }
 
-
 indexedDbCache.init();
-
 
 setupCaching().then(() => {
   

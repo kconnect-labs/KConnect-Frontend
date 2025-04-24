@@ -1,11 +1,9 @@
 
 
-
 const DB_NAME = 'k-connect-assets-cache';
 const DB_VERSION = 1;
 const STORE_NAME = 'assets';
 const ASSETS_MAX_AGE = 7 * 24 * 60 * 60 * 1000; 
-
 
 const openDatabase = () => {
   return new Promise((resolve, reject) => {
@@ -39,11 +37,9 @@ const openDatabase = () => {
   });
 };
 
-
 const isAssetUrl = (url) => {
   return typeof url === 'string' && url.includes('/assets/');
 };
-
 
 const cacheResource = async (url, response) => {
   
@@ -95,7 +91,6 @@ const cacheResource = async (url, response) => {
     console.error(`[IndexedDB] Ошибка при кэшировании: ${url}`, error);
   }
 };
-
 
 const getCachedResource = async (url) => {
   
@@ -154,7 +149,6 @@ const getCachedResource = async (url) => {
   }
 };
 
-
 const deleteAllCaches = async () => {
   console.debug('[Cache] Очистка кэша...');
   
@@ -203,7 +197,6 @@ const deleteAllCaches = async () => {
   }
 };
 
-
 const setupFetchInterceptor = () => {
   const originalFetch = window.fetch;
   
@@ -251,7 +244,6 @@ const setupFetchInterceptor = () => {
   };
 };
 
-
 const init = () => {
   console.info(
     '%c[K-Connect] Включено кэширование только для /assets/',
@@ -282,7 +274,6 @@ const init = () => {
   
   return true;
 };
-
 
 export default {
   init,

@@ -26,7 +26,6 @@ import PauseIcon from '@mui/icons-material/Pause';
 import { AuthContext } from '../../context/AuthContext';
 import { MusicContext } from '../../context/MusicContext';
 
-
 const RepostCard = styled(Card)(({ theme, background }) => ({
   marginBottom: '4px',
   borderRadius: '12px',
@@ -132,7 +131,6 @@ const BlurredMenu = styled(Menu)(({ theme }) => ({
   }
 }));
 
-
 const VerificationBadge = ({ status, size }) => {
   if (!status) return null;
   
@@ -149,7 +147,6 @@ const VerificationBadge = ({ status, size }) => {
     />
   );
 };
-
 
 const MusicTrackPreview = styled(Box)(({ theme }) => ({
   display: 'flex',

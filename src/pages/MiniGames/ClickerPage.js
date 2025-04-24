@@ -41,7 +41,6 @@ import { AuthContext } from '../../context/AuthContext';
 import ClickerBottomNavigation from '../../components/ClickerBottomNavigation';
 import { toast } from 'react-hot-toast';
 
-
 import TouchAppIcon from '@mui/icons-material/TouchApp';
 import UpgradeIcon from '@mui/icons-material/Upgrade';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
@@ -58,7 +57,6 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import MilitaryTechIcon from '@mui/icons-material/MilitaryTech';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-
 
 const ClickButton = styled(Button)(({ theme }) => ({
   width: '100%',
@@ -184,7 +182,6 @@ const UpgradeCard = styled(Card)(({ theme, disabled }) => ({
     opacity: disabled ? 0 : 1,
   }
 }));
-
 
 const formatCompactNumber = (number) => {
   if (number < 1000) {
@@ -2134,7 +2131,6 @@ const ClickerPage = () => {
     </Container>
   );
 };
-
 
 const UPGRADES = {
   'click_power': {

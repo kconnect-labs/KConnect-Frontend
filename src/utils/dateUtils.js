@@ -1,20 +1,16 @@
 
 
-
 export const getLocalTimezoneOffset = () => {
   return new Date().getTimezoneOffset();
 };
-
 
 export const getMoscowTimezoneOffset = () => {
   return -180; 
 };
 
-
 export const getUserTimezoneName = () => {
   return Intl.DateTimeFormat().resolvedOptions().timeZone;
 };
-
 
 export const parseDate = (dateString) => {
   if (!dateString) return new Date();
@@ -40,7 +36,6 @@ export const parseDate = (dateString) => {
   }
 };
 
-
 export const debugDate = (dateString) => {
   const standardParse = new Date(dateString);
   const utcParse = new Date(dateString + 'Z');
@@ -61,7 +56,6 @@ export const debugDate = (dateString) => {
   };
 };
 
-
 export const formatTimeAgo = (dateString) => {
   if (!dateString) return '';
   
@@ -73,7 +67,6 @@ export const formatTimeAgo = (dateString) => {
   
   return formatTimeAgoDiff(diffInSeconds);
 };
-
 
 const formatTimeAgoDiff = (diffInSeconds) => {
   if (diffInSeconds < 0) {
@@ -99,7 +92,6 @@ const formatTimeAgoDiff = (diffInSeconds) => {
   }
 };
 
-
 export const formatDate = (dateString) => {
   if (!dateString) return '';
   
@@ -116,7 +108,6 @@ export const formatDate = (dateString) => {
   }).format(date);
 };
 
-
 export const formatDateTimeShort = (dateString) => {
   if (!dateString) return '';
   
@@ -130,7 +121,6 @@ export const formatDateTimeShort = (dateString) => {
     timeZone: getUserTimezoneName()
   }).format(date);
 };
-
 
 export const getRussianWordForm = (number, forms) => {
   const cases = [2, 0, 1, 1, 1, 2];

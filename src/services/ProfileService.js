@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-
 const ProfileService = {
   
   getProfile: async (username) => {

@@ -8,23 +8,11 @@ import {
 import LinkIcon from '@mui/icons-material/Link';
 import axios from 'axios';
 
-
 export const DISABLE_LINK_PREVIEWS = false;
-
-
-
-
-
-
-
-
-
 
 export const URL_REGEX = /\b((?:https?:\/\/)?(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,63}\b(?:[-a-zA-Z0-9()@:%_+.~#?&
 
-
 export const USERNAME_MENTION_REGEX = /(?<!\w)@(\w+)/g;
-
 
 export const LinkPreview = ({ url }) => {
   const [preview, setPreview] = useState(null);
@@ -214,7 +202,6 @@ export const LinkPreview = ({ url }) => {
   );
 };
 
-
 export const processTextWithLinks = (text) => {
   if (!text) return null;
   
@@ -263,7 +250,7 @@ export const processTextWithLinks = (text) => {
     if (matchInfo.type === 'url') {
       const urlMatch = matchInfo.match;
       
-      const url = urlMatch.startsWith('http') ? urlMatch : `https:
+      const url = urlMatch.startsWith('http') ? urlMatch : `https://${urlMatch}`;
       
       
       parts.push(
@@ -332,7 +319,6 @@ export const processTextWithLinks = (text) => {
   };
 };
 
-
 export const linkRenderers = {
   p: ({ children }) => {
     if (typeof children === 'string') {
@@ -385,7 +371,7 @@ export const linkRenderers = {
     
     
     
-    const enhancedHref = href.startsWith('http') ? href : `https:
+    const enhancedHref = href.startsWith('http') ? href : `https://${href}`;
     
     return (
       <>
@@ -413,7 +399,6 @@ export const linkRenderers = {
     );
   }
 };
-
 
 export const TextWithLinks = ({ text }) => {
   const { content, urls } = processTextWithLinks(text);

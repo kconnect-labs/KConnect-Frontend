@@ -49,7 +49,6 @@ import { optimizeImage } from '../../utils/imageUtils';
 import { linkRenderers, URL_REGEX, USERNAME_MENTION_REGEX, processTextWithLinks } from '../../utils/LinkUtils';
 import { Icon } from '@iconify/react';
 
-
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -78,7 +77,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import PhotoIcon from '@mui/icons-material/Photo';
 import VideocamIcon from '@mui/icons-material/Videocam';
 
-
 const PostCard = styled(Card)(({ theme }) => ({
   marginBottom: 10,
   borderRadius: '10px',
@@ -91,7 +89,6 @@ const PostCard = styled(Card)(({ theme }) => ({
     width: '100%'
   }
 }));
-
 
 const MarkdownContent = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'isExpanded'
@@ -138,7 +135,6 @@ const MarkdownContent = styled(Box, {
   transition: 'max-height 0.3s ease',
 }));
 
-
 const BlurredMenu = styled(Menu)(({ theme }) => ({
   '& .MuiPaper-root': {
     background: 'linear-gradient(135deg, rgb(49 49 49 / 50%) 0%, rgb(62 62 62 / 60%) 100%)',
@@ -153,7 +149,6 @@ const BlurredMenu = styled(Menu)(({ theme }) => ({
     }
   }
 }));
-
 
 const ShowMoreButton = styled(Button)(({ theme }) => ({
   margin: '8px auto 0',
@@ -175,7 +170,6 @@ const ShowMoreButton = styled(Button)(({ theme }) => ({
   }
 }));
 
-
 const ActionButton = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'active'
 })(({ theme, active, position }) => ({
@@ -193,7 +187,6 @@ const ActionButton = styled(Box, {
   borderRadius: position === 'left' ? '20px 0 0 20px' : position === 'right' ? '0 20px 20px 0' : '20px',
   borderRight: position === 'left' ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
 }));
-
 
 const ActionButtonContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -228,7 +221,6 @@ const ActionButtonContainer = styled(Box)(({ theme }) => ({
   }
 }));
 
-
 const MusicTrack = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -245,9 +237,6 @@ const MusicTrack = styled(Box)(({ theme }) => ({
     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)'
   }
 }));
-
-
-
 
 const SharePill = styled(motion.div)(({ theme }) => ({
   display: 'flex',
@@ -285,7 +274,6 @@ const SharePill = styled(motion.div)(({ theme }) => ({
   }
 }));
 
-
 const CommentPill = styled(motion.div)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -321,7 +309,6 @@ const CommentPill = styled(motion.div)(({ theme }) => ({
     zIndex: 1
   }
 }));
-
 
 const LikePill = styled(motion.div)(({ theme, active }) => ({
   display: 'flex',
@@ -359,7 +346,6 @@ const LikePill = styled(motion.div)(({ theme, active }) => ({
   }
 }));
 
-
 const ActionsPill = styled(motion.div)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -392,7 +378,6 @@ const ActionsPill = styled(motion.div)(({ theme }) => ({
     zIndex: 1
   }
 }));
-
 
 const ActionItem = styled(Box)(({ theme, active, isLike }) => ({
   display: 'flex',
@@ -736,7 +721,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     if (!url) return '';
     
     
-    if (url.startsWith('http') || url.startsWith('
+    if (url.startsWith('http') || url.startsWith('//')) {
       return url;
     }
     
@@ -1924,7 +1909,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             width: '18px',
             height: '18px',
             marginRight: '10px',
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http:
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%237B68EE'%3E%3Cpath d='M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z'%3E%3C/path%3E%3C/svg%3E")`,
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat'
           }
@@ -2267,7 +2252,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             width: '18px',
             height: '18px',
             marginRight: '10px',
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http:
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FF9800'%3E%3Cpath d='M14.4 6l-.24-1.2c-.09-.46-.5-.8-.98-.8H6c-.55 0-1 .45-1 1v15c0 .55.45 1 1 1s1-.45 1-1v-6h5.6l.24 1.2c.09.47.5.8.98.8H19c.55 0 1-.45 1-1V7c0-.55-.45-1-1-1h-4.6z'%3E%3C/path%3E%3C/svg%3E")`,
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat'
           }
@@ -2477,7 +2462,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             width: '18px',
             height: '18px',
             marginRight: '10px',
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http:
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232196f3'%3E%3Cpath d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z'%3E%3C/path%3E%3C/svg%3E")`,
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat'
           }
@@ -2708,7 +2693,42 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
               <input
                 type="file"
                 multiple
-                accept="image}
+                accept="image/*"
+                hidden
+                onChange={handleEditImageSelect}
+              />
+            </Button>
+            
+            <Button
+              variant="outlined"
+              component="label"
+              startIcon={<VideocamIcon />}
+              disabled={editDialog.submitting || (post.video && !editDialog.deleteVideo)}
+              sx={{ 
+                mb: 1,
+                borderRadius: '10px',
+                backdropFilter: 'blur(5px)',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                color: 'rgba(255, 255, 255, 0.8)',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  borderColor: 'rgba(255, 255, 255, 0.2)',
+                }
+              }}
+            >
+              {post.video && !editDialog.deleteVideo ? 'Удалите текущее видео' : 'Добавить видео'}
+              <input
+                type="file"
+                accept="video/*"
+                hidden
+                onChange={handleEditVideoSelect}
+                disabled={post.video && !editDialog.deleteVideo}
+              />
+            </Button>
+          </Box>
+          
+          {}
           {editDialog.previews.length > 0 && (
             <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {editDialog.previews.map((preview, idx) => (

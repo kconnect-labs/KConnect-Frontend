@@ -1,7 +1,6 @@
 import React from 'react';
 import { Box } from '@mui/material';
 
-
 const ImageGrid = ({ images, maxImages = 4, onImageClick }) => {
   
   const normalizedImages = images.filter(Boolean).slice(0, maxImages);

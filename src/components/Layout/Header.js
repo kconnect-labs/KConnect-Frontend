@@ -18,7 +18,8 @@ import {
   Tooltip,
   Chip,
   Switch,
-  FormControlLabel
+  FormControlLabel,
+  useMediaQuery
 } from '@mui/material';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -52,6 +53,10 @@ const StyledAppBar = styled(AppBar)(({ theme, telegramMode }) => ({
   position: 'fixed',
   borderRadius: '0 !important',
   paddingTop: telegramMode ? '70px' : 0,
+  zIndex: theme.zIndex.appBar,
+  [theme.breakpoints.up('md')]: {
+    width: '100%',
+  },
 }));
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
@@ -60,8 +65,10 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   alignItems: 'center',
   padding: theme.spacing(0, 1),
   height: 64,
-  [theme.breakpoints.up('sm')]: {
-    padding: theme.spacing(0, 2),
+  [theme.breakpoints.up('md')]: {
+    padding: theme.spacing(0, '15%'), 
+    width: '100%',
+    margin: '0 auto',
   },
 }));
 
@@ -156,6 +163,10 @@ const Header = ({ toggleSidebar }) => {
   const theme = useTheme();
   const [userPoints, setUserPoints] = useState(0);
   const [telegramMode, setTelegramMode] = useState(false);
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  
+  
+  const isMusicPage = location.pathname === '/music';
 
   
   const { 
@@ -302,7 +313,12 @@ const Header = ({ toggleSidebar }) => {
   );
 
   return (
-    <StyledAppBar telegramMode={telegramMode}>
+    <StyledAppBar 
+      telegramMode={telegramMode}
+      sx={{ 
+        display: isMusicPage && isMobile ? 'none' : 'block' 
+      }}
+    >
       <StyledToolbar>
         {}
         <LogoSection>

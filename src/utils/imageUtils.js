@@ -1,6 +1,5 @@
 
 
-
 export const generatePlaceholderImage = (type = 'album', width = 300, height = 300) => {
   
   const canvas = document.createElement('canvas');
@@ -136,11 +135,17 @@ export const generatePlaceholderImage = (type = 'album', width = 300, height = 3
   return canvas.toDataURL('image/jpeg', 0.9);
 };
 
-
 export const getCoverWithFallback = (path, type = 'album') => {
+  
   if (!path || path === '') {
     
-    return generatePlaceholderImage(type);
+    return generatePlaceholderImage(type || 'album');
+  }
+  
+  
+  if (typeof path !== 'string') {
+    console.warn('getCoverWithFallback: path is not a string', path);
+    return generatePlaceholderImage(type || 'album');
   }
   
   
@@ -148,34 +153,38 @@ export const getCoverWithFallback = (path, type = 'album') => {
     path = '/' + path;
   }
   
-  
-  const isSystemFile = path && (
-    path.includes('/uploads/system/') || 
-    path.includes('/static/uploads/system/')
-  );
-  
-  if (isSystemFile) {
+  try {
     
-    const fallbacks = {
-      'like_playlist.jpg': generatePlaceholderImage('liked'),
-      'all_tracks.jpg': generatePlaceholderImage('all'),
-      'random_tracks.jpg': generatePlaceholderImage('random'),
-      'album_placeholder.jpg': generatePlaceholderImage('album'),
-      'playlist_placeholder.jpg': generatePlaceholderImage('playlist')
-    };
+    const isSystemFile = path && (
+      path.includes('/uploads/system/') || 
+      path.includes('/static/uploads/system/')
+    );
     
-    
-    for (const [filename, fallback] of Object.entries(fallbacks)) {
-      if (path.includes(filename)) {
-        
-        return path;
+    if (isSystemFile) {
+      
+      const fallbacks = {
+        'like_playlist.jpg': generatePlaceholderImage('liked'),
+        'all_tracks.jpg': generatePlaceholderImage('all'),
+        'random_tracks.jpg': generatePlaceholderImage('random'),
+        'album_placeholder.jpg': generatePlaceholderImage('album'),
+        'playlist_placeholder.jpg': generatePlaceholderImage('playlist')
+      };
+      
+      
+      for (const [filename, fallback] of Object.entries(fallbacks)) {
+        if (path.includes(filename)) {
+          
+          return path;
+        }
       }
     }
+    
+    return path;
+  } catch (error) {
+    console.error('Error in getCoverWithFallback:', error);
+    return generatePlaceholderImage(type || 'album');
   }
-  
-  return path;
 };
-
 
 export const extractDominantColor = (imgSrc, callback) => {
   const img = new Image();
@@ -206,13 +215,12 @@ export const extractDominantColor = (imgSrc, callback) => {
   img.src = imgSrc;
 };
 
-
 export const isWebPSupported = async () => {
   
   if (!self.createImageBitmap) return false;
   
   
-  const webpData = 'data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAAAAAAfQ
+  const webpData = 'data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAAAAAAfQ//73v/+BiOh/AAA=';
   
   try {
     
@@ -222,7 +230,6 @@ export const isWebPSupported = async () => {
     return false;
   }
 };
-
 
 export const convertToWebP = async (url, options = {}) => {
   
@@ -315,7 +322,6 @@ export const convertToWebP = async (url, options = {}) => {
   });
 };
 
-
 export const optimizeImage = async (url, options = {}) => {
   
   const {
@@ -376,7 +382,6 @@ export const optimizeImage = async (url, options = {}) => {
   };
 };
 
-
 export const generatePlaceholder = (width = 300, height = 150, text = '', bgColor = '#e0e0e0', textColor = '#666666') => {
   try {
     
@@ -424,6 +429,6 @@ export const generatePlaceholder = (width = 300, height = 150, text = '', bgColo
   } catch (error) {
     console.error('Error generating placeholder image:', error);
     
-    return `data:image/svg+xml,%3Csvg xmlns='http:
+    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}' viewBox='0 0 ${width} ${height}'%3E%3Crect width='${width}' height='${height}' fill='%23e0e0e0'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='16' text-anchor='middle' fill='%23666666'%3E${width}×${height}%3C/text%3E%3C/svg%3E`;
   }
 }; 

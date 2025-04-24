@@ -36,7 +36,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import axios from 'axios';
 import { formatDateTimeShort } from '../../utils/dateUtils';
 
-
 const StyledMenu = styled(Menu)(({ theme }) => ({
   '& .MuiPaper-root': {
     borderRadius: 12,
@@ -117,7 +116,6 @@ const EmptyNotifications = styled(Box)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-
 const AnimatedItem = styled(Box)(({ theme, delay = 0 }) => ({
   animation: `fadeInUp 0.3s ease forwards ${delay}s`,
   opacity: 0,
@@ -132,7 +130,6 @@ const AnimatedItem = styled(Box)(({ theme, delay = 0 }) => ({
     },
   },
 }));
-
 
 const getNotificationIcon = (type) => {
   switch (type) {
@@ -150,7 +147,6 @@ const getNotificationIcon = (type) => {
       return <NotificationsIcon fontSize="small" />;
   }
 };
-
 
 const getAvatarUrl = (sender) => {
   if (!sender) return '/static/uploads/avatar/system/avatar.png';

@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-
 const SearchService = {
   
   searchAll: (query, page = 1, perPage = 10) => {

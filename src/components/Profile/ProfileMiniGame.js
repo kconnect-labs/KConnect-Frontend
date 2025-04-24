@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Box, Typography } from '@mui/material';
 import Confetti from 'react-confetti';
 
-
 const ProfileMiniGame = ({ gameData, colors, confettiOnClick = false }) => {
   
   const config = {

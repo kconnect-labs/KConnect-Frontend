@@ -1,7 +1,6 @@
 import axios from './axiosConfig';
 import AuthService from './AuthService';
 
-
 const PostService = {
   
   getFeed: async (page = 1, limit = 10) => {

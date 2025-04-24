@@ -1,7 +1,6 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 
-
 const ProfileBadge = ({ badgeData, gradientColors, textColor = '#ffffff' }) => {
   if (!badgeData || !badgeData.show) return null;
   

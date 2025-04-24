@@ -15,7 +15,6 @@ import {
   ListItemText
 } from '@mui/material';
 
-
 const SharePreviewTest = () => {
   const [url, setUrl] = useState('');
   const [previewData, setPreviewData] = useState(null);

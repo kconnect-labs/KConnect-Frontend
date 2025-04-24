@@ -124,7 +124,7 @@ const VideoPlayer = ({ videoUrl, poster, options = {} }) => {
     );
   }
   
-  
+  // Для обычных видео-файлов
   return (
     <VideoContainer>
       <video 

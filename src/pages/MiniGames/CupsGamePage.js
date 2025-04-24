@@ -31,7 +31,6 @@ import SentimentVeryDissatisfiedIcon from '@mui/icons-material/SentimentVeryDiss
 import SEO from '../../components/SEO';
 import axios from 'axios';
 
-
 const CupImage = ({ lifted, winner }) => {
   return (
     <Box sx={{ 

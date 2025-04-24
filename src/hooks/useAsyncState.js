@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect, useTransition, useDeferredValue } from 'react';
 
-
 export default function useAsyncState(asyncFunction, dependencies = [], initialData = null) {
   
   const [data, setData] = useState(initialData);
@@ -51,7 +50,6 @@ export default function useAsyncState(asyncFunction, dependencies = [], initialD
     execute 
   };
 }
-
 
 export function useDebounceWithTransition(callback, delay = 300) {
   const [isPending, startTransition] = useTransition();

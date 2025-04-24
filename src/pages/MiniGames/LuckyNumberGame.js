@@ -26,14 +26,12 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
-
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import CasinoIcon from '@mui/icons-material/Casino';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TimerIcon from '@mui/icons-material/Timer';
-
 
 const GameContainer = styled(Box)(({ theme }) => ({
   minHeight: '80vh',

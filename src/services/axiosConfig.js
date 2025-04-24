@@ -1,15 +1,12 @@
 import axios from 'axios';
 
-
 const instance = axios.create({
   baseURL: '', 
   withCredentials: true, 
   timeout: 30000, 
 });
 
-
 axios.defaults.withCredentials = true;
-
 
 instance.interceptors.request.use(
   (config) => {
@@ -32,7 +29,6 @@ instance.interceptors.request.use(
     return Promise.reject(error);
   }
 );
-
 
 instance.interceptors.response.use(
   (response) => {

@@ -30,7 +30,6 @@ import ReactMarkdown from 'react-markdown';
 import axios from 'axios';
 import { formatDate } from '../../utils/dateUtils';
 
-
 const PostCard = styled(Card)(({ theme }) => ({
   marginBottom: theme.spacing(2),
   borderRadius: theme.spacing(1.5),
@@ -109,7 +108,6 @@ const MarkdownContent = styled('div')(({ theme }) => ({
   },
 }));
 
-
 const PostSkeleton = () => (
   <Card sx={{ mb: 2, borderRadius: 3, boxShadow: 3 }}>
     <Box sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
@@ -131,7 +129,6 @@ const PostSkeleton = () => (
     </Box>
   </Card>
 );
-
 
 const PostsList = ({ posts, loading, userAvatar, userName, userId, isCurrentUser, onPostsUpdate }) => {
   const [localPosts, setLocalPosts] = useState(posts || []);

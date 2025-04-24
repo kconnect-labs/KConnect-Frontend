@@ -3,10 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ThemeSettingsContext } from '../App';
 
-
 import AuthService from '../services/AuthService';
 import ProfileService from '../services/ProfileService';
-
 
 export const AuthContext = createContext({
   user: null,
@@ -17,7 +15,6 @@ export const AuthContext = createContext({
   logout: () => {},
   setUser: () => {}
 });
-
 
 export const useAuth = () => {
   return useContext(AuthContext);

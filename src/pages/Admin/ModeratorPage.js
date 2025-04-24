@@ -87,7 +87,6 @@ import LinkIcon from '@mui/icons-material/Link';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
-
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialog-container": {
     zIndex: 999999999999
@@ -117,7 +116,6 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
     }
   }
 }));
-
 
 const snackbarStyle = {
   zIndex: 9999999

@@ -78,7 +78,6 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import axios from 'axios';
 
-
 const PageHeader = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -1125,7 +1124,7 @@ const AdminPage = () => {
                 color="primary"
                 startIcon={<MonetizationOnIcon />}
                 component="a"
-                href="https:
+                href="https://www.donationalerts.com/r/qsoul"
                 target="_blank"
                 rel="noopener noreferrer"
               >

@@ -35,7 +35,6 @@ import {
 import { useMusic } from '../../context/MusicContext';
 import { motion } from 'framer-motion';
 
-
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
     borderRadius: 16,
@@ -88,7 +87,6 @@ const SearchInput = styled(TextField)(({ theme }) => ({
     }
   }
 }));
-
 
 const MusicSelectDialog = ({ open, onClose, onSelectTracks, maxTracks = 3 }) => {
   const [selectedTracks, setSelectedTracks] = useState([]);

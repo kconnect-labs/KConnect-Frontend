@@ -2,7 +2,6 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import PropTypes from 'prop-types';
 
-
 const SEO = ({
   title = 'К-Коннект',
   description = 'К-Коннект - социальная сеть от независимого разработчика',

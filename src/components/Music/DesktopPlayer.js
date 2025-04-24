@@ -34,7 +34,6 @@ import { useContext } from 'react';
 import FullScreenPlayer from './FullScreenPlayer';
 import { extractDominantColor } from '../../utils/imageUtils';
 
-
 const PlayerContainer = styled(Paper)(({ theme, covercolor }) => ({
   position: 'fixed',
   bottom: 20,
@@ -71,7 +70,6 @@ const PlayerContainer = styled(Paper)(({ theme, covercolor }) => ({
     minWidth: 'auto',
   },
 }));
-
 
 const MarqueeText = styled(Typography)(({ isactive }) => ({
   whiteSpace: 'nowrap',
@@ -136,7 +134,6 @@ const VolumeSlider = styled(Slider)(({ theme, covercolor }) => ({
     opacity: 0.3,
   },
 }));
-
 
 const getColorFromImage = extractDominantColor;
 

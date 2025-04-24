@@ -341,7 +341,65 @@ const MusicUploadDialog = ({ open, onClose, onSuccess }) => {
                 <input
                   id="audio-upload"
                   type="file"
-                  accept="audio}
+                  accept="audio/*"
+                  hidden
+                  onChange={handleFileChange}
+                  disabled={loading || loadingMetadata}
+                />
+              </Box>
+            </Box>
+
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Обложка
+              </Typography>
+              <Box 
+                sx={{ 
+                  border: '1px dashed',
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                  p: 2,
+                  textAlign: 'center',
+                  mb: 1,
+                  height: 200,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  backgroundImage: coverPreview ? `url(${coverPreview})` : 'none',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                    bgcolor: coverPreview ? 'unset' : 'rgba(208, 188, 255, 0.04)'
+                  }
+                }}
+                component="label"
+                htmlFor="cover-upload"
+              >
+                {!coverPreview && (
+                  <>
+                    <Image sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }} />
+                    <Typography variant="body2" color="text.secondary">
+                      Выберите изображение для обложки
+                    </Typography>
+                  </>
+                )}
+                <input
+                  id="cover-upload"
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={handleCoverChange}
+                  disabled={loading}
+                />
+              </Box>
+            </Box>
+          </Grid>
+
+          {}
           <Grid item xs={12} md={8}>
             {error && (
               <Alert severity="error" sx={{ mb: 2 }}>

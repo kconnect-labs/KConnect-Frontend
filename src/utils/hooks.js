@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-
 export function useSafeState(initialValue) {
   const [state, setState] = useState(initialValue);
   const mounted = useRef(true);
@@ -20,7 +19,6 @@ export function useSafeState(initialValue) {
   
   return [state, safeSetState];
 }
-
 
 export function useAsync() {
   const [loading, setLoading] = useSafeState(false);

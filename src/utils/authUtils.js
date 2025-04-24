@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 
-
 export const requireAuth = (user, isAuthenticated, navigate) => {
   if (!isAuthenticated || !user) {
     
@@ -13,7 +12,6 @@ export const requireAuth = (user, isAuthenticated, navigate) => {
   }
   return true;
 };
-
 
 export const useAuthCheck = (user, isAuthenticated) => {
   const navigate = useNavigate();

@@ -8,7 +8,6 @@ import { ThemeSettingsContext } from '../../App';
 import { MobilePlayer, DesktopPlayer } from '../Music';
 import { useMusic } from '../../context/MusicContext';
 
-
 const MainContainer = styled(Box)(({ theme, themeSettings }) => ({
   display: 'flex',
   flexDirection: 'column',
@@ -22,13 +21,11 @@ const MainContainer = styled(Box)(({ theme, themeSettings }) => ({
   backgroundAttachment: 'fixed',
 }));
 
-
 const ContentWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexGrow: 1,
   paddingTop: 64, 
 }));
-
 
 const SidebarContainer = styled(Box)(({ theme, open, sidebarWidth }) => ({
   width: sidebarWidth,
@@ -69,7 +66,6 @@ const ContentContainer = styled(Box)(({ theme, themeSettings, sidebarWidth, hasB
   },
 }));
 
-
 const Overlay = styled(Box)(({ theme }) => ({
   position: 'fixed',
   width: '100%',
@@ -85,11 +81,9 @@ const Overlay = styled(Box)(({ theme }) => ({
   },
 }));
 
-
 const MemoizedHeader = memo(({ toggleSidebar, isMobile }) => (
   <Header toggleSidebar={toggleSidebar} isMobile={isMobile} />
 ));
-
 
 const MemoizedSidebar = memo(({ open, onClose }) => (
   <Sidebar open={open} onClose={onClose} />

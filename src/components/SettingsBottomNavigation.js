@@ -2,6 +2,8 @@ import React from 'react';
 import { Paper, BottomNavigation, BottomNavigationAction } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
+import BrushIcon from '@mui/icons-material/Brush';
+import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
 
 const SettingsBottomNavigation = ({ activeTab, onTabChange }) => {
   const navigate = useNavigate();
@@ -64,7 +66,7 @@ const SettingsBottomNavigation = ({ activeTab, onTabChange }) => {
         />
         <BottomNavigationAction 
           value={1}
-          icon={<Icon icon="solar:brush-bold" width="28" height="28" />}
+          icon={<BrushIcon sx={{ fontSize: 28 }} />}
           sx={{ 
             minWidth: 'auto',
             '& .MuiBottomNavigationAction-label': {
@@ -94,7 +96,7 @@ const SettingsBottomNavigation = ({ activeTab, onTabChange }) => {
         />
         <BottomNavigationAction 
           value={4}
-          icon={<Icon icon="solar:at-bold" width="28" height="28" />}
+          icon={<AlternateEmailIcon sx={{ fontSize: 28 }} />}
           sx={{ 
             minWidth: 'auto',
             '& .MuiBottomNavigationAction-label': {

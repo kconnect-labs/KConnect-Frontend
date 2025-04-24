@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Paper, BottomNavigation as MuiBottomNavigation, BottomNavigationAction } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Icon } from '@iconify/react';
@@ -11,9 +11,36 @@ import VideogameAssetRoundedIcon from '@mui/icons-material/VideogameAssetRounded
 import SearchIcon from '@mui/icons-material/Search';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 
+export const BOTTOM_NAV_ID = 'app-bottom-navigation';
+
 const AppBottomNavigation = ({ user }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [visibleInMessenger, setVisibleInMessenger] = useState(true);
+  
+  
+  useEffect(() => {
+    const handleMessengerLayoutChange = (event) => {
+      const { isInChat } = event.detail;
+      console.log('Bottom navigation received layout change event:', isInChat ? 'in chat' : 'not in chat');
+      setVisibleInMessenger(!isInChat);
+    };
+    
+    
+    document.addEventListener('messenger-layout-change', handleMessengerLayoutChange);
+    
+    
+    return () => {
+      document.removeEventListener('messenger-layout-change', handleMessengerLayoutChange);
+    };
+  }, []);
+  
+  
+  const isInMessenger = location.pathname.startsWith('/messenger');
+  if (isInMessenger && !visibleInMessenger) {
+    console.log('Bottom navigation hidden in messenger chat');
+    return null;
+  }
   
   
   const authPages = ['/login', '/register', '/register/profile', '/confirm-email'];
@@ -44,10 +71,9 @@ const AppBottomNavigation = ({ user }) => {
 
   console.log("BottomNavigation rendering, user:", user, "pathname:", location.pathname);
 
-
-
   return (
     <Paper 
+      id={BOTTOM_NAV_ID}
       sx={{ 
         position: 'fixed', 
         bottom: 0, 

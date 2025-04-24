@@ -35,7 +35,6 @@ import { formatDuration } from '../../utils/formatters';
 import { ThemeSettingsContext } from '../../App';
 import { useContext } from 'react';
 
-
 const getColorFromImage = (imgSrc, callback) => {
   const img = new Image();
   img.crossOrigin = 'Anonymous';

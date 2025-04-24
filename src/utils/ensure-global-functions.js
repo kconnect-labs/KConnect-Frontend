@@ -1,7 +1,6 @@
 
 import React from 'react';
 
-
 function ensureCreateSvgIcon() {
   
   if (typeof window !== 'undefined') {
@@ -38,7 +37,6 @@ function ensureCreateSvgIcon() {
     console.log('createSvgIcon function installed (React version)');
   }
 }
-
 
 ensureCreateSvgIcon();
 

@@ -48,7 +48,6 @@ import { AuthContext } from '../../context/AuthContext';
 import { ThemeSettingsContext } from '../../App';
 import axios from 'axios';
 
-
 const SidebarContainer = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2, 1.5),
   borderRadius: theme.spacing(2),
@@ -350,7 +349,6 @@ const SidebarFooter = styled(Box)(({ theme, themecolor }) => ({
   }
 }));
 
-
 const FooterTypography = styled(Typography)(({ theme }) => ({
   color: 'rgba(255, 255, 255, 0.6)',
   fontSize: {
@@ -359,7 +357,6 @@ const FooterTypography = styled(Typography)(({ theme }) => ({
     md: '0.7rem'
   }
 }));
-
 
 const Sidebar = ({ mobile, closeDrawer }) => {
   const { user } = useContext(AuthContext);

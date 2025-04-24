@@ -24,14 +24,12 @@ import { AuthContext } from '../../context/AuthContext';
 import { ThemeSettingsContext } from '../../App';
 import axios from 'axios';
 
-
 <NavIcon 
   active={isActive(`/profile/${user?.username || user?.id}`) ? 1 : 0}
   themecolor={primaryColor}
 >
   <Icon icon="solar:user-bold" width="20" height="20" />
 </NavIcon>
-
 
 <Icon icon="solar:home-bold" width="20" height="20" />
 <Icon icon="solar:music-notes-bold" width="20" height="20" />
@@ -49,7 +47,6 @@ import axios from 'axios';
 <Icon icon="solar:bug-bold" width="20" height="20" />
 <Icon icon="solar:document-text-bold" width="20" height="20" />
 <Icon icon="solar:code-bold" width="20" height="20" /> 
-
 
 const Sidebar = ({ mobile, closeDrawer }) => {
   

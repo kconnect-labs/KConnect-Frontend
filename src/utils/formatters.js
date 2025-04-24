@@ -8,7 +8,6 @@ export const formatDuration = (seconds) => {
   return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
 };
 
-
 export const formatDate = (dateString) => {
   if (!dateString) return '';
   
@@ -25,7 +24,6 @@ export const formatDate = (dateString) => {
   return date.toLocaleString();
 };
 
-
 export const convertUTCToLocal = (utcDateString) => {
   if (!utcDateString) return null;
   
@@ -35,7 +33,6 @@ export const convertUTCToLocal = (utcDateString) => {
   
   return date;
 };
-
 
 export const formatRelativeTime = (dateString) => {
   if (!dateString) return '';
@@ -64,7 +61,6 @@ export const formatRelativeTime = (dateString) => {
     return formatDate(dateString);
   }
 };
-
 
 function getMinutesText(minutes) {
   const lastDigit = minutes % 10;

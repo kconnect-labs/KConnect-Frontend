@@ -6,8 +6,7 @@ import {
 import { Icon } from '@iconify/react';
 import LockIcon from '@mui/icons-material/Lock';
 
-
-import { SettingsCard, SettingsCardContent, SectionTitle } from '../pages/SettingsPage';
+import { SettingsCard, SettingsCardContent, SectionTitle } from '../pages/User/SettingsPage';
 
 const LoginSettingsTab = () => {
   const [username, setUsername] = useState('');

@@ -1,7 +1,6 @@
 import React, { createContext, useState, useEffect, useRef, useContext, useCallback } from 'react';
 import axios from 'axios';
 
-
 export const MusicContext = createContext({
   tracks: [],
   popularTracks: [],
@@ -39,7 +38,6 @@ export const MusicContext = createContext({
   isSearching: false,
   searchTracks: () => Promise.resolve([]),
 });
-
 
 export const MusicProvider = ({ children }) => {
   
@@ -85,6 +83,8 @@ export const MusicProvider = ({ children }) => {
   const likedTracksLastLoadedRef = useRef(null);
   
   const isLoadingLikedTracksRef = useRef(false);
+  
+  const hasCheckedLikedTracksRef = useRef(false);
 
   
   useEffect(() => {
@@ -104,6 +104,22 @@ export const MusicProvider = ({ children }) => {
         return;
       }
       
+      
+      if (currentSection === 'liked' && hasCheckedLikedTracksRef.current && likedTracksLastLoadedRef.current) {
+        const now = Date.now();
+        const cacheAge = now - likedTracksLastLoadedRef.current;
+        
+        if (likedTracks.length === 0 && cacheAge < 15 * 60 * 1000) {
+          console.log('Уже проверили, что нет лайкнутых треков, пропускаем запрос (кеш действителен 15 минут)');
+          return;
+        }
+        
+        if (likedTracks.length > 0 && cacheAge < 5 * 60 * 1000) {
+          console.log('Используем кешированные лайкнутые треки (кеш действителен 5 минут)');
+          return;
+        }
+      }
+      
       console.log(`Загрузка треков. isLoadingRef.current=${isLoadingRef.current}`);
       isLoadingRef.current = true;
       setIsLoading(true);
@@ -121,19 +137,6 @@ export const MusicProvider = ({ children }) => {
           
           if (isLoadingLikedTracksRef.current) {
             console.log('Загрузка понравившихся треков уже идет, пропускаем повторный запрос');
-            isLoadingRef.current = false;
-            setIsLoading(false);
-            return;
-          }
-          
-          
-          
-          const now = Date.now();
-          const shouldRefreshCache = !likedTracksLastLoadedRef.current || 
-                                   (now - likedTracksLastLoadedRef.current) > 5 * 60 * 1000; 
-          
-          if (likedTracks.length > 0 && !shouldRefreshCache && currentSection !== 'liked') {
-            console.log('Используем кэшированные понравившиеся треки (кеш действителен 5 минут)');
             isLoadingRef.current = false;
             setIsLoading(false);
             return;
@@ -171,6 +174,8 @@ export const MusicProvider = ({ children }) => {
               
               
               likedTracksLastLoadedRef.current = Date.now();
+              
+              hasCheckedLikedTracksRef.current = true;
             } else {
               
               console.log('Понравившиеся треки не найдены');
@@ -180,6 +185,8 @@ export const MusicProvider = ({ children }) => {
               
               
               likedTracksLastLoadedRef.current = Date.now();
+              
+              hasCheckedLikedTracksRef.current = true;
             }
           } catch (error) {
             console.error('Ошибка при загрузке понравившихся треков:', error);
@@ -501,6 +508,14 @@ export const MusicProvider = ({ children }) => {
               try {
                 axios.post(`/api/music/${track.id}/play`, {}, { withCredentials: true })
                   .catch(error => console.error('Ошибка при отправке статистики воспроизведения:', error));
+                
+                
+                axios.post('/api/user/now-playing', { 
+                  track_id: track.id,
+                  artist: track.artist,
+                  title: track.title
+                }, { withCredentials: true })
+                  .catch(error => console.error('Ошибка при установке статуса now playing:', error));
               } catch (error) {
                 console.error('Ошибка при отправке статистики воспроизведения:', error);
               }
@@ -567,12 +582,22 @@ export const MusicProvider = ({ children }) => {
       if (isPlaying) {
         audio.pause();
         setIsPlaying(false);
+        
       } else {
         const playPromise = audio.play();
         if (playPromise !== undefined) {
           playPromise
             .then(() => {
               setIsPlaying(true);
+              
+              if (currentTrack) {
+                axios.post('/api/user/now-playing', { 
+                  track_id: currentTrack.id,
+                  artist: currentTrack.artist,
+                  title: currentTrack.title
+                }, { withCredentials: true })
+                  .catch(error => console.error('Ошибка при обновлении статуса now playing:', error));
+              }
             })
             .catch(error => {
               console.error('Ошибка при воспроизведении:', error);
@@ -1472,6 +1497,55 @@ export const MusicProvider = ({ children }) => {
   }, [volume]);
 
   
+  
+  useEffect(() => {
+    let inactivityTimer = null;
+    
+    
+    const clearNowPlayingStatus = () => {
+      axios.post('/api/user/clear-now-playing', {}, { withCredentials: true })
+        .then(response => {
+          console.log('Статус now playing очищен', response.data);
+        })
+        .catch(error => {
+          console.error('Ошибка при очистке статуса now playing:', error);
+        });
+    };
+    
+    
+    if (isPlaying && currentTrack) {
+      
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+      }
+      
+      
+      inactivityTimer = setTimeout(() => {
+        
+        clearNowPlayingStatus();
+      }, 5 * 60 * 1000); 
+    } else if (!isPlaying && currentTrack) {
+      
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+      }
+      
+      inactivityTimer = setTimeout(() => {
+        clearNowPlayingStatus();
+      }, 5 * 60 * 1000); 
+    }
+    
+    
+    return () => {
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+      }
+      
+      clearNowPlayingStatus();
+    };
+  }, [isPlaying, currentTrack]);
+
+  
   const musicContextValue = {
     tracks,
     popularTracks,
@@ -1517,6 +1591,5 @@ export const MusicProvider = ({ children }) => {
     </MusicContext.Provider>
   );
 };
-
 
 export const useMusic = () => useContext(MusicContext); 

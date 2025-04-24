@@ -37,7 +37,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import axios from 'axios';
 import { formatDateTimeShort } from '../../utils/dateUtils';
 
-
 const getNotificationIcon = (type) => {
   switch (type) {
     case 'comment_like':
@@ -54,7 +53,6 @@ const getNotificationIcon = (type) => {
       return null;
   }
 };
-
 
 const getAvatarUrl = (sender) => {
   if (!sender) return '/static/uploads/avatar/system/avatar.png';

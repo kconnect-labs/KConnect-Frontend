@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-
 const AuthService = {
   
   login: async (credentials) => {
@@ -54,7 +53,7 @@ const AuthService = {
       
       console.log('Отправляемые данные для регистрации:', {
         ...userData,
-        password: 'REMOVED'
+        password: '[HIDDEN]'
       });
       
       

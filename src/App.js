@@ -10,43 +10,40 @@ import { Box, CircularProgress } from '@mui/material';
 import { HelmetProvider } from 'react-helmet-async';
 import SEO from './components/SEO';
 
-
-const Login = lazy(() => import('./pages/Login'));
-const Register = lazy(() => import('./pages/Register'));
-const RegisterProfile = lazy(() => import('./pages/RegisterProfile'));
-const EmailConfirmation = lazy(() => import('./pages/EmailConfirmation'));
-const ElementAuth = lazy(() => import('./pages/ElementAuth'));
-
+const Login = lazy(() => import('./pages/Auth/Login'));
+const Register = lazy(() => import('./pages/Auth/Register'));
+const RegisterProfile = lazy(() => import('./pages/Auth/RegisterProfile'));
+const EmailConfirmation = lazy(() => import('./pages/Auth/EmailConfirmation'));
+const ElementAuth = lazy(() => import('./pages/Auth/ElementAuth'));
 
 const MainLayout = lazy(() => import('./components/Layout/MainLayout'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage'));
-const MainPage = lazy(() => import('./pages/MainPage'));
-const PostDetailPage = lazy(() => import('./pages/PostDetailPage'));
-const SettingsPage = lazy(() => import('./pages/SettingsPage'));
-const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
-const SearchPage = lazy(() => import('./pages/SearchPage'));
-const MusicPage = lazy(() => import('./pages/MusicPage'));
-const SubscriptionsPage = lazy(() => import('./pages/SubscriptionsPage'));
-const BugReportPage = lazy(() => import('./pages/BugReportPage'));
-const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
-const RulesPage = lazy(() => import('./pages/RulesPage'));
-const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
-const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage'));
-const MorePage = lazy(() => import('./pages/MorePage'));
-const NotFound = lazy(() => import('./pages/NotFound'));
+const ProfilePage = lazy(() => import('./pages/User/ProfilePage'));
+const MainPage = lazy(() => import('./pages/Main/MainPage'));
+const PostDetailPage = lazy(() => import('./pages/Main/PostDetailPage'));
+const SettingsPage = lazy(() => import('./pages/User/SettingsPage'));
+const NotificationsPage = lazy(() => import('./pages/Info/NotificationsPage'));
+const SearchPage = lazy(() => import('./pages/Main/SearchPage'));
+const MusicPage = lazy(() => import('./pages/Main/MusicPage'));
+const SubscriptionsPage = lazy(() => import('./pages/Economic/SubscriptionsPage'));
+const BugReportPage = lazy(() => import('./pages/BugPages/BugReportPage'));
+const LeaderboardPage = lazy(() => import('./pages/Main/LeaderboardPage'));
+const RulesPage = lazy(() => import('./pages/Info/RulesPage'));
+const PrivacyPolicyPage = lazy(() => import('./pages/Info/PrivacyPolicyPage'));
+const TermsOfServicePage = lazy(() => import('./pages/Info/TermsOfServicePage'));
+const MorePage = lazy(() => import('./pages/Main/MorePage'));
+const NotFound = lazy(() => import('./pages/Info/NotFound'));
 const AdminPage = lazy(() => import('./pages/Admin/AdminPage'));
 const ModeratorPage = lazy(() => import('./pages/Admin/ModeratorPage'));
-const MessengerPage = lazy(() => import('./pages/Messenger/MessengerPage'));
+
 const SharePreviewTest = lazy(() => import('./components/SharePreviewTest'));
-const BadgeShopPage = lazy(() => import('./pages/BadgeShopPage'));
-const BalancePage = lazy(() => import('./pages/BalancePage'));
-const SimpleApiDocsPage = lazy(() => import('./pages/SimpleApiDocsPage'));
-const SubPlanes = lazy(() => import('./pages/SubPlanes'));
-const ClickerPage = lazy(() => import('./pages/MiniGames/ClickerPage'));
+const BadgeShopPage = lazy(() => import('./pages/Economic/BadgeShopPage'));
+const BalancePage = lazy(() => import('./pages/Economic/BalancePage'));
+const SimpleApiDocsPage = lazy(() => import('./pages/Info/SimpleApiDocsPage'));
+const SubPlanes = lazy(() => import('./pages/Economic/SubPlanes'));
+
 const MiniGamesPage = lazy(() => import('./pages/MiniGames/MiniGamesPage'));
 const CupsGamePage = lazy(() => import('./pages/MiniGames/CupsGamePage'));
 const LuckyNumberGame = lazy(() => import('./pages/MiniGames/LuckyNumberGame'));
-
 
 export const ThemeSettingsContext = React.createContext({
   themeSettings: {
@@ -56,7 +53,6 @@ export const ThemeSettingsContext = React.createContext({
   },
   updateThemeSettings: () => {}
 });
-
 
 const SuspenseFallback = () => {
   const theme = useTheme();
@@ -84,11 +80,9 @@ const SuspenseFallback = () => {
   );
 };
 
-
 const PageTransition = ({ children }) => {
   return children;
 };
-
 
 const LoadingIndicator = () => {
   const theme = useTheme();
@@ -132,7 +126,6 @@ const LoadingIndicator = () => {
     </Box>
   );
 };
-
 
 const AppRoutes = () => {
   const { user, isAuthenticated, loading, checkAuth, error, setUser } = useContext(AuthContext);
@@ -241,8 +234,7 @@ const AppRoutes = () => {
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/music" element={<MusicPage />} />
-          <Route path="/messenger" element={<MessengerPage />} />
-          <Route path="/messenger/:userId" element={<MessengerPage />} />
+          {}
           <Route path="/share-preview-test" element={<SharePreviewTest />} />
           <Route path="/bugs" element={<BugReportPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
@@ -253,7 +245,7 @@ const AppRoutes = () => {
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/moderator" element={<ModeratorPage />} />
           <Route path="/badge-shop" element={<BadgeShopPage />} />
-          <Route path="/clicker" element={<ClickerPage />} />
+          {}
           <Route path="/minigames" element={<MiniGamesPage />} />
           <Route path="/minigames/cups" element={<CupsGamePage />} />
           <Route path="/minigames/lucky-number" element={<LuckyNumberGame />} />
@@ -268,9 +260,7 @@ const AppRoutes = () => {
   );
 };
 
-
 const MemoizedAppRoutes = React.memo(AppRoutes);
-
 
 const preloadMusicImages = () => {
   
@@ -299,7 +289,6 @@ const preloadMusicImages = () => {
     });
   });
 };
-
 
 const DefaultSEO = () => {
   return (
