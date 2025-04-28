@@ -69,6 +69,7 @@ import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 import ContentLoader from '../../components/UI/ContentLoader';
 import TimerIcon from '@mui/icons-material/Timer';
 
+// Custom styled components
 const PostCard = styled(Card)(({ theme }) => ({
   marginBottom: 10,
   borderRadius: '10px',
@@ -78,11 +79,15 @@ const PostCard = styled(Card)(({ theme }) => ({
   cursor: 'pointer'
 }));
 
+// New styled component for online users card
 const OnlineUsersCard = styled(Card)(({ theme }) => ({
-  borderRadius: '10px',
+  borderRadius: '24px',
   overflow: 'hidden',
   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-  background: '#1A1A1A',
+  background: theme.palette.background.paper,
+  border: theme.palette.mode === 'dark' 
+    ? '1px solid rgba(255, 255, 255, 0.1)' 
+    : '1px solid rgba(0, 0, 0, 0.1)'
 }));
 
 const RecommendationCard = styled(Card)(({ theme }) => ({
@@ -164,7 +169,7 @@ const CreatePostCard = styled(Paper)(({ theme }) => ({
   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
   border: '1px solid rgba(255, 255, 255, 0.03)',
   [theme.breakpoints.down('sm')]: {
-    padding: theme.spacing(1), 
+    padding: theme.spacing(1), // Уменьшенный паддинг для мобильных
   },
 }));
 
@@ -218,7 +223,7 @@ const ContentContainer = styled(Box)(({ theme }) => ({
     flexDirection: 'row',
   },
   [theme.breakpoints.down('sm')]: {
-    gap: theme.spacing(1), 
+    gap: theme.spacing(1), // Уменьшенный отступ для мобильных
   },
 }));
 
@@ -231,7 +236,7 @@ const LeftColumn = styled(Box)(({ theme }) => ({
     width: '68%',
   },
   [theme.breakpoints.down('sm')]: {
-    gap: theme.spacing(1), 
+    gap: theme.spacing(1), // Уменьшенный отступ для мобильных
   },
 }));
 
@@ -244,14 +249,16 @@ const RightColumn = styled(Box)(({ theme }) => ({
     width: '32%',
   },
   [theme.breakpoints.down('sm')]: {
-    gap: theme.spacing(1), 
+    gap: theme.spacing(1), // Уменьшенный отступ для мобильных
   },
 }));
 
+// Online Users Component
 const OnlineUsers = () => {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const theme = useTheme();
   
   useEffect(() => {
     const fetchOnlineUsers = async () => {
@@ -276,7 +283,7 @@ const OnlineUsers = () => {
     
     fetchOnlineUsers();
     
-    
+    // Refresh online users list every minute
     const interval = setInterval(fetchOnlineUsers, 60000);
     
     return () => clearInterval(interval);
@@ -288,7 +295,7 @@ const OnlineUsers = () => {
   
   if (loading) {
     return (
-      <OnlineUsersCard sx={{ p: 1.5 }}>
+      <OnlineUsersCard sx={{ p: 2, mb: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <CircularProgress size={20} sx={{ mr: 2 }} />
           <Typography variant="h6" sx={{ fontSize: '1.1rem' }}>
@@ -304,30 +311,34 @@ const OnlineUsers = () => {
   }
   
   return (
-    <OnlineUsersCard sx={{ p: 1.5 }}>
-      <Typography variant="h6" sx={{ fontSize: '1.1rem', mb: 1 }}>
+    <OnlineUsersCard sx={{ p: 2, mb: 0 }}>
+      <Typography variant="h6" sx={{ 
+        fontSize: '1.1rem', 
+        mb: 1.5,
+        color: theme => theme.palette.text.primary
+      }}>
         Сейчас онлайн ({onlineUsers.length})
       </Typography>
       
-      {}
+      
       <Box sx={{ 
         display: 'flex', 
         flexWrap: 'nowrap', 
         gap: 2,
         overflowX: 'auto',
-        pb: 1,
+        pb: 0,
         '&::-webkit-scrollbar': {
-          height: '6px',
+          height: '0px',
+          display: 'none'
         },
         '&::-webkit-scrollbar-thumb': {
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          borderRadius: '10px',
+          backgroundColor: 'transparent',
         },
         '&::-webkit-scrollbar-track': {
           backgroundColor: 'transparent',
         },
-        msOverflowStyle: 'none', 
-        scrollbarWidth: 'thin',   
+        msOverflowStyle: 'none', /* IE and Edge */
+        scrollbarWidth: 'none',   /* Firefox */
       }}>
         {onlineUsers.map(user => (
           <Box 
@@ -347,7 +358,7 @@ const OnlineUsers = () => {
                 sx={{ 
                   width: 56, 
                   height: 56, 
-                  border: '2px solid #1E1E1E'
+                  border: `2px solid ${theme.palette.background.paper}`
                 }}
                 onError={(e) => {
                   console.error(`Failed to load avatar for ${user.username}`);
@@ -366,7 +377,7 @@ const OnlineUsers = () => {
                   height: 13, 
                   borderRadius: '50%', 
                   backgroundColor: '#4caf50',
-                  border: '1px solid #1E1E1E'
+                  border: `1px solid ${theme.palette.background.paper}`
                 }} 
               />
             </Box>
@@ -391,26 +402,28 @@ const OnlineUsers = () => {
   );
 };
 
+// UserRecommendation component
 const UserRecommendation = ({ user }) => {
   const [following, setFollowing] = useState(user.is_following || false);
+  const { user: currentUser } = useContext(AuthContext);
   const navigate = useNavigate();
   
   const handleFollow = async (e) => {
     e.stopPropagation();
     try {
-      
+      // Делаем локальное обновление перед ответом сервера для лучшей отзывчивости
       setFollowing(!following);
       
       const response = await axios.post(`/api/profile/follow`, {
         followed_id: user.id
       });
       
-      
+      // Update based on actual server response
       if (response.data && response.data.success) {
         setFollowing(response.data.is_following);
       }
     } catch (error) {
-      
+      // В случае ошибки восстанавливаем предыдущее состояние
       setFollowing(following);
       console.error('Error toggling follow:', error);
     }
@@ -420,18 +433,21 @@ const UserRecommendation = ({ user }) => {
     navigate(`/profile/${user.username}`);
   };
 
-  
+  // Создаем правильный путь к аватарке
   const getAvatarSrc = () => {
     if (!user.photo) return '/static/uploads/system/avatar.png';
     
-    
+    // Проверяем, содержит ли путь к фото полный URL
     if (user.photo.startsWith('/') || user.photo.startsWith('http')) {
       return user.photo;
     }
     
-    
+    // Иначе формируем путь с ID пользователя
     return `/static/uploads/avatar/${user.id}/${user.photo}`;
   };
+  
+  // Проверяем, является ли текущий пользователь каналом
+  const isChannelAccount = currentUser && currentUser.account_type === 'channel';
   
   return (
     <Box 
@@ -472,7 +488,7 @@ const UserRecommendation = ({ user }) => {
               fontWeight="500" 
               noWrap 
               sx={{ 
-                color: 'white',
+                color: theme => theme.palette.text.primary,
                 letterSpacing: '0.1px'
               }}
             >
@@ -516,38 +532,41 @@ const UserRecommendation = ({ user }) => {
             </Box>
           </Box>
           
-          <Button
-            variant={following ? "text" : "contained"}
-            size="small"
-            onClick={handleFollow}
-            sx={{
-              minWidth: 'auto',
-              height: 32,
-              borderRadius: '16px',
-              textTransform: 'none',
-              px: following ? 2 : 2,
-              ml: 1,
-              fontSize: '0.75rem',
-              fontWeight: 500,
-              ...(following && {
-                color: '#a0a0a0',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 0, 0, 0.04)',
-                  color: '#ff5252',
-                  borderColor: 'rgba(255, 82, 82, 0.2)'
-                }
-              })
-            }}
-          >
-            {following ? 'Отписаться' : 'Подписаться'}
-          </Button>
+          {!isChannelAccount && (
+            <Button
+              variant={following ? "text" : "contained"}
+              size="small"
+              onClick={handleFollow}
+              sx={{
+                minWidth: 'auto',
+                height: 32,
+                borderRadius: '16px',
+                textTransform: 'none',
+                px: following ? 2 : 2,
+                ml: 1,
+                fontSize: '0.75rem',
+                fontWeight: 500,
+                ...(following && {
+                  color: '#a0a0a0',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 0, 0, 0.04)',
+                    color: '#ff5252',
+                    borderColor: 'rgba(255, 82, 82, 0.2)'
+                  }
+                })
+              }}
+            >
+              {following ? 'Отписаться' : 'Подписаться'}
+            </Button>
+          )}
         </Box>
       </Box>
     </Box>
   );
 };
 
+// Create Post Component
 const CreatePost = ({ onPostCreated }) => {
   const { user } = useContext(AuthContext);
   const { playTrack, currentTrack, isPlaying, togglePlay } = useContext(MusicContext);
@@ -560,30 +579,30 @@ const CreatePost = ({ onPostCreated }) => {
   const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   
-  
+  // Music selection state
   const [musicSelectOpen, setMusicSelectOpen] = useState(false);
   const [selectedTracks, setSelectedTracks] = useState([]);
   
-  
+  // Add state for snackbar notification
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'error'
   });
   
-  
+  // Add state for rate limit dialog
   const [rateLimitDialog, setRateLimitDialog] = useState({
     open: false,
     message: '',
     timeRemaining: 0
   });
   
-  
+  // Clear error when user makes changes to the post
   useEffect(() => {
     if (error) setError('');
   }, [content, mediaFiles, selectedTracks, error]);
   
-  
+  // Обработчики для drag-and-drop
   const dragCounter = useRef(0);
   
   const handleDragEnter = (e) => {
@@ -598,7 +617,7 @@ const CreatePost = ({ onPostCreated }) => {
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
+    // Не обновляем состояние здесь, чтобы избежать повторного рендеринга
   };
   
   const handleDragLeave = (e) => {
@@ -623,7 +642,7 @@ const CreatePost = ({ onPostCreated }) => {
   };
   
   const handleMediaChange = (event) => {
-    event.preventDefault(); 
+    event.preventDefault(); // Prevent default behavior
     const files = Array.from(event.target.files);
     if (files.length > 0) {
       processFiles(files);
@@ -633,21 +652,21 @@ const CreatePost = ({ onPostCreated }) => {
   const processFiles = (files) => {
     if (!files.length) return;
     
-    
+    // Reset previous state
     setMediaFiles([]);
     setMediaPreview([]);
     setMediaType('');
     
-    
+    // Check if there are multiple images
     if (files.length > 1) {
-      
+      // Check that they're all images
       const allImages = files.every(file => file.type.startsWith('image/'));
       
       if (allImages) {
         setMediaFiles(files);
         setMediaType('images');
         
-        
+        // Create previews for each image
         files.forEach(file => {
           const reader = new FileReader();
           reader.onloadend = () => {
@@ -659,10 +678,10 @@ const CreatePost = ({ onPostCreated }) => {
       }
     }
     
-    
+    // Handle single file (image or video)
     const file = files[0];
     
-    
+    // Check if it's an image or video
     const isImage = file.type.startsWith('image/');
     const isVideo = file.type.startsWith('video/');
     
@@ -670,7 +689,7 @@ const CreatePost = ({ onPostCreated }) => {
       setMediaFiles([file]);
       setMediaType(isImage ? 'image' : 'video');
       
-      
+      // Create a preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setMediaPreview([reader.result]);
@@ -690,12 +709,12 @@ const CreatePost = ({ onPostCreated }) => {
     }
   };
   
-  
+  // Handle music selection from dialog
   const handleMusicSelect = (tracks) => {
     setSelectedTracks(tracks);
   };
   
-  
+  // Handle removing a music track
   const handleRemoveTrack = (trackId) => {
     setSelectedTracks(prev => prev.filter(track => track.id !== trackId));
   };
@@ -712,16 +731,16 @@ const CreatePost = ({ onPostCreated }) => {
     }
   };
   
-  
+  // Handle playing a music track
   const handleTrackPlay = (track, event) => {
     if (event) {
       event.stopPropagation();
     }
     
     if (currentTrack && currentTrack.id === track.id) {
-      togglePlay(); 
+      togglePlay(); // Play/pause the current track
     } else {
-      playTrack(track); 
+      playTrack(track); // Play a new track
     }
   };
   
@@ -738,28 +757,28 @@ const CreatePost = ({ onPostCreated }) => {
       
       console.log("Added content to FormData:", content.trim());
       
-      
+      // Add media files based on type
       if (mediaType === 'images') {
-        
+        // Add multiple images
         console.log(`Adding ${mediaFiles.length} images to FormData`);
         mediaFiles.forEach((file, index) => {
           console.log(`Adding image[${index}]:`, file.name, file.size);
           formData.append(`images[${index}]`, file);
         });
       } else if (mediaType === 'image') {
-        
+        // Add single image
         console.log("Adding single image to FormData:", mediaFiles[0].name, mediaFiles[0].size);
         formData.append('image', mediaFiles[0]);
       } else if (mediaType === 'video') {
-        
+        // Add video
         console.log("Adding video to FormData:", mediaFiles[0].name, mediaFiles[0].size);
         formData.append('video', mediaFiles[0]);
       }
       
-      
+      // Add music tracks if selected
       if (selectedTracks.length > 0) {
         console.log(`Adding ${selectedTracks.length} music tracks to post`);
-        
+        // Convert tracks to JSON string and append to form data
         const trackData = selectedTracks.map(track => ({
           id: track.id,
           title: track.title,
@@ -780,24 +799,24 @@ const CreatePost = ({ onPostCreated }) => {
       
       console.log("Post created successfully!", response.data);
       
-      
+      // Reset the form
       clearForm();
       
-      
+      // Notify parent component
       if (onPostCreated) {
         onPostCreated(response.data.post);
       }
     } catch (error) {
       console.error("Error creating post:", error);
       
-      
+      // Handle rate limit errors
       if (error.response && error.response.status === 429) {
         const rateLimit = error.response.data.rate_limit;
         let errorMessage = "Превышен лимит публикации постов. ";
         let timeRemaining = 0;
         
         if (rateLimit && rateLimit.reset) {
-          
+          // Calculate time remaining until reset
           const resetTime = new Date(rateLimit.reset * 1000);
           const now = new Date();
           const diffSeconds = Math.round((resetTime - now) / 1000);
@@ -812,18 +831,18 @@ const CreatePost = ({ onPostCreated }) => {
           }
         } else {
           errorMessage += "Пожалуйста, повторите попытку позже.";
-          timeRemaining = 60; 
+          timeRemaining = 60; // Default to 60 seconds if no reset time provided
         }
         
         setError(errorMessage);
-        
+        // Show snackbar notification
         setSnackbar({
           open: true,
           message: errorMessage,
           severity: 'warning'
         });
         
-        
+        // Show rate limit dialog
         setRateLimitDialog({
           open: true,
           message: errorMessage,
@@ -831,7 +850,7 @@ const CreatePost = ({ onPostCreated }) => {
         });
       } else if (error.response && error.response.data && error.response.data.error) {
         setError(error.response.data.error);
-        
+        // Show snackbar notification for other errors from the API
         setSnackbar({
           open: true,
           message: error.response.data.error,
@@ -839,7 +858,7 @@ const CreatePost = ({ onPostCreated }) => {
         });
       } else {
         setError("Произошла ошибка при создании поста. Пожалуйста, попробуйте еще раз.");
-        
+        // Show snackbar notification for generic errors
         setSnackbar({
           open: true,
           message: "Произошла ошибка при создании поста. Пожалуйста, попробуйте еще раз.",
@@ -875,7 +894,7 @@ const CreatePost = ({ onPostCreated }) => {
         </Alert>
       )}
       
-      {}
+      
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
@@ -891,7 +910,7 @@ const CreatePost = ({ onPostCreated }) => {
         </Alert>
       </Snackbar>
       
-      {}
+      
       <Dialog
         open={rateLimitDialog.open}
         onClose={() => setRateLimitDialog(prev => ({ ...prev, open: false }))}
@@ -951,7 +970,7 @@ const CreatePost = ({ onPostCreated }) => {
         }}
         sx={{ 
           position: 'relative',
-          zIndex: 1 
+          zIndex: 1 // Ensure content is above the background overlay
         }}
         onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
@@ -1012,7 +1031,7 @@ const CreatePost = ({ onPostCreated }) => {
             />
           </Box>
           
-          {}
+          
           {mediaPreview.length > 0 && (
             <Box sx={{ position: 'relative', mb: 2 }}>
               {mediaType === 'images' && mediaPreview.length > 1 ? (
@@ -1057,7 +1076,7 @@ const CreatePost = ({ onPostCreated }) => {
             </Box>
           )}
           
-          {}
+          
           {selectedTracks.length > 0 && (
             <Box sx={{ mt: 2, mb: 2 }}>
               {selectedTracks.map(track => (
@@ -1264,7 +1283,7 @@ const CreatePost = ({ onPostCreated }) => {
             </Button>
           </PostActions>
           
-          {}
+          
           <MusicSelectDialog
             open={musicSelectOpen}
             onClose={() => setMusicSelectOpen(false)}
@@ -1277,6 +1296,7 @@ const CreatePost = ({ onPostCreated }) => {
   );
 };
 
+// MainPage Component
 const MainPage = React.memo(() => {
   const { user } = useContext(AuthContext);
   const [posts, setPosts] = useState([]);
@@ -1287,26 +1307,26 @@ const MainPage = React.memo(() => {
   const [loadingTrendingBadges, setLoadingTrendingBadges] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [feedType, setFeedType] = useState('all'); 
-  const [requestId, setRequestId] = useState(0); 
-  const isFirstRender = useRef(true); 
-  const feedTypeChanged = useRef(false); 
-  const navigate = useNavigate(); 
-  const loadingMoreRef = useRef(false); 
-  const loaderRef = useRef(null); 
+  const [feedType, setFeedType] = useState('all'); // 'all', 'following', 'recommended'
+  const [requestId, setRequestId] = useState(0); // Для отслеживания актуальности запросов
+  const isFirstRender = useRef(true); // Для отслеживания первого рендера
+  const feedTypeChanged = useRef(false); // Для отслеживания изменения типа ленты
+  const navigate = useNavigate(); // Add navigate for component
+  const loadingMoreRef = useRef(false); // Для предотвращения множественных загрузок
+  const loaderRef = useRef(null); // Ref для элемента-индикатора загрузки (sentinel)
   
-  
+  // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImage, setCurrentImage] = useState('');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [lightboxImages, setLightboxImages] = useState([]);
 
-  
+  // Observer for infinite scrolling
   useEffect(() => {
     const options = {
-      root: null, 
+      root: null, // viewport
       rootMargin: '0px',
-      threshold: 0.1 
+      threshold: 0.1 // trigger when 10% of the element is visible
     };
 
     const observer = new IntersectionObserver((entries) => {
@@ -1327,9 +1347,9 @@ const MainPage = React.memo(() => {
     };
   }, [hasMore, loading, posts.length, feedType]);
   
-  
+  // Первый useEffect - инициализация только при монтировании
   useEffect(() => {
-    if (!isFirstRender.current) return; 
+    if (!isFirstRender.current) return; // Выполняем только при первом рендере
     
     const initialLoad = async () => {
       console.log("INITIAL MOUNT - ONE TIME LOAD");
@@ -1344,13 +1364,13 @@ const MainPage = React.memo(() => {
           include_all: feedType === 'all'
         };
         
-        
+        // Создаем ID для текущего запроса
         const currentRequestId = requestId + 1;
         setRequestId(currentRequestId);
         
         const response = await axios.get('/api/posts/feed', { params });
         
-        
+        // Проверяем, не устарел ли ответ
         if (requestId !== currentRequestId - 1) return;
         
         if (response.data && Array.isArray(response.data.posts)) {
@@ -1367,21 +1387,21 @@ const MainPage = React.memo(() => {
         setHasMore(false);
       } finally {
         setLoading(false);
-        isFirstRender.current = false; 
+        isFirstRender.current = false; // Отмечаем, что первый рендер завершен
       }
     };
     
     initialLoad();
     
-    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
-  
+  // Второй useEffect - реакция только на изменение типа ленты (feedType)
   useEffect(() => {
-    
+    // Пропускаем первый рендер, так как им занимается предыдущий эффект
     if (isFirstRender.current) return;
     
-    
+    // Отмечаем, что тип ленты изменился
     feedTypeChanged.current = true;
     
     const loadFeedPosts = async () => {
@@ -1397,20 +1417,20 @@ const MainPage = React.memo(() => {
           include_all: feedType === 'all'
         };
         
-        
+        // Создаем ID для текущего запроса
         const currentRequestId = requestId + 1;
         setRequestId(currentRequestId);
         
-        
+        // Add error handling and fallback for 'recommended' feed type
         let response;
         try {
           response = await axios.get('/api/posts/feed', { params });
         } catch (apiError) {
           console.error(`Error in API call for ${feedType} feed:`, apiError);
           
-          
+          // Special handling for 'recommended' feed type to prevent crashes
           if (feedType === 'recommended') {
-            
+            // Return empty posts array instead of crashing
             setHasMore(false);
             setPosts([]);
             setLoading(false);
@@ -1418,11 +1438,11 @@ const MainPage = React.memo(() => {
             return;
           }
           
-          
+          // Re-throw for other feed types
           throw apiError;
         }
         
-        
+        // Проверяем, не устарел ли ответ
         if (requestId !== currentRequestId - 1) return;
         
         if (response.data && Array.isArray(response.data.posts)) {
@@ -1439,46 +1459,44 @@ const MainPage = React.memo(() => {
         setHasMore(false);
       } finally {
         setLoading(false);
-        feedTypeChanged.current = false; 
+        feedTypeChanged.current = false; // Сбрасываем флаг после загрузки
       }
     };
     
     loadFeedPosts();
     
-    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [feedType]);
   
-  
+  // Load user recommendations with optimized fallback
   useEffect(() => {
-    
+    // Выполняем только один раз при монтировании
     if (!isFirstRender.current) return;
     
     const fetchRecommendations = async () => {
       try {
         setLoadingRecommendations(true);
         
-        
+        // Предотвращаем повторные запросы, если уже загружены рекомендации
         if (recommendations.length > 0) {
           setLoadingRecommendations(false);
           return;
         }
         
-        
+        // Используем новый API для получения недавних каналов
         try {
-          const response = await axios.get('/api/users/recommendations', { timeout: 5000 });
+          const response = await axios.get('/api/users/recent-channels', { timeout: 5000 });
           if (Array.isArray(response.data)) {
             setRecommendations(response.data || []);
-          } else if (response.data && Array.isArray(response.data.users)) {
-            setRecommendations(response.data.users || []);
           } else {
-            
+            // Если формат ответа неверный, используем резервный вариант
             console.log('Unexpected response format:', response.data);
-            setRecommendations(getFallbackRecommendations());
+            setRecommendations([]);
           }
         } catch (error) {
-          console.error('Error fetching user recommendations:', error);
-          
-          setRecommendations(getFallbackRecommendations());
+          console.error('Error fetching recent channels:', error);
+          // При ошибке показываем пустой список
+          setRecommendations([]);
         }
       } finally {
         setLoadingRecommendations(false);
@@ -1486,10 +1504,10 @@ const MainPage = React.memo(() => {
     };
 
     fetchRecommendations();
-    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  
+  // Load trending badges
   useEffect(() => {
     const fetchTrendingBadges = async () => {
       try {
@@ -1512,7 +1530,7 @@ const MainPage = React.memo(() => {
     fetchTrendingBadges();
   }, []);
 
-  
+  // Функция для создания резервных рекомендаций
   const getFallbackRecommendations = () => {
     return [
       {
@@ -1539,9 +1557,9 @@ const MainPage = React.memo(() => {
     ];
   };
 
-  
+  // Функционал загрузки дополнительных постов при скролле
   const loadMorePosts = async () => {
-    
+    // Не загружаем, если уже идет загрузка, нет больше постов или изменился тип ленты
     if (loading || !hasMore || feedTypeChanged.current || loadingMoreRef.current) return;
     
     try {
@@ -1550,18 +1568,18 @@ const MainPage = React.memo(() => {
       
       const params = {
         page: page,
-        per_page: 10, 
+        per_page: 10, // Reduced per_page to make pagination smoother
         sort: feedType,
         include_all: feedType === 'all'
       };
       
-      
+      // Создаем ID для текущего запроса
       const currentRequestId = requestId + 1;
       setRequestId(currentRequestId);
       
       const response = await axios.get('/api/posts/feed', { params });
       
-      
+      // Проверяем, не устарел ли ответ
       if (requestId !== currentRequestId - 1) return;
       
       if (response.data && Array.isArray(response.data.posts)) {
@@ -1581,22 +1599,22 @@ const MainPage = React.memo(() => {
   };
   
   const handlePostCreated = (newPost, deletedPostId = null) => {
-    
+    // If a post was deleted, remove it from the state
     if (deletedPostId) {
       setPosts(prevPosts => prevPosts.filter(p => p.id !== deletedPostId));
       return;
     }
     
-    
+    // If newPost is null, refresh the whole feed
     if (!newPost) {
-      
-      setPosts([]); 
-      setPage(1); 
-      loadFeedPosts(); 
+      // Just refresh the feed
+      setPosts([]); // Clear current posts
+      setPage(1); // Reset pagination
+      loadFeedPosts(); // Load fresh posts
       return;
     }
     
-    
+    // Add the new post at the top of the list
     setPosts(prevPosts => [newPost, ...prevPosts]);
   };
   
@@ -1650,13 +1668,13 @@ const MainPage = React.memo(() => {
     }}>
       <ContentContainer>
         <LeftColumn>
-          {}
+          
           <OnlineUsers />
           
-          {}
+          
           <CreatePost onPostCreated={handlePostCreated} />
           
-          {}
+          
           <Paper sx={{ 
             p: 1, 
             display: 'flex', 
@@ -1686,10 +1704,10 @@ const MainPage = React.memo(() => {
             </Button>
           </Paper>
           
-          {}
+          
           <Box sx={{ mt: 0 }}>
             {loading && posts.length === 0 ? (
-              
+              // Show skeleton loaders when initially loading
               <>
                 {[...Array(5)].map((_, index) => (
                   <PostSkeleton key={index} />
@@ -1709,7 +1727,7 @@ const MainPage = React.memo(() => {
                   )
                 ))}
                 
-                {}
+                
                 {hasMore && (
                   <Box 
                     ref={loaderRef}
@@ -1726,7 +1744,7 @@ const MainPage = React.memo(() => {
                   </Box>
                 )}
                 
-                {}
+                
                 {!hasMore && (
                   <Box sx={{ 
                     textAlign: 'center', 
@@ -1754,22 +1772,26 @@ const MainPage = React.memo(() => {
         </LeftColumn>
         
         <RightColumn>
-          {}
+          
           <Box 
             component={Paper} 
             sx={{ 
               p: 0, 
               borderRadius: '16px', 
               mb: -0.625,
-              background: 'linear-gradient(145deg, #222222, #1c1c1c)',
+              background: theme => theme.palette.mode === 'dark' 
+                ? 'linear-gradient(145deg, #222222, #1c1c1c)'
+                : theme.palette.background.paper,
               boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-              border: '1px solid rgba(255, 255, 255, 0.05)',
+              border: theme => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'}`,
               overflow: 'hidden',
-              display: { xs: 'none', sm: 'block' } 
+              display: { xs: 'none', sm: 'block' } // Hide on mobile, show on sm and up
             }}
           >
             <Box sx={{ 
-              background: 'linear-gradient(90deg, rgba(208, 188, 255, 0.08), rgba(208, 188, 255, 0.02))', 
+              background: theme => theme.palette.mode === 'dark' 
+                ? 'linear-gradient(90deg, rgba(208, 188, 255, 0.08), rgba(208, 188, 255, 0.02))'
+                : 'linear-gradient(90deg, rgba(140, 82, 255, 0.05), rgba(140, 82, 255, 0.01))', 
               p: 2,
               display: 'flex',
               alignItems: 'center',
@@ -1780,13 +1802,13 @@ const MainPage = React.memo(() => {
                 sx={{ 
                   fontWeight: 600,
                   fontSize: '1.1rem',
-                  color: 'white',
+                  color: theme => theme.palette.text.primary,
                   display: 'flex',
                   alignItems: 'center',
                   letterSpacing: '0.2px'
                 }}
               >
-                Рекомендации
+                Новые каналы
               </Typography>
             </Box>
             
@@ -1799,11 +1821,11 @@ const MainPage = React.memo(() => {
                   backgroundColor="#292929"
                   foregroundColor="#333333"
                 >
-                  {}
+                  
                   <rect x="0" y="0" rx="8" ry="8" width="100%" height="50" />
-                  {}
+                  
                   <rect x="0" y="60" rx="8" ry="8" width="100%" height="50" />
-                  {}
+                  
                   <rect x="0" y="120" rx="8" ry="8" width="100%" height="50" />
                 </ContentLoader>
               </Box>
@@ -1826,89 +1848,47 @@ const MainPage = React.memo(() => {
                 >
                   <PersonAddIcon sx={{ color: '#D0BCFF', fontSize: 26 }} />
                 </Avatar>
-                <Typography variant="body2" color="#a0a0a0" sx={{ fontWeight: 500 }}>
-                  Пока нет рекомендаций
+                <Typography variant="body2" sx={{ fontWeight: 500, color: theme => theme.palette.text.secondary }}>
+                  Нет активных каналов
                 </Typography>
-                <Typography variant="caption" color="#777777" sx={{ display: 'block', mt: 1, maxWidth: '80%', mx: 'auto' }}>
-                  Возвращайтесь позже, чтобы увидеть пользователей, которые могут вам понравиться
+                <Typography variant="caption" sx={{ display: 'block', mt: 1, maxWidth: '80%', mx: 'auto', color: theme => theme.palette.text.disabled }}>
+                  Создайте первый канал или подпишитесь на существующие каналы
                 </Typography>
               </Box>
             ) : (
               <Box>
-                {(() => {
-                  
-                  const filteredRecommendations = recommendations.filter(user => {
-                    
-                    const hasCustomAvatar = user.photo && 
-                      !user.photo.includes('avatar.png') && 
-                      !user.photo.includes('user_placeholder');
-                    return hasCustomAvatar;
-                  });
-                  
-                  
-                  if (filteredRecommendations.length === 0) {
-                    return (
-                      <Box sx={{ 
-                        textAlign: 'center', 
-                        py: 3, 
-                        px: 2,
-                        background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.03))'
-                      }}>
-                        <Avatar 
-                          sx={{ 
-                            width: 50, 
-                            height: 50, 
-                            mx: 'auto', 
-                            mb: 2,
-                            bgcolor: 'rgba(208, 188, 255, 0.1)',
-                            border: '1px solid rgba(208, 188, 255, 0.25)'
-                          }}
-                        >
-                          <PersonAddIcon sx={{ color: '#D0BCFF', fontSize: 26 }} />
-                        </Avatar>
-                        <Typography variant="body2" color="#a0a0a0" sx={{ fontWeight: 500 }}>
-                          Пока нет рекомендаций
-                        </Typography>
-                        <Typography variant="caption" color="#777777" sx={{ display: 'block', mt: 1, maxWidth: '80%', mx: 'auto' }}>
-                          Возвращайтесь позже, чтобы увидеть пользователей, которые могут вам понравиться
-                        </Typography>
-                      </Box>
-                    );
-                  }
-                  
-                  
-                  const limitedRecommendations = filteredRecommendations.slice(0, 3);
-                  
-                  
-                  return limitedRecommendations.map((recommendedUser, index) => (
-                    <Box key={recommendedUser.id}>
-                      <UserRecommendation user={recommendedUser} />
-                      {index < limitedRecommendations.length - 1 && (
-                        <Divider sx={{ opacity: 0.1, mx: 2 }} />
-                      )}
-                    </Box>
-                  ));
-                })()}
+                {recommendations.map((channel, index) => (
+                  <Box key={channel.id}>
+                    <UserRecommendation user={channel} />
+                    {index < recommendations.length - 1 && (
+                      <Divider sx={{ opacity: 0.1, mx: 2 }} />
+                    )}
+                  </Box>
+                ))}
               </Box>
             )}
           </Box>
 
-          {}
+          
           <Box 
             component={Paper} 
             sx={{ 
               p: 0, 
               borderRadius: '16px', 
               mb: 2,
-              background: 'linear-gradient(145deg, #222222, #1c1c1c)',
+              background: theme => theme.palette.mode === 'dark' 
+                ? 'linear-gradient(145deg, #222222, #1c1c1c)'
+                : theme.palette.background.paper,
               boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-              border: '1px solid rgba(255, 255, 255, 0.05)',
+              border: theme => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'}`,
               overflow: 'hidden',
-              display: { xs: 'none', sm: 'block' } 
+              display: { xs: 'none', sm: 'block' } // Hide on mobile, show on sm and up
             }}
           >
             <Box sx={{ 
-              background: 'linear-gradient(90deg, rgba(208, 188, 255, 0.08), rgba(208, 188, 255, 0.02))', 
+              background: theme => theme.palette.mode === 'dark' 
+                ? 'linear-gradient(90deg, rgba(208, 188, 255, 0.08), rgba(208, 188, 255, 0.02))'
+                : 'linear-gradient(90deg, rgba(140, 82, 255, 0.05), rgba(140, 82, 255, 0.01))', 
               p: 2,
               display: 'flex',
               alignItems: 'center',
@@ -1919,7 +1899,7 @@ const MainPage = React.memo(() => {
                 sx={{ 
                   fontWeight: 600,
                   fontSize: '1.1rem',
-                  color: 'white',
+                  color: theme => theme.palette.text.primary,
                   display: 'flex',
                   alignItems: 'center',
                   letterSpacing: '0.2px'
@@ -1938,11 +1918,11 @@ const MainPage = React.memo(() => {
                   backgroundColor="#292929"
                   foregroundColor="#333333"
                 >
-                  {}
+                  
                   <rect x="0" y="0" rx="8" ry="8" width="100%" height="50" />
-                  {}
+                  
                   <rect x="0" y="60" rx="8" ry="8" width="100%" height="50" />
-                  {}
+                  
                   <rect x="0" y="120" rx="8" ry="8" width="100%" height="50" />
                 </ContentLoader>
               </Box>
@@ -1965,10 +1945,10 @@ const MainPage = React.memo(() => {
                 >
                   <ImageIcon sx={{ color: '#D0BCFF', fontSize: 26 }} />
                 </Avatar>
-                <Typography variant="body2" color="#a0a0a0" sx={{ fontWeight: 500 }}>
+                <Typography variant="body2" sx={{ fontWeight: 500, color: theme => theme.palette.text.secondary }}>
                   Нет популярных бейджей
                 </Typography>
-                <Typography variant="caption" color="#777777" sx={{ display: 'block', mt: 1, maxWidth: '80%', mx: 'auto' }}>
+                <Typography variant="caption" sx={{ display: 'block', mt: 1, maxWidth: '80%', mx: 'auto', color: theme => theme.palette.text.disabled }}>
                   Возвращайтесь позже, чтобы увидеть популярные бейджи
                 </Typography>
               </Box>
@@ -2009,10 +1989,10 @@ const MainPage = React.memo(() => {
                         }}
                       />
                       <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 500, color: 'white' }} noWrap>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 500, color: theme => theme.palette.text.primary }} noWrap>
                           {badge.name}
                         </Typography>
-                        <Typography variant="caption" color="#a0a0a0" noWrap>
+                        <Typography variant="caption" sx={{ color: theme => theme.palette.text.secondary }} noWrap>
                           {badge.description ? badge.description.slice(0, 25) + (badge.description.length > 25 ? '...' : '') : ''}
                         </Typography>
                         <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
@@ -2047,7 +2027,7 @@ const MainPage = React.memo(() => {
         </RightColumn>
       </ContentContainer>
       
-      {}
+      
       <LightBox 
         isOpen={lightboxOpen}
         onClose={handleCloseLightbox}

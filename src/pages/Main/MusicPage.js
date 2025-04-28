@@ -74,6 +74,7 @@ import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import SEO from '../../components/SEO';
 
+// Custom debounce implementation
 const debounce = (func, wait) => {
   let timeout;
   return function executedFunction(...args) {
@@ -86,6 +87,7 @@ const debounce = (func, wait) => {
   };
 };
 
+// Новые стилизованные компоненты для улучшенного UI
 const MusicPageContainer = styled(Container)(({ theme }) => ({
   marginTop: theme.spacing(2),
   marginBottom: theme.spacing(14),
@@ -220,6 +222,7 @@ const MobileNavigation = styled(BottomNavigation)(({ theme }) => ({
   borderTop: '1px solid rgba(255,255,255,0.05)',
 }));
 
+// Header component with stylized appearance
 const HeaderPaper = styled(Paper)(({ theme }) => ({
   borderRadius: '16px',
   padding: theme.spacing(2),
@@ -230,6 +233,7 @@ const HeaderPaper = styled(Paper)(({ theme }) => ({
   border: '1px solid rgba(255,255,255,0.05)',
 }));
 
+// Cover art component with enhanced styling
 const CoverArtContainer = styled(Box)(({ theme }) => ({
   width: '100%',
   position: 'relative',
@@ -258,6 +262,7 @@ const CoverArtContainer = styled(Box)(({ theme }) => ({
   }
 }));
 
+// Enhanced Action Button
 const ActionButton = styled(Button)(({ theme, color = 'primary' }) => ({
   borderRadius: 30,
   padding: theme.spacing(1, 3),
@@ -277,6 +282,7 @@ const ActionButton = styled(Button)(({ theme, color = 'primary' }) => ({
   }
 }));
 
+// Дополнительные стили для RecentTracksCard
 const RecentTracksCard = styled(Card)(({ theme }) => ({
   height: '100%',
   display: 'flex',
@@ -310,7 +316,7 @@ const MobileSearchContainer = styled(Box)(({ theme }) => ({
   right: 0,
   zIndex: 100,
   width: '100%',
-  height: 64, 
+  height: 64, // Такая же высота как у Header
   padding: theme.spacing(0, 1.5),
   background: 'rgba(18,18,18,0.95)',
   backdropFilter: 'blur(10px)',
@@ -320,6 +326,107 @@ const MobileSearchContainer = styled(Box)(({ theme }) => ({
   alignItems: 'center'
 }));
 
+// Добавляем новые стилизованные компоненты для минималистичного дизайна в стиле Яндекс.Музыка
+const SectionTitle = styled(Typography)(({ theme }) => ({
+  fontSize: '1.5rem',
+  fontWeight: 600,
+  marginBottom: theme.spacing(1),
+  marginTop: theme.spacing(4),
+  color: theme.palette.mode === 'dark' ? '#ffffff' : '#121212',
+  display: 'flex',
+  alignItems: 'center',
+  '& svg': {
+    marginRight: theme.spacing(1),
+    color: theme.palette.primary.main,
+  }
+}));
+
+const SectionSubtitle = styled(Typography)(({ theme }) => ({
+  fontSize: '0.875rem',
+  fontWeight: 400,
+  marginBottom: theme.spacing(2),
+  color: theme.palette.text.secondary,
+}));
+
+const ChartTrackItem = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  padding: theme.spacing(1, 0),
+  borderBottom: `1px solid ${theme.palette.divider}`,
+  borderRadius: 0,
+  cursor: 'pointer',
+  transition: 'background-color 0.2s ease',
+  '&:hover': {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  }
+}));
+
+const ChartPosition = styled(Box)(({ theme }) => ({
+  width: 36,
+  textAlign: 'center',
+  fontWeight: 700,
+  fontSize: '0.95rem',
+  color: theme.palette.text.secondary,
+  marginRight: theme.spacing(1),
+}));
+
+const ChartCover = styled(Box)(({ theme }) => ({
+  width: 42,
+  height: 42,
+  borderRadius: 4,
+  overflow: 'hidden',
+  marginRight: theme.spacing(2),
+  flexShrink: 0,
+  boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+}));
+
+const ChartInfoContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  flexGrow: 1,
+  overflow: 'hidden',
+}));
+
+const ChartTrackTitle = styled(Typography)(({ theme }) => ({
+  fontWeight: 500,
+  fontSize: '0.9rem',
+  marginBottom: 2,
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+}));
+
+const ChartTrackArtist = styled(Typography)(({ theme }) => ({
+  fontWeight: 400,
+  fontSize: '0.8rem',
+  color: theme.palette.text.secondary,
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+}));
+
+const ChartStats = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  fontSize: '0.75rem',
+  color: theme.palette.text.secondary,
+  marginLeft: theme.spacing(1),
+  '& svg': {
+    fontSize: '0.9rem',
+    marginRight: 4,
+  }
+}));
+
+const SectionContainer = styled(Box)(({ theme }) => ({
+  marginBottom: theme.spacing(4),
+}));
+
+const MusicCategoryGrid = styled(Grid)(({ theme }) => ({
+  marginTop: theme.spacing(2),
+  marginBottom: theme.spacing(4),
+}));
+
+// Музыкальная страница
 const MusicPage = React.memo(() => {
   const [tabValue, setTabValue] = useState(0);
   const [fullScreenPlayerOpen, setFullScreenPlayerOpen] = useState(false);
@@ -333,13 +440,24 @@ const MusicPage = React.memo(() => {
   const [playlistDialogOpen, setPlaylistDialogOpen] = useState(false);
   const [playlistTracksDialogOpen, setPlaylistTracksDialogOpen] = useState(false);
   const [localLoading, setLocalLoading] = useState(false);
-  const [viewMode, setViewMode] = useState('categories'); 
+  const [viewMode, setViewMode] = useState('categories'); // 'categories', 'tracks', 'playlist'
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [isMobileNavVisible, setIsMobileNavVisible] = useState(true);
   const [lastScrollTop, setLastScrollTop] = useState(0);
+  const [searchLoading, setSearchLoading] = useState(false);
+  // Добавляем состояние для чартов
+  const [charts, setCharts] = useState({
+    trending: [],
+    most_played: [],
+    most_liked: [],
+    new_releases: []
+  });
+  const [chartsLoading, setChartsLoading] = useState(true);
+  // Add state to track recently liked tracks for immediate animation
+  // const [recentlyLikedTracks, setRecentlyLikedTracks] = useState({});
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -352,18 +470,18 @@ const MusicPage = React.memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  
+  // Track context menu
   const [contextMenu, setContextMenu] = useState(null);
   const [selectedTrack, setSelectedTrack] = useState(null);
   
-  
+  // Snackbar for copy notification
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success'
   });
   
-  
+  // Музыкальный контекст
   const musicContext = useMusic();
   const { 
     tracks, 
@@ -380,34 +498,35 @@ const MusicPage = React.memo(() => {
     setCurrentSection,
     playTrack,
     likeTrack,
-    setRandomTracks
+    setRandomTracks,
+    setTracks
   } = musicContext;
 
-  
+  // Дополнительная поддержка для старых версий контекста
   const loadMoreTracks = musicContext.loadMoreTracks || (async () => console.warn('loadMoreTracks not implemented'));
   const [hasMoreTracks, setHasMoreTracks] = useState(musicContext.hasMoreTracks || false);
 
-  
+  // Бесконечная прокрутка
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const loaderRef = useRef(null);
   const prevTabValue = useRef(tabValue);
   
-  
+  // Настраиваем уведомление о плейлистах
   const [playlistBannerOpen, setPlaylistBannerOpen] = useState(true);
   
-  
+  // Обработчик скролла страницы
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
       
-      
+      // Показываем/скрываем кнопку возврата наверх
       if (scrollTop > 500) {
         setShowBackToTop(true);
       } else {
         setShowBackToTop(false);
       }
       
-      
+      // Управление видимостью навигации на мобильных
       if (scrollTop > lastScrollTop && scrollTop > 100) {
         setIsMobileNavVisible(false);
       } else {
@@ -416,7 +535,7 @@ const MusicPage = React.memo(() => {
       
       setLastScrollTop(scrollTop);
       
-      
+      // Эффект скролла для хедера
       if (scrollTop > 20) {
         setScrolled(true);
       } else {
@@ -428,42 +547,44 @@ const MusicPage = React.memo(() => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollTop]);
   
-  
+  // При первом рендере устанавливаем категорию "liked" и загружаем нужные треки
   useEffect(() => {
-    
+    // Function to load initial data
     const loadInitialData = async () => {
       if (typeof setCurrentSection === 'function') {
         console.log('Инициализация страницы музыки');
         
-        
-        if (!randomTracks || randomTracks.length === 0) {
-          console.log('Принудительная загрузка случайных треков при первой загрузке');
-          try {
-            
-            setCurrentSection('random');
-            if (musicContext.resetPagination) {
-              await musicContext.resetPagination('random');
-              console.log('Случайные треки загружены успешно');
-            }
-          } catch (error) {
-            console.error('Ошибка при загрузке случайных треков:', error);
+        // Принудительно загружаем все треки при открытии страницы (вне зависимости от наличия)
+        try {
+          console.log('Загрузка всех треков при открытии страницы музыки');
+          // Устанавливаем секцию на all и добавляем параметр random=true для получения случайного порядка
+          setCurrentSection('all');
+          if (musicContext.resetPagination) {
+            // Добавляем параметр для получения случайного порядка
+            await musicContext.resetPagination('all', true);
+            console.log('Все треки загружены успешно в случайном порядке');
           }
+        } catch (error) {
+          console.error('Ошибка при загрузке треков:', error);
         }
         
-        
+        // Затем устанавливаем секцию liked (как активную по умолчанию)
         console.log('Устанавливаем секцию "liked"');
         setCurrentSection('liked');
         
-        
-        if (!likedTracks || likedTracks.length === 0) {
-          console.log('Сбрасываем пагинацию для секции "liked" при первой загрузке');
+        // Force load liked tracks
+        try {
+          console.log('Загрузка лайкнутых треков при открытии страницы музыки');
           if (musicContext.resetPagination) {
             await musicContext.resetPagination('liked');
+            console.log('Лайкнутые треки загружены успешно');
           }
+        } catch (error) {
+          console.error('Ошибка при загрузке лайкнутых треков:', error);
         }
       }
       
-      
+      // Restore state from URL params
       const mode = searchParams.get('mode');
       const tab = searchParams.get('tab');
       
@@ -475,23 +596,88 @@ const MusicPage = React.memo(() => {
         const tabNum = parseInt(tab, 10) || 0;
         setTabValue(tabNum);
         
-        
+        // If tab is specified, also set the appropriate section
         const tabToType = {
           0: 'liked',
-          1: 'all',
-          2: 'random'
+          1: 'all'
         };
         
         if (musicContext.setCurrentSection) {
           musicContext.setCurrentSection(tabToType[tabNum] || 'liked');
         }
       }
+      
+      // Загружаем чарты
+      fetchCharts();
     };
     
+    // Запускаем загрузку данных при монтировании компонента
     loadInitialData();
   }, []);
   
+  // Функция для загрузки чартов
+  const fetchCharts = async () => {
+    try {
+      setChartsLoading(true);
+      const response = await axios.get('/api/music/charts');
+      if (response.data.success) {
+        // Получаем чарты
+        const receivedCharts = response.data.charts;
+        
+        // Синхронизируем статус лайков с другими списками треков
+        if (receivedCharts) {
+          // Создаем множество ID треков, которые лайкнуты
+          const likedTrackIds = new Set(likedTracks.map(track => track.id));
+          
+          // Функция для обновления статуса лайков в списке треков
+          const syncLikes = (tracks) => {
+            if (!tracks || !Array.isArray(tracks)) return tracks;
+            
+            return tracks.map(track => {
+              if (!track || !track.id) return track;
+              
+              // Если трек есть в likedTracks, он должен быть помечен как лайкнутый
+              const isLiked = likedTrackIds.has(track.id);
+              
+              // Проверяем, если трек существует в других списках, сохраняем его статус
+              const existingTrack = 
+                currentTrack?.id === track.id ? currentTrack :
+                tracks.find(t => t.id === track.id) ||
+                popularTracks.find(t => t.id === track.id) ||
+                newTracks.find(t => t.id === track.id) ||
+                randomTracks.find(t => t.id === track.id);
+                
+              if (existingTrack) {
+                return { ...track, is_liked: existingTrack.is_liked };
+              }
+              
+              // Иначе используем статус из likedTracks
+              return { ...track, is_liked: isLiked };
+            });
+          };
+          
+          // Обновляем все чарты
+          const updatedCharts = {
+            most_played: syncLikes(receivedCharts.most_played),
+            trending: syncLikes(receivedCharts.trending),
+            most_liked: syncLikes(receivedCharts.most_liked),
+            new_releases: syncLikes(receivedCharts.new_releases)
+          };
+          
+          // Устанавливаем обновленные чарты
+          setCharts(updatedCharts);
+        } else {
+          setCharts(response.data.charts);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching charts:', error);
+    } finally {
+      setChartsLoading(false);
+    }
+  };
   
+  // Обновление URL при изменении режима просмотра или вкладки
   useEffect(() => {
     const params = new URLSearchParams();
     params.set('mode', viewMode);
@@ -500,7 +686,7 @@ const MusicPage = React.memo(() => {
     navigate(`?${params.toString()}`, { replace: true });
   }, [viewMode, tabValue, navigate]);
 
-  
+  // Получение плейлистов пользователя
   const fetchUserPlaylists = useCallback(async () => {
     try {
       setIsPlaylistsLoading(true);
@@ -517,14 +703,14 @@ const MusicPage = React.memo(() => {
     }
   }, []);
 
-  
+  // Загружаем плейлисты при переключении на вкладку плейлистов
   useEffect(() => {
     if (mainTab === 1) {
       fetchUserPlaylists();
     }
   }, [mainTab, fetchUserPlaylists]);
 
-  
+  // Функция для создания нового плейлиста
   const createPlaylist = async (playlistData) => {
     try {
       const formData = new FormData();
@@ -543,7 +729,7 @@ const MusicPage = React.memo(() => {
       });
 
       if (response.data.success) {
-        
+        // Обновляем список плейлистов
         fetchUserPlaylists();
         setSnackbar({
           open: true,
@@ -570,7 +756,7 @@ const MusicPage = React.memo(() => {
     }
   };
 
-  
+  // Функция для обновления плейлиста
   const updatePlaylist = async (playlistId, playlistData) => {
     try {
       const formData = new FormData();
@@ -587,7 +773,7 @@ const MusicPage = React.memo(() => {
       });
 
       if (response.data.success) {
-        
+        // Обновляем список плейлистов
         fetchUserPlaylists();
         setSnackbar({
           open: true,
@@ -614,13 +800,13 @@ const MusicPage = React.memo(() => {
     }
   };
 
-  
+  // Функция для удаления плейлиста
   const deletePlaylist = async (playlistId) => {
     try {
       const response = await axios.delete(`/api/playlists/${playlistId}`);
 
       if (response.data.success) {
-        
+        // Обновляем список плейлистов
         fetchUserPlaylists();
         setSnackbar({
           open: true,
@@ -647,7 +833,7 @@ const MusicPage = React.memo(() => {
     }
   };
 
-  
+  // Функция для добавления трека в плейлист
   const addTrackToPlaylist = async (playlistId, trackId) => {
     try {
       const response = await axios.post(`/api/playlists/${playlistId}/tracks`, {
@@ -680,7 +866,7 @@ const MusicPage = React.memo(() => {
     }
   };
 
-  
+  // Функция для удаления трека из плейлиста
   const removeTrackFromPlaylist = async (playlistId, trackId) => {
     try {
       const response = await axios.delete(`/api/playlists/${playlistId}/tracks/${trackId}`);
@@ -711,21 +897,21 @@ const MusicPage = React.memo(() => {
     }
   };
 
-  
+  // Функция для воспроизведения плейлиста
   const playPlaylist = useCallback(async (playlistId) => {
     try {
       const response = await axios.get(`/api/playlists/${playlistId}`);
       
       if (response.data.success && response.data.playlist.tracks.length > 0) {
-        
+        // Устанавливаем текущую секцию как имя плейлиста для отслеживания
         const playlistSection = `playlist_${playlistId}`;
         setCurrentSection(playlistSection);
         
-        
+        // Воспроизводим первый трек
         const firstTrack = response.data.playlist.tracks[0];
         playTrack(firstTrack, playlistSection);
         
-        
+        // Сохраняем треки плейлиста в контексте музыки
         if (typeof musicContext.setPlaylistTracks === 'function') {
           musicContext.setPlaylistTracks(response.data.playlist.tracks, playlistSection);
         }
@@ -750,22 +936,22 @@ const MusicPage = React.memo(() => {
     }
   }, [playTrack, setCurrentSection, musicContext]);
 
-  
+  // Обновленная функция handleTabChange для более надежной загрузки треков
   const handleTabChange = useCallback((event, newValue) => {
-    
+    // Сохраняем текущее значение для сравнения
     const oldValue = tabValue;
     
-    
+    // Обновляем значение вкладки
     setTabValue(newValue);
     
-    
+    // Если действительно сменилась вкладка
     if (oldValue !== newValue) {
       console.log(`Переключение вкладки с ${oldValue} на ${newValue}`);
       
-      
+      // Прокручиваем к началу страницы
       window.scrollTo(0, 0);
       
-      
+      // Очищаем поисковый запрос
       if (searchQuery) {
         setSearchQuery('');
         if (searchInputRef.current) {
@@ -773,59 +959,49 @@ const MusicPage = React.memo(() => {
         }
       }
       
-      
+      // Получаем тип для новой вкладки
       const tabToType = {
         0: 'liked',
-        1: 'all',
-        2: 'random'
+        1: 'all'
       };
       
       const newType = tabToType[newValue] || 'all';
       
-      
+      // Устанавливаем флаг загрузки
       setLocalLoading(true);
       
-      
+      // Отладочная информация для диагностики
       console.log("Текущее состояние треков:");
       console.log(`- liked: ${likedTracks ? likedTracks.length : 0} треков`);
       console.log(`- all: ${tracks ? tracks.length : 0} треков`);
-      console.log(`- random: ${randomTracks ? randomTracks.length : 0} треков`);
       
-      
+      // Принудительный сброс пагинации и загрузка новых треков при переключении
       if (musicContext.resetPagination) {
         console.log(`Сбрасываем пагинацию для типа ${newType}`);
-        musicContext.resetPagination(newType).then(() => {
-          
+        // Для вкладки "Все треки" добавляем параметр рандомизации
+        const randomize = newType === 'all';
+        musicContext.resetPagination(newType, randomize).then(() => {
+          // После сброса пагинации и загрузки данных снимаем флаг загрузки
           setLocalLoading(false);
         }).catch(err => {
           console.error(`Ошибка при загрузке типа ${newType}:`, err);
           setLocalLoading(false);
         });
       } else {
-        
+        // Сбрасываем флаг загрузки через небольшую задержку
         setTimeout(() => {
           setLocalLoading(false);
         }, 800);
       }
       
-      
+      // Обновляем секцию в контексте музыки
       if (musicContext.setCurrentSection) {
         console.log(`Устанавливаем секцию ${newType} в контексте`);
         musicContext.setCurrentSection(newType);
       }
-      
-      
-      if (newType === 'random' && randomTracks && randomTracks.length > 0) {
-        
-        const reshuffledTracks = [...randomTracks].sort(() => Math.random() - 0.5);
-        
-        if (typeof musicContext.setRandomTracks === 'function') {
-          musicContext.setRandomTracks(reshuffledTracks);
-        }
-      }
     }
   }, [tabValue, searchQuery, musicContext.resetPagination, musicContext.setCurrentSection, 
-      likedTracks, randomTracks, tracks, musicContext.setRandomTracks, setLocalLoading]);
+      likedTracks, tracks, setLocalLoading]);
 
   const handleTrackClick = useCallback((track) => {
     playTrack(track);
@@ -837,7 +1013,7 @@ const MusicPage = React.memo(() => {
 
   const handleCloseFullScreenPlayer = useCallback(() => {
     setFullScreenPlayerOpen(false);
-    
+    // Ensure scroll is restored when closing fullscreen player
     document.body.style.overflow = '';
     document.body.style.touchAction = '';
   }, []);
@@ -850,78 +1026,93 @@ const MusicPage = React.memo(() => {
     setUploadDialogOpen(false);
   }, []);
 
-  
+  // Обработчик переключения основных вкладок (Музыка/Плейлисты)
   const handleMainTabChange = useCallback((event, newValue) => {
     setMainTab(newValue);
   }, []);
 
-  
+  // Открыть диалог создания плейлиста
   const handleOpenPlaylistDialog = useCallback((playlist = null) => {
     setSelectedPlaylist(playlist);
     setPlaylistDialogOpen(true);
   }, []);
 
-  
+  // Закрыть диалог создания плейлиста
   const handleClosePlaylistDialog = useCallback(() => {
     setSelectedPlaylist(null);
     setPlaylistDialogOpen(false);
   }, []);
 
-  
+  // Открыть диалог добавления треков в плейлист
   const handleOpenPlaylistTracksDialog = useCallback((playlist) => {
     setSelectedPlaylist(playlist);
     setPlaylistTracksDialogOpen(true);
   }, []);
 
-  
+  // Закрыть диалог добавления треков в плейлист
   const handleClosePlaylistTracksDialog = useCallback(() => {
     setSelectedPlaylist(null);
     setPlaylistTracksDialogOpen(false);
   }, []);
 
-  
-  
+  // Определяем текущий список треков в зависимости от выбранной вкладки
+  // Мемоизируем для предотвращения лишних вычислений при ререндерах
   const currentTracks = useMemo(() => {
     if (searchQuery.trim()) return searchResults;
     if (tabValue === 0) return likedTracks || [];
-    if (tabValue === 2) return randomTracks || [];
     return tracks || [];
-  }, [tabValue, tracks, likedTracks, randomTracks, searchQuery, searchResults]);
+  }, [tabValue, tracks, likedTracks, searchQuery, searchResults]);
 
-  
+  // Debounce search to avoid too many API calls
   const debouncedSearch = useCallback(
     debounce((query) => {
       if (query.trim()) {
         setSearchLoading(true);
-        searchMusic(query)
-          .then((response) => {
-            setSearchResults(response.data);
+        
+        // Use the searchTracks function from MusicContext instead of direct API call
+        musicContext.searchTracks(query)
+          .then((results) => {
+            setSearchResults(results || []);
             setSearchLoading(false);
+            // Add notification when no results found
+            if (results.length === 0) {
+              setSnackbar({
+                open: true,
+                message: 'По вашему запросу ничего не найдено',
+                severity: 'info'
+              });
+            }
           })
           .catch((error) => {
             console.error('Error searching tracks:', error);
             setSearchLoading(false);
+            // Show error notification
+            setSnackbar({
+              open: true,
+              message: 'Ошибка при поиске. Попробуйте позже.',
+              severity: 'error'
+            });
           });
       } else {
         setSearchResults([]);
       }
     }, 500),
-    []
+    [setSnackbar, musicContext.searchTracks]
   );
 
-  
+  // Handle search input change
   const handleSearchChange = (e) => {
     const query = e.target.value;
     setSearchQuery(query);
     
-    
+    // Если поисковый запрос пуст, сбрасываем состояние поиска и возвращаемся к обычному списку
     if (!query.trim()) {
-      
+      // Вызываем очистку поиска вместо простого сброса запроса
       clearSearch();
       return;
     }
     
-    
+    // Call the debounced search function
     debouncedSearch(query);
   };
   
@@ -935,24 +1126,23 @@ const MusicPage = React.memo(() => {
     }, 200);
   };
 
-  
+  // Функция для очистки поискового запроса
   const clearSearch = () => {
     setSearchQuery('');
     if (searchInputRef.current) {
       searchInputRef.current.value = '';
     }
     
-    
+    // Запрашиваем треки заново на основе текущей вкладки
     const tabToType = {
       0: 'liked',
-      1: 'all',
-      2: 'random'
+      1: 'all'
     };
     
-    
+    // Определяем текущий тип
     const currentType = tabToType[tabValue] || 'all';
     
-    
+    // Сбрасываем пагинацию для текущего типа и загружаем треки заново
     if (musicContext.resetPagination) {
       musicContext.resetPagination(currentType);
     }
@@ -960,49 +1150,48 @@ const MusicPage = React.memo(() => {
     console.log('Поисковый запрос очищен');
   };
 
-  
+  // Use search results when searching, otherwise use the current tab's tracks
   const displayedTracks = useMemo(() => {
     return searchQuery.trim() ? searchResults : currentTracks;
   }, [searchQuery, searchResults, currentTracks]);
 
-  
+  // Определяем состояние загрузки на основе контекста и локального состояния
   const effectiveLoading = useMemo(() => {
     return isLoading || localLoading;
   }, [isLoading, localLoading]);
 
-  
+  // Обработчик для InterSection Observer (бесконечная прокрутка)
   useEffect(() => {
-    
+    // Если функция загрузки дополнительных треков не определена в контексте, не создаем observer
     if (typeof loadMoreTracks !== 'function') {
       console.warn('Infinite scroll functionality requires loadMoreTracks function');
       return;
     }
 
-    
+    // Преобразование индекса вкладки в тип данных
     const tabToType = {
       0: 'liked',
-      1: 'all',
-      2: 'random'
+      1: 'all'
     };
     
-    
+    // Определяем текущий тип на основе активной вкладки
     const currentType = tabToType[tabValue] || 'all';
     
-    
+    // Проверяем флаг наличия дополнительных треков для текущего типа
     const currentHasMore = typeof musicContext.hasMoreByType === 'object' 
       ? musicContext.hasMoreByType[currentType] !== false 
       : hasMoreTracks;
 
     console.log(`Настройка бесконечного скролла для вкладки ${tabValue}, тип: ${currentType}, есть еще треки: ${currentHasMore}`);
 
-    
+    // Флаг для отслеживания, был ли запрос на загрузку
     let isLoadingData = false;
 
     const observer = new IntersectionObserver(
       async (entries) => {
         const [entry] = entries;
         
-        
+        // Проверяем видимость элемента и возможность загрузки
         if (entry.isIntersecting && !isLoadingMore && !isLoadingData && !effectiveLoading && currentHasMore) {
           setIsLoadingMore(true);
           isLoadingData = true;
@@ -1011,7 +1200,7 @@ const MusicPage = React.memo(() => {
             console.log(`Загружаем треки для вкладки ${tabValue}, тип: ${currentType}`);
             const result = await loadMoreTracks(currentType);
             
-            
+            // Обновляем флаг наличия дополнительных треков на основе результата
             if (result === false) {
               console.log(`Больше нет треков для типа: ${currentType}`);
               setHasMoreTracks(false);
@@ -1025,10 +1214,10 @@ const MusicPage = React.memo(() => {
           }
         }
       },
-      { threshold: 0.2 } 
+      { threshold: 0.2 } // Порог для раннего обнаружения прокрутки
     );
 
-    
+    // Регистрация observer только если у нас есть элемент и есть еще треки
     if (loaderRef.current && currentHasMore && !effectiveLoading) {
       observer.observe(loaderRef.current);
     }
@@ -1040,42 +1229,41 @@ const MusicPage = React.memo(() => {
     };
   }, [hasMoreTracks, isLoadingMore, loadMoreTracks, tabValue, musicContext.hasMoreByType, effectiveLoading]);
 
-  
+  // При изменении вкладки обновляем состояние и сбрасываем пагинацию
   useEffect(() => {
     if (prevTabValue.current !== tabValue) {
       prevTabValue.current = tabValue;
       
-      
+      // Прокручиваем к началу при смене вкладки
       window.scrollTo(0, 0);
       
-      
+      // Преобразование индекса вкладки в тип данных
       const tabToType = {
         0: 'liked',
-        1: 'all',
-        2: 'random'
+        1: 'all'
       };
       
-      
+      // Определяем текущий тип на основе активной вкладки
       const currentType = tabToType[tabValue] || 'all';
       
-      
+      // Сбрасываем состояние поиска при смене вкладки
       if (searchQuery) {
         setSearchQuery('');
       }
       
-      
+      // Сбрасываем пагинацию для текущего типа
       if (musicContext.resetPagination) {
         musicContext.resetPagination(currentType);
       }
       
-      
+      // Обновляем текущую секцию в контексте
       if (musicContext.setCurrentSection) {
         musicContext.setCurrentSection(currentType);
       }
       
       console.log(`Переключение на вкладку ${tabValue}, тип: ${currentType}`);
       
-      
+      // Обновляем флаг hasMoreTracks на основе значения для текущего типа
       if (typeof musicContext.hasMoreByType === 'object') {
         const hasMore = musicContext.hasMoreByType[currentType];
         setHasMoreTracks(hasMore !== false);
@@ -1083,9 +1271,9 @@ const MusicPage = React.memo(() => {
     }
   }, [tabValue, musicContext.hasMoreByType, musicContext.resetPagination, musicContext.setCurrentSection, searchQuery]);
 
-  
+  // Get section data based on tabValue
   const getSectionData = () => {
-    const coverTypes = ['liked', 'all', 'random'];
+    const coverTypes = ['liked', 'all'];
     const type = coverTypes[tabValue] || 'all';
     
     switch(tabValue) {
@@ -1095,23 +1283,15 @@ const MusicPage = React.memo(() => {
           subtitle: "Ваши любимые треки",
           type: "playlist",
           cover: getCoverWithFallback("/uploads/system/like_playlist.jpg", "liked"),
-          tracks: likedTracks
+          tracks: likedTracks || []
         };
       case 1: 
         return {
           title: "Все треки",
-          subtitle: "Полная коллекция музыки",
+          subtitle: "Треки в случайном порядке",
           type: "collection",
           cover: getCoverWithFallback("/uploads/system/new_tracks.jpg", "all"),
-          tracks: tracks
-        };
-      case 2:
-        return {
-          title: "Случайные",
-          subtitle: "Открывайте новое в своей коллекции",
-          type: "radio",
-          cover: getCoverWithFallback("/uploads/system/random_tracks.jpg", "random"),
-          tracks: randomTracks
+          tracks: tracks || []
         };
       default:
         return {
@@ -1126,16 +1306,16 @@ const MusicPage = React.memo(() => {
   
   const sectionData = getSectionData();
 
-  
+  // Component cleanup
   useEffect(() => {
     return () => {
-      
+      // Always ensure scroll is enabled when navigating away from music page
       document.body.style.overflow = '';
       document.body.style.touchAction = '';
     };
   }, []);
 
-  
+  // Function to copy track link to clipboard
   const copyTrackLink = (track, event) => {
     if (event) {
       event.stopPropagation();
@@ -1159,24 +1339,24 @@ const MusicPage = React.memo(() => {
         });
       });
     
-    
+    // Close context menu if it's open
     handleCloseContextMenu();
   };
   
-  
+  // Function to share a track
   const shareTrack = (track, event) => {
     if (event) {
       event.stopPropagation();
     }
     
-    
+    // Просто копируем ссылку в буфер обмена вместо использования Web Share API
     copyTrackLink(track);
     
-    
+    // Close context menu if it's open
     handleCloseContextMenu();
   };
   
-  
+  // Handle context menu open
   const handleContextMenu = (event, track) => {
     event.preventDefault();
     event.stopPropagation();
@@ -1187,12 +1367,12 @@ const MusicPage = React.memo(() => {
     });
   };
   
-  
+  // Handle context menu close
   const handleCloseContextMenu = () => {
     setContextMenu(null);
   };
   
-  
+  // Handle closing the snackbar
   const handleCloseSnackbar = (event, reason) => {
     if (reason === 'clickaway') {
       return;
@@ -1200,14 +1380,14 @@ const MusicPage = React.memo(() => {
     setSnackbar({...snackbar, open: false});
   };
   
-  
+  // Check for track parameter in URL when component mounts
   useEffect(() => {
     const trackId = searchParams.get('track');
     if (trackId) {
-      
+      // If we have a trackId in the URL, fetch and play that track
       const playTrackFromUrl = async () => {
         try {
-          
+          // Fetch the track info from the API
           const response = await fetch(`/api/music/${trackId}`);
           if (!response.ok) {
             throw new Error('Failed to fetch track');
@@ -1216,9 +1396,9 @@ const MusicPage = React.memo(() => {
           const data = await response.json();
           if (data.success && data.track) {
             console.log('Playing track from URL parameter:', data.track);
-            
+            // Play the track using the context
             playTrack(data.track);
-            
+            // Optionally open full screen player
             setFullScreenPlayerOpen(true);
           }
         } catch (error) {
@@ -1230,7 +1410,7 @@ const MusicPage = React.memo(() => {
     }
   }, [searchParams]);
 
-  
+  // Новые функции для улучшенного UI
   const handleSwitchToTracks = useCallback((index) => {
     setTabValue(index);
     setViewMode('tracks');
@@ -1249,7 +1429,7 @@ const MusicPage = React.memo(() => {
   
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    const currentType = tabValue === 0 ? 'liked' : tabValue === 1 ? 'all' : 'random';
+    const currentType = tabValue === 0 ? 'liked' : 'all';
     
     if (musicContext.resetPagination) {
       await musicContext.resetPagination(currentType);
@@ -1277,6 +1457,48 @@ const MusicPage = React.memo(() => {
     }
   }, [showSearchBar]);
 
+  // Простая функция для лайка трека
+  const handleLikeTrack = (trackId) => {
+    likeTrack(trackId);
+  };
+
+  // Обновляем чарты при изменении массива лайкнутых треков
+  useEffect(() => {
+    if (charts && likedTracks) {
+      // Создаем набор ID лайкнутых треков
+      const likedTrackIds = new Set(likedTracks.map(track => track.id));
+      
+      // Функция для синхронизации лайков в чартах
+      const updateChartsWithLikes = () => {
+        // Функция для обновления статуса лайков
+        const updateLikedStatus = (chartTracks) => {
+          if (!chartTracks || !Array.isArray(chartTracks)) return chartTracks;
+          
+          return chartTracks.map(track => {
+            if (!track || !track.id) return track;
+            // Обновляем статус лайка
+            return {
+              ...track,
+              is_liked: likedTrackIds.has(track.id)
+            };
+          });
+        };
+        
+        // Обновляем каждый чарт
+        setCharts(prevCharts => ({
+          ...prevCharts,
+          most_played: updateLikedStatus(prevCharts.most_played),
+          new_releases: updateLikedStatus(prevCharts.new_releases),
+          trending: updateLikedStatus(prevCharts.trending),
+          most_liked: updateLikedStatus(prevCharts.most_liked)
+        }));
+      };
+      
+      // Обновляем чарты
+      updateChartsWithLikes();
+    }
+  }, [likedTracks]);
+
   return (
     <MusicPageContainer 
       maxWidth="xl" 
@@ -1285,7 +1507,7 @@ const MusicPage = React.memo(() => {
         pb: 10 
       }}
     >
-      {}
+      
       {currentTrack ? (
         <SEO
           title={`${currentTrack.title} - ${currentTrack.artist || 'Неизвестный исполнитель'}`}
@@ -1313,7 +1535,7 @@ const MusicPage = React.memo(() => {
         />
       )}
       
-      {}
+      
       {isMobile ? (
         <MobileSearchContainer>
           <Box sx={{ 
@@ -1345,8 +1567,8 @@ const MusicPage = React.memo(() => {
             )}
             
             {showSearchBar ? (
-              <StyledSearchInput focused={isSearchFocused} sx={{ height: 36, flexGrow: 1 }}>
-                <Search sx={{ fontSize: 16, mr: 0.5, color: 'text.secondary' }} />
+              <StyledSearchInput focused={isSearchFocused} sx={{ height: 40, flexGrow: 1 }}>
+                <Search sx={{ fontSize: 18, mr: 0.5, color: 'text.secondary' }} />
                 <input
                   ref={searchInputRef}
                   placeholder="Поиск трека или исполнителя"
@@ -1376,10 +1598,10 @@ const MusicPage = React.memo(() => {
                 >
                   <Search fontSize="small" />
                 </IconButton>
-                
                 <IconButton 
-                  color="primary" 
+                  color="inherit" 
                   onClick={handleOpenUploadDialog}
+                  sx={{ mr: 0.5 }}
                   size="small"
                 >
                   <Upload fontSize="small" />
@@ -1463,10 +1685,10 @@ const MusicPage = React.memo(() => {
                 >
                   <Search />
                 </IconButton>
-                
                 <IconButton 
-                  color="primary" 
+                  color="inherit" 
                   onClick={handleOpenUploadDialog}
+                  sx={{ mr: 0.5 }}
                 >
                   <Upload />
                 </IconButton>
@@ -1489,10 +1711,10 @@ const MusicPage = React.memo(() => {
         </SearchContainer>
       )}
       
-      {}
+      
       {!searchQuery ? (
         <>
-          {}
+          
           {viewMode === 'categories' && (
             <Fade in={true} timeout={500}>
               <Box sx={{ pt: 2 }}>
@@ -1506,7 +1728,7 @@ const MusicPage = React.memo(() => {
                   </Typography>
                   
                   <Grid container spacing={2}>
-                    <Grid item xs={12} sm={4}>
+                    <Grid item xs={12} sm={6}>
                       <Zoom in={true} style={{ transitionDelay: '100ms' }}>
                         <CategoryCard 
                           elevation={3}
@@ -1538,7 +1760,7 @@ const MusicPage = React.memo(() => {
                               </Box>
                             </Box>
                             
-                            {}
+                            
                             {likedTracks && likedTracks.length > 0 && (
                               <Box sx={{ mt: 1 }}>
                                 {likedTracks.slice(0, 3).map((track, index) => (
@@ -1571,7 +1793,7 @@ const MusicPage = React.memo(() => {
                       </Zoom>
                     </Grid>
                     
-                    <Grid item xs={12} sm={4}>
+                    <Grid item xs={12} sm={6}>
                       <Zoom in={true} style={{ transitionDelay: '200ms' }}>
                         <CategoryCard 
                           elevation={3}
@@ -1590,7 +1812,7 @@ const MusicPage = React.memo(() => {
                               mb: 2
                             }}>
                               <CategoryIcon sx={{ mr: 2 }}>
-                                <LibraryMusic color="primary" />
+                                <Shuffle color="secondary" />
                               </CategoryIcon>
                               <Box>
                                 <Typography variant="h6" fontWeight="600">
@@ -1603,7 +1825,7 @@ const MusicPage = React.memo(() => {
                               </Box>
                             </Box>
                             
-                            {}
+                            
                             {tracks && tracks.length > 0 && (
                               <Box sx={{ mt: 1 }}>
                                 {tracks.slice(0, 3).map((track, index) => (
@@ -1635,74 +1857,254 @@ const MusicPage = React.memo(() => {
                         </CategoryCard>
                       </Zoom>
                     </Grid>
-                    
-                    <Grid item xs={12} sm={4}>
-                      <Zoom in={true} style={{ transitionDelay: '300ms' }}>
-                        <CategoryCard 
-                          elevation={3}
-                          onClick={() => handleSwitchToTracks(2)}
-                          active={tabValue === 2 && viewMode === 'tracks'}
-                        >
-                          <CardContent sx={{ 
-                            display: 'flex', 
-                            flexDirection: 'column',
-                            height: '100%',
-                            p: { xs: 2, sm: 3 }
-                          }}>
-                            <Box sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              mb: 2
-                            }}>
-                              <CategoryIcon sx={{ mr: 2 }}>
-                                <Shuffle color="secondary" />
-                              </CategoryIcon>
-                              <Box>
-                                <Typography variant="h6" fontWeight="600">
-                                  Случайные
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                  Треки в случайном порядке
-                                </Typography>
-                              </Box>
-                            </Box>
-                            
-                            {}
-                            {randomTracks && randomTracks.length > 0 && (
-                              <Box sx={{ mt: 1 }}>
-                                {randomTracks.slice(0, 3).map((track, index) => (
-                                  <CompactTrackItem key={track.id || index}>
-                                    <Avatar
-                                      variant="rounded"
-                                      src={getCoverWithFallback(track.cover_path || '', "album")}
-                                      alt={track.title || ''}
-                                      sx={{ 
-                                        width: 32, 
-                                        height: 32, 
-                                        borderRadius: 1, 
-                                        mr: 1.5 
-                                      }}
-                                    />
-                                    <Box sx={{ minWidth: 0, flexGrow: 1 }}>
-                                      <Typography variant="body2" noWrap>
-                                        {track.title || 'Без названия'}
-                                      </Typography>
-                                      <Typography variant="caption" color="text.secondary" noWrap>
-                                        {track.artist || 'Неизвестный исполнитель'}
-                                      </Typography>
-                                    </Box>
-                                  </CompactTrackItem>
-                                ))}
-                              </Box>
-                            )}
-                          </CardContent>
-                        </CategoryCard>
-                      </Zoom>
-                    </Grid>
                   </Grid>
                 </HeaderPaper>
                 
-                {}
+                
+                <HeaderPaper elevation={0}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    mb: 2 
+                  }}>
+                    <Typography variant="h5" fontWeight="bold">
+                      Чарты
+                    </Typography>
+                  </Box>
+                  
+                  {chartsLoading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                      <CircularProgress size={30} />
+                    </Box>
+                  ) : (
+                    <Grid container spacing={2}>
+                      
+                      <Grid item xs={12} md={6}>
+                        <Zoom in={true} style={{ transitionDelay: '150ms' }}>
+                          <Paper
+                            elevation={0}
+                            sx={{
+                              p: 2,
+                              height: '100%',
+                              borderRadius: 2,
+                              backgroundColor: 'rgba(25,25,25,0.6)',
+                              backdropFilter: 'blur(10px)',
+                              border: '1px solid rgba(255,255,255,0.05)',
+                            }}
+                          >
+                            <Typography variant="h6" gutterBottom fontWeight="600">
+                              Популярные
+                            </Typography>
+                            
+                            {charts.most_played && charts.most_played.length > 0 ? (
+                              <Box>
+                                {charts.most_played.slice(0, 5).map((track, index) => (
+                                  <ChartTrackItem 
+                                    key={track.id || index} 
+                                    onClick={() => handleTrackClick(track)}
+                                  >
+                                    <ChartPosition>
+                                      {index + 1}
+                                    </ChartPosition>
+                                    
+                                    <ChartCover>
+                                      <img 
+                                        src={getCoverWithFallback(track.cover_path || '', "album")} 
+                                        alt={track.title}
+                                        width="100%"
+                                        height="100%"
+                                        style={{ objectFit: 'cover' }}
+                                      />
+                                    </ChartCover>
+                                    
+                                    <ChartInfoContainer>
+                                      <ChartTrackTitle>
+                                        {track.title || 'Без названия'}
+                                      </ChartTrackTitle>
+                                      <ChartTrackArtist>
+                                        {track.artist || 'Неизвестный исполнитель'}
+                                      </ChartTrackArtist>
+                                    </ChartInfoContainer>
+                                    
+                                    <Box sx={{ 
+                                      display: 'flex', 
+                                      alignItems: 'center',
+                                      ml: 'auto' 
+                                    }}>
+                                      <IconButton 
+                                        size="small"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleLikeTrack(track.id);
+                                        }}
+                                        sx={{ 
+                                          color: track.is_liked ? 'error.main' : 'text.secondary',
+                                          transition: 'all 0.2s ease',
+                                          '&:hover': {
+                                            color: track.is_liked ? 'error.light' : '#ff6b6b',
+                                            transform: 'scale(1.1)',
+                                          }
+                                        }}
+                                      >
+                                        {track.is_liked ? (
+                                          <Favorite 
+                                            fontSize="small" 
+                                            sx={{ 
+                                              animation: 'heartBeat 0.5s',
+                                              '@keyframes heartBeat': {
+                                                '0%': { transform: 'scale(1)' },
+                                                '14%': { transform: 'scale(1.3)' },
+                                                '28%': { transform: 'scale(1)' },
+                                                '42%': { transform: 'scale(1.3)' },
+                                                '70%': { transform: 'scale(1)' },
+                                              }
+                                            }}
+                                          />
+                                        ) : (
+                                          <FavoriteBorder 
+                                            fontSize="small"
+                                            sx={{
+                                              '&:hover': {
+                                                animation: 'pulse 1.5s infinite',
+                                                '@keyframes pulse': {
+                                                  '0%': { opacity: 1 },
+                                                  '50%': { opacity: 0.6 },
+                                                  '100%': { opacity: 1 }
+                                                }
+                                              }
+                                            }}
+                                          />
+                                        )}
+                                      </IconButton>
+                                    </Box>
+                                  </ChartTrackItem>
+                                ))}
+                              </Box>
+                            ) : (
+                              <Typography color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>
+                                Нет данных о популярных треках
+                              </Typography>
+                            )}
+                          </Paper>
+                        </Zoom>
+                      </Grid>
+                      
+                      
+                      <Grid item xs={12} md={6}>
+                        <Zoom in={true} style={{ transitionDelay: '300ms' }}>
+                          <Paper
+                            elevation={0}
+                            sx={{
+                              p: 2,
+                              height: '100%',
+                              borderRadius: 2,
+                              backgroundColor: 'rgba(25,25,25,0.6)',
+                              backdropFilter: 'blur(10px)',
+                              border: '1px solid rgba(255,255,255,0.05)',
+                            }}
+                          >
+                            <Typography variant="h6" gutterBottom fontWeight="600">
+                              Новинки
+                            </Typography>
+                            
+                            {charts.new_releases && charts.new_releases.length > 0 ? (
+                              <Box>
+                                {charts.new_releases.slice(0, 5).map((track, index) => (
+                                  <ChartTrackItem 
+                                    key={track.id || index} 
+                                    onClick={() => handleTrackClick(track)}
+                                  >
+                                    <ChartPosition>
+                                      {index + 1}
+                                    </ChartPosition>
+                                    
+                                    <ChartCover>
+                                      <img 
+                                        src={getCoverWithFallback(track.cover_path || '', "album")} 
+                                        alt={track.title}
+                                        width="100%"
+                                        height="100%"
+                                        style={{ objectFit: 'cover' }}
+                                      />
+                                    </ChartCover>
+                                    
+                                    <ChartInfoContainer>
+                                      <ChartTrackTitle>
+                                        {track.title || 'Без названия'}
+                                      </ChartTrackTitle>
+                                      <ChartTrackArtist>
+                                        {track.artist || 'Неизвестный исполнитель'}
+                                      </ChartTrackArtist>
+                                    </ChartInfoContainer>
+                                    
+                                    <Box sx={{ 
+                                      display: 'flex', 
+                                      alignItems: 'center',
+                                      ml: 'auto' 
+                                    }}>
+                                      <IconButton 
+                                        size="small"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleLikeTrack(track.id);
+                                        }}
+                                        sx={{ 
+                                          color: track.is_liked ? 'error.main' : 'text.secondary',
+                                          transition: 'all 0.2s ease',
+                                          '&:hover': {
+                                            color: track.is_liked ? 'error.light' : '#ff6b6b',
+                                            transform: 'scale(1.1)',
+                                          }
+                                        }}
+                                      >
+                                        {track.is_liked ? (
+                                          <Favorite 
+                                            fontSize="small" 
+                                            sx={{ 
+                                              animation: 'heartBeat 0.5s',
+                                              '@keyframes heartBeat': {
+                                                '0%': { transform: 'scale(1)' },
+                                                '14%': { transform: 'scale(1.3)' },
+                                                '28%': { transform: 'scale(1)' },
+                                                '42%': { transform: 'scale(1.3)' },
+                                                '70%': { transform: 'scale(1)' },
+                                              }
+                                            }}
+                                          />
+                                        ) : (
+                                          <FavoriteBorder 
+                                            fontSize="small"
+                                            sx={{
+                                              '&:hover': {
+                                                animation: 'pulse 1.5s infinite',
+                                                '@keyframes pulse': {
+                                                  '0%': { opacity: 1 },
+                                                  '50%': { opacity: 0.6 },
+                                                  '100%': { opacity: 1 }
+                                                }
+                                              }
+                                            }}
+                                          />
+                                        )}
+                                      </IconButton>
+                                    </Box>
+                                  </ChartTrackItem>
+                                ))}
+                              </Box>
+                            ) : (
+                              <Typography color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>
+                                Нет данных о новых релизах
+                              </Typography>
+                            )}
+                          </Paper>
+                        </Zoom>
+                      </Grid>
+                    </Grid>
+                  )}
+                </HeaderPaper>
+                
+                
                 <HeaderPaper elevation={0}>
                   <Box sx={{ 
                     display: 'flex', 
@@ -1799,13 +2201,13 @@ const MusicPage = React.memo(() => {
                   )}
                 </HeaderPaper>
                 
-                {}
-                {}
+                
+                
               </Box>
             </Fade>
           )}
         
-          {}
+          
           {viewMode === 'tracks' && (
             <Fade in={true} timeout={500}>
               <Box sx={{ pt: 2 }}>
@@ -1891,7 +2293,7 @@ const MusicPage = React.memo(() => {
                   </Box>
                 </HeaderPaper>
                 
-                {}
+                
                 <Box sx={{ mb: 4 }}>
                   {effectiveLoading ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
@@ -2003,14 +2405,45 @@ const MusicPage = React.memo(() => {
                                       size="small"
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        likeTrack(track.id);
+                                        handleLikeTrack(track.id);
                                       }}
-                                      sx={{ color: track.is_liked ? 'error.main' : 'text.secondary' }}
+                                      sx={{ 
+                                        color: track.is_liked ? 'error.main' : 'text.secondary',
+                                        transition: 'all 0.2s ease',
+                                        '&:hover': {
+                                          color: track.is_liked ? 'error.light' : '#ff6b6b',
+                                          transform: 'scale(1.1)',
+                                        }
+                                      }}
                                     >
                                       {track.is_liked ? (
-                                        <Favorite fontSize="small" />
+                                        <Favorite 
+                                          fontSize="small" 
+                                          sx={{ 
+                                            animation: 'heartBeat 0.5s',
+                                            '@keyframes heartBeat': {
+                                              '0%': { transform: 'scale(1)' },
+                                              '14%': { transform: 'scale(1.3)' },
+                                              '28%': { transform: 'scale(1)' },
+                                              '42%': { transform: 'scale(1.3)' },
+                                              '70%': { transform: 'scale(1)' },
+                                            }
+                                          }}
+                                        />
                                       ) : (
-                                        <FavoriteBorder fontSize="small" />
+                                        <FavoriteBorder 
+                                          fontSize="small"
+                                          sx={{
+                                            '&:hover': {
+                                              animation: 'pulse 1.5s infinite',
+                                              '@keyframes pulse': {
+                                                '0%': { opacity: 1 },
+                                                '50%': { opacity: 0.6 },
+                                                '100%': { opacity: 1 }
+                                              }
+                                            }
+                                          }}
+                                        />
                                       )}
                                     </IconButton>
                                   </Box>
@@ -2067,7 +2500,7 @@ const MusicPage = React.memo(() => {
                         )}
                       </List>
                       
-                      {}
+                      
                       {!searchQuery && hasMoreTracks && (
                         <Box 
                           ref={loaderRef} 
@@ -2099,7 +2532,7 @@ const MusicPage = React.memo(() => {
           )}
         </>
       ) : (
-        
+        // Результаты поиска
         <Fade in={true} timeout={500}>
           <Box sx={{ pt: 2, pb: 2 }}>
             <Typography variant="h5" fontWeight="bold" sx={{ mb: 2 }}>
@@ -2196,14 +2629,45 @@ const MusicPage = React.memo(() => {
                               size="small"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                likeTrack(track.id);
+                                handleLikeTrack(track.id);
                               }}
-                              sx={{ color: track.is_liked ? 'error.main' : 'text.secondary' }}
+                              sx={{ 
+                                color: track.is_liked ? 'error.main' : 'text.secondary',
+                                transition: 'all 0.2s ease',
+                                '&:hover': {
+                                  color: track.is_liked ? 'error.light' : '#ff6b6b',
+                                  transform: 'scale(1.1)',
+                                }
+                              }}
                             >
                               {track.is_liked ? (
-                                <Favorite fontSize="small" />
+                                <Favorite 
+                                  fontSize="small" 
+                                  sx={{ 
+                                    animation: 'heartBeat 0.5s',
+                                    '@keyframes heartBeat': {
+                                      '0%': { transform: 'scale(1)' },
+                                      '14%': { transform: 'scale(1.3)' },
+                                      '28%': { transform: 'scale(1)' },
+                                      '42%': { transform: 'scale(1.3)' },
+                                      '70%': { transform: 'scale(1)' },
+                                    }
+                                  }}
+                                />
                               ) : (
-                                <FavoriteBorder fontSize="small" />
+                                <FavoriteBorder 
+                                  fontSize="small"
+                                  sx={{
+                                    '&:hover': {
+                                      animation: 'pulse 1.5s infinite',
+                                      '@keyframes pulse': {
+                                        '0%': { opacity: 1 },
+                                        '50%': { opacity: 0.6 },
+                                        '100%': { opacity: 1 }
+                                      }
+                                    }
+                                  }}
+                                />
                               )}
                             </IconButton>
                           </Box>
@@ -2234,7 +2698,7 @@ const MusicPage = React.memo(() => {
         </Fade>
       )}
       
-      {}
+      
       {isMobile && (
         <Slide direction="up" in={isMobileNavVisible} mountOnEnter unmountOnExit>
           <MobileNavigation 
@@ -2248,7 +2712,12 @@ const MusicPage = React.memo(() => {
               }
             }}
             showLabels
-            sx={{ height: 48 }}
+            sx={{ 
+              height: 56,
+              borderTop: '1px solid rgba(255,255,255,0.05)',
+              boxShadow: '0 -2px 10px rgba(0,0,0,0.2)',
+              px: 1
+            }}
           >
             <BottomNavigationAction 
               label="Главная" 
@@ -2258,7 +2727,7 @@ const MusicPage = React.memo(() => {
                 padding: 1,
                 '& .MuiBottomNavigationAction-label': {
                   fontSize: '0.625rem',
-                  marginTop: 0
+                  marginTop: 0.5
                 }
               }}
             />
@@ -2270,7 +2739,7 @@ const MusicPage = React.memo(() => {
                 padding: 1,
                 '& .MuiBottomNavigationAction-label': {
                   fontSize: '0.625rem',
-                  marginTop: 0
+                  marginTop: 0.5
                 }
               }}
             />
@@ -2282,19 +2751,7 @@ const MusicPage = React.memo(() => {
                 padding: 1,
                 '& .MuiBottomNavigationAction-label': {
                   fontSize: '0.625rem',
-                  marginTop: 0
-                }
-              }}
-            />
-            <BottomNavigationAction 
-              label="Случайно" 
-              icon={<Shuffle sx={{ fontSize: '1.3rem' }} />} 
-              sx={{ 
-                minWidth: 0, 
-                padding: 1,
-                '& .MuiBottomNavigationAction-label': {
-                  fontSize: '0.625rem',
-                  marginTop: 0
+                  marginTop: 0.5
                 }
               }}
             />
@@ -2302,22 +2759,21 @@ const MusicPage = React.memo(() => {
         </Slide>
       )}
       
-
       
-      {}
+      
       <FullScreenPlayer 
         open={fullScreenPlayerOpen} 
         onClose={handleCloseFullScreenPlayer} 
       />
 
-      {}
+      
       <MusicUploadDialog 
         open={uploadDialogOpen} 
         onClose={handleCloseUploadDialog} 
         onSuccess={() => {}} 
       />
       
-      {}
+      
       <Menu
         open={contextMenu !== null}
         onClose={handleCloseContextMenu}
@@ -2401,14 +2857,27 @@ const MusicPage = React.memo(() => {
             <MenuItem 
               onClick={(e) => {
                 e.stopPropagation();
-                likeTrack(selectedTrack?.id);
+                handleLikeTrack(selectedTrack?.id);
                 handleCloseContextMenu();
               }}
               sx={{ py: 1.5 }}
             >
               <ListItemAvatar sx={{ minWidth: 36 }}>
                 {selectedTrack?.is_liked ? (
-                  <Favorite fontSize="small" color="error" />
+                  <Favorite 
+                    fontSize="small" 
+                    color="error" 
+                    sx={{ 
+                      animation: 'heartBeat 0.5s',
+                      '@keyframes heartBeat': {
+                        '0%': { transform: 'scale(1)' },
+                        '14%': { transform: 'scale(1.3)' },
+                        '28%': { transform: 'scale(1)' },
+                        '42%': { transform: 'scale(1.3)' },
+                        '70%': { transform: 'scale(1)' },
+                      }
+                    }}
+                  />
                 ) : (
                   <FavoriteBorder fontSize="small" />
                 )}
@@ -2423,7 +2892,7 @@ const MusicPage = React.memo(() => {
               onClick={(e) => {
                 e.stopPropagation();
                 handleCloseContextMenu();
-                
+                // Здесь можно добавить логику для добавления в плейлист
               }}
               sx={{ py: 1.5 }}
             >
@@ -2440,7 +2909,7 @@ const MusicPage = React.memo(() => {
               onClick={(e) => {
                 e.stopPropagation();
                 handleCloseContextMenu();
-                
+                // Здесь можно добавить логику для скачивания трека
               }}
               sx={{ py: 1.5 }}
             >
@@ -2456,7 +2925,7 @@ const MusicPage = React.memo(() => {
         )}
       </Menu>
       
-      {}
+      
       <Snackbar 
         open={snackbar.open} 
         autoHideDuration={4000} 
@@ -2486,7 +2955,7 @@ const MusicPage = React.memo(() => {
         </Alert>
       </Snackbar>
       
-      {}
+      
       <Zoom in={showBackToTop}>
         <Fab
           size="small"
@@ -2506,6 +2975,28 @@ const MusicPage = React.memo(() => {
           <KeyboardArrowUp />
         </Fab>
       </Zoom>
+
+      
+      {searchQuery.trim() && !searchLoading && displayedTracks.length === 0 && (
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          py: 8
+        }}>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+            По запросу "{searchQuery}" ничего не найдено
+          </Typography>
+          <Button 
+            variant="outlined" 
+            onClick={clearSearch}
+            startIcon={<Refresh />}
+          >
+            Очистить поиск
+          </Button>
+        </Box>
+      )}
     </MusicPageContainer>
   );
 });

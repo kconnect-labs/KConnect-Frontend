@@ -1,0 +1,55 @@
+{
+  "name": "К-Коннект",
+  "short_name": "К-Коннект",
+  "description": "Социальная сеть от независимого разработчика",
+  "lang": "ru",
+  "dir": "ltr",
+  "display": "standalone",
+  "orientation": "portrait",
+  "start_url": "/",
+  "scope": "/",
+  "theme_color": "#1E1E1E",
+  "background_color": "#1E1E1E",
+  "icons": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Главная страница К-Коннект на мобильном"
+    },
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1536x2049",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Главная страница К-Коннект на компьютере"
+    }
+  ]
+} 

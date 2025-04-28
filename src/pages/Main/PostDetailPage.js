@@ -25,7 +25,12 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle
+  DialogTitle,
+  Slide,
+  AppBar,
+  Toolbar,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -63,10 +68,12 @@ import CommentRoundedIcon from '@mui/icons-material/CommentRounded';
 import CommentOutlinedIcon from '@mui/icons-material/CommentOutlined';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import { ThemeSettingsContext } from '../../App';
-
+// Добавляем импорт функции requireAuth
 import { requireAuth } from '../../utils/authUtils';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import { usePostDetail } from '../../context/PostDetailContext';
 
+// Styled components
 const MarkdownContent = styled(Box)(({ theme }) => ({
   '& p': { margin: theme.spacing(1, 0) },
   '& h1, & h2, & h3, & h4, & h5, & h6': {
@@ -149,6 +156,7 @@ const RemoveMediaButton = styled(IconButton)(({ theme }) => ({
   },
 }));
 
+// Comment component
 const Comment = ({ 
   comment, 
   onLike, 
@@ -207,43 +215,43 @@ const Comment = ({
     setCommentImageError(true);
   };
 
-  
+  // This function tries different URL formats for reply images
   const getReplyImageFallback = (originalUrl) => {
     if (!originalUrl) return null;
     
-    
+    // If this is the original URL, try alternate format
     if (!originalUrl.includes('_fallback')) {
-      
+      // Try to fix the path - from /static/uploads/reply/ID/file.jpg to /static/uploads/replies/ID/file.jpg
       if (originalUrl.includes('/static/uploads/reply/')) {
         return originalUrl.replace('/static/uploads/reply/', '/static/uploads/replies/') + '_fallback1';
       }
       
-      
+      // If the URL has a different structure, try with leading slash
       if (!originalUrl.startsWith('/')) {
         return '/' + originalUrl + '_fallback2';
       }
     } 
-    
+    // If this is fallback1, try fallback2
     else if (originalUrl.includes('_fallback1')) {
       const baseUrl = originalUrl.replace('_fallback1', '');
       return baseUrl.replace('/static/uploads/replies/', '/static/uploads/images/replies/') + '_fallback2';
     }
-    
+    // If this is fallback2, try fallback3
     else if (originalUrl.includes('_fallback2')) {
       const baseUrl = originalUrl.replace('_fallback2', '');
-      
+      // Extract just the filename from the path
       const filename = baseUrl.split('/').pop();
       return `/static/uploads/reply/${filename}` + '_fallback3';
     }
     
-    
+    // No more fallbacks
     return null;
   };
 
   const handleReplyImageError = (replyId, imageUrl) => {
     console.error("Reply image failed to load:", imageUrl);
     
-    
+    // Try to diagnose the issue
     console.log("Reply image details:", {
       replyId: replyId,
       url: imageUrl,
@@ -251,7 +259,7 @@ const Comment = ({
       urlLength: imageUrl ? imageUrl.length : 0
     });
     
-    
+    // Check if we can try a fallback URL
     const fallbackUrl = getReplyImageFallback(imageUrl);
     
     if (fallbackUrl) {
@@ -263,14 +271,14 @@ const Comment = ({
       return;
     }
     
-    
+    // No more fallbacks, mark as error
     setReplyImageErrors(prev => ({
       ...prev,
       [replyId]: true
     }));
   };
 
-  
+  // Проверяем, является ли текущий пользователь владельцем комментария
   const isCommentOwner = user && (comment.user_id === user.id || user.is_admin);
 
   return (
@@ -278,12 +286,12 @@ const Comment = ({
       <Box 
         id={`comment-${comment.id}`}
         sx={{ 
-        bgcolor: 'rgba(28, 28, 32, 0.4)', 
+        bgcolor: 'rgba(28, 28, 32, 0.4)', // Slightly darker background
         backdropFilter: 'blur(10px)',
-        borderRadius: '14px', 
-        p: { xs: 1.5, sm: 2 }, 
-        border: '1px solid rgba(255, 255, 255, 0.03)', 
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', 
+        borderRadius: '14px', // More rounded corners
+        p: { xs: 1.5, sm: 2 }, // Smaller padding
+        border: '1px solid rgba(255, 255, 255, 0.03)', // Subtler border
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', // Lighter shadow
         transition: 'all 0.2s ease-in-out',
         '&:hover': {
           boxShadow: '0 3px 12px rgba(0, 0, 0, 0.12)',
@@ -299,9 +307,9 @@ const Comment = ({
             component={Link}
             to={`/profile/${comment.user.username}`}
             sx={{ 
-              width: { xs: 30, sm: 36 }, 
+              width: { xs: 30, sm: 36 }, // Smaller avatar
               height: { xs: 30, sm: 36 },
-              border: '1px solid rgba(140, 82, 255, 0.2)', 
+              border: '1px solid rgba(140, 82, 255, 0.2)', // Subtle border
               transition: 'all 0.2s ease',
               '&:hover': {
                 borderColor: 'primary.main',
@@ -328,7 +336,7 @@ const Comment = ({
                     '&:hover': { color: 'primary.main' },
                     display: 'flex',
                     alignItems: 'center',
-                    fontSize: { xs: '0.8rem', sm: '0.9rem' } 
+                    fontSize: { xs: '0.8rem', sm: '0.9rem' } // Smaller font size
                   }}
                 >
                   {comment.user.name}
@@ -476,8 +484,8 @@ const Comment = ({
                     border: '1px solid rgba(255, 255, 255, 0.05)',
                     boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
                     cursor: 'pointer',
-                    display: 'inline-block', 
-                    maxWidth: { xs: '240px', sm: '280px' }, 
+                    display: 'inline-block', // Make it fit content instead of full width
+                    maxWidth: { xs: '240px', sm: '280px' }, // Fixed max width instead of percentage
                     '&:hover': {
                       '& .zoom-icon': {
                         opacity: 1
@@ -494,9 +502,9 @@ const Comment = ({
                         maxWidth: '100%',
                         maxHeight: '200px',
                         borderRadius: '10px',
-                        objectFit: 'contain', 
-                        display: 'block', 
-                        margin: '0 auto' 
+                        objectFit: 'contain', // Use contain to preserve aspect ratio
+                        display: 'block', // Ensure proper layout
+                        margin: '0 auto' // Center the image
                       }} 
                       onError={handleCommentImageError}
                     />
@@ -622,7 +630,7 @@ const Comment = ({
         </Box>
       </Box>
 
-      {}
+      
       {lightboxOpen && comment.image && !currentLightboxImage && (
         <LightBox
           isOpen={lightboxOpen}
@@ -631,7 +639,7 @@ const Comment = ({
         />
       )}
       
-      {}
+      
       {lightboxOpen && currentLightboxImage && (
         <LightBox
           isOpen={lightboxOpen}
@@ -643,22 +651,22 @@ const Comment = ({
         />
       )}
 
-      {}
+      
       {comment.replies && comment.replies.length > 0 && (
         <Box sx={{ 
-          mt: 0.5, 
-          ml: { xs: 0.5, sm: 4 }, 
+          mt: 0.5, // Reduced margin
+          ml: { xs: 0.5, sm: 4 }, // Reduced indentation on mobile
           pl: { xs: 0.5, sm: 2 },
           borderLeft: '2px solid rgba(140, 82, 255, 0.2)',
           py: { xs: 0.5, sm: 1 }
         }}>
           {[...comment.replies]
-            
+            // Ensure we use the correct timestamp field and handle both formats
             .sort((a, b) => {
-              
+              // Try to use created_at first, timestamp as fallback
               const dateA = a.created_at ? new Date(a.created_at) : a.timestamp ? new Date(a.timestamp) : new Date(0);
               const dateB = b.created_at ? new Date(b.created_at) : b.timestamp ? new Date(b.timestamp) : new Date(0);
-              
+              // Sort in ascending order (oldest first)
               return dateA.getTime() - dateB.getTime();
             })
             .map(reply => {
@@ -670,8 +678,8 @@ const Comment = ({
                     bgcolor: 'rgba(32, 32, 36, 0.4)',
                     backdropFilter: 'blur(5px)',
                     borderRadius: '14px',
-                    p: { xs: 1.25, sm: 2 }, 
-                    mb: 1, 
+                    p: { xs: 1.25, sm: 2 }, // Reduced padding on mobile
+                    mb: 1, // Reduced margin
                     border: '1px solid rgba(255, 255, 255, 0.03)',
                     boxShadow: '0 2px 10px rgba(0, 0, 0, 0.08)',
                     transition: 'all 0.2s ease-in-out',
@@ -681,14 +689,14 @@ const Comment = ({
                     }
                   }}
                 >
-                  {}
+                  
                   {reply.parent_reply_id ? (
                     <Box 
                       sx={{ 
                         bgcolor: 'rgba(255, 255, 255, 0.03)',
                         borderRadius: '8px',
-                        p: { xs: 1, sm: 1.5 }, 
-                        mb: 1, 
+                        p: { xs: 1, sm: 1.5 }, // Reduced padding on mobile
+                        mb: 1, // Reduced margin
                         borderLeft: '3px solid rgba(140, 82, 255, 0.5)'
                       }}
                     >
@@ -698,7 +706,7 @@ const Comment = ({
                             ? `/static/uploads/avatar/${comment.replies.find(r => r.id === reply.parent_reply_id)?.user?.id}/${comment.replies.find(r => r.id === reply.parent_reply_id)?.user?.photo}`
                             : `/static/uploads/avatar/system/avatar.png`}
                           alt={comment.replies.find(r => r.id === reply.parent_reply_id)?.user?.name}
-                          sx={{ width: 18, height: 18 }} 
+                          sx={{ width: 18, height: 18 }} // Smaller avatar
                           onError={(e) => {
                             console.error("Reply avatar failed to load");
                             if (e.currentTarget && e.currentTarget.setAttribute) {
@@ -722,7 +730,7 @@ const Comment = ({
                         color="text.secondary"
                         sx={{ 
                           display: '-webkit-box',
-                          WebkitLineClamp: 1, 
+                          WebkitLineClamp: 1, // Show only 1 line on mobile
                           WebkitBoxOrient: 'vertical',
                           overflow: 'hidden',
                           mt: 0.25,
@@ -741,8 +749,8 @@ const Comment = ({
                       sx={{ 
                         bgcolor: 'rgba(255, 255, 255, 0.03)',
                         borderRadius: '8px',
-                        p: { xs: 1, sm: 1.5 }, 
-                        mb: 1, 
+                        p: { xs: 1, sm: 1.5 }, // Reduced padding on mobile
+                        mb: 1, // Reduced margin
                         borderLeft: '3px solid rgba(140, 82, 255, 0.5)'
                       }}
                     >
@@ -752,7 +760,7 @@ const Comment = ({
                             ? `/static/uploads/avatar/${comment.user.id}/${comment.user.photo}`
                             : `/static/uploads/avatar/system/avatar.png`}
                           alt={comment.user.name}
-                          sx={{ width: 18, height: 18 }} 
+                          sx={{ width: 18, height: 18 }} // Smaller avatar
                           onError={(e) => {
                             console.error("Reply form avatar failed to load");
                             if (e.currentTarget && e.currentTarget.setAttribute) {
@@ -776,7 +784,7 @@ const Comment = ({
                         color="text.secondary"
                         sx={{ 
                           display: '-webkit-box',
-                          WebkitLineClamp: 1, 
+                          WebkitLineClamp: 1, // Show only 1 line on mobile
                           WebkitBoxOrient: 'vertical',
                           overflow: 'hidden',
                           mt: 0.25,
@@ -801,7 +809,7 @@ const Comment = ({
                       component={Link}
                       to={`/profile/${reply.user.username}`}
                       sx={{ 
-                        width: 26, 
+                        width: 26, // Smaller avatar
                         height: 26,
                         border: '1px solid rgba(140, 82, 255, 0.2)',
                         transition: 'all 0.2s ease',
@@ -940,7 +948,7 @@ const Comment = ({
                         {reply.content}
                       </Typography>
                       
-                      {}
+                      
                       {reply.image ? (
                         <Box sx={{ mt: 1, mb: { xs: 1, sm: 1.5 } }}>
                           <Box
@@ -951,8 +959,8 @@ const Comment = ({
                               border: '1px solid rgba(255, 255, 255, 0.05)',
                               boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
                               cursor: 'pointer',
-                              display: 'inline-block', 
-                              maxWidth: { xs: '240px', sm: '280px' }, 
+                              display: 'inline-block', // Make it fit content instead of full width
+                              maxWidth: { xs: '240px', sm: '280px' }, // Fixed max width instead of percentage
                               '&:hover': {
                                 '& .zoom-icon': {
                                   opacity: 1
@@ -974,9 +982,9 @@ const Comment = ({
                                   maxWidth: '100%',
                                   maxHeight: '200px',
                                   borderRadius: '10px',
-                                  objectFit: 'contain', 
-                                  display: 'block', 
-                                  margin: '0 auto' 
+                                  objectFit: 'contain', // Use contain to preserve aspect ratio
+                                  display: 'block', // Ensure proper layout
+                                  margin: '0 auto' // Center the image
                                 }} 
                                 onError={() => handleReplyImageError(reply.id, replyImageFallbacks[reply.id] || reply.image)}
                               />
@@ -1100,7 +1108,7 @@ const Comment = ({
         </Box>
       )}
 
-      {}
+      
       {isReplyFormOpen && activeCommentId === comment.id && (
         <Box sx={{ 
           mt: 1, 
@@ -1109,7 +1117,7 @@ const Comment = ({
           pr: { xs: 0.5, sm: 0 },
           position: 'relative'
         }}>
-          {}
+          
           <Box 
             sx={{ 
               bgcolor: 'rgba(255, 255, 255, 0.03)',
@@ -1238,7 +1246,7 @@ const Comment = ({
             }}
           />
           
-          {}
+          
           {replyImagePreview && (
             <Box sx={{ mt: 1, position: 'relative' }}>
               <img 
@@ -1246,7 +1254,7 @@ const Comment = ({
                 alt="Preview" 
                 style={{ 
                   width: '100%', 
-                  maxHeight: '150px', 
+                  maxHeight: '150px', // Reduced height for mobile
                   objectFit: 'cover',
                   borderRadius: '12px'
                 }} 
@@ -1274,7 +1282,13 @@ const Comment = ({
   );
 };
 
-const PostDetailPage = () => {
+// Transition for the dialog
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
+
+// PostDetailPage component
+const PostDetailPage = ({ isOverlay = false }) => {
   const { postId } = useParams();
   const { user, isAuthenticated } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -1285,11 +1299,11 @@ const PostDetailPage = () => {
   const [replyText, setReplyText] = useState('');
   const [replyingTo, setReplyingTo] = useState(null);
   const [commentImage, setCommentImage] = useState(null);
-  const [replyImage, setReplyImage] = useState(null); 
-  const [replyImagePreview, setReplyImagePreview] = useState(''); 
+  const [replyImage, setReplyImage] = useState(null); // New state for reply image
+  const [replyImagePreview, setReplyImagePreview] = useState(''); // New state for reply image preview
   const [imagePreview, setImagePreview] = useState('');
   const fileInputRef = useRef(null);
-  const replyFileInputRef = useRef(null); 
+  const replyFileInputRef = useRef(null); // New ref for reply file input
   const commentInputRef = useRef(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [postMenuAnchorEl, setPostMenuAnchorEl] = useState(null);
@@ -1300,17 +1314,17 @@ const PostDetailPage = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationMenuAnchor, setNotificationMenuAnchor] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [currentLightboxImage, setCurrentLightboxImage] = useState(''); 
+  const [currentLightboxImage, setCurrentLightboxImage] = useState(''); // Ensure this is defined
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [commentError, setCommentError] = useState('');
   const [lastCommentTime, setLastCommentTime] = useState(0);
   const [waitUntil, setWaitUntil] = useState(0);
   
-  
-  const MIN_COMMENT_INTERVAL = 3000; 
+  // Минимальный интервал между комментариями (в мс)
+  const MIN_COMMENT_INTERVAL = 3000; // 3 секунды
 
-  
+  // Add state for comment and reply deletion
   const [commentDeleteDialog, setCommentDeleteDialog] = useState({
     open: false,
     deleting: false,
@@ -1326,6 +1340,13 @@ const PostDetailPage = () => {
     replyId: null
   });
 
+  const { overlayOpen, closePostDetail } = usePostDetail();
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
+  
+  // Add a ref to track if view has been counted
+  const viewCounted = useRef(false);
+  
   useEffect(() => {
     const fetchPost = async () => {
       try {
@@ -1334,16 +1355,16 @@ const PostDetailPage = () => {
         setPost(response.data.post);
         setComments(response.data.comments);
         
-        
+        // Debug log to check reply data
         console.log("DEBUG - Post data received:", response.data);
         
-        
+        // Check if any replies have image field
         const hasReplyWithImage = response.data.comments.some(comment => 
           comment.replies && comment.replies.some(reply => reply.image)
         );
         console.log("DEBUG - Any replies with image field:", hasReplyWithImage);
         
-        
+        // Log the first reply with image
         const replyWithImage = response.data.comments
           .flatMap(c => c.replies || [])
           .find(r => r.image);
@@ -1351,7 +1372,7 @@ const PostDetailPage = () => {
           console.log("DEBUG - Example reply with image:", replyWithImage);
         }
         
-        
+        // Count total replies
         const totalReplies = response.data.comments.reduce(
           (sum, comment) => sum + (comment.replies ? comment.replies.length : 0), 
           0
@@ -1359,6 +1380,12 @@ const PostDetailPage = () => {
         console.log(`DEBUG - Total replies: ${totalReplies}`);
         
         setLoading(false);
+        
+        // Increment view count after post is loaded
+        if (!viewCounted.current) {
+          incrementViewCount(postId);
+          viewCounted.current = true;
+        }
       } catch (error) {
         console.error('Error fetching post details:', error);
         setLoading(false);
@@ -1367,6 +1394,67 @@ const PostDetailPage = () => {
 
     fetchPost();
   }, [postId, navigate]);
+
+  // Add function to increment view count
+  const incrementViewCount = async (postId) => {
+    try {
+      // Use exactly the same sessionStorage approach as in Post component
+      const viewKey = `post_viewed_${postId}`;
+      // Check if view already counted in this session
+      if (sessionStorage.getItem(viewKey)) {
+        console.log(`Post ${postId} already viewed in this session (detail page)`);
+        return;
+      }
+      
+      // Set flag in sessionStorage to prevent duplicate counting
+      sessionStorage.setItem(viewKey, 'true');
+      console.log(`Setting view flag for post ${postId} (detail page)`);
+      
+      console.log(`Incrementing view count for post ${postId} (detail page)`);
+      const response = await axios.post(`/api/posts/${postId}/view`);
+      
+      // Update local post object with incremented view count
+      if (response.data && response.data.success) {
+        console.log(`View count incremented successfully: ${response.data.views_count} (detail page)`);
+        setPost(prevPost => {
+          if (!prevPost) return null;
+          
+          return {
+            ...prevPost,
+            views_count: response.data.views_count
+          };
+        });
+      }
+    } catch (error) {
+      console.error("Error incrementing view count (detail page):", error);
+      // Try again with backoff
+      const retryViewCount = async (retries = 2) => {
+        if (retries <= 0) return;
+        
+        try {
+          console.log(`Retrying view count increment (${retries} attempts left) (detail page)`);
+          const response = await axios.post(`/api/posts/${postId}/view`);
+          
+          if (response.data && response.data.success) {
+            console.log(`View count incremented on retry: ${response.data.views_count} (detail page)`);
+            setPost(prevPost => {
+              if (!prevPost) return null;
+              return {
+                ...prevPost,
+                views_count: response.data.views_count
+              };
+            });
+          }
+        } catch (retryError) {
+          console.error("Error on retry (detail page):", retryError);
+          setTimeout(() => retryViewCount(retries - 1), 1000);
+        }
+      };
+      
+      // Start retry process
+      setTimeout(() => retryViewCount(), 1000);
+    }
+  };
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -1380,8 +1468,8 @@ const PostDetailPage = () => {
     };
 
     fetchNotifications();
-    
-    const interval = setInterval(fetchNotifications, 30000); 
+    // Set up polling for new notifications
+    const interval = setInterval(fetchNotifications, 30000); // Check every 30 seconds
     return () => clearInterval(interval);
   }, []);
 
@@ -1391,7 +1479,7 @@ const PostDetailPage = () => {
       setCommentImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        
+        // Check if result is a string before setting it
         if (typeof reader.result === 'string') {
           setImagePreview(reader.result);
         }
@@ -1408,14 +1496,14 @@ const PostDetailPage = () => {
     }
   };
 
-  
+  // Handle reply image selection
   const handleReplyImageChange = (event) => {
     const file = event.target.files[0];
     if (file && file.type.startsWith('image/')) {
       setReplyImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        
+        // Check if result is a string before setting it
         if (typeof reader.result === 'string') {
           setReplyImagePreview(reader.result);
         }
@@ -1424,7 +1512,7 @@ const PostDetailPage = () => {
     }
   };
 
-  
+  // Handle removing reply image
   const handleRemoveReplyImage = () => {
     setReplyImage(null);
     setReplyImagePreview('');
@@ -1436,12 +1524,12 @@ const PostDetailPage = () => {
   const handleCommentSubmit = async () => {
     if (!commentText.trim() && !commentImage) return;
     
-    
+    // Проверка авторизации перед отправкой комментария
     if (!requireAuth(user, isAuthenticated, navigate)) {
       return;
     }
     
-    
+    // Проверка на слишком частую отправку комментариев
     const now = Date.now();
     if (now < waitUntil) {
       const secondsRemaining = Math.ceil((waitUntil - now) / 1000);
@@ -1454,7 +1542,7 @@ const PostDetailPage = () => {
       return;
     }
     
-    
+    // Проверка времени последнего комментария
     if (now - lastCommentTime < MIN_COMMENT_INTERVAL) {
       setCommentError("Пожалуйста, не отправляйте комментарии слишком часто");
       setSnackbar({
@@ -1489,7 +1577,7 @@ const PostDetailPage = () => {
         });
       }
 
-      
+      // Add new comment at the beginning of the array (newest first)
       setComments(prev => [response.data.comment, ...prev]);
       setCommentText('');
       setCommentImage(null);
@@ -1504,18 +1592,18 @@ const PostDetailPage = () => {
         severity: 'success'
       });
       
-      
+      // Обновляем время последнего комментария
       setLastCommentTime(Date.now());
     } catch (error) {
       console.error('Error adding comment:', error);
       
-      
+      // Обработка ошибки превышения лимита
       if (error.response && error.response.status === 429) {
         const rateLimit = error.response.data.rate_limit;
         let errorMessage = "Превышен лимит комментариев. ";
         
         if (rateLimit && rateLimit.reset) {
-          
+          // Calculate time remaining until reset
           const resetTime = new Date(rateLimit.reset * 1000);
           const now = new Date();
           const diffSeconds = Math.round((resetTime - now) / 1000);
@@ -1528,11 +1616,11 @@ const PostDetailPage = () => {
             errorMessage += `Следующий комментарий можно отправить через ${diffSeconds} сек.`;
           }
           
-          
+          // Устанавливаем время ожидания
           setWaitUntil(now.getTime() + (diffSeconds * 1000));
         } else {
           errorMessage += "Пожалуйста, повторите попытку позже.";
-          
+          // Установим стандартное время ожидания (30 секунд)
           setWaitUntil(Date.now() + 30000);
         }
         
@@ -1565,12 +1653,12 @@ const PostDetailPage = () => {
   const handleReplySubmit = async (commentId, parentReplyId = null) => {
     if (!replyText.trim() && !replyImage) return;
 
-    
+    // Проверка авторизации перед отправкой ответа
     if (!requireAuth(user, isAuthenticated, navigate)) {
       return;
     }
 
-    
+    // Проверка на слишком частую отправку комментариев
     const now = Date.now();
     if (now < waitUntil) {
       const secondsRemaining = Math.ceil((waitUntil - now) / 1000);
@@ -1583,7 +1671,7 @@ const PostDetailPage = () => {
       return;
     }
     
-    
+    // Проверка времени последнего комментария
     if (now - lastCommentTime < MIN_COMMENT_INTERVAL) {
       setCommentError("Пожалуйста, не отправляйте комментарии слишком часто");
       setSnackbar({
@@ -1633,7 +1721,7 @@ const PostDetailPage = () => {
         });
       }
 
-      
+      // Keep the same order logic as in the response (usually chronological)
       setComments(prev => prev.map(comment => 
         comment.id === commentId
           ? {
@@ -1659,18 +1747,18 @@ const PostDetailPage = () => {
         severity: 'success'
       });
       
-      
+      // Обновляем время последнего комментария
       setLastCommentTime(Date.now());
     } catch (error) {
       console.error('Error adding reply:', error);
       
-      
+      // Обработка ошибки превышения лимита
       if (error.response && error.response.status === 429) {
         const rateLimit = error.response.data.rate_limit;
         let errorMessage = "Превышен лимит комментариев. ";
         
         if (rateLimit && rateLimit.reset) {
-          
+          // Calculate time remaining until reset
           const resetTime = new Date(rateLimit.reset * 1000);
           const now = new Date();
           const diffSeconds = Math.round((resetTime - now) / 1000);
@@ -1683,11 +1771,11 @@ const PostDetailPage = () => {
             errorMessage += `Следующий комментарий можно отправить через ${diffSeconds} сек.`;
           }
           
-          
+          // Устанавливаем время ожидания
           setWaitUntil(now.getTime() + (diffSeconds * 1000));
         } else {
           errorMessage += "Пожалуйста, повторите попытку позже.";
-          
+          // Установим стандартное время ожидания (30 секунд)
           setWaitUntil(Date.now() + 30000);
         }
         
@@ -1718,13 +1806,13 @@ const PostDetailPage = () => {
   };
 
   const handleLikeComment = async (commentId) => {
-    
+    // Проверка авторизации перед лайком комментария
     if (!requireAuth(user, isAuthenticated, navigate)) {
       return;
     }
     
     try {
-      
+      // Immediately update UI optimistically
       setComments(prev => prev.map(comment =>
         comment.id === commentId
           ? { 
@@ -1735,10 +1823,10 @@ const PostDetailPage = () => {
           : comment
       ));
       
-      
+      // Then make API call
       const response = await axios.post(`/api/comments/${commentId}/like`);
       
-      
+      // Update with actual value from server
       setComments(prev => prev.map(comment =>
         comment.id === commentId
           ? { ...comment, user_liked: response.data.liked, likes_count: response.data.likes_count }
@@ -1746,19 +1834,19 @@ const PostDetailPage = () => {
       ));
     } catch (error) {
       console.error('Error liking comment:', error);
-      
+      // Revert on error
       setComments(prev => [...prev]);
     }
   };
 
   const handleLikeReply = async (commentId, replyId) => {
-    
+    // Проверка авторизации перед лайком ответа
     if (!requireAuth(user, isAuthenticated, navigate)) {
       return;
     }
     
     try {
-      
+      // Immediately update UI optimistically
       setComments(prev => prev.map(comment =>
         comment.id === commentId
           ? {
@@ -1776,10 +1864,10 @@ const PostDetailPage = () => {
           : comment
       ));
       
-      
+      // Then make API call
       const response = await axios.post(`/api/replies/${replyId}/like`);
       
-      
+      // Update with actual value from server
       setComments(prev => prev.map(comment =>
         comment.id === commentId
           ? {
@@ -1794,7 +1882,7 @@ const PostDetailPage = () => {
       ));
     } catch (error) {
       console.error('Error liking reply:', error);
-      
+      // Revert on error
       setComments(prev => [...prev]);
     }
   };
@@ -1803,9 +1891,9 @@ const PostDetailPage = () => {
     setPostMenuAnchorEl(true);
   };
 
-  
+  // Update the delete comment handler to show a confirmation dialog
   const handleDeleteComment = (commentId) => {
-    
+    // Проверка авторизации перед удалением комментария
     if (!requireAuth(user, isAuthenticated, navigate)) {
       return;
     }
@@ -1818,22 +1906,22 @@ const PostDetailPage = () => {
     });
   };
 
-  
+  // Add a confirm function to actually delete the comment
   const confirmDeleteComment = async () => {
     try {
-      
+      // Set deleting state
       setCommentDeleteDialog(prev => ({ ...prev, deleting: true }));
       
-      
+      // Optimistically remove from UI immediately
       setComments(prev => prev.filter(comment => comment.id !== commentDeleteDialog.commentId));
       
-      
+      // Set deleted state
       setCommentDeleteDialog(prev => ({ ...prev, deleted: true, deleting: false }));
       
-      
+      // Make the API call in background
       await axios.post(`/api/comments/${commentDeleteDialog.commentId}/delete`);
       
-      
+      // Close dialog after delay
       setTimeout(() => {
         setCommentDeleteDialog(prev => ({ ...prev, open: false }));
       }, 1500);
@@ -1841,7 +1929,7 @@ const PostDetailPage = () => {
     } catch (error) {
       console.error('Error deleting comment:', error);
       
-      
+      // Show error notification
       setSnackbar({
         open: true,
         message: 'Ошибка при удалении комментария',
@@ -1850,9 +1938,9 @@ const PostDetailPage = () => {
     }
   };
 
-  
+  // Update the delete reply handler to show a confirmation dialog
   const handleDeleteReply = (commentId, replyId) => {
-    
+    // Проверка авторизации перед удалением ответа
     if (!requireAuth(user, isAuthenticated, navigate)) {
       return;
     }
@@ -1866,40 +1954,40 @@ const PostDetailPage = () => {
     });
   };
 
-  
+  // Add a confirm function to actually delete the reply
   const confirmDeleteReply = async () => {
     try {
-      
+      // Set deleting state
       setReplyDeleteDialog(prev => ({ ...prev, deleting: true }));
       
-      
+      // Optimistically remove from UI immediately
       setComments(prev => {
         const updatedComments = [...prev];
         
-        
+        // Find the comment containing this reply
         const commentIndex = updatedComments.findIndex(c => c.id === replyDeleteDialog.commentId);
         
         if (commentIndex !== -1) {
-          
+          // Make a deep copy of the comment to avoid direct state mutation
           const updatedComment = {
             ...updatedComments[commentIndex],
             replies: updatedComments[commentIndex].replies.filter(reply => reply.id !== replyDeleteDialog.replyId)
           };
           
-          
+          // Replace the old comment with the updated one
           updatedComments[commentIndex] = updatedComment;
         }
         
         return updatedComments;
       });
       
-      
+      // Set deleted state
       setReplyDeleteDialog(prev => ({ ...prev, deleted: true, deleting: false }));
       
-      
+      // Make the API call in background
       await axios.post(`/api/replies/${replyDeleteDialog.replyId}/delete`);
       
-      
+      // Close dialog after delay
       setTimeout(() => {
         setReplyDeleteDialog(prev => ({ ...prev, open: false }));
       }, 1500);
@@ -1907,7 +1995,7 @@ const PostDetailPage = () => {
     } catch (error) {
       console.error('Error deleting reply:', error);
       
-      
+      // Show error notification
       setSnackbar({
         open: true,
         message: 'Ошибка при удалении ответа',
@@ -1931,38 +2019,16 @@ const PostDetailPage = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <Container maxWidth="md" sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
-        <CircularProgress />
-      </Container>
-    );
-  }
-
-  if (!post) {
-    return (
-      <Container maxWidth="md" sx={{ mt: 4 }}>
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="h5" gutterBottom>Пост не найден</Typography>
-          <Button variant="contained" component={Link} to="/" startIcon={<ArrowBackIcon />}>
-            Вернуться на главную
-          </Button>
-        </Paper>
-      </Container>
-    );
-  }
-
-  return (
-    <Container 
-      maxWidth="md" 
-      sx={{ 
-        mt: { xs: 2, sm: 4 }, 
-        mb: { xs: '100px', sm: 8 }, 
-        px: { xs: 0, sm: 2 }, 
-        width: '100%'
-      }}
-    >
-      {}
+  // Handle back button for overlay
+  const handleClose = () => {
+    console.log("Closing post detail overlay");
+    closePostDetail();
+  };
+  
+  // Render the content of the post detail page
+  const renderContent = () => (
+    <Container maxWidth="md" sx={{ pt: 2, pb: 10, px: { xs: 0, sm: 0 } }}> 
+      
       {post && (
         <SEO
           title={`${post.user?.name || 'Пользователь'} - ${post.content.substring(0, 60)}${post.content.length > 60 ? '...' : ''}`}
@@ -1981,17 +2047,19 @@ const PostDetailPage = () => {
         />
       )}
       
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 2, sm: 3 }, px: { xs: 2, sm: 0 } }}>
-        <IconButton 
-          component={Link} 
-          to="/"
-          sx={{ mr: 1 }}
-          aria-label="Назад"
-        >
-          <ArrowBackIcon />
-        </IconButton>
-        <Typography variant="h5" sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }}>Пост</Typography>
-      </Box>
+      {!isOverlay && (
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 2, sm: 3 }, px: { xs: 2, sm: 0 } }}>
+          <IconButton 
+            component={Link} 
+            to="/"
+            sx={{ mr: 1 }}
+            aria-label="Назад"
+          >
+            <ArrowBackIcon />
+          </IconButton>
+          <Typography variant="h5" sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }}>Пост</Typography>
+        </Box>
+      )}
 
       {post && (
         <Post 
@@ -1999,7 +2067,7 @@ const PostDetailPage = () => {
           onDelete={() => navigate('/')}
           onOpenLightbox={(imageUrl) => {
             setLightboxOpen(true);
-            
+            // Найти индекс изображения в массиве
             if (Array.isArray(post.images)) {
               const index = post.images.indexOf(imageUrl);
               if (index !== -1) {
@@ -2010,7 +2078,7 @@ const PostDetailPage = () => {
         />
       )}
 
-      {}
+      
       <Box sx={{ px: { xs: 2, sm: 0 }, mb: { xs: 1, sm: 2 }, mt: { xs: 2, sm: 3 } }}>
         {user ? (
           <Box>
@@ -2088,7 +2156,7 @@ const PostDetailPage = () => {
                   alt="Preview" 
                   style={{ 
                     width: '100%', 
-                    maxHeight: '150px', 
+                    maxHeight: '150px', // Reduced height for mobile
                     objectFit: 'cover',
                     borderRadius: '12px'
                   }} 
@@ -2136,7 +2204,7 @@ const PostDetailPage = () => {
         )}
       </Box>
 
-      {}
+      
       <Box sx={{ px: { xs: 2, sm: 0 }, mb: 4 }}>
         <Typography 
           variant="h6" 
@@ -2162,7 +2230,7 @@ const PostDetailPage = () => {
           <Box sx={{ 
             display: 'flex', 
             flexDirection: 'column', 
-            gap: { xs: 1.5, sm: 3 } 
+            gap: { xs: 1.5, sm: 3 } // Less gap on mobile
           }}>
             {comments.map(comment => (
               <Comment 
@@ -2504,6 +2572,94 @@ const PostDetailPage = () => {
       </Dialog>
     </Container>
   );
+  
+  // If this is an overlay, render it in a dialog
+  if (isOverlay) {
+    return (
+      <Dialog
+        fullScreen={fullScreen}
+        open={true} // Always open when rendered as overlay
+        onClose={handleClose}
+        TransitionComponent={Transition}
+        keepMounted={false}
+        BackdropProps={{
+          sx: {
+            backgroundColor: 'rgba(0, 0, 0, 0.95)', // Almost black backdrop
+            backgroundImage: 'none', // Remove any background images
+          }
+        }}
+        PaperProps={{
+          sx: {
+            bgcolor: '#0a0a0a', // Even darker background color
+            backgroundImage: 'none', // Remove any background images
+            maxWidth: '100%',
+            maxHeight: '100%',
+            borderRadius: { xs: 0, sm: 2 }
+          }
+        }}
+        sx={{
+          '& .MuiDialog-paper': {
+            width: { sm: '100%', md: '90%', lg: '80%' },
+            height: { xs: '100%', sm: '90vh' },
+            maxWidth: 1000,
+            m: { xs: 0, sm: 2 },
+            backgroundColor: '#0a0a0a', // More specific background color
+            backgroundImage: 'none !important', // Force remove background image
+          },
+          '& .MuiBackdrop-root': {
+            backgroundColor: '#000000 !important', // Force black backdrop
+            backgroundImage: 'none !important', // Force remove background image
+            opacity: '0.95 !important', // High opacity
+          },
+          // Override any Modal styling
+          '& .MuiModal-backdrop': {
+            backgroundColor: '#000000 !important',
+            backgroundImage: 'none !important',
+          }
+        }}
+      >
+        <AppBar 
+          sx={{ 
+            position: 'relative',
+            backgroundColor: '#0a0a0a', // Match the darker background
+            backgroundImage: 'none', // Remove any background images
+            boxShadow: 'none',
+            borderBottom: '1px solid',
+            borderColor: 'rgba(255, 255, 255, 0.1)'
+          }}
+        >
+          <Toolbar>
+            <IconButton
+              edge="start"
+              color="inherit"
+              onClick={handleClose}
+              aria-label="close"
+            >
+              {fullScreen ? <ArrowBackIcon /> : <CloseIcon />}
+            </IconButton>
+            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+              Пост
+            </Typography>
+          </Toolbar>
+        </AppBar>
+        
+        <Box 
+          sx={{ 
+            overflow: 'auto', 
+            height: '100%', 
+            px: 0,
+            backgroundColor: '#0a0a0a', // Match dialog background
+            backgroundImage: 'none', // Remove any background images
+          }}
+        > 
+          {renderContent()}
+        </Box>
+      </Dialog>
+    );
+  }
+  
+  // Regular page view
+  return renderContent();
 };
 
 export default PostDetailPage;

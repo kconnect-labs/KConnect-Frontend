@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -35,8 +36,11 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import RuleIcon from '@mui/icons-material/Rule';
 import DiamondIcon from '@mui/icons-material/Diamond';
 import ShieldIcon from '@mui/icons-material/Shield';
+import GroupIcon from '@mui/icons-material/Group';
+import GroupsIcon from '@mui/icons-material/Groups';
 import { motion } from 'framer-motion';
 
+// Styled components
 const PageContainer = styled(Container)(({ theme }) => ({
   paddingTop: theme.spacing(4),
   paddingBottom: theme.spacing(8),
@@ -198,7 +202,7 @@ const RulesPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
-  
+  // Animation variants for motion components
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -286,7 +290,7 @@ const RulesPage = () => {
 
   return (
     <PageContainer maxWidth="lg">
-      {}
+      
       <Paper
         elevation={0}
         sx={{
@@ -311,8 +315,8 @@ const RulesPage = () => {
         </Typography>
         
         <Box 
-          component="a" 
-          href="/rules"
+          component={RouterLink} 
+          to="/rules"
           sx={{ 
             display: 'flex', 
             alignItems: 'center',
@@ -333,8 +337,8 @@ const RulesPage = () => {
         </Box>
         
         <Box 
-          component="a" 
-          href="/privacy-policy"
+          component={RouterLink} 
+          to="/privacy-policy"
           sx={{ 
             display: 'flex', 
             alignItems: 'center',
@@ -354,8 +358,8 @@ const RulesPage = () => {
         </Box>
         
         <Box 
-          component="a" 
-          href="/terms-of-service"
+          component={RouterLink} 
+          to="/terms-of-service"
           sx={{ 
             display: 'flex', 
             alignItems: 'center',
@@ -434,8 +438,8 @@ const RulesPage = () => {
                 maxWidth: 600,
                 textAlign: { xs: 'center', sm: 'left' }
               }}>
-                Чтобы обеспечить безопасность и комфорт для всех пользователей, соблюдайте следующие правила. 
-                Их нарушение может привести к удалению контента, блокировке аккаунта или другим санкциям.
+                Для обеспечения комфорта всех пользователей, пожалуйста, придерживайтесь следующих правил. 
+                Их нарушение может привести к ограничениям доступа или другим санкциям.
               </Typography>
             </Box>
           </Box>
@@ -443,7 +447,7 @@ const RulesPage = () => {
 
         <Divider sx={{ mb: 4 }} />
 
-        {}
+        
         <motion.div variants={itemVariants}>
           <RuleSection>
             <RuleCard>
@@ -460,7 +464,7 @@ const RulesPage = () => {
                     </ListItemIcon>
                     <ListItemText 
                       primary="Уважение к другим" 
-                      secondary="Не допускаются оскорбления, дискриминация, угрозы, травля (буллинг) или разжигание ненависти по признакам расы, религии, пола, возраста, национальности, инвалидности и т.д."
+                      secondary="Пожалуйста, воздерживайтесь от оскорблений, дискриминации, угроз или травли. Конструктивная критика и дискуссии приветствуются."
                     />
                   </RuleListItem>
                   
@@ -470,7 +474,7 @@ const RulesPage = () => {
                     </ListItemIcon>
                     <ListItemText 
                       primary="Законопослушность" 
-                      secondary="Запрещено публиковать контент, нарушающий законы вашей страны (например, призывы к насилию, экстремизм, пропаганда наркотиков)."
+                      secondary="Не публикуйте контент, нарушающий законы вашей страны (призывы к насилию, экстремизм и т.д.)."
                     />
                   </RuleListItem>
                   
@@ -480,7 +484,7 @@ const RulesPage = () => {
                     </ListItemIcon>
                     <ListItemText 
                       primary="Безопасность" 
-                      secondary="Нельзя распространять личные данные других людей без их согласия (доксинг), угрожать, шантажировать или принуждать к действиям."
+                      secondary="Не распространяйте личные данные других людей без их согласия, не угрожайте и не принуждайте к действиям."
                     />
                   </RuleListItem>
                   
@@ -499,7 +503,7 @@ const RulesPage = () => {
           </RuleSection>
         </motion.div>
 
-        {}
+        
         <motion.div variants={itemVariants}>
           <RuleSection>
             <RuleCard>
@@ -631,7 +635,7 @@ const RulesPage = () => {
           </RuleSection>
         </motion.div>
 
-        {}
+        
         <motion.div variants={itemVariants}>
           <RuleSection>
             <RuleCard>
@@ -714,7 +718,7 @@ const RulesPage = () => {
           </RuleSection>
         </motion.div>
 
-        {}
+        
         <motion.div variants={itemVariants}>
           <RuleSection>
             <RuleCard>
@@ -731,7 +735,7 @@ const RulesPage = () => {
                     </ListItemIcon>
                     <ListItemText 
                       primary="Модерация" 
-                      secondary="Контент проверяется вручную. Администрация оставляет за собой право удалять материалы без предупреждения и без объяснения причины."
+                      secondary="Контент проверяется вручную. Администрация оставляет за собой право удалять материалы, нарушающие правила сообщества."
                     />
                   </RuleListItem>
                   
@@ -782,7 +786,7 @@ const RulesPage = () => {
           </RuleSection>
         </motion.div>
 
-        {}
+        
         <motion.div variants={itemVariants}>
           <RuleSection>
             <RuleCard>
@@ -818,7 +822,7 @@ const RulesPage = () => {
           </RuleSection>
         </motion.div>
 
-        {}
+        
         <motion.div variants={itemVariants}>
           <RuleSection>
             <RuleCard>
@@ -947,7 +951,146 @@ const RulesPage = () => {
           </RuleSection>
         </motion.div>
 
-        {}
+        
+        <motion.div variants={itemVariants}>
+          <RuleSection>
+            <RuleCard>
+              <RuleCardHeader>
+                <GroupIcon color="primary" fontSize="large" sx={{ mr: 2 }} />
+                <SectionTitle variant="h5">VII. Правила ведения групп/каналов</SectionTitle>
+              </RuleCardHeader>
+              
+              <RuleCardContent>
+                <Typography variant="body1" paragraph>
+                  Аккаунты с типом "channel" имеют более свободные возможности для публикации контента, 
+                  однако следующие правила должны соблюдаться всеми каналами на платформе:
+                </Typography>
+                
+                <List>
+                  <RuleListItem>
+                    <ListItemIcon>
+                      <CheckCircleOutlineIcon color="primary" />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary="Запрет на шокирующий контент" 
+                      secondary="Запрещено публиковать изображения или видео с кровью, насилием, увечьями и другими шокирующими материалами."
+                    />
+                  </RuleListItem>
+                  
+                  <RuleListItem>
+                    <ListItemIcon>
+                      <CheckCircleOutlineIcon color="primary" />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary="Ограничение экстремального контента" 
+                      secondary="Контент, который может вызвать сильную негативную реакцию или психологический дискомфорт у пользователей (травмирующие аудио, видео и изображения), запрещен."
+                    />
+                  </RuleListItem>
+                  
+                  <RuleListItem>
+                    <ListItemIcon>
+                      <CheckCircleOutlineIcon color="primary" />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary="Свобода творчества" 
+                      secondary="За исключением указанных выше ограничений, каналы имеют свободу публиковать разнообразный контент, включая развлекательный, образовательный, дискуссионный и творческий материал."
+                    />
+                  </RuleListItem>
+                </List>
+                
+                <RuleAccordion>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <ReportProblemIcon color="warning" sx={{ mr: 1.5 }} />
+                      <AccordionTitle>Контентные ограничения</AccordionTitle>
+                    </Box>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <List dense>
+                      <ListItem>
+                        <ListItemText 
+                          primary="Контент, пропагандирующий опасные действия или самоповреждение."
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <ListItemText 
+                          primary="Контент, демонстрирующий жестокое обращение с людьми или животными."
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <ListItemText 
+                          primary="Экстремистский контент или контент, разжигающий ненависть по признаку расы, национальности, религии и т.д."
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <ListItemText 
+                          primary="Контент, нарушающий законодательство."
+                        />
+                      </ListItem>
+                    </List>
+                  </AccordionDetails>
+                </RuleAccordion>
+                
+                <RuleAccordion>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <ReportProblemIcon color="warning" sx={{ mr: 1.5 }} />
+                      <AccordionTitle>Модерация каналов</AccordionTitle>
+                    </Box>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <List dense>
+                      <ListItem>
+                        <ListItemText 
+                          primary="Каналы несут полную ответственность за весь публикуемый контент."
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <ListItemText 
+                          primary="При первом нарушении канал получает предупреждение, при повторных нарушениях может быть временно или постоянно заблокирован."
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <ListItemText 
+                          primary="Администрация имеет право без предупреждения удалять контент, нарушающий правила."
+                        />
+                      </ListItem>
+                    </List>
+                  </AccordionDetails>
+                </RuleAccordion>
+                
+                <Fade in={true}>
+                  <Box sx={{ 
+                    mt: 3, 
+                    display: 'flex', 
+                    justifyContent: 'center',
+                    width: '100%',
+                    height: 150
+                  }}>
+                    <motion.div
+                      initial="initial"
+                      animate="animate"
+                      whileHover="whileHover"
+                      variants={shieldAnimation}
+                    >
+                      <SecurityIconWrapper>
+                        <GroupsIcon 
+                          sx={{ 
+                            fontSize: 70, 
+                            color: '#fff',
+                            filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.4))'
+                          }} 
+                        />
+                      </SecurityIconWrapper>
+                    </motion.div>
+                  </Box>
+                </Fade>
+              </RuleCardContent>
+            </RuleCard>
+          </RuleSection>
+        </motion.div>
+
+        
         <motion.div variants={itemVariants}>
           <RuleSection>
             <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' } }}>
@@ -977,7 +1120,11 @@ const RulesPage = () => {
                       }
                     }}
                   >
-                    https:
+                    https://t.me/kcon_news
+                  </Typography>
+                  
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                    Последнее обновление: 24 Апреля 2025
                   </Typography>
                 </RuleCardContent>
               </RuleCard>

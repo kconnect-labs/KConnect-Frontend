@@ -65,6 +65,7 @@ import SettingsBottomNavigation from '../../components/SettingsBottomNavigation'
 import LoginSettingsTab from '../../components/LoginSettingsTab';
 import { useSnackbar } from 'notistack';
 
+// Иконки
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import SaveIcon from '@mui/icons-material/Save';
 import EditIcon from '@mui/icons-material/Edit';
@@ -120,6 +121,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import CakeIcon from '@mui/icons-material/Cake';
 import InfoIcon from '@mui/icons-material/Info';
 
+// Стилизованные компоненты
 const SettingsContainer = styled(Container)(({ theme }) => ({
   marginTop: theme.spacing(3),
   marginBottom: theme.spacing(3),
@@ -260,6 +262,7 @@ const FileInput = styled('input')({
   display: 'none',
 });
 
+// Element SVG Icon component
 const ElementIcon = (props) => (
   <SvgIcon {...props}>
     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.17 14.93l-4.11-4.11 1.41-1.41 2.7 2.7 5.88-5.88 1.41 1.41-7.29 7.29z" />
@@ -310,7 +313,7 @@ const getSocialIcon = (name, url) => {
     case 'tiktok':
       return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.59-1.16-2.59-2.5 0-1.4 1.16-2.5 2.59-2.5.27 0 .53.04.77.13v-3.13c-.25-.02-.5-.04-.77-.04-3.09 0-5.59 2.57-5.59 5.67 0 3.1 2.5 5.67 5.59 5.67 3.09 0 5.59-2.57 5.59-5.67V9.14c.85.63 1.91 1.05 3.09 1.05V7.15c-1.32 0-2.59-.7-3.09-1.33z"/></svg>;
     default:
-      
+      // Check if name contains known platform names
       if (lowerName.includes('facebook')) return <FacebookIcon />;
       if (lowerName.includes('twitter')) return <TwitterIcon />;
       if (lowerName.includes('instagram')) return <InstagramIcon />;
@@ -325,18 +328,19 @@ const getSocialIcon = (name, url) => {
   }
 };
 
+// Компонент для загрузки файлов с предпросмотром
 const FileUploader = ({ id, currentImage, onFileSelect, icon, label, borderRadius }) => {
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    
+    // Проверяем размер файла (максимум 5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert('Файл слишком большой. Максимальный размер: 5MB');
       return;
     }
 
-    
+    // Проверяем тип файла
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
     if (!allowedTypes.includes(file.type)) {
       alert('Неподдерживаемый формат файла. Разрешены только JPEG, PNG и GIF');
@@ -427,6 +431,7 @@ const FileUploader = ({ id, currentImage, onFileSelect, icon, label, borderRadiu
   );
 };
 
+// Компонент для изменения цвета
 const ColorPicker = ({ label, color, onChange }) => {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
@@ -435,19 +440,19 @@ const ColorPicker = ({ label, color, onChange }) => {
   const [green, setGreen] = useState(parseInt(color.slice(3, 5), 16));
   const [blue, setBlue] = useState(parseInt(color.slice(5, 7), 16));
   
-  
+  // Преобразуем компоненты RGB в цвет в формате hex
   const rgbToHex = (r, g, b) => {
     return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
   };
   
-  
+  // Обновление цвета при изменении слайдеров
   const updateColor = (r, g, b) => {
     const hexColor = rgbToHex(r, g, b);
     setCurrentColor(hexColor);
-    onChange(hexColor); 
+    onChange(hexColor); // Сразу применяем изменения
   };
   
-  
+  // Обработчики изменения компонентов RGB
   const handleRedChange = (event, value) => {
     setRed(value);
     updateColor(value, green, blue);
@@ -463,7 +468,7 @@ const ColorPicker = ({ label, color, onChange }) => {
     updateColor(red, green, value);
   };
   
-  
+  // Обработчик выбора предустановленного цвета
   const handlePresetColorClick = (presetColor) => {
     const r = parseInt(presetColor.slice(1, 3), 16);
     const g = parseInt(presetColor.slice(3, 5), 16);
@@ -473,15 +478,15 @@ const ColorPicker = ({ label, color, onChange }) => {
     setRed(r);
     setGreen(g);
     setBlue(b);
-    onChange(presetColor); 
+    onChange(presetColor); // Сразу применяем изменения
   };
   
-  
+  // Обработчик изменения HEX-кода
   const handleHexChange = (value) => {
     if (value.match(/^#([0-9A-F]{3}){1,2}$/i)) {
       setCurrentColor(value);
       
-      
+      // Обновляем значения RGB
       const r = parseInt(value.slice(1, 3), 16);
       const g = parseInt(value.slice(3, 5), 16);
       const b = parseInt(value.slice(5, 7), 16);
@@ -490,7 +495,7 @@ const ColorPicker = ({ label, color, onChange }) => {
       setGreen(g);
       setBlue(b);
       
-      onChange(value); 
+      onChange(value); // Сразу применяем изменения
     }
   };
   
@@ -530,7 +535,13 @@ const ColorPicker = ({ label, color, onChange }) => {
             bgcolor: theme.palette.background.paper, 
             color: theme.palette.text.primary,
             borderRadius: 2,
-            boxShadow: theme.shadows[24]
+            boxShadow: theme.shadows[24],
+            '@media (max-width: 600px)': {
+              width: '100%',
+              maxWidth: '100%',
+              margin: 0,
+              borderRadius: 0,
+            }
           }
         }}
       >
@@ -671,6 +682,7 @@ const ColorPicker = ({ label, color, onChange }) => {
   );
 };
 
+// After the imports at the top, add this styled component for a blurred dialog
 const BlurredDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
     borderRadius: 16,
@@ -679,9 +691,16 @@ const BlurredDialog = styled(Dialog)(({ theme }) => ({
     boxShadow: '0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)',
     border: '1px solid rgba(255, 255, 255, 0.1)',
     overflow: 'hidden',
+    [theme.breakpoints.down('sm')]: {
+      width: '100%',
+      maxWidth: '100%',
+      margin: 0,
+      borderRadius: 0,
+    }
   }
 }));
 
+// 1. Создадим стилизованные компоненты с правильным градиентом
 const PurchaseDialogHeader = styled(Box)(({ theme }) => ({
   position: 'relative',
   padding: theme.spacing(3),
@@ -719,6 +738,7 @@ const PurchaseButton = styled(Button)(({ theme }) => ({
   }
 }));
 
+// Компонент для магазина юзернеймов
 const UsernameShopTab = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -740,20 +760,20 @@ const UsernameShopTab = () => {
   const [purchaseComplete, setPurchaseComplete] = useState(false);
   const [limitReached, setLimitReached] = useState(false);
   const [userSubscription, setUserSubscription] = useState(null);
-  const [usernameLimit, setUsernameLimit] = useState(3); 
+  const [usernameLimit, setUsernameLimit] = useState(3); // Default limit without subscription
   
-  
+  // Add back snackbar state
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success'
   });
   
+  // Remove snackbar state
   
-  
-  
+  // Update showNotification function to use notistack
   const showNotification = (severity, message) => {
-    
+    // Use both approaches
     setSnackbar({
       open: true,
       message,
@@ -766,22 +786,22 @@ const UsernameShopTab = () => {
     });
   };
   
-  
+  // Add back handleCloseSnackbar function
   const handleCloseSnackbar = (event, reason) => {
     if (reason === 'clickaway') return;
     setSnackbar(prev => ({ ...prev, open: false }));
   };
   
-  
+  // Calculate username limit based on subscription
   const calculateUsernameLimit = (subscriptionType) => {
-    if (!subscriptionType) return 3; 
+    if (!subscriptionType) return 3; // No subscription
     if (subscriptionType === 'basic') return 5;
     if (subscriptionType === 'premium') return 8;
-    if (subscriptionType === 'ultimate') return Infinity; 
-    return 3; 
+    if (subscriptionType === 'ultimate') return Infinity; // No limit
+    return 3; // Default fallback
   };
   
-  
+  // Fetch subscription status
   const fetchSubscriptionStatus = async () => {
     try {
       const response = await axios.get('/api/user/subscription/status');
@@ -800,7 +820,7 @@ const UsernameShopTab = () => {
     }
   };
   
-  
+  // Fetch purchased usernames on mount
   useEffect(() => {
     fetchPurchasedUsernames();
     fetchUserPoints();
@@ -838,13 +858,13 @@ const UsernameShopTab = () => {
     const value = e.target.value.trim();
     setUsername(value);
     
-    
+    // Clear previous data
     if (!value) {
       setUsernameData(null);
       return;
     }
     
-    
+    // Debounce the API call
     const delayDebounceFn = setTimeout(() => {
       calculateUsernamePrice(value);
     }, 500);
@@ -891,7 +911,7 @@ const UsernameShopTab = () => {
       setPurchaseAnimation(true);
       setError('');
       
-      
+      // Display animation for 1.5 seconds before actual API call
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       const response = await axios.post('/api/username/purchase', { 
@@ -900,7 +920,7 @@ const UsernameShopTab = () => {
       });
       
       if (response.data.success) {
-        
+        // Update points in localStorage to keep it in sync
         const userDataStr = localStorage.getItem('userData');
         if (userDataStr) {
           try {
@@ -912,26 +932,26 @@ const UsernameShopTab = () => {
           }
         }
         
-        
+        // Update points state directly from API response
         setUserPoints(response.data.new_balance);
         
-        
+        // Show success animation
         setPurchaseComplete(true);
         
-        
+        // Wait 1 second before closing dialog
         setTimeout(() => {
           setOpenPurchaseDialog(false);
           setPurchaseAnimation(false);
           setPurchaseComplete(false);
           
-          
+          // Show success message
           showNotification('success', response.data.message || 'Username purchased successfully!');
           
-          
+          // Clear form
           setUsername('');
           setUsernameData(null);
           
-          
+          // Refresh purchased usernames
           fetchPurchasedUsernames();
         }, 1000);
       } else {
@@ -945,16 +965,16 @@ const UsernameShopTab = () => {
       const errorData = e.response?.data || {};
       const errorMessage = errorData.message || e.message;
       
-      
+      // Check if this is a limit reached error
       if (errorData.limit_reached) {
         setLimitReached(true);
         showNotification('warning', errorMessage);
-        
+        // Automatically open links in new tabs if provided in the error
         if (errorData.donation_url) {
           window.open(errorData.donation_url, '_blank');
         }
       } else {
-        
+        // Generic error handling for other errors
         const message = errorMessage.includes('PurchasedUsername') ? 
           'Server error: Problem creating purchased username entry. Please try again later.' : 
           'Error purchasing username: ' + errorMessage;
@@ -967,7 +987,7 @@ const UsernameShopTab = () => {
       setPurchaseAnimation(false);
     } finally {
       setPurchasing(false);
-      
+      // Refresh user points to ensure accurate balance
       fetchUserPoints();
     }
   };
@@ -986,7 +1006,7 @@ const UsernameShopTab = () => {
       const response = await axios.post('/api/username/set-active', { username_id: selectedUsername.id });
       
       if (response.data.success) {
-        
+        // Update username in localStorage
         const userDataStr = localStorage.getItem('userData');
         if (userDataStr) {
           try {
@@ -998,10 +1018,10 @@ const UsernameShopTab = () => {
           }
         }
         
-        
+        // Show success message
         showNotification('success', response.data.message || 'Username changed successfully!');
         
-        
+        // Refresh purchased usernames
         fetchPurchasedUsernames();
       } else {
         setError(response.data.message || 'Failed to change username');
@@ -1017,7 +1037,7 @@ const UsernameShopTab = () => {
     }
   };
   
-  
+  // Calculate length factor
   const getLengthFactor = (length) => {
     if (length <= 3) return 3.0;
     if (length <= 6) return 2.0;
@@ -1038,10 +1058,10 @@ const UsernameShopTab = () => {
     }).format(date);
   };
   
-  
+  // Re-check limit whenever usernameLimit changes
   useEffect(() => {
     if (purchased.length > 0) {
-      
+      // Для Ultimate подписки не должно быть лимита
       if (userSubscription?.subscription_type === 'ultimate') {
         setLimitReached(false);
       } else {
@@ -1066,7 +1086,7 @@ const UsernameShopTab = () => {
         </Typography>
       </Box>
       
-      {}
+      
       <Paper 
         elevation={3}
             sx={{ 
@@ -1517,7 +1537,7 @@ const UsernameShopTab = () => {
         </DialogActions>
       </Dialog>
       
-      {}
+      
       <Dialog 
         open={openPurchaseDialog} 
         onClose={() => !purchaseAnimation && setOpenPurchaseDialog(false)}
@@ -1660,7 +1680,7 @@ const UsernameShopTab = () => {
         )}
       </Dialog>
       
-      {}
+      
       <Snackbar 
         open={snackbar.open} 
         autoHideDuration={6000} 
@@ -1680,6 +1700,7 @@ const UsernameShopTab = () => {
   );
 };
 
+// Основной компонент страницы настроек
 const SettingsPage = () => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -1688,20 +1709,23 @@ const SettingsPage = () => {
   const { themeSettings, updateThemeSettings } = useContext(ThemeSettingsContext);
   const { enqueueSnackbar } = useSnackbar();
   
+  // Check if user is a channel
+  const isChannel = user?.account_type === 'channel';
+  
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [autoSaveTimeout, setAutoSaveTimeout] = useState(null);
   
-  
-  const [accountStatus, setAccountStatus] = useState('good'); 
+  // Account status states
+  const [accountStatus, setAccountStatus] = useState('good'); // 'good', 'warning', 'banned'
   const [userWarnings, setUserWarnings] = useState([]);
   const [warningsDialogOpen, setWarningsDialogOpen] = useState(false);
   const [loadingWarnings, setLoadingWarnings] = useState(false);
   const [banInfo, setBanInfo] = useState(null);
   
-  
+  // Состояния для данных профиля
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [about, setAbout] = useState('');
@@ -1711,23 +1735,23 @@ const SettingsPage = () => {
   const [bannerPreview, setBannerPreview] = useState('');
   const [socials, setSocials] = useState([]);
   
-  
+  // Состояния для бейджей
   const [userAchievements, setUserAchievements] = useState([]);
   const [loadingAchievements, setLoadingAchievements] = useState(false);
   const [updatingActiveBadge, setUpdatingActiveBadge] = useState(false);
   
-  
+  // Состояние для Element аккаунта
   const [elementConnected, setElementConnected] = useState(false);
   const [elementLinking, setElementLinking] = useState(false);
   const [elementToken, setElementToken] = useState('');
   const [loadingElementStatus, setLoadingElementStatus] = useState(false);
   
-  
+  // Состояния для диалога добавления социальной сети
   const [socialDialogOpen, setSocialDialogOpen] = useState(false);
   const [newSocialName, setNewSocialName] = useState('');
   const [newSocialLink, setNewSocialLink] = useState('');
   
-  
+  // Состояния для настроек цветов
   const [settings, setSettings] = useState({
     background_color: '#131313',
     container_color: '#1c1c1c',
@@ -1745,14 +1769,14 @@ const SettingsPage = () => {
     content_color: '#1c1c1c',
   });
   
-  
+  // Add snackbar state back
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success'
   });
   
-  
+  // Add notification preferences state
   const [notificationPrefs, setNotificationPrefs] = useState({
     pushNotificationsEnabled: true,
     telegramNotificationsEnabled: false,
@@ -1763,41 +1787,36 @@ const SettingsPage = () => {
   const [pushNotificationSupported, setPushNotificationSupported] = useState(false);
   const [pushSubscriptionStatus, setPushSubscriptionStatus] = useState(false);
   
-  
+  // Add new state variables for push notifications
   const [pushSupported, setPushSupported] = useState(false);
   const [pushPermission, setPushPermission] = useState('default');
   const [pushSubscribed, setPushSubscribed] = useState(false);
   const [pushLoading, setPushLoading] = useState(false);
   
-  
+  // Состояния для работы с Telegram ID
   const [telegramDialogOpen, setTelegramDialogOpen] = useState(false);
   const [telegramIdInput, setTelegramIdInput] = useState('');
   const [telegramIdError, setTelegramIdError] = useState('');
   const [savingTelegramId, setSavingTelegramId] = useState(false);
   
-  
-  const [telegramWebAppMode, setTelegramWebAppMode] = useState(
-    localStorage.getItem('telegramWebAppMode') === 'true'
-  );
-  
-  
+  // Add a state for the full profile data
   const [profileData, setProfileData] = useState(null);
   
-  
+  // UseEffect для загрузки данных профиля
   useEffect(() => {
     fetchProfileData();
-    
+    // Также загружаем бейджи при загрузке страницы
     fetchUserAchievements();
-    
+    // Загружаем предупреждения и статус аккаунта
     fetchUserWarnings();
+    // Не нужно проверять статус Element, так как это теперь делается в fetchProfileData
     
-    
-    
-    
+    // Добавляем слушатель события storage для обновления статуса Element
+    // когда пользователь возвращается после авторизации Element
     const handleStorageChange = (e) => {
       if (e.key === 'elem_connected' && e.newValue === 'true') {
         checkElementStatus();
-        localStorage.removeItem('elem_connected'); 
+        localStorage.removeItem('elem_connected'); // Очищаем флаг
       }
     };
     
@@ -1808,7 +1827,7 @@ const SettingsPage = () => {
     };
   }, []);
   
-  
+  // Дополнительный эффект для проверки статуса Element при возвращении на страницу
   useEffect(() => {
     const checkElementOnFocus = () => {
       checkElementStatus();
@@ -1821,12 +1840,12 @@ const SettingsPage = () => {
     };
   }, []);
   
-  
+  // Загрузка данных пользователя
   const fetchProfileData = async () => {
     try {
       setLoading(true);
       
-      
+      // Загружаем профиль
       const profileData = await ProfileService.getProfile(user.username);
       if (profileData && profileData.user) {
         setName(profileData.user.name || '');
@@ -1836,19 +1855,19 @@ const SettingsPage = () => {
         setBannerPreview(profileData.user.banner_url || '');
         setSocials(profileData.socials || []);
         
-        
+        // Save the complete profile data
         setProfileData(profileData);
         
-        
+        // Проверяем подключен ли Element аккаунт через новые поля API
         if (profileData.user.element_connected !== undefined) {
           setElementConnected(profileData.user.element_connected);
         } else {
-          
+          // Для обратной совместимости
           setElementConnected(!!profileData.user.elem_id);
         }
       }
       
-      
+      // Загружаем настройки
       const settingsData = await ProfileService.getSettings();
       if (settingsData && settingsData.success && settingsData.settings) {
         setSettings(settingsData.settings);
@@ -1862,7 +1881,7 @@ const SettingsPage = () => {
     }
   };
   
-  
+  // Загрузка достижений пользователя
   const fetchUserAchievements = async () => {
     try {
       setLoadingAchievements(true);
@@ -1879,7 +1898,7 @@ const SettingsPage = () => {
     }
   };
   
-  
+  // Установка активного бейджа
   const handleSetActiveBadge = async (achievementId) => {
     try {
       setUpdatingActiveBadge(true);
@@ -1888,7 +1907,7 @@ const SettingsPage = () => {
       });
       
       if (response.data && response.data.success) {
-        
+        // Обновляем список достижений
         fetchUserAchievements();
         showNotification('success', 'Активный бейдж обновлен');
       }
@@ -1901,11 +1920,11 @@ const SettingsPage = () => {
     }
   };
   
-  
+  // Проверка поддержки push-уведомлений и загрузка настроек уведомлений
   useEffect(() => {
     if (!user) return;
     
-    
+    // Проверяем поддержку push-уведомлений в браузере
     const checkPushSupport = () => {
       const isSupported = 
         'serviceWorker' in navigator && 
@@ -1914,10 +1933,10 @@ const SettingsPage = () => {
       
       setPushNotificationSupported(isSupported);
       
-      
+      // По умолчанию считаем, что подписка не активирована
       setPushSubscriptionStatus(false);
       
-      
+      // Только если поддерживается и скрипт загружен, проверяем статус
       if (isSupported && window.PushNotifications) {
         window.PushNotifications.checkSubscription()
           .then(isSubscribed => {
@@ -1931,7 +1950,7 @@ const SettingsPage = () => {
       }
     };
     
-    
+    // Загружаем настройки уведомлений
     const loadNotificationPreferences = async () => {
       try {
         setLoadingNotificationPrefs(true);
@@ -1966,10 +1985,10 @@ const SettingsPage = () => {
     loadNotificationPreferences();
   }, [user]);
   
-  
+  // Fix for the checkPushSupport useEffect
   useEffect(() => {
     if (user) {
-      
+      // Update the checkPushSupport function here instead of the separate one
       const checkNotificationSupport = async () => {
         try {
           const isSupported = await NotificationService.isPushNotificationSupported();
@@ -1979,7 +1998,7 @@ const SettingsPage = () => {
             const permission = await NotificationService.getNotificationPermissionStatus();
             setPushPermission(permission);
             
-            
+            // Check if service worker is being disabled by anti-caching code
             const antiCachingActive = window.setupCaching && 
                                       typeof window.setupCaching === 'function';
             
@@ -1987,7 +2006,7 @@ const SettingsPage = () => {
               console.warn('Anti-caching system may interfere with push notifications');
             }
             
-            
+            // Try to get service worker registrations
             let swRegistered = false;
             if ('serviceWorker' in navigator) {
               try {
@@ -2023,13 +2042,13 @@ const SettingsPage = () => {
     }
   }, [user]);
   
-  
+  // Add a function to handle enabling push notifications
   const handleEnablePushNotifications = async () => {
     try {
       setPushLoading(true);
       console.log('Starting push notification setup...');
       
-      
+      // Check if push notifications are supported
       const isSupported = await NotificationService.isPushNotificationSupported();
       console.log('Push notifications supported:', isSupported);
       
@@ -2039,7 +2058,7 @@ const SettingsPage = () => {
         return;
       }
       
-      
+      // Check if permission is already granted
       const permission = await NotificationService.getNotificationPermissionStatus();
       console.log('Current permission status:', permission);
       
@@ -2050,12 +2069,12 @@ const SettingsPage = () => {
       }
       
       try {
-        
+        // Subscribe to push notifications
         console.log('Subscribing to push notifications...');
         await NotificationService.subscribeToPushNotifications();
         setPushSubscribed(true);
         
-        
+        // Also update user preferences on server
         console.log('Updating notification preferences on server...');
         try {
           await axios.post('/api/notifications/preferences', {
@@ -2069,7 +2088,7 @@ const SettingsPage = () => {
           }
         }
         
-        
+        // Send a test notification
         try {
           console.log('Sending test notification...');
           const testResult = await NotificationService.sendTestNotification();
@@ -2098,14 +2117,14 @@ const SettingsPage = () => {
     }
   };
   
-  
+  // Add a function to handle disabling push notifications
   const handleDisablePushNotifications = async () => {
     try {
       setPushLoading(true);
       
       const success = await NotificationService.unsubscribeFromPushNotifications();
       
-      
+      // Update server preferences regardless of unsubscribe result
       try {
         await axios.post('/api/notifications/preferences', {
           push_notifications_enabled: false
@@ -2125,18 +2144,34 @@ const SettingsPage = () => {
     }
   };
   
-  
+  // Обработчик смены вкладки
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
   
+  // Function to map tab index for channel accounts (skipping hidden tabs)
+  const getTabContent = (tabIndex) => {
+    if (!isChannel) {
+      return tabIndex;
+    }
+    
+    // For channels, we only show Profile (0), Design (1), and Badges (3)
+    // Map the visible tab index to the actual content index
+    switch(tabIndex) {
+      case 0: return 0; // Profile
+      case 1: return 1; // Design
+      case 2: return 3; // Badges (index 3 in regular view)
+      default: return tabIndex;
+    }
+  };
   
+  // Обработчик изменения аватара
   const handleAvatarChange = (file) => {
     if (!file) return;
     
     setAvatarFile(file);
     
-    
+    // Создаем превью
     const reader = new FileReader();
     reader.onloadend = () => {
       setAvatarPreview(reader.result);
@@ -2144,13 +2179,13 @@ const SettingsPage = () => {
     reader.readAsDataURL(file);
   };
   
-  
+  // Обработчик изменения баннера
   const handleBannerChange = (file) => {
     if (!file) return;
     
     setBannerFile(file);
     
-    
+    // Создаем превью
     const reader = new FileReader();
     reader.onloadend = () => {
       setBannerPreview(reader.result);
@@ -2158,7 +2193,7 @@ const SettingsPage = () => {
     reader.readAsDataURL(file);
   };
   
-  
+  // Обработчик сохранения профиля
   const handleSaveProfile = async () => {
     try {
       setSaving(true);
@@ -2167,7 +2202,7 @@ const SettingsPage = () => {
       let hasErrors = false;
       let responses = [];
       
-      
+      // Сохраняем имя пользователя
       if (name !== user.name) {
         try {
           console.log('Updating name...');
@@ -2182,7 +2217,7 @@ const SettingsPage = () => {
         }
       }
       
-      
+      // Сохраняем username
       if (username !== user.username) {
         try {
           console.log('Updating username...');
@@ -2197,7 +2232,7 @@ const SettingsPage = () => {
         }
       }
       
-      
+      // Сохраняем описание
       if (about !== user.about) {
         try {
           console.log('Updating about...');
@@ -2212,7 +2247,7 @@ const SettingsPage = () => {
         }
       }
       
-      
+      // Загружаем баннер
       if (bannerFile) {
         try {
           console.log('Uploading banner...');
@@ -2235,7 +2270,7 @@ const SettingsPage = () => {
         }
       }
       
-      
+      // Загружаем аватар
       if (avatarFile) {
         try {
           console.log('Uploading avatar...');
@@ -2258,7 +2293,7 @@ const SettingsPage = () => {
         }
       }
       
-      
+      // Обновляем данные пользователя в контексте, если есть
       if (updateUserData) {
         updateUserData({
           ...user,
@@ -2268,19 +2303,19 @@ const SettingsPage = () => {
         });
       }
       
-      
+      // Отображаем общий результат
       if (hasErrors) {
-        
+        // Если были ошибки, показываем ошибку с деталями
         let errorMessage = 'Некоторые изменения не удалось сохранить: ';
         const failedOperations = responses.filter(r => !r.success).map(r => r.type);
         errorMessage += failedOperations.join(', ');
         console.error('Save errors:', failedOperations);
         showNotification('error', errorMessage);
       } else {
-        
+        // Если не было ошибок, показываем успех
         console.log('All operations successful');
         showNotification('success', 'Профиль успешно сохранен');
-        
+        // Редиректим на страницу профиля
         navigate(`/profile/${username}`);
       }
       
@@ -2292,13 +2327,13 @@ const SettingsPage = () => {
     }
   };
   
-  
+  // Обработчик сохранения настроек цветов
   const handleSaveSettings = async () => {
     setSaving(true);
     setSuccess(false);
     
     try {
-      
+      // Получаем текущие настройки для отправки
       const settingsToSave = {
         background_color: settings.background_color,
         container_color: settings.container_color,
@@ -2306,20 +2341,20 @@ const SettingsPage = () => {
         avatar_border_color: settings.avatar_border_color,
         info_bubble_color: settings.info_bubble_color,
         info_bubble_border_color: settings.info_bubble_border_color,
-        
+        // Добавляем новые настройки для сохранения
         header_color: settings.header_color || settings.container_color,
         bottom_nav_color: settings.bottom_nav_color || settings.container_color,
         content_color: settings.content_color || settings.container_color,
-        
+        // Другие настройки...
       };
       
-      
+      // Отправляем обновленные настройки на сервер
       const response = await ProfileService.updateSettings(settingsToSave);
       
       if (response && response.success) {
         setSuccess(true);
         
-        
+        // Применяем новые настройки к глобальному контексту темы
         themeSettings.updateThemeSettings({
           backgroundColor: response.settings.background_color,
           paperColor: response.settings.container_color,
@@ -2334,40 +2369,40 @@ const SettingsPage = () => {
     } finally {
       setSaving(false);
       
-      
+      // Таймер для сброса статуса успеха
       setTimeout(() => {
         setSuccess(false);
       }, 3000);
     }
   };
   
-  
+  // Обработчик изменения цвета в настройках
   const handleColorChange = (colorType, color) => {
-    
+    // Обновляем настройки
     const updatedSettings = {
       ...settings,
       [colorType]: color
     };
     setSettings(updatedSettings);
 
-    
+    // Применяем цвет к CSS переменным для мгновенного эффекта
     document.documentElement.style.setProperty(`--${colorType.replace(/_/g, '-')}`, color);
 
-    
+    // Обновляем настройки в глобальном контексте темы
     if (colorType === 'background_color') {
       updateThemeSettings({ backgroundColor: color });
     } else if (colorType === 'container_color') {
       updateThemeSettings({ paperColor: color });
     } else if (colorType === 'header_color') {
       updateThemeSettings({ headerColor: color });
-      
+      // Принудительно обновляем стиль заголовка для мгновенного эффекта
       document.querySelectorAll('.MuiAppBar-root').forEach(el => {
         el.style.backgroundColor = color;
         el.style.color = getContrastTextColor(color);
       });
     } else if (colorType === 'bottom_nav_color') {
       updateThemeSettings({ bottomNavColor: color });
-      
+      // Принудительно обновляем стиль нижней навигации для мгновенного эффекта
       document.querySelectorAll('.MuiBottomNavigation-root').forEach(el => {
         el.style.backgroundColor = color;
       });
@@ -2376,7 +2411,7 @@ const SettingsPage = () => {
       });
     } else if (colorType === 'content_color') {
       updateThemeSettings({ contentColor: color });
-      
+      // Принудительно обновляем стиль контентных блоков для мгновенного эффекта
       document.querySelectorAll('.MuiCard-root').forEach(el => {
         el.style.backgroundColor = color;
         el.style.color = getContrastTextColor(color);
@@ -2385,12 +2420,12 @@ const SettingsPage = () => {
       updateThemeSettings({ welcomeBubbleColor: color });
     } else if (colorType === 'avatar_border_color') {
       updateThemeSettings({ primaryColor: color });
-      
+      // Обновляем primary цвета
       document.documentElement.style.setProperty('--primary', color);
       document.documentElement.style.setProperty('--primary-light', color);
       document.documentElement.style.setProperty('--primary-dark', color);
       
-      
+      // Обновляем рамки аватаров
       document.querySelectorAll('.MuiAvatar-root').forEach(el => {
         el.style.borderColor = color;
       });
@@ -2410,31 +2445,31 @@ const SettingsPage = () => {
       updateThemeSettings({ popupAlertColor: color });
     }
     
-    
+    // Автоматически сохраняем изменения с небольшой задержкой для предотвращения частых запросов
     if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
     setAutoSaveTimeout(setTimeout(() => {
       handleSaveSettings();
     }, 500));
   };
 
-  
+  // Функция для получения контрастного цвета текста
   const getContrastTextColor = (hexColor) => {
-    
+    // Remove the # if present
     const color = hexColor.charAt(0) === '#' ? hexColor.substring(1) : hexColor;
     
-    
+    // Convert to RGB
     const r = parseInt(color.substr(0, 2), 16);
     const g = parseInt(color.substr(2, 2), 16);
     const b = parseInt(color.substr(4, 2), 16);
     
-    
+    // Calculate relative luminance (per WCAG 2.0)
     const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
     
-    
+    // Return black for light colors, white for dark ones
     return luminance > 0.5 ? '#000000' : '#FFFFFF';
   };
   
-  
+  // Обработчик добавления социальной сети
   const handleAddSocial = async () => {
     if (!newSocialName || !newSocialLink) return;
     
@@ -2461,7 +2496,7 @@ const SettingsPage = () => {
     }
   };
   
-  
+  // Обработчик удаления социальной сети
   const handleDeleteSocial = async (name) => {
     try {
       setSaving(true);
@@ -2483,29 +2518,29 @@ const SettingsPage = () => {
     }
   };
   
-  
+  // Обработчик для отображения уведомлений
   const showNotification = (severity, message) => {
-    
+    // Use both approaches for compatibility
     setSnackbar({
       open: true,
       message,
       severity
     });
     
-    
+    // Also use notistack
     enqueueSnackbar(message, { 
       variant: severity,
       anchorOrigin: { vertical: 'bottom', horizontal: 'center' }
     });
   };
   
-  
+  // Add back handleCloseSnackbar function
   const handleCloseSnackbar = (event, reason) => {
     if (reason === 'clickaway') return;
     setSnackbar(prev => ({ ...prev, open: false }));
   };
   
-  
+  // Функция для применения предустановленной темы
   const applyTheme = async (theme) => {
     try {
       setSaving(true);
@@ -2519,7 +2554,20 @@ const SettingsPage = () => {
           welcome_bubble_color: '#131313',
           avatar_border_color: '#D0BCFF',
           info_bubble_color: '#242526',
+          header_color: '#1c1c1c',
+          bottom_nav_color: '#1c1c1c',
+          content_color: '#1c1c1c',
         };
+
+        // Save to localStorage
+        localStorage.setItem('theme', 'dark');
+        localStorage.setItem('backgroundColor', '#131313');
+        localStorage.setItem('paperColor', '#1c1c1c');
+        localStorage.setItem('headerColor', '#1c1c1c');
+        localStorage.setItem('bottomNavColor', '#1c1c1c');
+        localStorage.setItem('contentColor', '#1c1c1c');
+        localStorage.setItem('primaryColor', '#D0BCFF');
+        localStorage.setItem('textColor', '#FFFFFF');
       } else if (theme === 'light') {
         newSettings = {
           ...newSettings,
@@ -2528,28 +2576,60 @@ const SettingsPage = () => {
           welcome_bubble_color: '#f0f0f0',
           avatar_border_color: '#8c52ff',
           info_bubble_color: '#e0e0e0',
+          header_color: '#ffffff',
+          bottom_nav_color: '#ffffff',
+          content_color: '#ffffff',
         };
+
+        // Save to localStorage
+        localStorage.setItem('theme', 'light');
+        localStorage.setItem('backgroundColor', '#f5f5f5');
+        localStorage.setItem('paperColor', '#ffffff');
+        localStorage.setItem('headerColor', '#ffffff');
+        localStorage.setItem('bottomNavColor', '#ffffff');
+        localStorage.setItem('contentColor', '#ffffff');
+        localStorage.setItem('primaryColor', '#8c52ff');
+        localStorage.setItem('textColor', '#121212');
       } else if (theme === 'contrast') {
         newSettings = {
           ...newSettings,
-          background_color: '#111111',
-          container_color: '#1c1c1c',
-          welcome_bubble_color: '#131313',
-          avatar_border_color: '#ff9800',
-          info_bubble_color: '#242526',
+          background_color: '#080808', // Darker background
+          container_color: '#101010', // Darker container
+          welcome_bubble_color: '#0A0A0A',
+          avatar_border_color: '#7B46E3', // Darker purple
+          info_bubble_color: '#151515',
+          header_color: '#101010',
+          bottom_nav_color: '#101010',
+          content_color: '#101010',
         };
+
+        // Save to localStorage
+        localStorage.setItem('theme', 'contrast');
+        localStorage.setItem('backgroundColor', '#080808');
+        localStorage.setItem('paperColor', '#101010');
+        localStorage.setItem('headerColor', '#101010');
+        localStorage.setItem('bottomNavColor', '#101010');
+        localStorage.setItem('contentColor', '#101010');
+        localStorage.setItem('primaryColor', '#7B46E3');
+        localStorage.setItem('textColor', '#FFFFFF');
       }
       
-      
+      // Обновляем состояние
       setSettings(newSettings);
       
-      
+      // Update theme context with mode and text color based on theme
       updateThemeSettings({
+        mode: theme, // Add the mode explicitly
         backgroundColor: newSettings.background_color,
         paperColor: newSettings.container_color,
+        headerColor: newSettings.header_color || newSettings.container_color,
+        bottomNavColor: newSettings.bottom_nav_color || newSettings.container_color,
+        contentColor: newSettings.content_color || newSettings.container_color,
+        primaryColor: newSettings.avatar_border_color,
+        textColor: theme === 'light' ? '#121212' : '#FFFFFF'
       });
       
-      
+      // Сохраняем настройки на сервере
       const response = await ProfileService.updateSettings(newSettings);
       
       if (response.success) {
@@ -2567,12 +2647,12 @@ const SettingsPage = () => {
     }
   };
   
-  
+  // Обработчик переключения push-уведомлений
   const handleTogglePushNotifications = async () => {
     try {
       setSavingNotificationPrefs(true);
       
-      
+      // Если push уведомления не поддерживаются, просто возвращаемся
       if (!pushNotificationSupported) {
         console.error('Push-уведомления не поддерживаются в этом браузере');
         showNotification('error', 'Ваш браузер не поддерживает push-уведомления');
@@ -2585,7 +2665,7 @@ const SettingsPage = () => {
       
       try {
         if (newPushEnabled) {
-          
+          // Если включаем уведомления, подписываемся
           if (window.PushNotifications) {
             console.log('Инициализация push-уведомлений...');
             const success = await window.PushNotifications.initialize();
@@ -2604,7 +2684,7 @@ const SettingsPage = () => {
             return;
           }
         } else {
-          
+          // Если выключаем уведомления, отписываемся
           if (window.PushNotifications && pushSubscriptionStatus) {
             console.log('Отписка от push-уведомлений...');
             const registration = await navigator.serviceWorker.ready;
@@ -2618,7 +2698,7 @@ const SettingsPage = () => {
           }
         }
         
-        
+        // Сохраняем настройки на сервере
         console.log('Отправка настроек на сервер...');
         const response = await axios.post('/api/notifications/preferences', {
           push_notifications_enabled: newPushEnabled,
@@ -2652,12 +2732,12 @@ const SettingsPage = () => {
     }
   };
   
-  
+  // Обработчик переключения Telegram-уведомлений
   const handleToggleTelegramNotifications = async () => {
     try {
       setSavingNotificationPrefs(true);
       
-      
+      // Проверяем, есть ли telegram_id
       if (!notificationPrefs.telegramConnected) {
         console.error('Telegram не подключен, невозможно включить Telegram-уведомления');
         showNotification('warning', 'Для получения уведомлений сначала подключите Telegram в профиле');
@@ -2669,7 +2749,7 @@ const SettingsPage = () => {
       console.log('Переключение Telegram уведомлений на:', newTelegramEnabled);
       
       try {
-        
+        // Сохраняем настройки на сервере
         const response = await axios.post('/api/notifications/preferences', {
           push_notifications_enabled: notificationPrefs.pushNotificationsEnabled,
           telegram_notifications_enabled: newTelegramEnabled
@@ -2702,43 +2782,43 @@ const SettingsPage = () => {
     }
   };
   
-  
+  // Обработчик сохранения Telegram ID
   const handleSaveTelegramId = async () => {
     try {
-      
+      // Сброс ошибок
       setTelegramIdError('');
       setSavingTelegramId(true);
       
-      
+      // Валидация
       if (!telegramIdInput.trim()) {
         setTelegramIdError('Telegram ID не может быть пустым');
         setSavingTelegramId(false);
         return;
       }
       
-      
+      // Проверяем, что введено число
       if (!/^\d+$/.test(telegramIdInput.trim())) {
         setTelegramIdError('Telegram ID должен быть числом');
         setSavingTelegramId(false);
         return;
       }
       
-      
+      // Отправляем запрос на сервер
       const response = await axios.post('/api/profile/telegram-connect', {
         telegram_id: telegramIdInput.trim()
       });
       
       if (response.data && response.data.success) {
-        
+        // Обновляем состояние приложения
         setNotificationPrefs({
           ...notificationPrefs,
           telegramConnected: true
         });
         
-        
+        // Показываем уведомление об успехе
         showNotification('success', 'Telegram аккаунт успешно привязан');
         
-        
+        // Закрываем диалог
         setTelegramDialogOpen(false);
         setTelegramIdInput('');
       } else {
@@ -2753,10 +2833,10 @@ const SettingsPage = () => {
     }
   };
   
-  
+  // Загрузка статуса подключения Element
   const checkElementStatus = async () => {
     try {
-      
+      // Если у нас уже есть данные из fetchProfileData, не делаем запрос
       if (!loadingElementStatus && elementConnected !== null) {
         return elementConnected;
       }
@@ -2780,12 +2860,12 @@ const SettingsPage = () => {
     }
   };
   
-  
+  // Генерация временного токена для привязки Element
   const generateElementToken = async () => {
     try {
       setElementLinking(true);
       
-      
+      // Генерируем случайный токен для идентификации сессии
       const randomToken = Math.random().toString(36).substring(2, 15) + 
                           Math.random().toString(36).substring(2, 15);
       
@@ -2799,48 +2879,49 @@ const SettingsPage = () => {
     }
   };
   
-  
+  // Обработчик для привязки Element
   const handleLinkElement = () => {
     generateElementToken();
     
-    
+    // Устанавливаем слушатель для проверки статуса при возвращении с Auth Element страницы
     const checkInterval = setInterval(() => {
       checkElementStatus().then(isConnected => {
         if (isConnected) {
-          
+          // Если успешно подключили Element, очищаем интервал и состояние привязки
           clearInterval(checkInterval);
           setElementLinking(false);
           setElementToken('');
           showNotification('success', 'Element аккаунт успешно подключен!');
         }
       });
-    }, 2000); 
+    }, 2000); // Проверяем каждые 2 секунды
     
-    
+    // Устанавливаем локальное хранилище, чтобы другие вкладки могли узнать о подключении
     localStorage.setItem('element_auth_pending', 'true');
     
-    
+    // Очищаем интервал через 2 минуты, если пользователь не завершил процесс
     setTimeout(() => {
       clearInterval(checkInterval);
       localStorage.removeItem('element_auth_pending');
     }, 120000);
   };
   
-  
+  // Отмена привязки Element
   const handleCancelElementLinking = () => {
     setElementToken('');
     setElementLinking(false);
-    
+    // Очищаем признак ожидания авторизации
     localStorage.removeItem('element_auth_pending');
   };
   
-  
+  // Add a function to handle removing the active badge
   const handleClearActiveBadge = async () => {
     try {
       setUpdatingActiveBadge(true);
-      const response = await axios.post('/api/profile/achievements/clear');
+      const response = await axios.post('/api/profile/achievements/clear-active');
       
-      if (response.data && response.data.success) {
+      if (response.data.success) {
+        // Обновляем список бейджей
         fetchUserAchievements();
         showNotification('success', 'Активный бейдж удален');
       }
@@ -2851,21 +2932,9 @@ const SettingsPage = () => {
     }
   };
   
-  
-  const handleToggleTelegramWebAppMode = () => {
-    const newMode = !telegramWebAppMode;
-    setTelegramWebAppMode(newMode);
-    
-    
-    localStorage.setItem('telegramWebAppMode', newMode.toString());
-    
-    
-    window.location.reload();
-  };
-  
-  
+  // Функция для обновления данных профиля после изменения статуса
   const handleStatusUpdate = (statusData) => {
-    
+    // Обновляем локальную копию данных профиля
     setProfileData(prevData => ({
       ...prevData,
       status_text: statusData.status_text,
@@ -2873,7 +2942,7 @@ const SettingsPage = () => {
     }));
   };
   
-  
+  // Получение предупреждений пользователя и статуса аккаунта
   const fetchUserWarnings = async () => {
     try {
       setLoadingWarnings(true);
@@ -2893,7 +2962,7 @@ const SettingsPage = () => {
     }
   };
   
-  
+  // Format date for warnings display
   const formatWarningDate = (dateString) => {
     if (!dateString) return 'Неизвестно';
     try {
@@ -2915,7 +2984,7 @@ const SettingsPage = () => {
     setWarningsDialogOpen(true);
   };
   
-  
+  // Компонент для настройки статуса пользователя
   const StatusSettings = ({ profileData, subscription, onStatusUpdate }) => {
     const theme = useTheme();
     const [statusText, setStatusText] = useState('');
@@ -2928,21 +2997,21 @@ const SettingsPage = () => {
     const [selectedIcon, setSelectedIcon] = useState(null);
     const maxLength = 50;
   
-    
+    // Предустановленные цвета
     const presetColors = [
-      '#D0BCFF', 
-      '#90CAF9', 
-      '#A5D6A7', 
-      '#FFCC80', 
-      '#EF9A9A', 
-      '#CE93D8', 
-      '#FFF59D', 
-      '#B0BEC5', 
-      '#F48FB1', 
-      '#81D4FA'  
+      '#D0BCFF', // Default (фиолетовый)
+      '#90CAF9', // Голубой
+      '#A5D6A7', // Зеленый
+      '#FFCC80', // Оранжевый
+      '#EF9A9A', // Красный
+      '#CE93D8', // Сиреневый
+      '#FFF59D', // Желтый
+      '#B0BEC5', // Серый
+      '#F48FB1', // Розовый
+      '#81D4FA'  // Светло-голубой
     ];
     
-    
+    // Доступные иконки
     const availableIcons = [
       { name: 'cloud', component: <CloudIcon sx={{ fontSize: 24 }} /> },
       { name: 'minion', component: (
@@ -2977,19 +3046,19 @@ const SettingsPage = () => {
       { name: 'info', component: <InfoIcon sx={{ fontSize: 24 }} /> },
     ];
   
-    
+    // Получаем данные статуса из переданного профиля
     useEffect(() => {
       if (profileData) {
-        
+        // Проверка на премиум подписку (также разрешаем ultimate и pick-me)
         setIsPremium(subscription && 
           (subscription.type === 'premium' || 
            subscription.type === 'ultimate' || 
            subscription.type === 'pick-me') && 
           subscription.active);
         
-        
+        // Устанавливаем начальные значения статуса если они есть
         if (profileData.status_text) {
-          
+          // Парсим текст статуса для извлечения иконки
           const parsedStatus = parseStatusText(profileData.status_text);
           setStatusText(parsedStatus.text);
           setSelectedIcon(parsedStatus.iconName);
@@ -3003,22 +3072,22 @@ const SettingsPage = () => {
       }
     }, [profileData, subscription]);
     
-    
+    // Функция для парсинга текста статуса и извлечения иконки
     const parseStatusText = (text) => {
-      
+      // Регулярное выражение для поиска тегов иконок в формате {имя_иконки}
       const iconTagRegex = /\{(\w+)\}/;
       const match = text.match(iconTagRegex);
       
-      
+      // Объект с текстом статуса и иконкой
       const result = {
         text: text,
         iconName: null
       };
       
       if (match) {
-        
+        // Извлекаем имя иконки из тега
         result.iconName = match[1].toLowerCase();
-        
+        // Удаляем тег иконки из текста
         result.text = text.replace(iconTagRegex, '').trim();
       }
       
@@ -3027,7 +3096,7 @@ const SettingsPage = () => {
 
     const handleStatusTextChange = (e) => {
       const value = e.target.value;
-      
+      // Ограничиваем длину текста
       if (value.length <= maxLength) {
         setStatusText(value);
         setHasError(false);
@@ -3043,21 +3112,21 @@ const SettingsPage = () => {
       setSelectedIcon(iconName === selectedIcon ? null : iconName);
     };
     
-    
+    // Формируем полный текст статуса с иконкой для сохранения
     const getFullStatusText = () => {
       return selectedIcon ? `{${selectedIcon}} ${statusText}` : statusText;
     };
 
     const getContrastTextColor = (hexColor) => {
-      
+      // Преобразуем HEX в RGB
       const r = parseInt(hexColor.substr(1, 2), 16);
       const g = parseInt(hexColor.substr(3, 2), 16);
       const b = parseInt(hexColor.substr(5, 2), 16);
       
-      
+      // Вычисляем яркость
       const brightness = (r * 299 + g * 587 + b * 114) / 1000;
       
-      
+      // Возвращаем белый или черный цвет в зависимости от яркости фона
       return brightness > 128 ? '#000000' : '#FFFFFF';
     };
 
@@ -3088,10 +3157,10 @@ const SettingsPage = () => {
           setHasError(false);
           setErrorMessage('');
           
-          
+          // Используем функцию showNotification вместо enqueueSnackbar
           showNotification('success', 'Статус успешно обновлен');
           
-          
+          // Вызываем функцию обновления данных профиля в родительском компоненте
           if (onStatusUpdate) {
             onStatusUpdate({
               status_text: getFullStatusText(),
@@ -3113,43 +3182,43 @@ const SettingsPage = () => {
       }
     };
   
-    
+    // Предпросмотр статуса
     const StatusPreview = () => {
-      
+      // Функция для создания чуть более светлого/темного оттенка цвета для градиента
       const createGradientColor = (hexColor) => {
-        
+        // Преобразуем HEX в RGB
         let r = parseInt(hexColor.substr(1, 2), 16);
         let g = parseInt(hexColor.substr(3, 2), 16);
         let b = parseInt(hexColor.substr(5, 2), 16);
         
-        
+        // Определяем, светлый или темный цвет
         const brightness = (r * 299 + g * 587 + b * 114) / 1000;
         
-        
+        // Для темных цветов делаем светлее, для светлых - темнее
         if (brightness < 128) {
-          
+          // Для темного цвета - делаем светлее
           r = Math.min(255, r + 30);
           g = Math.min(255, g + 30);
           b = Math.min(255, b + 30);
         } else {
-          
+          // Для светлого цвета - делаем темнее
           r = Math.max(0, r - 30);
           g = Math.max(0, g - 30);
           b = Math.max(0, b - 30);
         }
         
-        
+        // Конвертируем обратно в HEX
         return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
       };
 
-      
+      // Определяем второй цвет для градиента
       const gradientColor = createGradientColor(statusColor || '#D0BCFF');
       const textColor = getContrastTextColor(statusColor || '#D0BCFF');
       
-      
+      // Функция для получения иконки по имени
       const getIconByName = (iconName) => {
         const icon = availableIcons.find(icon => icon.name === iconName);
-        return icon ? icon.component : availableIcons[0].component; 
+        return icon ? icon.component : availableIcons[0].component; // Используем облако по умолчанию
       };
 
       return (
@@ -3426,20 +3495,20 @@ const SettingsPage = () => {
         >
           <StyledTab icon={<AccountCircleIcon />} label="Профиль" />
           <StyledTab icon={<BrushIcon />} label="Оформление" />
-          <StyledTab icon={<NotificationsIcon />} label="Уведомления" />
+          {!isChannel && <StyledTab icon={<NotificationsIcon />} label="Уведомления" />}
           <StyledTab icon={<EmojiEventsIcon />} label="Бейджи" />
-          <StyledTab icon={<AlternateEmailIcon />} label="Юзернеймы" />
-          <StyledTab icon={<LockIcon />} label="Вход по паролю" />
+          {!isChannel && <StyledTab icon={<AlternateEmailIcon />} label="Юзернеймы" />}
+          {!isChannel && <StyledTab icon={<LockIcon />} label="Вход по паролю" />}
         </StyledTabs>
         
-        {}
-        {activeTab === 0 && (
+        
+        {getTabContent(activeTab) === 0 && (
           <Box component={motion.div} 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
-            {}
+            
             <SettingsCard>
               <SettingsCardContent>
                 <SectionTitle variant="h5">
@@ -3546,7 +3615,7 @@ const SettingsPage = () => {
                 
                 <Grid container spacing={3}>
                   <Grid item xs={12} md={6}>
-                    {}
+                    
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 4 }}>
                       <ProfileImageContainer>
                         <Avatar
@@ -3581,7 +3650,7 @@ const SettingsPage = () => {
                   </Grid>
                   
                   <Grid item xs={12} md={6}>
-                    {}
+                    
                     <BannerContainer>
                       <Box 
                         component="img"
@@ -3662,7 +3731,7 @@ const SettingsPage = () => {
                   </Grid>
                 </Grid>
                 
-                {}
+                
                 <StatusSettings 
                   profileData={profileData} 
                   subscription={profileData?.subscription} 
@@ -3765,7 +3834,7 @@ const SettingsPage = () => {
                   </Button>
                 </Box>
                 
-                {}
+                
                 <Dialog 
                   open={socialDialogOpen} 
                   onClose={() => setSocialDialogOpen(false)}
@@ -3839,13 +3908,23 @@ const SettingsPage = () => {
           </Box>
         )}
         
-        {}
-        {activeTab === 1 && (
+        
+        {getTabContent(activeTab) === 1 && (
           <Box component={motion.div} 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
+            
+            <ThemeSelector onThemeSelect={applyTheme} />
+            
+            <Divider sx={{ my: 3 }} />
+            
+            
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Настройка цветов интерфейса
+            </Typography>
+            
             <SettingsCard>
               <SettingsCardContent>
                 <SectionTitle variant="h5">
@@ -3943,37 +4022,14 @@ const SettingsPage = () => {
                   Дополнительные настройки
                 </SectionTitle>
                 
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={telegramWebAppMode}
-                      onChange={handleToggleTelegramWebAppMode}
-                      color="primary"
-                    />
-                  }
-                  label={
-                    <Box>
-                      <Typography variant="body1">Режим Telegram Mini App</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Добавляет отступ сверху для кнопок меню Telegram
-                      </Typography>
-                    </Box>
-                  }
-                  sx={{ 
-                    mb: 2, 
-                    display: 'flex',
-                    '.MuiFormControlLabel-label': {
-                      width: '100%'
-                    }
-                  }}
-                />
+                
               </SettingsCardContent>
             </SettingsCard>
           </Box>
         )}
         
-        {}
-        {activeTab === 2 && (
+        
+        {getTabContent(activeTab) === 2 && !isChannel && (
           <Box component={motion.div} 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -3986,7 +4042,7 @@ const SettingsPage = () => {
 
             
             
-            {}
+            
             <SettingsCard sx={{ mt: 3 }}>
               <SettingsCardContent>
                 <SectionTitle variant="h5">
@@ -4010,14 +4066,14 @@ const SettingsPage = () => {
                       </Alert>
                     )}
                     
-                    {}
+                    
                     {window.setupCaching && typeof window.setupCaching === 'function' && (
                       <Alert severity="warning" sx={{ mb: 2 }}>
                         Система защиты от кэширования может помешать работе push-уведомлений. Если у вас возникли проблемы с получением уведомлений, обратитесь к администратору.
                       </Alert>
                     )}
                     
-                    {}
+                    
                     <Box sx={{ 
                       display: 'flex', 
                       justifyContent: 'space-between',
@@ -4062,7 +4118,7 @@ const SettingsPage = () => {
                       </Button>
                     </Box>
                     
-                    {}
+                    
                     <Box sx={{ 
                       display: 'flex', 
                       justifyContent: 'space-between',
@@ -4116,7 +4172,7 @@ const SettingsPage = () => {
               </SettingsCardContent>
             </SettingsCard>
             
-            {}
+            
             <SettingsCard sx={{ mt: 3 }}>
               <SettingsCardContent>
                 <SectionTitle variant="h5">
@@ -4128,7 +4184,7 @@ const SettingsPage = () => {
                   Подключите внешние аккаунты для расширенных возможностей
                 </Typography>
                 
-                {}
+                
                 <Box sx={{ 
                   p: 2, 
                   mb: 2,
@@ -4226,7 +4282,7 @@ const SettingsPage = () => {
                   )}
                 </Box>
                 
-                {}
+                
                 <Box sx={{ 
                   p: 2,
                   borderRadius: 2,
@@ -4266,9 +4322,9 @@ const SettingsPage = () => {
                       startIcon={notificationPrefs.telegramConnected ? <LinkOffIcon /> : <LinkIcon />}
                       sx={{ borderRadius: '10px', textTransform: 'none' }}
                       onClick={() => {
-                        
+                        // Если Telegram уже подключен, предлагаем отключить
                         if (notificationPrefs.telegramConnected) {
-                          
+                          // Здесь можно добавить диалог подтверждения отключения
                           axios.post('/api/profile/telegram-disconnect')
                             .then(response => {
                               if (response.data && response.data.success) {
@@ -4285,7 +4341,7 @@ const SettingsPage = () => {
                               showNotification('error', 'Не удалось отключить Telegram аккаунт');
                             });
                         } else {
-                          
+                          // Если не подключен, открываем диалог для ввода ID
                           setTelegramDialogOpen(true);
                         }
                       }}
@@ -4299,8 +4355,8 @@ const SettingsPage = () => {
           </Box>
         )}
         
-        {}
-        {activeTab === 3 && (
+        
+        {getTabContent(activeTab) === 3 && (
           <Box component={motion.div} 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -4572,8 +4628,8 @@ const SettingsPage = () => {
           </Box>
         )}
         
-        {}
-        {activeTab === 4 && (
+        
+        {getTabContent(activeTab) === 4 && !isChannel && (
           <Box component={motion.div} 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -4586,7 +4642,7 @@ const SettingsPage = () => {
             
             <SettingsCard>
               <SettingsCardContent sx={{ 
-                p: { xs: 1, sm: 2, md: 3 } 
+                p: { xs: 1, sm: 2, md: 3 } // Адаптивные отступы
               }}>
                 <UsernameShopTab 
                   activeTab={activeTab}
@@ -4596,8 +4652,8 @@ const SettingsPage = () => {
           </Box>
         )}
         
-        {}
-        {activeTab === 5 && (
+        
+        {getTabContent(activeTab) === 5 && !isChannel && (
           <Box component={motion.div} 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -4607,7 +4663,7 @@ const SettingsPage = () => {
           </Box>
         )}
         
-        {}
+        
         <Snackbar 
           open={snackbar.open} 
           autoHideDuration={6000} 
@@ -4624,7 +4680,7 @@ const SettingsPage = () => {
           </Alert>
         </Snackbar>
         
-        {}
+        
         <Dialog
           open={telegramDialogOpen}
           onClose={() => setTelegramDialogOpen(false)}
@@ -4713,7 +4769,7 @@ const SettingsPage = () => {
           </DialogActions>
         </Dialog>
         
-        {}
+        
         <Dialog
           open={warningsDialogOpen}
           onClose={() => setWarningsDialogOpen(false)}
@@ -4721,7 +4777,7 @@ const SettingsPage = () => {
           fullWidth
           sx={{
             '& .MuiDialog-paper': {
-              borderRadius: 1, 
+              borderRadius: 1, // Less rounded corners
               background: 'rgba(18, 18, 18, 0.8)',
               backdropFilter: 'blur(10px)',
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
@@ -4743,7 +4799,7 @@ const SettingsPage = () => {
               </Box>
             ) : userWarnings.length > 0 ? (
               <Box>
-                {}
+                
                 <Box sx={{ display: { xs: 'none', md: 'block' } }}>
                   <TableContainer component={Paper} sx={{ bgcolor: 'background.paper', borderRadius: 2 }}>
                     <Table>
@@ -4777,7 +4833,7 @@ const SettingsPage = () => {
                   </TableContainer>
                 </Box>
                 
-                {}
+                
                 <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 2 }}>
                   {userWarnings.map((warning) => (
                     <Paper 
@@ -4839,13 +4895,128 @@ const SettingsPage = () => {
           </DialogActions>
         </Dialog>
         
-        {}
+        
         <SettingsBottomNavigation 
           activeTab={activeTab} 
           onTabChange={handleTabChange}
+          user={user}
         />
       </SettingsContainer>
     </motion.div>
+  );
+};
+
+// Add this new component for theme selection near the other components
+const ThemeSelector = ({ onThemeSelect }) => {
+  const theme = useTheme();
+  const currentTheme = localStorage.getItem('theme') || 'dark';
+  
+  const themes = [
+    {
+      id: 'dark',
+      name: 'Темная тема',
+      bg: '#131313',
+      paper: '#1c1c1c',
+      primary: '#D0BCFF'
+    },
+    {
+      id: 'light',
+      name: 'Светлая тема',
+      bg: '#f5f5f5',
+      paper: '#ffffff',
+      primary: '#8c52ff'
+    },
+    {
+      id: 'contrast',
+      name: 'Контрастная',
+      bg: '#080808',
+      paper: '#101010',
+      primary: '#7B46E3'
+    }
+  ];
+
+  return (
+    <Box sx={{ mb: 4 }}>
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        Готовые темы оформления
+      </Typography>
+      <Grid container spacing={2}>
+        {themes.map((themeOption) => (
+          <Grid item xs={12} sm={4} key={themeOption.id}>
+            <Box
+              onClick={() => onThemeSelect(themeOption.id)}
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                border: `2px solid ${currentTheme === themeOption.id ? theme.palette.primary.main : 'rgba(255,255,255,0.1)'}`,
+                borderRadius: 2,
+                overflow: 'hidden',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                }
+              }}
+            >
+              
+              <Box sx={{ height: 120, bgcolor: themeOption.bg, position: 'relative', p: 1 }}>
+                <Box 
+                  sx={{ 
+                    height: 24, 
+                    bgcolor: themeOption.paper, 
+                    borderRadius: 1, 
+                    mb: 1 
+                  }}
+                />
+                <Box sx={{ display: 'flex', gap: 1, height: 60 }}>
+                  <Box 
+                    sx={{ 
+                      width: '30%', 
+                      bgcolor: themeOption.paper, 
+                      borderRadius: 1 
+                    }}
+                  />
+                  <Box 
+                    sx={{ 
+                      width: '70%', 
+                      bgcolor: themeOption.paper, 
+                      borderRadius: 1,
+                      position: 'relative'
+                    }}
+                  >
+                    <Box 
+                      sx={{ 
+                        position: 'absolute', 
+                        width: 30, 
+                        height: 6, 
+                        bgcolor: themeOption.primary,
+                        borderRadius: 1,
+                        top: 10,
+                        left: 10
+                      }}
+                    />
+                  </Box>
+                </Box>
+              </Box>
+              
+              
+              <Box 
+                sx={{ 
+                  p: 1.5, 
+                  bgcolor: themeOption.paper, 
+                  color: themeOption.id === 'light' ? '#121212' : '#ffffff'
+                }}
+              >
+                <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                  {themeOption.name}
+                </Typography>
+              </Box>
+            </Box>
+          </Grid>
+        ))}
+      </Grid>
+    </Box>
   );
 };
 

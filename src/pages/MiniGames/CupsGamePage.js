@@ -31,6 +31,7 @@ import SentimentVeryDissatisfiedIcon from '@mui/icons-material/SentimentVeryDiss
 import SEO from '../../components/SEO';
 import axios from 'axios';
 
+// Cup Images Component 
 const CupImage = ({ lifted, winner }) => {
   return (
     <Box sx={{ 
@@ -42,7 +43,7 @@ const CupImage = ({ lifted, winner }) => {
       justifyContent: 'center',
       alignItems: 'center',
     }}>
-      {}
+      
       <Box sx={{ 
         width: '80%',
         height: '80%',
@@ -55,7 +56,7 @@ const CupImage = ({ lifted, winner }) => {
         zIndex: 2
       }} />
       
-      {}
+      
       {winner && (
         <Box sx={{ 
           position: 'absolute',
@@ -81,7 +82,7 @@ const CupsGamePage = () => {
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
-  
+  // Состояния игры
   const [balance, setBalance] = useState(0);
   const [betAmount, setBetAmount] = useState('10');
   const [selectedCup, setSelectedCup] = useState(null);
@@ -93,7 +94,7 @@ const CupsGamePage = () => {
   const [gameAnimation, setGameAnimation] = useState(false);
   const [revealResult, setRevealResult] = useState(false);
   
-  
+  // Получение баланса пользователя
   const fetchBalance = useCallback(async () => {
     try {
       setLoading(true);
@@ -113,27 +114,27 @@ const CupsGamePage = () => {
     fetchBalance();
   }, [fetchBalance]);
   
-  
+  // Обработка изменения ставки
   const handleBetChange = (e) => {
     const value = e.target.value.replace(/[^0-9]/g, '');
     setBetAmount(value);
   };
   
-  
+  // Выбор чаши
   const handleCupSelect = (cupIndex) => {
     if (!isPlaying) {
       setSelectedCup(cupIndex);
     }
   };
   
-  
+  // Форматирование чисел
   const formatNumber = (num) => {
     return parseInt(num).toLocaleString();
   };
   
-  
+  // Начало игры
   const startGame = async () => {
-    
+    // Проверка ставки
     const bet = parseInt(betAmount, 10);
     if (isNaN(bet) || bet <= 0) {
       setError('Пожалуйста, введите корректную ставку.');
@@ -161,24 +162,24 @@ const CupsGamePage = () => {
         selected_cup: selectedCup
       });
       
-      console.log('Game response:', response.data); 
+      console.log('Game response:', response.data); // Debugging
 
       if (response?.data?.success) {
-        
+        // Задержка для анимации игры
         setTimeout(() => {
           setGameAnimation(false);
           
-          
+          // Адаптируем результат к формату ожидаемому в интерфейсе
           const processedResult = {
             ...response.data,
-            is_win: response.data.won,  
-            new_balance: response.data.balance 
+            is_win: response.data.won,  // Преобразуем won в is_win для обратной совместимости
+            new_balance: response.data.balance // Используем правильное поле баланса
           };
           
           setGameResult(processedResult);
           setRevealResult(true);
           
-          
+          // Обновляем баланс с парсингом в целое число
           if (response.data.balance !== undefined) {
             setBalance(parseInt(response.data.balance));
           } else {
@@ -200,7 +201,7 @@ const CupsGamePage = () => {
     }
   };
   
-  
+  // Сброс игры
   const resetGame = () => {
     setIsPlaying(false);
     setSelectedCup(null);
@@ -208,12 +209,12 @@ const CupsGamePage = () => {
     setRevealResult(false);
   };
   
-  
+  // Переход к максимальной ставке
   const setMaxBet = () => {
     setBetAmount(Math.floor(balance).toString());
   };
   
-  
+  // Предопределенные значения ставок
   const predefinedBets = [10, 50, 100, 500];
   
   return (
@@ -221,14 +222,14 @@ const CupsGamePage = () => {
       maxWidth="md" 
       sx={{ 
         mt: { xs: 2, sm: 3 }, 
-        mb: { xs: 10, sm: 10 }, 
-        pb: { xs: '80px', sm: 0 }, 
+        mb: { xs: 10, sm: 10 }, // Added extra bottom margin for mobile nav
+        pb: { xs: '80px', sm: 0 }, // Added specific padding for mobile nav
         px: { xs: 1, sm: 2 }
       }}
     >
       <SEO title="Три чаши | Мини-игры | К-Коннект" description="Игра Три чаши - угадайте, под какой чашей находится шарик!" />
       
-      {}
+      
       <Box sx={{ 
         display: 'flex', 
         flexDirection: { xs: 'column', sm: 'row' },
@@ -267,7 +268,7 @@ const CupsGamePage = () => {
         </Box>
       </Box>
       
-      {}
+      
       <Paper 
         elevation={2}
         sx={{ 
@@ -327,7 +328,7 @@ const CupsGamePage = () => {
         </Box>
       </Paper>
       
-      {}
+      
       <Paper sx={{ 
         p: { xs: 2, sm: 3 }, 
         borderRadius: 3, 
@@ -336,7 +337,7 @@ const CupsGamePage = () => {
           ? 'linear-gradient(to bottom, #424242, #303030)'
           : 'linear-gradient(to bottom, #ffffff, #f5f5f5)'
       }}>
-        {}
+        
         <Box sx={{ mb: 4 }}>
           <Typography variant="h6" gutterBottom sx={{ 
             display: 'flex',
@@ -427,7 +428,7 @@ const CupsGamePage = () => {
         
         <Divider sx={{ my: 3 }} />
         
-        {}
+        
         <Box sx={{ mb: 4 }}>
           <Typography variant="h6" gutterBottom sx={{ 
             display: 'flex',
@@ -496,7 +497,7 @@ const CupsGamePage = () => {
                       }
                     }}
                   >
-                    {}
+                    
                     {selectedCup === cup && !isPlaying && (
                       <Box 
                         sx={{ 
@@ -514,7 +515,7 @@ const CupsGamePage = () => {
                       />
                     )}
                     
-                    {}
+                    
                     <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
                       <CupImage 
                         lifted={revealResult} 
@@ -542,7 +543,7 @@ const CupsGamePage = () => {
           </Box>
         </Box>
         
-        {}
+        
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 4 }}>
           {!isPlaying ? (
             <Button
@@ -589,7 +590,7 @@ const CupsGamePage = () => {
         </Box>
       </Paper>
       
-      {}
+      
       {gameResult && (
         <Fade in={true} timeout={800}>
           <Paper
@@ -641,11 +642,21 @@ const CupsGamePage = () => {
         </Fade>
       )}
       
-      {}
+      
       <Dialog
         open={showRules}
         onClose={() => setShowRules(false)}
-        sx={{ '& .MuiDialog-paper': { borderRadius: 3 } }}
+        sx={{ 
+          '& .MuiDialog-paper': { 
+            borderRadius: 3,
+            '@media (max-width: 600px)': {
+              width: '100%',
+              maxWidth: '100%',
+              margin: 0,
+              borderRadius: 0,
+            }
+          } 
+        }}
       >
         <DialogTitle>Правила игры "Три чаши"</DialogTitle>
         <DialogContent>
@@ -677,7 +688,7 @@ const CupsGamePage = () => {
         </DialogActions>
       </Dialog>
       
-      {}
+      
       <Backdrop
         sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
         open={loading}
@@ -685,7 +696,7 @@ const CupsGamePage = () => {
         <CircularProgress color="inherit" />
       </Backdrop>
       
-      {}
+      
       <Snackbar 
         open={!!error} 
         autoHideDuration={5000} 

@@ -23,12 +23,10 @@ import PeopleIcon from '@mui/icons-material/People';
 import SearchIcon from '@mui/icons-material/Search';
 import QueueMusicIcon from '@mui/icons-material/QueueMusic';
 import StorefrontIcon from '@mui/icons-material/Storefront';
-
 const PageContainer = styled(Container)(({ theme }) => ({
   paddingTop: theme.spacing(4),
   paddingBottom: theme.spacing(8),
 }));
-
 const ApiTitle = styled(Typography)(({ theme }) => ({
   fontWeight: 700,
   marginBottom: theme.spacing(3),
@@ -41,7 +39,6 @@ const ApiTitle = styled(Typography)(({ theme }) => ({
     color: theme.palette.primary.main,
   }
 }));
-
 const SectionTitle = styled(Typography)(({ theme }) => ({
   fontWeight: 600,
   marginTop: theme.spacing(4),
@@ -53,7 +50,6 @@ const SectionTitle = styled(Typography)(({ theme }) => ({
     color: theme.palette.primary.main,
   }
 }));
-
 const ApiCard = styled(Card)(({ theme }) => ({
   marginBottom: theme.spacing(3),
   borderRadius: theme.spacing(2),
@@ -64,7 +60,6 @@ const ApiCard = styled(Card)(({ theme }) => ({
     transform: 'translateY(-2px)',
   }
 }));
-
 const MethodChip = styled(Chip)(({ theme, method }) => {
   const colors = {
     GET: {
@@ -88,14 +83,11 @@ const MethodChip = styled(Chip)(({ theme, method }) => {
       color: '#00838f'
     }
   };
-  
   const defaultColor = {
     bg: alpha(theme.palette.text.primary, 0.1),
     color: theme.palette.text.primary
   };
-  
   const color = colors[method] || defaultColor;
-  
   return {
     backgroundColor: theme.palette.mode === 'dark' ? alpha(color.color, 0.2) : color.bg,
     color: color.color,
@@ -104,7 +96,6 @@ const MethodChip = styled(Chip)(({ theme, method }) => {
     height: 24,
   };
 });
-
 const EndpointPath = styled(Typography)(({ theme }) => ({
   fontFamily: 'monospace',
   padding: theme.spacing(0.5, 1),
@@ -115,7 +106,6 @@ const EndpointPath = styled(Typography)(({ theme }) => ({
   marginTop: theme.spacing(1),
   marginBottom: theme.spacing(1)
 }));
-
 const CodeBlock = styled(Box)(({ theme }) => ({
   fontFamily: 'monospace',
   fontSize: '0.9rem',
@@ -132,10 +122,8 @@ const CodeBlock = styled(Box)(({ theme }) => ({
     borderRadius: '2px',
   }
 }));
-
 const ApiEndpoint = ({ method, path, description, authRequired, request, response }) => {
   const theme = useTheme();
-  
   return (
     <ApiCard elevation={2}>
       <CardContent>
@@ -147,9 +135,7 @@ const ApiEndpoint = ({ method, path, description, authRequired, request, respons
             sx={{ mr: 2 }}
           />
           <EndpointPath>
-            {path}
           </EndpointPath>
-          
           {authRequired && (
             <Chip 
               icon={<LockIcon fontSize="small" />}
@@ -159,53 +145,41 @@ const ApiEndpoint = ({ method, path, description, authRequired, request, respons
             />
           )}
         </Box>
-        
         <Typography variant="body2" color="text.secondary" paragraph>
-          {description}
         </Typography>
-        
         <Divider sx={{ my: 2 }} />
-        
         <Typography variant="subtitle2" sx={{ mb: 1, display: 'flex', alignItems: 'center' }}>
           <HttpIcon fontSize="small" sx={{ mr: 1 }} />
           Пример запроса:
         </Typography>
         <CodeBlock>
-          {request}
         </CodeBlock>
-        
         <Typography variant="subtitle2" sx={{ mt: 2, mb: 1, display: 'flex', alignItems: 'center' }}>
           <CodeIcon fontSize="small" sx={{ mr: 1 }} />
           Пример ответа:
         </Typography>
         <CodeBlock>
-          {response}
         </CodeBlock>
       </CardContent>
     </ApiCard>
   );
 };
-
 const SimpleApiDocsPage = () => {
   const theme = useTheme();
   const [activeTab, setActiveTab] = React.useState(0);
-  
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
-  
   return (
     <PageContainer maxWidth="lg">
       <ApiTitle variant="h4">
         <ApiIcon fontSize="large" />
         Документация API К-Коннект
       </ApiTitle>
-      
       <Typography variant="body1" paragraph>
         Здесь вы найдете документацию по API К-Коннект с примерами запросов и ответов.
         API позволяет взаимодействовать с системой программно для разработки собственных интеграций.
       </Typography>
-      
       <Paper sx={{ borderRadius: theme.spacing(2), mb: 4 }}>
         <Tabs 
           value={activeTab} 
@@ -227,8 +201,6 @@ const SimpleApiDocsPage = () => {
           <Tab label="Магазин бейджиков" sx={{ textTransform: 'none', fontWeight: 500 }} />
         </Tabs>
       </Paper>
-      
-      {}
       {activeTab === 0 && (
         <>
           <Box sx={{ 
@@ -242,18 +214,15 @@ const SimpleApiDocsPage = () => {
               <SecurityIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
               <Typography variant="h6">Общая информация об авторизации</Typography>
             </Box>
-            
             <Typography variant="body2" paragraph>
               В К-Коннект используется авторизация через cookie-сессии. После успешного входа, сервер устанавливает HTTP-only cookie с JWT-токеном, который автоматически отправляется с каждым последующим запросом. Безопасность обеспечивается использованием HTTP-only cookies, проверкой источника запроса и другими механизмами защиты.
             </Typography>
-            
             <SectionTitle variant="subtitle2">Авторизация и сессии</SectionTitle>
             <ul>
               <li>Для авторизации используется JWT-токен, который хранится в HTTP-only cookie</li>
               <li>После успешного входа в систему, токен будет автоматически включаться с каждым последующим запросом</li>
               <li>Безопасность обеспечивается через использование HTTP-only cookies и проверку источника запроса</li>
             </ul>
-            
             <SectionTitle variant="subtitle2">Процесс авторизации:</SectionTitle>
             <ol>
               <li>Выполните запрос на <code>/api/auth/login</code> с указанием логина и пароля</li>
@@ -261,7 +230,6 @@ const SimpleApiDocsPage = () => {
               <li>Для запросов, требующих авторизации, токен будет автоматически включаться в запрос</li>
             </ol>
           </Box>
-          
           <ApiEndpoint 
             method="POST"
             path="/api/auth/login"
@@ -270,7 +238,6 @@ const SimpleApiDocsPage = () => {
             request={
 `POST /api/auth/login
 Content-Type: application/json
-
 {
   "email": "user@example.com",
   "password": "password"
@@ -289,7 +256,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="POST"
             path="/api/auth/logout"
@@ -305,7 +271,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="POST"
             path="/api/auth/register"
@@ -314,7 +279,6 @@ Content-Type: application/json
             request={
 `POST /api/auth/register
 Content-Type: application/json
-
 {
   "email": "user@example.com",
   "password": "password",
@@ -334,7 +298,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="GET"
             path="/api/auth/check"
@@ -357,15 +320,12 @@ Content-Type: application/json
           />
         </>
       )}
-      
-      {}
       {activeTab === 1 && (
         <>
           <SectionTitle variant="h5">
             <ApiIcon fontSize="medium" sx={{ mr: 1 }} />
             API профиля пользователя
           </SectionTitle>
-          
           <ApiEndpoint 
             method="GET"
             path="/api/profile/:username"
@@ -392,7 +352,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="PUT"
             path="/api/profile/edit"
@@ -401,7 +360,6 @@ Content-Type: application/json
             request={
 `PUT /api/profile/edit
 Content-Type: application/json
-
 {
   "name": "Новое имя",
   "about": "Новая информация о себе",
@@ -421,7 +379,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="POST"
             path="/api/profile/:username/follow"
@@ -439,7 +396,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="POST"
             path="/api/profile/:username/unfollow"
@@ -457,7 +413,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="GET"
             path="/api/profile/:username/followers"
@@ -476,13 +431,6 @@ Content-Type: application/json
       "photo": "/static/uploads/avatar/124/photo.jpg",
       "is_followed": true
     },
-    {
-      "id": 125,
-      "username": "follower2",
-      "name": "Подписчик 2",
-      "photo": "/static/uploads/avatar/125/photo.jpg",
-      "is_followed": false
-    }
   ],
   "total": 42,
   "page": 1,
@@ -490,7 +438,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="GET"
             path="/api/profile/:username/following"
@@ -509,13 +456,6 @@ Content-Type: application/json
       "photo": "/static/uploads/avatar/126/photo.jpg",
       "is_followed": true
     },
-    {
-      "id": 127,
-      "username": "following2",
-      "name": "Подписка 2",
-      "photo": "/static/uploads/avatar/127/photo.jpg",
-      "is_followed": false
-    }
   ],
   "total": 21,
   "page": 1,
@@ -525,15 +465,12 @@ Content-Type: application/json
           />
         </>
       )}
-      
-      {}
       {activeTab === 2 && (
         <>
           <SectionTitle variant="h5">
             <ApiIcon fontSize="medium" sx={{ mr: 1 }} />
             API постов
           </SectionTitle>
-          
           <ApiEndpoint 
             method="GET"
             path="/api/posts"
@@ -567,7 +504,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="GET"
             path="/api/posts/feed"
@@ -601,7 +537,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="GET"
             path="/api/posts/:post_id"
@@ -645,7 +580,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="POST"
             path="/api/posts"
@@ -654,7 +588,6 @@ Content-Type: application/json
             request={
 `POST /api/posts
 Content-Type: application/json
-
 {
   "text": "Текст нового поста",
   "media": ["/static/uploads/post/temp/image.jpg"]
@@ -681,7 +614,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="DELETE"
             path="/api/posts/:post_id"
@@ -697,7 +629,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="POST"
             path="/api/posts/:post_id/like"
@@ -714,7 +645,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="POST"
             path="/api/posts/:post_id/unlike"
@@ -733,15 +663,12 @@ Content-Type: application/json
           />
         </>
       )}
-      
-      {}
       {activeTab === 3 && (
         <>
           <SectionTitle variant="h5">
             <ApiIcon fontSize="medium" sx={{ mr: 1 }} />
             API комментариев
           </SectionTitle>
-          
           <ApiEndpoint 
             method="GET"
             path="/api/posts/:post_id/comments"
@@ -773,7 +700,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="POST"
             path="/api/posts/:post_id/comments"
@@ -782,7 +708,6 @@ Content-Type: application/json
             request={
 `POST /api/posts/456/comments
 Content-Type: application/json
-
 {
   "text": "Текст нового комментария"
 }`
@@ -806,7 +731,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="DELETE"
             path="/api/comments/:comment_id"
@@ -822,7 +746,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="POST"
             path="/api/comments/:comment_id/like"
@@ -839,7 +762,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="POST"
             path="/api/comments/:comment_id/unlike"
@@ -858,15 +780,12 @@ Content-Type: application/json
           />
         </>
       )}
-      
-      {}
       {activeTab === 4 && (
         <>
           <SectionTitle variant="h5">
             <ApiIcon fontSize="medium" sx={{ mr: 1 }} />
             API уведомлений
           </SectionTitle>
-          
           <ApiEndpoint 
             method="GET"
             path="/api/notifications"
@@ -914,7 +833,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="POST"
             path="/api/notifications/read-all"
@@ -931,7 +849,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="POST"
             path="/api/notifications/:notification_id/read"
@@ -948,7 +865,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="POST"
             path="/api/push/subscribe"
@@ -957,10 +873,9 @@ Content-Type: application/json
             request={
 `POST /api/push/subscribe
 Content-Type: application/json
-
 {
   "subscription": {
-    "endpoint": "https://fcm.googleapis.com/fcm/send/...",
+    "endpoint": "https:
     "keys": {
       "p256dh": "...",
       "auth": "..."
@@ -975,7 +890,6 @@ Content-Type: application/json
 }`
             }
           />
-          
           <ApiEndpoint 
             method="DELETE"
             path="/api/push/unsubscribe"
@@ -984,9 +898,8 @@ Content-Type: application/json
             request={
 `DELETE /api/push/unsubscribe
 Content-Type: application/json
-
 {
-  "endpoint": "https://fcm.googleapis.com/fcm/send/..."
+  "endpoint": "https:
 }`
             }
             response={
@@ -996,7 +909,6 @@ Content-Type: application/json
 }`
             }
           />
-
           <ApiEndpoint
             method="POST"
             path="/api/notifications/test"
@@ -1004,7 +916,6 @@ Content-Type: application/json
             authRequired={true}
             request={`POST /api/notifications/test
 Content-Type: application/json
-
 {
   "title": "Тестовое уведомление",
   "body": "Это тестовое push-уведомление",
@@ -1017,16 +928,13 @@ Content-Type: application/json
           />
         </>
       )}
-
       {activeTab === 5 && (
         <>
           <ApiTitle>
             <PeopleIcon fontSize="large" />
             Лидерборд
           </ApiTitle>
-          
           <SectionTitle>Лидерборд пользователей и расчет очков</SectionTitle>
-          
           <ApiEndpoint
             method="GET"
             path="/api/leaderboard"
@@ -1049,7 +957,6 @@ Content-Type: application/json
         "image_path": "badge.svg"
       }
     },
-    // ... другие пользователи
   ],
   "period": "week",
   "total": 25,
@@ -1057,7 +964,6 @@ Content-Type: application/json
   "pages": 3
 }`}
           />
-          
           <ApiEndpoint
             method="GET"
             path="/api/leaderboard/user/:user_id"
@@ -1092,14 +998,12 @@ Content-Type: application/json
           />
         </>
       )}
-
       {activeTab === 6 && (
         <>
           <ApiTitle>
             <SearchIcon fontSize="large" />
             Поиск
           </ApiTitle>
-          
           <ApiEndpoint
             method="GET"
             path="/api/search"
@@ -1108,13 +1012,6 @@ Content-Type: application/json
             request={`GET /api/search?q=запрос&type=all&page=1&per_page=10`}
             response={`{
   "users": [
-    {
-      "id": 123,
-      "name": "Пользователь",
-      "username": "username",
-      "photo": "/static/uploads/avatar/123/avatar.png",
-      "about": "Информация о пользователе"
-    }
   ],
   "posts": [
     {
@@ -1133,7 +1030,6 @@ Content-Type: application/json
   ]
 }`}
           />
-          
           <ApiEndpoint
             method="GET"
             path="/api/search"
@@ -1142,14 +1038,6 @@ Content-Type: application/json
             request={`GET /api/search?q=запрос&type=users&page=1&per_page=20`}
             response={`{
   "users": [
-    {
-      "id": 123,
-      "name": "Пользователь",
-      "username": "username",
-      "photo": "/static/uploads/avatar/123/avatar.png",
-      "about": "Информация о пользователе"
-    }
-    // ... другие пользователи
   ],
   "has_next": true,
   "total": 35,
@@ -1157,7 +1045,6 @@ Content-Type: application/json
   "pages": 2
 }`}
           />
-          
           <ApiEndpoint
             method="GET"
             path="/api/search"
@@ -1179,7 +1066,6 @@ Content-Type: application/json
         "photo": "/static/uploads/avatar/123/avatar.png"
       }
     }
-    // ... другие посты
   ],
   "has_next": true,
   "total": 42,
@@ -1189,14 +1075,12 @@ Content-Type: application/json
           />
         </>
       )}
-
       {activeTab === 7 && (
         <>
           <ApiTitle>
             <QueueMusicIcon fontSize="large" />
             Музыка
           </ApiTitle>
-          
           <ApiEndpoint
             method="GET"
             path="/api/music"
@@ -1206,31 +1090,12 @@ Content-Type: application/json
             response={`{
   "success": true,
   "tracks": [
-    {
-      "id": 123,
-      "title": "Название трека",
-      "artist": "Исполнитель",
-      "album": "Альбом",
-      "duration": 180,
-      "file_path": "/static/music/456/123/track.mp3",
-      "cover_path": "/static/music/456/123/cover.jpg",
-      "user_id": 456,
-      "user_name": "Загрузивший пользователь",
-      "user_username": "username",
-      "genre": "Жанр",
-      "description": "Описание трека",
-      "plays_count": 42,
-      "likes_count": 15,
-      "created_at": "2023-06-15T14:30:45"
-    }
-    // ... другие треки
   ],
   "total": 100,
   "pages": 5,
   "current_page": 1
 }`}
           />
-          
           <ApiEndpoint
             method="GET"
             path="/api/music/user/:user_id"
@@ -1240,24 +1105,6 @@ Content-Type: application/json
             response={`{
   "success": true,
   "tracks": [
-    {
-      "id": 123,
-      "title": "Название трека",
-      "artist": "Исполнитель",
-      "album": "Альбом",
-      "duration": 180,
-      "file_path": "/static/music/456/123/track.mp3",
-      "cover_path": "/static/music/456/123/cover.jpg",
-      "user_id": 456,
-      "user_name": "Загрузивший пользователь",
-      "user_username": "username",
-      "genre": "Жанр",
-      "description": "Описание трека",
-      "plays_count": 42,
-      "likes_count": 15,
-      "created_at": "2023-06-15T14:30:45"
-    }
-    // ... другие треки пользователя
   ],
   "total": 5,
   "pages": 1,
@@ -1270,7 +1117,6 @@ Content-Type: application/json
   }
 }`}
           />
-          
           <ApiEndpoint
             method="GET"
             path="/api/music/:track_id"
@@ -1299,7 +1145,6 @@ Content-Type: application/json
   }
 }`}
           />
-          
           <ApiEndpoint
             method="POST"
             path="/api/music/:track_id/like"
@@ -1312,7 +1157,6 @@ Content-Type: application/json
   "likes_count": 16
 }`}
           />
-          
           <ApiEndpoint
             method="POST"
             path="/api/music/:track_id/play"
@@ -1324,7 +1168,6 @@ Content-Type: application/json
   "plays_count": 43
 }`}
           />
-          
           <ApiEndpoint
             method="GET"
             path="/api/music/popular"
@@ -1334,28 +1177,9 @@ Content-Type: application/json
             response={`{
   "success": true,
   "tracks": [
-    {
-      "id": 123,
-      "title": "Название трека",
-      "artist": "Исполнитель",
-      "album": "Альбом",
-      "duration": 180,
-      "file_path": "/static/music/456/123/track.mp3",
-      "cover_path": "/static/music/456/123/cover.jpg",
-      "user_id": 456,
-      "user_name": "Загрузивший пользователь",
-      "user_username": "username",
-      "genre": "Жанр",
-      "description": "Описание трека",
-      "plays_count": 42,
-      "likes_count": 15,
-      "created_at": "2023-06-15T14:30:45"
-    }
-    // ... другие популярные треки
   ]
 }`}
           />
-          
           <ApiEndpoint
             method="GET"
             path="/api/music/search"
@@ -1365,24 +1189,6 @@ Content-Type: application/json
             response={`{
   "success": true,
   "tracks": [
-    {
-      "id": 123,
-      "title": "Название трека",
-      "artist": "Исполнитель",
-      "album": "Альбом",
-      "duration": 180,
-      "file_path": "/static/music/456/123/track.mp3",
-      "cover_path": "/static/music/456/123/cover.jpg",
-      "user_id": 456,
-      "user_name": "Загрузивший пользователь",
-      "user_username": "username",
-      "genre": "Жанр",
-      "description": "Описание трека",
-      "plays_count": 42,
-      "likes_count": 15,
-      "created_at": "2023-06-15T14:30:45"
-    }
-    // ... другие найденные треки
   ],
   "total": 3,
   "pages": 1,
@@ -1391,14 +1197,12 @@ Content-Type: application/json
           />
         </>
       )}
-
       {activeTab === 8 && (
         <>
           <ApiTitle>
             <StorefrontIcon fontSize="large" />
             Магазин бейджиков
           </ApiTitle>
-          
           <ApiEndpoint
             method="GET"
             path="/api/badges/shop"
@@ -1434,14 +1238,11 @@ Content-Type: application/json
           },
           "purchase_date": "2023-06-15T14:30:45"
         }
-        // ... другие покупки
       ]
     }
-    // ... другие бейджики
   ]
 }`}
           />
-          
           <ApiEndpoint
             method="POST"
             path="/api/badges/purchase/:badge_id"
@@ -1460,7 +1261,6 @@ Content-Type: application/json
   }
 }`}
           />
-          
           <ApiEndpoint
             method="GET"
             path="/api/user/points"
@@ -1472,7 +1272,6 @@ Content-Type: application/json
   "user_id": 789
 }`}
           />
-          
           <ApiEndpoint
             method="GET"
             path="/api/badges/purchases"
@@ -1496,11 +1295,9 @@ Content-Type: application/json
       "purchase_date": "2023-06-15T14:30:45",
       "achievement_id": 5
     }
-    // ... другие покупки
   ]
 }`}
           />
-          
           <ApiEndpoint
             method="POST"
             path="/api/badges/create"
@@ -1508,7 +1305,6 @@ Content-Type: application/json
             authRequired={true}
             request={`POST /api/badges/create
 Content-Type: multipart/form-data
-
 {
   "name": "Название бейджика",
   "description": "Описание бейджика",
@@ -1526,5 +1322,4 @@ Content-Type: multipart/form-data
     </PageContainer>
   );
 };
-
 export default SimpleApiDocsPage; 

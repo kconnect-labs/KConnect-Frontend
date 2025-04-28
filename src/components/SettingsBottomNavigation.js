@@ -1,12 +1,21 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Paper, BottomNavigation, BottomNavigationAction } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import BrushIcon from '@mui/icons-material/Brush';
 import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
+import { useTheme } from '@mui/material/styles';
+import { ThemeSettingsContext } from '../App';
 
-const SettingsBottomNavigation = ({ activeTab, onTabChange }) => {
+const SettingsBottomNavigation = ({ activeTab, onTabChange, user }) => {
   const navigate = useNavigate();
+  const isChannel = user?.account_type === 'channel';
+  const theme = useTheme();
+  const { themeSettings } = useContext(ThemeSettingsContext);
+
+  // Set background color from theme settings
+  const bottomNavColor = themeSettings.bottomNavColor || theme.palette.background.paper;
+  const borderColor = theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
 
   return (
     <Paper 
@@ -17,8 +26,9 @@ const SettingsBottomNavigation = ({ activeTab, onTabChange }) => {
         right: 0,
         display: { xs: 'block', md: 'none' },
         zIndex: 1000,
-        borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-        background: 'linear-gradient(180deg, rgba(26,26,26,0.8) 0%, rgba(26,26,26,0.95) 100%)',
+        borderTop: `1px solid ${borderColor}`,
+        backgroundColor: bottomNavColor,
+        backgroundImage: 'unset',
         backdropFilter: 'blur(10px)'
       }} 
       elevation={3}
@@ -27,7 +37,7 @@ const SettingsBottomNavigation = ({ activeTab, onTabChange }) => {
         value={activeTab}
         onChange={(event, newValue) => {
           if (newValue === -1) {
-            navigate(-1); 
+            navigate(-1); // Go back
           } else {
             onTabChange(event, newValue);
           }
@@ -36,9 +46,9 @@ const SettingsBottomNavigation = ({ activeTab, onTabChange }) => {
           bgcolor: 'transparent',
           height: 75,
           '& .MuiBottomNavigationAction-root': {
-            color: 'text.secondary',
+            color: theme.palette.mode === 'dark' ? '#FFFFFF' : theme.palette.text.secondary,
             '&.Mui-selected': {
-              color: 'primary.main'
+              color: themeSettings.primaryColor || theme.palette.primary.main
             }
           }
         }}
@@ -74,16 +84,18 @@ const SettingsBottomNavigation = ({ activeTab, onTabChange }) => {
             }
           }}
         />
-        <BottomNavigationAction 
-          value={2}
-          icon={<Icon icon="solar:bell-bold" width="28" height="28" />}
-          sx={{ 
-            minWidth: 'auto',
-            '& .MuiBottomNavigationAction-label': {
-              fontSize: '0.8rem'
-            }
-          }}
-        />
+        {!isChannel && (
+          <BottomNavigationAction 
+            value={2}
+            icon={<Icon icon="solar:bell-bold" width="28" height="28" />}
+            sx={{ 
+              minWidth: 'auto',
+              '& .MuiBottomNavigationAction-label': {
+                fontSize: '0.8rem'
+              }
+            }}
+          />
+        )}
         <BottomNavigationAction 
           value={3}
           icon={<Icon icon="solar:medal-ribbon-bold" width="28" height="28" />}
@@ -94,26 +106,30 @@ const SettingsBottomNavigation = ({ activeTab, onTabChange }) => {
             }
           }}
         />
-        <BottomNavigationAction 
-          value={4}
-          icon={<AlternateEmailIcon sx={{ fontSize: 28 }} />}
-          sx={{ 
-            minWidth: 'auto',
-            '& .MuiBottomNavigationAction-label': {
-              fontSize: '0.8rem'
-            }
-          }}
-        />
-        <BottomNavigationAction 
-          value={5}
-          icon={<Icon icon="solar:lock-bold" width="28" height="28" />}
-          sx={{ 
-            minWidth: 'auto',
-            '& .MuiBottomNavigationAction-label': {
-              fontSize: '0.8rem'
-            }
-          }}
-        />
+        {!isChannel && (
+          <BottomNavigationAction 
+            value={4}
+            icon={<AlternateEmailIcon sx={{ fontSize: 28 }} />}
+            sx={{ 
+              minWidth: 'auto',
+              '& .MuiBottomNavigationAction-label': {
+                fontSize: '0.8rem'
+              }
+            }}
+          />
+        )}
+        {!isChannel && (
+          <BottomNavigationAction 
+            value={5}
+            icon={<Icon icon="solar:lock-bold" width="28" height="28" />}
+            sx={{ 
+              minWidth: 'auto',
+              '& .MuiBottomNavigationAction-label': {
+                fontSize: '0.8rem'
+              }
+            }}
+          />
+        )}
       </BottomNavigation>
     </Paper>
   );

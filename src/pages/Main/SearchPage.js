@@ -19,9 +19,10 @@ import { AuthContext } from '../../context/AuthContext';
 import { searchService, profileService } from '../../services';
 import LightBox from '../../components/LightBox';
 
+// Стилизованные компоненты
 const StyledSearchBox = styled(Box)(({ theme }) => ({
   position: 'sticky',
-  top: 70, 
+  top: 70, // Под хедером
   zIndex: 10,
   padding: theme.spacing(2),
   marginBottom: theme.spacing(2),
@@ -62,12 +63,12 @@ const SearchPage = () => {
   const { themeSettings } = useContext(ThemeSettingsContext);
   const { user, isAuthenticated } = useContext(AuthContext);
   
-  
+  // Получаем параметры из URL
   const searchParams = new URLSearchParams(location.search);
   const queryParam = searchParams.get('q') || '';
   const typeParam = searchParams.get('type') || 'all';
   
-  
+  // Состояния
   const [searchQuery, setSearchQuery] = useState(queryParam);
   const [searchType, setSearchType] = useState(typeParam === 'users' ? 1 : typeParam === 'posts' ? 2 : 0);
   const [users, setUsers] = useState([]);
@@ -82,13 +83,13 @@ const SearchPage = () => {
   
   const searchInputRef = useRef(null);
   
-  
+  // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImage, setCurrentImage] = useState('');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [lightboxImages, setLightboxImages] = useState([]);
   
-  
+  // Обновляем URL при смене типа поиска или запроса
   const updateSearchParams = (query, type) => {
     const newParams = new URLSearchParams();
     if (query) newParams.set('q', query);
@@ -102,7 +103,7 @@ const SearchPage = () => {
     navigate(`/search?${newParams.toString()}`);
   };
   
-  
+  // Выполняем поиск в зависимости от типа
   const performSearch = async (query, type, page = 1, append = false) => {
     if (loading) return;
     
@@ -110,20 +111,20 @@ const SearchPage = () => {
     try {
       let response;
       
-      
+      // Clean up the query by trimming whitespace
       const cleanQuery = query.trim();
       
-      
-      if (type === 1) { 
+      // Выполняем поиск соответствующего типа
+      if (type === 1) { // Только пользователи
         response = await searchService.searchUsers(cleanQuery, page);
         
         if (response.data && response.data.users) {
-          
+          // Remove duplicates that might come from the enhanced search
           const uniqueUsers = removeDuplicates(response.data.users, 'id');
           
           if (append) {
             setUsers(prev => {
-              
+              // Combine and remove duplicates again when appending
               const combined = [...prev, ...uniqueUsers];
               return removeDuplicates(combined, 'id');
             });
@@ -133,16 +134,16 @@ const SearchPage = () => {
           
           setHasMoreUsers(response.data.has_next);
           
-          
+          // Загружаем статус подписки на пользователей, если пользователь авторизован
           if (isAuthenticated && uniqueUsers.length > 0) {
             loadFollowingStatus(uniqueUsers);
           }
         }
-      } else if (type === 2) { 
+      } else if (type === 2) { // Только посты
         response = await searchService.searchPosts(cleanQuery, page);
         
         if (response.data && response.data.posts) {
-          
+          // Remove duplicates
           const uniquePosts = removeDuplicates(response.data.posts, 'id');
           
           if (append) {
@@ -156,7 +157,7 @@ const SearchPage = () => {
           
           setHasMorePosts(response.data.has_next);
         }
-      } else { 
+      } else { // Все типы
         response = await searchService.searchAll(cleanQuery);
         
         if (!append && response.data) {
@@ -172,7 +173,7 @@ const SearchPage = () => {
             setPosts([]);
           }
           
-          
+          // Загружаем статус подписки на пользователей, если пользователь авторизован
           if (isAuthenticated && response.data.users && response.data.users.length > 0) {
             loadFollowingStatus(response.data.users);
           }
@@ -185,14 +186,14 @@ const SearchPage = () => {
     }
   };
   
-  
+  // Helper function to remove duplicate items from array
   const removeDuplicates = (array, key) => {
     return array.filter((item, index, self) =>
       index === self.findIndex((t) => t[key] === item[key])
     );
   };
   
-  
+  // Загружаем статус подписки на пользователей
   const loadFollowingStatus = async (usersList) => {
     if (!isAuthenticated || !usersList || usersList.length === 0) return;
     
@@ -200,7 +201,7 @@ const SearchPage = () => {
       const statuses = {};
       
       for (const user of usersList) {
-        if (user.id === (user?.id)) continue; 
+        if (user.id === (user?.id)) continue; // Пропускаем себя
         
         try {
           const response = await profileService.checkFollowing(user.id);
@@ -217,7 +218,7 @@ const SearchPage = () => {
     }
   };
   
-  
+  // Обработка изменения статуса подписки
   const handleFollowToggle = async (userId) => {
     if (!isAuthenticated) {
       navigate('/login');
@@ -231,7 +232,7 @@ const SearchPage = () => {
         await profileService.followUser(userId);
       }
       
-      
+      // Обновляем статус подписки для этого пользователя
       setFollowingStatus(prev => ({
         ...prev,
         [userId]: !prev[userId]
@@ -241,46 +242,46 @@ const SearchPage = () => {
     }
   };
   
-  
+  // Обработка изменения вкладки
   const handleTabChange = (event, newValue) => {
     setSearchType(newValue);
     
-    
+    // Обновляем тип в URL
     let type = 'all';
     if (newValue === 1) type = 'users';
     else if (newValue === 2) type = 'posts';
     
     updateSearchParams(searchQuery, newValue);
     
-    
+    // Сбрасываем страницы
     setUserPage(1);
     setPostPage(1);
     
-    
+    // Выполняем поиск с новым типом
     performSearch(searchQuery, newValue);
   };
   
-  
+  // Обработка отправки формы поиска
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     const cleanQuery = searchQuery.trim();
     
-    
+    // If the query is empty and we're searching users, load recommended users
     if (!cleanQuery && searchType === 1) {
-      performSearch('', searchType); 
+      performSearch('', searchType); // This will load recommended users
     } else {
       updateSearchParams(cleanQuery, searchType);
       
-      
+      // Сбрасываем страницы
       setUserPage(1);
       setPostPage(1);
       
-      
+      // Выполняем поиск
       performSearch(cleanQuery, searchType);
     }
   };
   
-  
+  // Загрузка дополнительных результатов
   const loadMoreResults = () => {
     if (searchType === 1 && hasMoreUsers) {
       const nextPage = userPage + 1;
@@ -293,7 +294,7 @@ const SearchPage = () => {
     }
   };
   
-  
+  // Загружаем результаты при изменении параметров URL
   useEffect(() => {
     const query = searchParams.get('q') || '';
     const type = searchParams.get('type') || 'all';
@@ -301,7 +302,7 @@ const SearchPage = () => {
     setSearchQuery(query);
     setSearchType(type === 'users' ? 1 : type === 'posts' ? 2 : 0);
     
-    
+    // Если это не первичная загрузка или есть поисковый запрос, выполняем поиск
     if (!initialLoad || query) {
       performSearch(
         query, 
@@ -312,14 +313,14 @@ const SearchPage = () => {
     setInitialLoad(false);
   }, [location.search]);
   
-  
+  // При первичной загрузке загружаем рекомендуемых пользователей, если нет запроса
   useEffect(() => {
     if (initialLoad && !queryParam) {
-      performSearch('', 1); 
+      performSearch('', 1); // Загружаем пользователей без запроса
     }
   }, []);
   
-  
+  // Function to open lightbox for post images
   const handleOpenPostImage = (image, allImages, index) => {
     setCurrentImage(image);
     setLightboxImages(allImages);
@@ -327,12 +328,12 @@ const SearchPage = () => {
     setLightboxOpen(true);
   };
   
-  
+  // Function to close lightbox
   const handleCloseLightbox = () => {
     setLightboxOpen(false);
   };
   
-  
+  // Navigate to next image in lightbox
   const handleNextImage = () => {
     setCurrentImageIndex((prevIndex) => {
       const nextIndex = (prevIndex + 1) % lightboxImages.length;
@@ -341,7 +342,7 @@ const SearchPage = () => {
     });
   };
   
-  
+  // Navigate to previous image in lightbox
   const handlePrevImage = () => {
     setCurrentImageIndex((prevIndex) => {
       const nextIndex = (prevIndex - 1 + lightboxImages.length) % lightboxImages.length;
@@ -350,17 +351,17 @@ const SearchPage = () => {
     });
   };
   
-  
-  
+  // Improve debounce effect for the search input
+  // Add this useEffect for a debounced search
   useEffect(() => {
-    const debounceTime = 300; 
+    const debounceTime = 300; // 300ms debounce time
     
     const cleanQuery = searchQuery.trim();
     
     if (cleanQuery) {
-      
+      // If query is long enough, debounce search
       const handler = setTimeout(() => {
-        if (cleanQuery.length >= 2) { 
+        if (cleanQuery.length >= 2) { // Only search when at least 2 chars
           updateSearchParams(cleanQuery, searchType);
           performSearch(cleanQuery, searchType);
         }
@@ -440,7 +441,7 @@ const SearchPage = () => {
         </Box>
       ) : (
         <>
-          {}
+          
           <TabPanel value={searchType} index={0}>
             {users.length === 0 && posts.length === 0 ? (
               <NoResultsContainer>
@@ -453,7 +454,7 @@ const SearchPage = () => {
               </NoResultsContainer>
             ) : (
               <>
-                {}
+                
                 {users.length > 0 && (
                   <Box sx={{ mb: 4 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -514,7 +515,7 @@ const SearchPage = () => {
                                   }}
                                   onError={(e) => {
                                     console.error(`Failed to load avatar for ${user.username}`);
-                                    e.target.onerror = null; 
+                                    e.target.onerror = null; // Prevent infinite recursion
                                     e.target.src = `/static/uploads/avatar/system/avatar.png`;
                                   }}
                                 />
@@ -579,7 +580,7 @@ const SearchPage = () => {
                   </Box>
                 )}
                 
-                {}
+                
                 {posts.length > 0 && (
                   <Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -672,7 +673,7 @@ const SearchPage = () => {
                                 }}
                                 onError={(e) => {
                                   console.error(`Failed to load user avatar for post`);
-                                  e.target.onerror = null; 
+                                  e.target.onerror = null; // Prevent infinite recursion
                                   e.target.src = `/static/uploads/avatar/system/avatar.png`;
                                 }}
                               />
@@ -716,7 +717,7 @@ const SearchPage = () => {
             )}
           </TabPanel>
           
-          {}
+          
           <TabPanel value={searchType} index={1}>
             {users.length === 0 ? (
               <NoResultsContainer>
@@ -776,7 +777,7 @@ const SearchPage = () => {
                             }}
                             onError={(e) => {
                               console.error(`Failed to load avatar for ${user.username}`);
-                              e.target.onerror = null; 
+                              e.target.onerror = null; // Prevent infinite recursion
                               e.target.src = `/static/uploads/avatar/system/avatar.png`;
                             }}
                           />
@@ -858,7 +859,7 @@ const SearchPage = () => {
             )}
           </TabPanel>
           
-          {}
+          
           <TabPanel value={searchType} index={2}>
             {posts.length === 0 ? (
               <NoResultsContainer>
@@ -948,7 +949,7 @@ const SearchPage = () => {
                           }}
                           onError={(e) => {
                             console.error(`Failed to load user avatar for post`);
-                            e.target.onerror = null; 
+                            e.target.onerror = null; // Prevent infinite recursion
                             e.target.src = `/static/uploads/avatar/system/avatar.png`;
                           }}
                         />
@@ -991,7 +992,7 @@ const SearchPage = () => {
         </>
       )}
       
-      {}
+      
       <LightBox 
         isOpen={lightboxOpen}
         onClose={handleCloseLightbox}

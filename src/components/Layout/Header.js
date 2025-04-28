@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -19,7 +19,18 @@ import {
   Chip,
   Switch,
   FormControlLabel,
-  useMediaQuery
+  useMediaQuery,
+  TextField,
+  InputAdornment,
+  Paper,
+  List,
+  ListItem,
+  ListItemAvatar,
+  Tabs,
+  Tab,
+  ClickAwayListener,
+  CircularProgress,
+  Button
 } from '@mui/material';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -36,6 +47,12 @@ import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
 import SkipNextIcon from '@mui/icons-material/SkipNext';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
+import AddIcon from '@mui/icons-material/Add';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import ClearIcon from '@mui/icons-material/Clear';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
+import VerifiedIcon from '@mui/icons-material/Verified';
 import { AuthContext } from '../../context/AuthContext';
 import { useMusic } from '../../context/MusicContext';
 import { ThemeSettingsContext } from '../../App';
@@ -44,15 +61,20 @@ import { ReactComponent as BallsSVG } from '../../assets/balls.svg';
 import NotificationList from '../Notifications/NotificationList';
 import axios from 'axios';
 
-const StyledAppBar = styled(AppBar)(({ theme, telegramMode }) => ({
-  backgroundColor: alpha('#000000', 0.8),
-  backdropFilter: 'blur(10px)',
-  color: theme.palette.text.primary,
-  boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
-  borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+const StyledAppBar = styled(AppBar)(({ theme }) => ({
+  backgroundColor: theme.palette.mode === 'rgb(18 18 18 / 81%)' 
+    ? alpha('#000000', 0.95) // Darker background in dark mode
+    : alpha('#ffffff', 0.9),
+  backgroundImage: 'unset',
+  color: theme.palette.mode === 'dark' ? '#FFFFFF' : theme.palette.text.primary,
+  boxShadow: theme.palette.mode === 'dark' 
+    ? '0 1px 5px rgba(0,0,0,0.25)' 
+    : '0 1px 3px rgba(0,0,0,0.12)',
+  borderBottom: `1px solid ${theme.palette.mode === 'dark' 
+    ? alpha(theme.palette.divider, 0.2) 
+    : alpha(theme.palette.divider, 0.1)}`,
   position: 'fixed',
   borderRadius: '0 !important',
-  paddingTop: telegramMode ? '70px' : 0,
   zIndex: theme.zIndex.appBar,
   [theme.breakpoints.up('md')]: {
     width: '100%',
@@ -66,7 +88,7 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   padding: theme.spacing(0, 1),
   height: 64,
   [theme.breakpoints.up('md')]: {
-    padding: theme.spacing(0, '15%'), 
+    padding: theme.spacing(0, '15%'), // Simple 10% margin on both sides
     width: '100%',
     margin: '0 auto',
   },
@@ -84,6 +106,7 @@ const LogoText = styled(Typography)(({ theme }) => ({
   marginLeft: theme.spacing(1),
   display: 'flex',
   alignItems: 'center',
+  color: theme.palette.mode === 'dark' ? '#FFFFFF' : theme.palette.text.primary,
 }));
 
 const PlayerSection = styled(Box)(({ theme }) => ({
@@ -155,20 +178,99 @@ const PointsIcon = styled(Box)(({ theme }) => ({
   }
 }));
 
+// New styled components for search functionality
+const SearchInputWrapper = styled(Box)(({ theme, fullWidth }) => ({
+  position: 'relative',
+  borderRadius: 16,
+  backgroundColor: alpha(theme.palette.common.white, 0.1),
+  width: fullWidth ? '100%' : 'auto',
+  display: 'flex',
+  [theme.breakpoints.down('md')]: {
+    width: '100%',
+  }
+}));
+
+const StyledSearchInput = styled(TextField)(({ theme }) => ({
+  width: '100%',
+  '& .MuiInputBase-root': {
+    color: theme.palette.common.white,
+    backgroundColor: alpha(theme.palette.common.white, 0.05),
+    borderRadius: 24,
+    padding: theme.spacing(0.5, 1),
+    '&:hover': {
+      backgroundColor: alpha(theme.palette.common.white, 0.1),
+    },
+  },
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderColor: alpha(theme.palette.common.white, 0.2),
+  },
+  '& .MuiInputBase-input': {
+    padding: theme.spacing(1),
+  }
+}));
+
+const SearchResultsContainer = styled(Paper)(({ theme }) => ({
+  position: 'absolute',
+  top: '100%',
+  left: 10,
+  right: 10,
+  zIndex: 1200,
+  maxHeight: 'calc(80vh - 70px)',
+  overflow: 'auto',
+  marginTop: theme.spacing(0.5),
+  backgroundColor: alpha('#000000', 0.95),
+  backdropFilter: 'blur(10px)',
+  borderRadius: 12,
+  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+}));
+
+const SearchResultTabs = styled(Tabs)(({ theme }) => ({
+  minHeight: 40,
+  '& .MuiTabs-indicator': {
+    backgroundColor: '#D0BCFF',
+    height: 3,
+  },
+}));
+
+const SearchResultTab = styled(Tab)(({ theme }) => ({
+  minHeight: 40,
+  textTransform: 'none',
+  fontWeight: 500,
+  fontSize: '0.875rem',
+}));
+
 const Header = ({ toggleSidebar }) => {
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout, setUser } = useContext(AuthContext);
   const { themeSettings } = useContext(ThemeSettingsContext);
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
   const [userPoints, setUserPoints] = useState(0);
-  const [telegramMode, setTelegramMode] = useState(false);
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [userChannels, setUserChannels] = useState([]);
+  const [accounts, setAccounts] = useState({
+    current_account: null,
+    main_account: null,
+    channels: []
+  });
   
+  // Search state
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState({ users: [], channels: [] });
+  const [searchTab, setSearchTab] = useState(0);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const searchInputRef = useRef(null);
   
+  // Get header color from theme settings
+  const headerColor = themeSettings.headerColor || theme.palette.background.paper;
+  
+  // Скрываем хедер на странице музыки только для мобильных устройств
   const isMusicPage = location.pathname === '/music';
 
-  
+  // Music context
   const { 
     currentTrack, 
     isPlaying, 
@@ -181,7 +283,7 @@ const Header = ({ toggleSidebar }) => {
     setVolume 
   } = useMusic();
 
-  
+  // Профиль меню
   const [anchorEl, setAnchorEl] = useState(null);
   const isMenuOpen = Boolean(anchorEl);
 
@@ -197,9 +299,9 @@ const Header = ({ toggleSidebar }) => {
     handleMenuClose();
     try {
       await logout();
-      
+      // Logout handled in AuthContext with redirect
     } catch (error) {
-      
+      // Fallback if logout fails in AuthContext
       navigate('/login');
     }
   };
@@ -217,22 +319,9 @@ const Header = ({ toggleSidebar }) => {
   useEffect(() => {
     if (user) {
       fetchUserPoints();
+      fetchUserChannels();
     }
   }, [user]);
-
-  
-  useEffect(() => {
-    const telegramWebAppMode = localStorage.getItem('telegramWebAppMode') === 'true';
-    console.log('Telegram WebApp Mode from localStorage:', telegramWebAppMode);
-    
-    setTelegramMode(telegramWebAppMode);
-    
-    
-    if (telegramWebAppMode) {
-      document.body.classList.add('telegram-webapp');
-      document.documentElement.style.setProperty('--telegram-webapp-padding-top', '70px');
-    }
-  }, []);
 
   const fetchUserPoints = async () => {
     try {
@@ -242,6 +331,145 @@ const Header = ({ toggleSidebar }) => {
       console.error('Error fetching user points:', error);
     }
   };
+
+  const fetchUserChannels = async () => {
+    try {
+      const response = await axios.get('/api/users/my-channels');
+      if (response.data.success) {
+        setAccounts(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching user channels:', error);
+    }
+  };
+
+  const handleCreateChannel = () => {
+    handleMenuClose();
+    navigate('/register/channel');
+  };
+
+  const handleSwitchAccount = async (accountId) => {
+    try {
+      const response = await axios.post('/api/users/switch-account', { 
+        account_id: accountId 
+      });
+      
+      if (response.data.success) {
+        // Update the current user
+        setUser({
+          ...response.data.account,
+          id: response.data.account.id
+        });
+        
+        // Reload the page to apply changes
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Error switching account:', error);
+    } finally {
+      handleMenuClose();
+    }
+  };
+
+  // Обработчик поиска
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    
+    if (query.trim().length >= 2) {
+      performSearch(query);
+      setShowSearchResults(true);
+    } else {
+      setSearchResults({ users: [], channels: [] });
+      setShowSearchResults(false);
+    }
+  };
+  
+  const performSearch = async (query) => {
+    if (query.trim().length < 2) return;
+    
+    setSearchLoading(true);
+    try {
+      // Поиск пользователей
+      const usersResponse = await axios.get('/api/search/', {
+        params: { 
+          q: query,
+          type: 'users',
+          per_page: 5 
+        }
+      });
+      
+      // Поиск каналов
+      const channelsResponse = await axios.get('/api/search/channels', {
+        params: { 
+          q: query,
+          per_page: 5 
+        }
+      });
+      
+      setSearchResults({
+        users: usersResponse.data?.users || [],
+        channels: channelsResponse.data?.channels || []
+      });
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+  
+  const handleSearchFocus = () => {
+    setShowSearchResults(true);
+  };
+  
+  const handleClickAway = () => {
+    setShowSearchResults(false);
+  };
+  
+  const toggleSearch = () => {
+    setShowSearch(!showSearch);
+    if (!showSearch) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
+    } else {
+      setSearchQuery('');
+      setShowSearchResults(false);
+    }
+  };
+  
+  const handleSearchTabChange = (event, newValue) => {
+    setSearchTab(newValue);
+  };
+  
+  const handleViewAll = () => {
+    if (searchTab === 0) {
+      navigate(`/search?q=${searchQuery}&type=users`);
+    } else {
+      navigate(`/channels?q=${searchQuery}`);
+    }
+    setShowSearchResults(false);
+    setShowSearch(false);
+  };
+  
+  const handleSearchItemClick = (path) => {
+    navigate(path);
+    setShowSearchResults(false);
+    setShowSearch(false);
+  };
+  
+  // Debounced search
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (searchQuery.trim().length >= 2) {
+        performSearch(searchQuery);
+      }
+    }, 300);
+    
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
 
   const profileMenu = (
     <Menu
@@ -253,59 +481,164 @@ const Header = ({ toggleSidebar }) => {
       PaperProps={{ 
         elevation: 3,
         sx: { 
-          minWidth: 180,
+          minWidth: 280,
           mt: 0.5,
-          boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
-          borderRadius: '10px',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+          borderRadius: '14px',
           overflow: 'visible',
           backgroundColor: alpha('#000000', 0.8),
           backdropFilter: 'blur(10px)',
+          border: (theme) => `1px solid ${alpha(theme.palette.divider, 0.05)}`,
+          '& .MuiMenuItem-root': {
+            padding: '10px 16px',
+            borderRadius: '8px',
+            margin: '2px 8px',
+            transition: 'all 0.2s',
+            '&:hover': {
+              backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.08),
+            }
+          },
         }
       }}
     >
       {user && (
         <>
-          <Box sx={{ px: 2, py: 1.5, textAlign: 'center' }}>
+          <Box sx={{ px: 3, py: 2, textAlign: 'center' }}>
             <Avatar 
               src={user.photo ? `/static/uploads/avatar/${user.id}/${user.photo}` : '/static/uploads/avatar/system/avatar.png'} 
               alt={user.name || user.username} 
               sx={{ 
-                width: 56, 
-                height: 56, 
+                width: 64,
+                height: 64,
                 mx: 'auto',
                 border: `2px solid ${themeSettings.primaryColor}`,
+                boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
               }}
             />
-            <Typography variant="subtitle1" sx={{ mt: 1 }}>
+            <Typography variant="subtitle1" sx={{ mt: 1.5, fontWeight: 600 }}>
               {user.name || user.username}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               @{user.username}
             </Typography>
+            {user.account_type === 'channel' && (
+              <Chip 
+                size="small"
+                label="Канал"
+                color="primary"
+                sx={{ mt: 0.5, fontWeight: 500, px: 1 }}
+              />
+            )}
           </Box>
-          <Divider sx={{ opacity: 0.1 }} />
+          <Divider sx={{ opacity: 0.1, mx: 2 }} />
         </>
       )}
       
       <MenuItem onClick={() => handleNavigate(`/profile/${user?.username}`)}>
         <ListItemIcon>
-          <AccountCircleIcon fontSize="small" />
+          <AccountCircleIcon fontSize="small" color="primary" />
         </ListItemIcon>
         <ListItemText>Мой профиль</ListItemText>
       </MenuItem>
 
       <MenuItem onClick={() => handleNavigate('/settings')}>
         <ListItemIcon>
-          <SettingsIcon fontSize="small" />
+          <SettingsIcon fontSize="small" color="primary" />
         </ListItemIcon>
         <ListItemText>Настройки</ListItemText>
       </MenuItem>
 
-      <Divider sx={{ opacity: 0.1 }} />
+      <Divider sx={{ opacity: 0.1, mx: 2, my: 1 }} />
 
-      <MenuItem onClick={handleLogout}>
+      
+      
+      {accounts.channels.length < 3 && (
+        <MenuItem onClick={handleCreateChannel}>
+          <ListItemIcon>
+            <AddIcon fontSize="small" color="primary" />
+          </ListItemIcon>
+          <ListItemText>Создать канал</ListItemText>
+        </MenuItem>
+      )}
+
+
+      
+      {accounts.main_account && accounts.current_account?.account_type === 'channel' && (
+        <>
+          <Divider sx={{ opacity: 0.1, mx: 2, my: 1 }} />
+          <Typography
+            variant="caption"
+            sx={{
+              px: 3,
+              py: 0.5,
+              display: 'block',
+              color: 'text.secondary',
+              fontWeight: 500
+            }}
+          >
+            Основной аккаунт
+          </Typography>
+          <MenuItem 
+            key={accounts.main_account.id}
+            onClick={() => handleSwitchAccount(accounts.main_account.id)}
+          >
+            <ListItemIcon>
+              <Avatar
+                src={accounts.main_account.photo}
+                sx={{ width: 30, height: 30 }}
+              />
+            </ListItemIcon>
+            <ListItemText>{accounts.main_account.name}</ListItemText>
+          </MenuItem>
+        </>
+      )}
+
+      
+      {accounts.channels && accounts.channels.length > 0 && (
+        <>
+          <Divider sx={{ opacity: 0.1, mx: 2, my: 1 }} />
+          <Typography
+            variant="caption"
+            sx={{
+              px: 3,
+              py: 0.5,
+              display: 'block',
+              color: 'text.secondary',
+              fontWeight: 500
+            }}
+          >
+            Мои каналы
+          </Typography>
+          {accounts.channels.map(channel => (
+            <MenuItem 
+              key={channel.id}
+              onClick={() => handleSwitchAccount(channel.id)}
+            >
+              <ListItemIcon>
+                <Avatar
+                  src={channel.photo}
+                  sx={{ width: 30, height: 30 }}
+                />
+              </ListItemIcon>
+              <ListItemText>{channel.name}</ListItemText>
+            </MenuItem>
+          ))}
+        </>
+      )}
+
+      <Divider sx={{ opacity: 0.1, mx: 2, my: 1 }} />
+
+      <MenuItem 
+        onClick={handleLogout}
+        sx={{ 
+          color: theme => theme.palette.error.main,
+          '&:hover': {
+            backgroundColor: theme => alpha(theme.palette.error.main, 0.08),
+          }
+        }}
+      >
         <ListItemIcon>
-          <ExitToAppIcon fontSize="small" />
+          <ExitToAppIcon fontSize="small" style={{ color: 'inherit' }} />
         </ListItemIcon>
         <ListItemText>Выйти</ListItemText>
       </MenuItem>
@@ -314,160 +647,331 @@ const Header = ({ toggleSidebar }) => {
 
   return (
     <StyledAppBar 
-      telegramMode={telegramMode}
       sx={{ 
-        display: isMusicPage && isMobile ? 'none' : 'block' 
+        display: isMusicPage && isMobile ? 'none' : 'block',
+        backgroundColor: headerColor || undefined
       }}
     >
       <StyledToolbar>
-        {}
-        <LogoSection>
-          <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
-            <LogoSVG 
-              style={{ 
-                height: 32, 
-                width: 'auto'
-              }} 
-            />
-            <LogoText>
-              <Box component="span" sx={{ color: 'primary.main' }}>K</Box>
-              <Box component="span" sx={{ color: 'white', opacity: 0.9 }}>-CONNECT</Box>
-            </LogoText>
-          </Link>
-        </LogoSection>
+        
+        {isMobile && showSearch ? (
+          <SearchInputWrapper fullWidth>
+            <ClickAwayListener onClickAway={handleClickAway}>
+              <Box sx={{ width: '100%', position: 'relative' }}>
+                <StyledSearchInput
+                  placeholder="Поиск..."
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  onFocus={handleSearchFocus}
+                  inputRef={searchInputRef}
+                  variant="outlined"
+                  fullWidth
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton 
+                          size="small" 
+                          edge="end"
+                          onClick={toggleSearch}
+                          sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
+                        >
+                          <ClearIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+                
+                {showSearchResults && (
+                  <SearchResultsContainer>
+                    <SearchResultTabs
+                      value={searchTab}
+                      onChange={handleSearchTabChange}
+                      variant="fullWidth"
+                    >
+                      <SearchResultTab label="Все" />
+                      <SearchResultTab label="Каналы" />
+                    </SearchResultTabs>
+                    
+                    <Box sx={{ p: 1 }}>
+                      {searchLoading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                          <CircularProgress size={24} />
+                        </Box>
+                      ) : searchTab === 0 ? (
+                        // Пользователи
+                        <>
+                          {searchResults.users.length > 0 ? (
+                            <List sx={{ p: 0 }}>
+                              {searchResults.users.map(user => (
+                                <ListItem 
+                                  key={user.id} 
+                                  button 
+                                  onClick={() => handleSearchItemClick(`/profile/${user.username}`)}
+                                  sx={{ borderRadius: 1 }}
+                                >
+                                  <ListItemAvatar>
+                                    <Avatar 
+                                      src={user.photo ? `/static/uploads/avatar/${user.id}/${user.photo}` : '/static/uploads/avatar/system/avatar.png'} 
+                                      alt={user.name || user.username}
+                                    />
+                                  </ListItemAvatar>
+                                  <ListItemText 
+                                    primary={
+                                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                        {user.name}
+                                        {user.verification_status === 'verified' && (
+                                          <VerifiedIcon sx={{ fontSize: 14, ml: 0.5, color: '#D0BCFF' }} />
+                                        )}
+                                      </Box>
+                                    } 
+                                    secondary={`@${user.username}`} 
+                                  />
+                                </ListItem>
+                              ))}
+                            </List>
+                          ) : (
+                            <Box sx={{ p: 2, textAlign: 'center' }}>
+                              <Typography variant="body2" color="text.secondary">
+                                Пользователи не найдены
+                              </Typography>
+                            </Box>
+                          )}
+                        </>
+                      ) : (
+                        // Каналы
+                        <>
+                          {searchResults.channels.length > 0 ? (
+                            <List sx={{ p: 0 }}>
+                              {searchResults.channels.map(channel => (
+                                <ListItem 
+                                  key={channel.id} 
+                                  button 
+                                  onClick={() => handleSearchItemClick(`/profile/${channel.username}`)}
+                                  sx={{ borderRadius: 1 }}
+                                >
+                                  <ListItemAvatar>
+                                    <Avatar 
+                                      src={channel.photo} 
+                                      alt={channel.name}
+                                      onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src = '/static/uploads/avatar/system/avatar.png';
+                                      }}
+                                    />
+                                  </ListItemAvatar>
+                                  <ListItemText 
+                                    primary={
+                                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                        {channel.name}
+                                        {channel.is_verified && (
+                                          <VerifiedIcon sx={{ fontSize: 14, ml: 0.5, color: '#D0BCFF' }} />
+                                        )}
+                                      </Box>
+                                    } 
+                                    secondary={`@${channel.username}`} 
+                                  />
+                                </ListItem>
+                              ))}
+                            </List>
+                          ) : (
+                            <Box sx={{ p: 2, textAlign: 'center' }}>
+                              <Typography variant="body2" color="text.secondary">
+                                Каналы не найдены
+                              </Typography>
+                            </Box>
+                          )}
+                        </>
+                      )}
+                      
+                      {(searchTab === 0 && searchResults.users.length > 0) || 
+                       (searchTab === 1 && searchResults.channels.length > 0) ? (
+                        <Box sx={{ p: 1, display: 'flex', justifyContent: 'center' }}>
+                          <Button 
+                            size="small" 
+                            onClick={handleViewAll}
+                            sx={{ 
+                              textTransform: 'none',
+                              color: '#D0BCFF',
+                              '&:hover': { backgroundColor: alpha('#D0BCFF', 0.1) }
+                            }}
+                          >
+                            Показать все
+                          </Button>
+                        </Box>
+                      ) : null}
+                    </Box>
+                  </SearchResultsContainer>
+                )}
+              </Box>
+            </ClickAwayListener>
+          </SearchInputWrapper>
+        ) : (
+          <>
+            
+            <LogoSection>
+              <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
+                <LogoSVG 
+                  style={{ 
+                    height: 32, 
+                    width: 'auto'
+                  }} 
+                />
+                {!isMobile && ( // Only show text on non-mobile screens
+                  <LogoText>
+                    <Box component="span" sx={{ color: 'primary.main' }}>K</Box>
+                    <Box component="span" sx={{ 
+                      color: theme.palette.mode === 'dark' ? 'white' : 'black', 
+                      opacity: 0.9 
+                    }}>-CONNECT</Box>
+                  </LogoText>
+                )}
+              </Link>
+            </LogoSection>
 
-        {}
-        {currentTrack && (
-          <PlayerSection>
-            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-              {}
-              <Box 
-                component={Link} 
-                to="/music" 
+            
+            {currentTrack && (
+              <PlayerSection>
+                <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                  
+                  <Box 
+                    component={Link} 
+                    to="/music" 
+                    sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      mr: 2,
+                      textDecoration: 'none',
+                      color: 'inherit'
+                    }}
+                  >
+                    <Avatar 
+                      variant="rounded" 
+                      src={currentTrack.cover_path || '/static/uploads/system/album_placeholder.jpg'} 
+                      alt={currentTrack.title}
+                      sx={{ width: 40, height: 40, mr: 1, borderRadius: '8px' }}
+                    />
+                    <Box>
+                      <Typography variant="body2" fontWeight="medium" noWrap>
+                        {truncateTitle(currentTrack.title)}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" noWrap>
+                        {currentTrack.artist}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  
+                  
+                  <PlayerControls>
+                    <IconButton size="small" onClick={prevTrack}>
+                      <SkipPreviousIcon fontSize="small" />
+                    </IconButton>
+                    
+                    <IconButton 
+                      onClick={togglePlay}
+                      sx={{ 
+                        color: 'primary.main',
+                        bgcolor: alpha(theme.palette.primary.main, 0.1),
+                        '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2) },
+                        p: 1
+                      }}
+                    >
+                      {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+                    </IconButton>
+                    
+                    <IconButton size="small" onClick={nextTrack}>
+                      <SkipNextIcon fontSize="small" />
+                    </IconButton>
+                    
+                    <Box sx={{ display: 'flex', alignItems: 'center', ml: 1 }}>
+                      <IconButton 
+                        size="small" 
+                        onClick={toggleMute}
+                        sx={{ mr: 0.5 }}
+                      >
+                        {isMuted || volume === 0 ? 
+                          <VolumeOffIcon fontSize="small" /> : 
+                          <VolumeUpIcon fontSize="small" />
+                        }
+                      </IconButton>
+                      <VolumeSlider 
+                        type="range" 
+                        min={0} 
+                        max={1} 
+                        step={0.01} 
+                        value={isMuted ? 0 : volume}
+                        onChange={(e) => setVolume(parseFloat(e.target.value))}
+                      />
+                    </Box>
+                  </PlayerControls>
+                </Box>
+              </PlayerSection>
+            )}
+
+            
+            <ActionsSection>
+              {user && !isMobile && (
+                <Tooltip title="Ваши баллы">
+                  <PointsChip
+                    icon={
+                      <PointsIcon>
+                        <BallsSVG />
+                      </PointsIcon>
+                    }
+                    label={`${userPoints} баллов`}
+                    onClick={() => navigate('/balance')}
+                    clickable
+                  />
+                </Tooltip>
+              )}
+              
+              <IconButton 
+                color="inherit" 
+                onClick={isMobile ? toggleSearch : () => navigate('/search')}
                 sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  mr: 2,
-                  textDecoration: 'none',
-                  color: 'inherit'
+                  bgcolor: (isMobile && showSearch) || (!isMobile && location.pathname === '/search') 
+                    ? alpha(theme.palette.primary.main, 0.1) 
+                    : 'transparent',
+                  color: (isMobile && showSearch) || (!isMobile && location.pathname === '/search')
+                    ? 'primary.main' 
+                    : 'inherit',
                 }}
               >
-                <Avatar 
-                  variant="rounded" 
-                  src={currentTrack.cover_path || '/static/uploads/system/album_placeholder.jpg'} 
-                  alt={currentTrack.title}
-                  sx={{ width: 40, height: 40, mr: 1, borderRadius: '8px' }}
-                />
-                <Box>
-                  <Typography variant="body2" fontWeight="medium" noWrap>
-                    {truncateTitle(currentTrack.title)}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" noWrap>
-                    {currentTrack.artist}
-                  </Typography>
-                </Box>
-              </Box>
+                <SearchIcon />
+              </IconButton>
               
-              {}
-              <PlayerControls>
-                <IconButton size="small" onClick={prevTrack}>
-                  <SkipPreviousIcon fontSize="small" />
-                </IconButton>
-                
-                <IconButton 
-                  onClick={togglePlay}
-                  sx={{ 
-                    color: 'primary.main',
-                    bgcolor: alpha(theme.palette.primary.main, 0.1),
-                    '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2) },
-                    p: 1
-                  }}
-                >
-                  {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-                </IconButton>
-                
-                <IconButton size="small" onClick={nextTrack}>
-                  <SkipNextIcon fontSize="small" />
-                </IconButton>
-                
-                <Box sx={{ display: 'flex', alignItems: 'center', ml: 1 }}>
-                  <IconButton 
-                    size="small" 
-                    onClick={toggleMute}
-                    sx={{ mr: 0.5 }}
-                  >
-                    {isMuted || volume === 0 ? 
-                      <VolumeOffIcon fontSize="small" /> : 
-                      <VolumeUpIcon fontSize="small" />
-                    }
-                  </IconButton>
-                  <VolumeSlider 
-                    type="range" 
-                    min={0} 
-                    max={1} 
-                    step={0.01} 
-                    value={isMuted ? 0 : volume}
-                    onChange={(e) => setVolume(parseFloat(e.target.value))}
+              <NotificationList />
+              
+              <IconButton
+                edge="end"
+                aria-label="account"
+                aria-haspopup="true"
+                onClick={handleProfileMenuOpen}
+                color="inherit"
+                sx={{ ml: 0.5 }}
+              >
+                {user ? (
+                  <Avatar 
+                    src={user.photo ? `/static/uploads/avatar/${user.id}/${user.photo}` : '/static/uploads/avatar/system/avatar.png'} 
+                    alt={user.name || user.username} 
+                    sx={{ 
+                      width: 30, 
+                      height: 30,
+                      border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                    }}
                   />
-                </Box>
-              </PlayerControls>
-            </Box>
-          </PlayerSection>
+                ) : (
+                  <AccountCircleIcon />
+                )}
+              </IconButton>
+            </ActionsSection>
+          </>
         )}
-
-        {}
-        <ActionsSection>
-          {user && (
-            <Tooltip title="Ваши баллы">
-              <PointsChip
-                icon={
-                  <PointsIcon>
-                    <BallsSVG />
-                  </PointsIcon>
-                }
-                label={`${userPoints} баллов`}
-                onClick={() => navigate('/balance')}
-                clickable
-              />
-            </Tooltip>
-          )}
-          
-          <IconButton 
-            color="inherit" 
-            onClick={() => navigate('/search')}
-            sx={{ 
-              bgcolor: location.pathname === '/search' ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
-              color: location.pathname === '/search' ? 'primary.main' : 'inherit',
-            }}
-          >
-            <SearchIcon />
-          </IconButton>
-          
-          <NotificationList />
-          
-          <IconButton
-            edge="end"
-            aria-label="account"
-            aria-haspopup="true"
-            onClick={handleProfileMenuOpen}
-            color="inherit"
-            sx={{ ml: 0.5 }}
-          >
-            {user ? (
-              <Avatar 
-                src={user.photo ? `/static/uploads/avatar/${user.id}/${user.photo}` : '/static/uploads/avatar/system/avatar.png'} 
-                alt={user.name || user.username} 
-                sx={{ 
-                  width: 30, 
-                  height: 30,
-                  border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-                }}
-              />
-            ) : (
-              <AccountCircleIcon />
-            )}
-          </IconButton>
-        </ActionsSection>
       </StyledToolbar>
       {profileMenu}
     </StyledAppBar>

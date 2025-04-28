@@ -34,7 +34,8 @@ import {
   Badge,
   Tooltip,
   Collapse,
-  Zoom
+  Zoom,
+  useTheme
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
@@ -49,6 +50,7 @@ import { optimizeImage } from '../../utils/imageUtils';
 import { linkRenderers, URL_REGEX, USERNAME_MENTION_REGEX, processTextWithLinks } from '../../utils/LinkUtils';
 import { Icon } from '@iconify/react';
 
+// Оставляем импорт Material UI иконок для запасного варианта
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -76,7 +78,12 @@ import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import EditIcon from '@mui/icons-material/Edit';
 import PhotoIcon from '@mui/icons-material/Photo';
 import VideocamIcon from '@mui/icons-material/Videocam';
+import { usePostDetail } from '../../context/PostDetailContext';
 
+// Импортируем контекстное меню из UIKIT
+import { ContextMenu, useContextMenu } from '../../UIKIT';
+
+// Styled components
 const PostCard = styled(Card)(({ theme }) => ({
   marginBottom: 10,
   borderRadius: '10px',
@@ -90,6 +97,7 @@ const PostCard = styled(Card)(({ theme }) => ({
   }
 }));
 
+// Define the MarkdownContent component with height limits
 const MarkdownContent = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'isExpanded'
 })(({ theme, isExpanded }) => ({
@@ -111,6 +119,10 @@ const MarkdownContent = styled(Box, {
   },
   '& ul, & ol': {
     marginLeft: theme.spacing(2),
+    lineHeight: 1,
+  },
+  '& li': {
+    lineHeight: 1,
   },
   '& code': {
     fontFamily: 'monospace',
@@ -135,6 +147,7 @@ const MarkdownContent = styled(Box, {
   transition: 'max-height 0.3s ease',
 }));
 
+// Blurred Menu styled component
 const BlurredMenu = styled(Menu)(({ theme }) => ({
   '& .MuiPaper-root': {
     background: 'linear-gradient(135deg, rgb(49 49 49 / 50%) 0%, rgb(62 62 62 / 60%) 100%)',
@@ -150,6 +163,7 @@ const BlurredMenu = styled(Menu)(({ theme }) => ({
   }
 }));
 
+// Show More button component
 const ShowMoreButton = styled(Button)(({ theme }) => ({
   margin: '8px auto 0',
   display: 'flex',
@@ -170,6 +184,7 @@ const ShowMoreButton = styled(Button)(({ theme }) => ({
   }
 }));
 
+// Custom styled action button
 const ActionButton = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'active'
 })(({ theme, active, position }) => ({
@@ -188,6 +203,7 @@ const ActionButton = styled(Box, {
   borderRight: position === 'left' ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
 }));
 
+// Action button container for pill style
 const ActionButtonContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -221,6 +237,7 @@ const ActionButtonContainer = styled(Box)(({ theme }) => ({
   }
 }));
 
+// Music track component
 const MusicTrack = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -238,6 +255,9 @@ const MusicTrack = styled(Box)(({ theme }) => ({
   }
 }));
 
+// Удалить кнопку Share из ActionButtonContainer и создать новую отдельную кнопку
+
+// Добавить новый стилизованный компонент для кнопки-таблетки после ActionButtonContainer
 const SharePill = styled(motion.div)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -274,6 +294,7 @@ const SharePill = styled(motion.div)(({ theme }) => ({
   }
 }));
 
+// Создать отдельный компонент для кнопки комментариев
 const CommentPill = styled(motion.div)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -310,6 +331,7 @@ const CommentPill = styled(motion.div)(({ theme }) => ({
   }
 }));
 
+// Создать отдельный компонент для кнопки лайков
 const LikePill = styled(motion.div)(({ theme, active }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -346,6 +368,7 @@ const LikePill = styled(motion.div)(({ theme, active }) => ({
   }
 }));
 
+// Создать компонент для объединенной таблетки лайков и комментариев
 const ActionsPill = styled(motion.div)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -379,27 +402,59 @@ const ActionsPill = styled(motion.div)(({ theme }) => ({
   }
 }));
 
-const ActionItem = styled(Box)(({ theme, active, isLike }) => ({
+// Создать компонент для кнопки внутри ActionsPill
+const ActionItem = styled(Box)(({ theme, active, islike }) => ({
   display: 'flex',
   alignItems: 'center',
   padding: '6px 14px',
   cursor: 'pointer',
   transition: 'all 0.2s ease',
-  backgroundColor: active && isLike ? 'rgba(140, 82, 255, 0.08)' : 'transparent',
+  backgroundColor: active && islike ? 'rgba(140, 82, 255, 0.08)' : 'transparent',
   position: 'relative',
   zIndex: 2,
   '&:hover': {
-    backgroundColor: active && isLike ? 'rgba(140, 82, 255, 0.12)' : 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: active && islike ? 'rgba(140, 82, 255, 0.12)' : 'rgba(255, 255, 255, 0.04)',
   },
-  borderRight: isLike ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
+  borderRight: islike ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
+}));
+
+// First, add a new styled component for the Channel tag
+const ChannelTag = styled(Chip)(({ theme }) => ({
+  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  color: 'rgba(255, 255, 255, 0.8)',
+  height: 24,
+  borderRadius: 12,
+  fontSize: '0.75rem',
+  fontWeight: 500,
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  '& .MuiChip-label': {
+    padding: '0 8px',
+  }
+}));
+
+// Add a styled component for the view/menu pill
+const ViewMenuPill = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  borderRadius: '20px',
+  padding: '4px 8px 4px 12px',
+  border: '1px solid rgba(255, 255, 255, 0.08)',
+  transition: 'all 0.2s ease',
+  '&:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  }
 }));
 
 const Post = ({ post, onDelete, onOpenLightbox }) => {
-  
+  // Защита от отсутствия данных
   if (!post || typeof post !== 'object') {
     console.error('Post component received invalid post data:', post);
     return null;
   }
+  
+  // Debug log to check account type
+  console.log(`Post ${post.id} user account type:`, post.user?.account_type, 'Is channel:', post.user?.is_channel);
   
   const navigate = useNavigate();
   const [liked, setLiked] = useState(post?.user_liked || post?.is_liked || false);
@@ -414,37 +469,41 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
   const [snackbarMessage, setSnackbarMessage] = useState("Ссылка скопирована в буфер обмена");
   const [lastLikedUsers, setLastLikedUsers] = useState([]);
   
-  
+  // State for music player
   const [musicTracks, setMusicTracks] = useState([]);
   
-  
+  // State for showing full content
   const [isExpanded, setIsExpanded] = useState(false);
   const [needsExpandButton, setNeedsExpandButton] = useState(false);
   const contentRef = useRef(null);
   
-  
+  // Состояние для модального окна репоста
   const [repostModalOpen, setRepostModalOpen] = useState(false);
   const [repostText, setRepostText] = useState('');
   const [isReposting, setIsReposting] = useState(false);
   
-  
+  // State for the processed content with clickable @username mentions
   const [processedContent, setProcessedContent] = useState('');
   
-  
+  // Add state for rate limit notification
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'error'
   });
   
+  // Get theme colors
+  const theme = useTheme();
+  const primaryColor = theme.palette.primary.main;
   
+  // Add deleteDialog state
   const [deleteDialog, setDeleteDialog] = useState({
     open: false,
     deleting: false,
     deleted: false
   });
   
-  
+  // Add report dialog state
   const [reportDialog, setReportDialog] = useState({
     open: false,
     reason: '',
@@ -453,7 +512,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     error: null
   });
   
-  
+  // State for edit dialog
   const [editDialog, setEditDialog] = useState({
     open: false,
     content: post?.content || '',
@@ -467,7 +526,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     error: null
   });
   
-  
+  // Available report reasons
   const reportReasons = [
     "Спам",
     "Оскорбления",
@@ -478,30 +537,30 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     "Другое"
   ];
   
-  
+  // Update state when post prop changes
   useEffect(() => {
     if (post) {
       setLiked(post.user_liked || post.is_liked || false);
       setLikesCount(post.likes_count || 0);
       setViewsCount(post.views_count || 0);
       
-      
+      // Reset expanded state when post changes
       setIsExpanded(false);
       
-      
+      // Update edit dialog content when post changes
       setEditDialog(prev => ({
         ...prev,
         content: post.content || ''
       }));
       
-      
+      // Process post content to make @username mentions clickable
       if (post.content) {
-        
+        // Replace @username with markdown links
         let content = post.content;
-        
+        // Reset the regex lastIndex to ensure it starts from the beginning
         USERNAME_MENTION_REGEX.lastIndex = 0;
         
-        
+        // Replace all @username mentions with markdown links
         content = content.replace(USERNAME_MENTION_REGEX, (match, username) => {
           return `[${match}](/profile/${username})`;
         });
@@ -511,24 +570,24 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         setProcessedContent('');
       }
       
-      
+      // Проверка на лайки с использованием кэша
       if (post.id && post.likes_count > 0) {
-        
+        // Проверяем кэш перед запросом
         const postLikesCache = window._postLikesCache || {};
         const cachedData = postLikesCache[post.id];
         const now = Date.now();
         
         if (cachedData && cachedData.timestamp && (now - cachedData.timestamp < 5 * 60 * 1000)) {
-          
+          // Используем кэшированные данные
           console.log(`Using cached likes data for post ${post.id} (from useEffect)`);
           setLastLikedUsers(cachedData.users);
         } else {
-          
+          // Кэш отсутствует или устарел - делаем запрос
           fetchLastLikedUsers(post.id);
         }
       }
       
-      
+      // Parse music tracks if available
       try {
         if (post.music) {
           console.log('Processing music data:', post.music);
@@ -559,32 +618,32 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     }
   }, [post]);
   
-  
+  // Get cover path with fallback
   const getCoverPath = (track) => {
     if (!track || !track.cover_path) {
       return '/uploads/system/album_placeholder.jpg';
     }
     
-    
+    // If the path already includes /static/, use it directly as it might be a complete path
     if (track.cover_path.startsWith('/static/')) {
       return track.cover_path;
     }
     
-    
+    // Handle paths that don't start with slash
     if (track.cover_path.startsWith('static/')) {
       return `/${track.cover_path}`;
     }
     
-    
+    // Direct URL paths
     if (track.cover_path.startsWith('http')) {
       return track.cover_path;
     }
     
-    
+    // Legacy path format
     return `/static/music/${track.cover_path}`;
   };
   
-  
+  // Format track duration
   const formatDuration = (seconds) => {
     if (!seconds) return '0:00';
     const minutes = Math.floor(seconds / 60);
@@ -592,25 +651,25 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
   
-  
+  // Handle play/pause for a specific track using the music context
   const handleTrackPlay = (track, event) => {
-    if (event) event.stopPropagation(); 
+    if (event) event.stopPropagation(); // Prevent post click event
     
-    
+    // Check if this is the currently playing track
     const isCurrentlyPlaying = currentTrack && currentTrack.id === track.id;
     
     if (isCurrentlyPlaying) {
-      
+      // Toggle play/pause state
       togglePlay();
     } else {
-      
+      // Play the new track
       playTrack(track, 'post');
     }
   };
   
-  
+  // Check if content needs "Show more" button
   useEffect(() => {
-    
+    // Use requestAnimationFrame to ensure DOM has updated
     const checkHeight = () => {
       if (contentRef.current) {
         const contentHeight = contentRef.current.scrollHeight;
@@ -618,7 +677,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
       }
     };
     
-    
+    // Allow time for React Markdown to render
     const timeoutId = setTimeout(() => {
       checkHeight();
     }, 100);
@@ -626,21 +685,21 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     return () => clearTimeout(timeoutId);
   }, [post?.content]);
 
-  
+  // Fetch last liked users
   const fetchLastLikedUsers = async (postId) => {
     try {
-      
+      // Абсолютный запрет частых запросов (не чаще чем раз в 3 секунды глобально)
       if (window._globalLastLikesFetch && Date.now() - window._globalLastLikesFetch < 3000) {
         console.log(`Global likes fetch rate limit in effect, skipping fetch for post ${postId}`);
         return;
       }
       
-      
+      // Создаем глобальный кэш лайков, если он еще не существует
       if (!window._postLikesCache) {
         window._postLikesCache = {};
       }
       
-      
+      // Проверяем, есть ли данные в кэше и не устарели ли они (кэш на 5 минут)
       const now = Date.now();
       if (
         window._postLikesCache[postId] && 
@@ -652,24 +711,24 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         return;
       }
       
-      
+      // Проверяем, не выполняется ли уже запрос для этого поста
       if (window._postLikesFetching && window._postLikesFetching[postId]) {
         console.log(`Likes fetch already in progress for post ${postId}`);
         return;
       }
       
-      
+      // Устанавливаем флаг запроса
       if (!window._postLikesFetching) {
         window._postLikesFetching = {};
       }
       window._postLikesFetching[postId] = true;
-      window._globalLastLikesFetch = now; 
+      window._globalLastLikesFetch = now; // Устанавливаем время последнего запроса глобально
       
       const response = await axios.get(`/api/posts/${postId}/likes?limit=3`);
       if (response.data && Array.isArray(response.data.users)) {
         console.log(`Received like data for post ${postId}:`, response.data.users);
         
-        
+        // Сохраняем данные в кэше
         window._postLikesCache[postId] = {
           users: response.data.users,
           timestamp: now
@@ -680,98 +739,98 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     } catch (error) {
       console.error('Error fetching liked users:', error);
     } finally {
-      
+      // Снимаем флаг запроса
       if (window._postLikesFetching) {
         window._postLikesFetching[postId] = false;
       }
     }
   };
 
-  
+  // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
-  
+  // Process images for the post
   const processImages = () => {
-    
+    // If post has an images array, use it
     if (post?.images && Array.isArray(post.images) && post.images.length > 0) {
       return post.images;
     }
     
-    
+    // If post has a single image string that contains delimiters
     if (post?.image && typeof post.image === 'string') {
       if (post.image.includes('||') || post.image.includes(',')) {
-        
+        // Split by || or , and filter out empty strings
         return post.image.split(/[||,]/).map(url => url.trim()).filter(Boolean);
       }
-      
+      // Single image
       return [post.image];
     }
     
     return [];
   };
   
-  
+  // Check if post has a video
   const hasVideo = () => {
     return post?.video && typeof post.video === 'string' && post.video.trim() !== '';
   };
   
-  
+  // Format video URL
   const formatVideoUrl = (url) => {
     if (!url) return '';
     
-    
+    // If the URL is already absolute, return it as is
     if (url.startsWith('http') || url.startsWith('//')) {
       return url;
     }
     
-    
+    // Если URL уже содержит /static/uploads/post/, не добавляем этот путь снова
     if (url.startsWith('/static/uploads/post/')) {
       return url;
     }
     
-    
+    // For relative paths, add the proper base path
     return `/static/uploads/post/${post.id}/${url}`;
   };
   
   const images = processImages();
   const videoUrl = hasVideo() ? formatVideoUrl(post.video) : null;
   
-  
+  // Функция для открытия изображения через лайтбокс с WebP оптимизацией
   const handleOpenImage = async (index) => {
     const allImages = processImages();
     if (allImages.length > 0) {
       try {
-        
+        // Оптимизируем выбранное изображение перед показом
         const currentImageUrl = allImages[index];
         const optimizedImage = await optimizeImage(currentImageUrl, {
-          quality: 0.9, 
-          maxWidth: 1920 
+          quality: 0.9, // Высокое качество для просмотра
+          maxWidth: 1920 // Ограничение максимальной ширины
         });
         
         setCurrentImageIndex(index);
-        
+        // Сохраняем исходное и оптимизированное изображение для лайтбокса
         setLightboxOpen(true);
       } catch (error) {
         console.error('Error optimizing image for lightbox:', error);
-        
+        // Запасной вариант если оптимизация не сработала
         setCurrentImageIndex(index);
         setLightboxOpen(true);
       }
     }
   };
   
-  
+  // Закрытие лайтбокса
   const handleCloseLightbox = () => {
     setLightboxOpen(false);
   };
   
-  
+  // Переход к следующему изображению
   const handleNextImage = () => {
     setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
   };
   
-  
+  // Переход к предыдущему изображению
   const handlePrevImage = () => {
     setCurrentImageIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
   };
@@ -779,35 +838,35 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
   const handleLike = async (e) => {
     e.stopPropagation();
     
-    
+    // Сохраняем текущее состояние перед обновлением
     const wasLiked = liked;
     const prevCount = likesCount;
     
     try {
-      
+      // Сначала обновляем UI для моментальной реакции
       setLiked(!wasLiked);
       setLikesCount(wasLiked ? Math.max(0, prevCount - 1) : prevCount + 1);
       
-      
+      // Затем делаем запрос к API
       const response = await axios.post(`/api/posts/${post.id}/like`);
       if (response.data) {
-        
+        // Обновляем UI данными с сервера
         setLiked(response.data.liked);
         setLikesCount(response.data.likes_count);
       }
     } catch (error) {
       console.error('Error liking post:', error);
-      
+      // Откатываем изменения при ошибке
       setLiked(wasLiked);
       setLikesCount(prevCount);
       
-      
+      // Handle rate limit errors
       if (error.response && error.response.status === 429) {
         const rateLimit = error.response.data.rate_limit;
         let errorMessage = error.response.data.error || "Слишком много лайков. ";
         
         if (rateLimit && rateLimit.reset) {
-          
+          // Calculate time remaining until reset
           const resetTime = new Date(rateLimit.reset * 1000);
           const now = new Date();
           const diffSeconds = Math.round((resetTime - now) / 1000);
@@ -823,7 +882,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
           }
         }
         
-        
+        // Show snackbar notification
         setSnackbar({
           open: true,
           message: errorMessage,
@@ -842,16 +901,16 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     setMenuAnchorEl(null);
   };
 
-  
+  // Update the handleDelete function to show confirmation dialog first
   const handleDelete = () => {
     handleMenuClose();
     setDeleteDialog({ ...deleteDialog, open: true });
   };
 
-  
+  // Add a function to handle edit button click
   const handleEdit = () => {
     handleMenuClose();
-    
+    // Check if post is still within editable time window
     if (!isPostEditable()) {
       setSnackbar({
         open: true,
@@ -875,7 +934,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     });
   };
 
-  
+  // Handle edit dialog close
   const handleCloseEditDialog = () => {
     setEditDialog({
       ...editDialog,
@@ -885,7 +944,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     });
   };
 
-  
+  // Handle content change in edit dialog
   const handleEditContentChange = (e) => {
     setEditDialog({
       ...editDialog,
@@ -893,11 +952,11 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     });
   };
 
-  
+  // Handle image selection for edit
   const handleEditImageSelect = (e) => {
     const files = Array.from(e.target.files);
     
-    
+    // Create preview URLs for the images
     const fileObjects = files.map(file => ({
       file,
       preview: URL.createObjectURL(file)
@@ -910,7 +969,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     });
   };
 
-  
+  // Handle video selection for edit
   const handleEditVideoSelect = (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -922,7 +981,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     }
   };
 
-  
+  // Handle deletion of existing images
   const handleToggleDeleteImages = () => {
     setEditDialog({
       ...editDialog,
@@ -930,7 +989,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     });
   };
 
-  
+  // Handle deletion of existing video
   const handleToggleDeleteVideo = () => {
     setEditDialog({
       ...editDialog,
@@ -938,7 +997,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     });
   };
 
-  
+  // Handle deletion of music tracks
   const handleToggleDeleteMusic = () => {
     setEditDialog({
       ...editDialog,
@@ -946,10 +1005,10 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     });
   };
 
-  
+  // Submit post edit
   const handleSubmitEdit = async () => {
     try {
-      
+      // Check once more if post is still editable (within 3 hours)
       if (!isPostEditable()) {
         setEditDialog({ 
           ...editDialog, 
@@ -960,26 +1019,26 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
 
       setEditDialog({ ...editDialog, submitting: true, error: null });
       
-      
+      // Create form data for multipart request
       const formData = new FormData();
       formData.append('content', editDialog.content);
       
-      
+      // Add flags for deleting existing media
       formData.append('delete_images', editDialog.deleteImages);
       formData.append('delete_video', editDialog.deleteVideo);
       formData.append('delete_music', editDialog.deleteMusic);
       
-      
+      // Add new images if any
       editDialog.newImages.forEach((image, index) => {
         formData.append(`images[${index}]`, image);
       });
       
-      
+      // Add new video if any
       if (editDialog.newVideo) {
         formData.append('video', editDialog.newVideo);
       }
       
-      
+      // Make API call to update the post
       const response = await axios.post(`/api/posts/${post.id}/edit`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -987,19 +1046,19 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
       });
       
       if (response.data.success) {
-        
+        // Update the post in UI with the response data
         const updatedPost = response.data.post;
         
-        
+        // Update the post data in parent component if callback exists
         if (onDelete) {
-          
+          // Since we don't have an explicit onUpdate prop, use onDelete to tell parent to refresh
           onDelete(post.id, updatedPost);
         } else {
-          
+          // Force reload of the current page if no callback provided
           window.location.reload();
         }
         
-        
+        // Close the dialog
         setEditDialog({
           open: false,
           content: '',
@@ -1013,7 +1072,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
           error: null
         });
         
-        
+        // Show success message
         setSnackbar({
           open: true,
           message: "Пост успешно обновлен",
@@ -1032,34 +1091,34 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     }
   };
 
-  
+  // Add a function to confirm deletion
   const confirmDelete = async () => {
     try {
-      
+      // Set deleting state
       setDeleteDialog({ ...deleteDialog, deleting: true });
       
-      
+      // Optimistically mark as deleted in UI
       if (onDelete) {
         onDelete(post.id);
       }
       
-      
+      // Set deleted state before API call
       setDeleteDialog({ open: true, deleting: false, deleted: true });
       
-      
+      // Make the API call in background
       const response = await axios.delete(`/api/posts/${post.id}`);
       
-      
+      // Close dialog after 1.5 seconds
       setTimeout(() => {
         setDeleteDialog({ open: false, deleting: false, deleted: true });
       }, 1500);
       
     } catch (error) {
       console.error('Error deleting post:', error);
-      
+      // If error, keep dialog open but show error state
       setDeleteDialog({ open: true, deleting: false, deleted: false });
       
-      
+      // Show error snackbar
       setSnackbar({
         open: true,
         message: "Не удалось удалить пост. Попробуйте позже.",
@@ -1071,7 +1130,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
   const handleRepostClick = (e) => {
     e.stopPropagation();
     if (!currentUser) {
-      
+      // Перенаправляем на логин если юзер не авторизован
       navigate('/login');
       return;
     }
@@ -1080,7 +1139,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     setRepostModalOpen(true);
   };
   
-  
+  // Для диалога репоста
   const handleOpenRepostModal = (e) => {
     e.stopPropagation();
     setRepostModalOpen(true);
@@ -1090,27 +1149,27 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     setRepostModalOpen(false);
   };
   
-  
+  // Подсветка упоминаний в тексте репоста
   const renderRepostInputWithMentions = () => {
-    
+    // Пропускаем обработку если текст пустой
     if (!repostText) return null;
     
-    
+    // Ищем все @упоминания в тексте
     const parts = [];
     let lastIndex = 0;
     
-    
+    // Сбрасываем состояние регулярки
     USERNAME_MENTION_REGEX.lastIndex = 0;
     
-    
+    // Ищем все совпадения
     let match;
     while ((match = USERNAME_MENTION_REGEX.exec(repostText)) !== null) {
-      
+      // Добавляем текст до текущего совпадения
       if (match.index > lastIndex) {
         parts.push(<span key={`text-${lastIndex}`}>{repostText.substring(lastIndex, match.index)}</span>);
       }
       
-      
+      // Добавляем подсвеченное упоминание
       parts.push(
         <span 
           key={`mention-${match.index}`}
@@ -1129,7 +1188,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
       lastIndex = match.index + match[0].length;
     }
     
-    
+    // Добавляем оставшийся текст после последнего совпадения
     if (lastIndex < repostText.length) {
       parts.push(<span key={`text-end`}>{repostText.substring(lastIndex)}</span>);
     }
@@ -1144,7 +1203,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         padding: '16.5px 14px',
         color: 'rgba(255, 255, 255, 0.9)',
         fontSize: '0.95rem',
-        pointerEvents: 'none', 
+        pointerEvents: 'none', // Пропускаем клики до реального поля ввода
         overflow: 'hidden',
         display: 'flex',
         flexWrap: 'wrap',
@@ -1155,9 +1214,9 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     );
   };
   
-  
+  // Создание репоста
   const handleCreateRepost = async () => {
-    
+    // Блокируем повторную отправку
     if (isReposting) return;
     
     try {
@@ -1167,23 +1226,23 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         text: repostText
       });
       
-      
+      // Проверяем ответ
       if (response.data.success) {
-        
+        // Показываем уведомление об успехе
         setSnackbarMessage('Пост успешно добавлен в вашу ленту');
         setSnackbarOpen(true);
         
-        
+        // Закрываем модальное окно и сбрасываем форму
         setRepostModalOpen(false);
         setRepostText('');
       } else {
-        
+        // Показываем сообщение об ошибке
         setSnackbarMessage(response.data.error || 'Произошла ошибка при репосте');
         setSnackbarOpen(true);
       }
     } catch (error) {
       console.error('Error creating repost:', error);
-      
+      // Показываем сообщение об ошибке от сервера или общей ошибке
       setSnackbarMessage(
         error.response?.data?.error || 'Произошла ошибка при репосте'
       );
@@ -1192,13 +1251,15 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
       setIsReposting(false);
     }}
 
-  
+  // Handle comment button click to navigate to post detail
   const handleCommentClick = (e) => {
+    e.preventDefault();
     e.stopPropagation();
-    navigate(`/post/${post.id}`);
+    console.log("Comment button clicked, opening overlay for post ID:", post.id);
+    openPostDetail(post.id, e);
   };
   
-  
+  // Функция для копирования ссылки на пост
   const handleShare = (e) => {
     e.stopPropagation();
     const postUrl = `${window.location.origin}/post/${post.id}`;
@@ -1214,39 +1275,61 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
       });
   };
 
-  
+  // Функция для копирования ссылки из контекстного меню - без зависимости от event
+  const handleCopyLink = () => {
+    const postUrl = `${window.location.origin}/post/${post.id}`;
+    navigator.clipboard.writeText(postUrl)
+      .then(() => {
+        setSnackbarMessage("Ссылка скопирована в буфер обмена");
+        setSnackbarOpen(true);
+      })
+      .catch(err => {
+        console.error('Не удалось скопировать ссылку:', err);
+        setSnackbarMessage("Не удалось скопировать ссылку");
+        setSnackbarOpen(true);
+      });
+  };
+
+  // Функция для безопасного открытия поста из контекстного меню
+  const handleOpenPostFromMenu = () => {
+    console.log("Opening post from context menu, ID:", post.id);
+    // Используем функцию openPostDetail напрямую, без передачи event
+    openPostDetail(post.id);
+  };
+
+  // Toggle expanded state
   const toggleExpanded = (e) => {
-    e.stopPropagation(); 
+    e.stopPropagation(); // Prevent post click event
     setIsExpanded(!isExpanded);
   };
 
-  
+  // Make sure music tracks are received
   useEffect(() => {
     if (post && post.id) {
       console.log(`Post ${post.id} music data:`, post.music);
     }
   }, [post]);
   
-  
+  // Explicitly log when a post with music is rendered
   useEffect(() => {
     if (musicTracks.length > 0) {
       console.log(`Rendering post ${post.id} with ${musicTracks.length} music tracks:`, musicTracks);
     }
   }, [musicTracks, post.id]);
 
-  
+  // Add the getOptimizedImageUrl function
   const getOptimizedImageUrl = (url) => {
     if (!url) return '/static/uploads/avatar/system/avatar.png';
     
-    
+    // Если URL уже содержит параметр format=webp, не модифицируем
     if (url.includes('format=webp')) {
       return url;
     }
     
-    
+    // Проверяем поддержку WebP в браузере
     const supportsWebP = 'imageRendering' in document.documentElement.style;
     
-    
+    // Если браузер поддерживает WebP и URL указывает на наш сервер, добавляем параметр
     if (supportsWebP && (url.startsWith('/static/') || url.startsWith('/uploads/'))) {
       return `${url}${url.includes('?') ? '&' : '?'}format=webp`;
     }
@@ -1254,50 +1337,54 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     return url;
   };
 
-  
+  // Check if post is still editable (within 3 hours)
   const isPostEditable = () => {
     if (!post?.timestamp) return false;
     
     const postTime = new Date(post.timestamp);
     const currentTime = new Date();
-    const timeDifference = (currentTime - postTime) / (1000 * 60 * 60); 
+    const timeDifference = (currentTime - postTime) / (1000 * 60 * 60); // Time difference in hours
     
     return timeDifference <= 3;
   };
 
-  
+  // Функция для увеличения счетчика просмотров при просмотре поста
   const incrementViewCount = async () => {
-    
+    // Проверяем, есть ли у поста ID, и что пост был открыт
     if (post && post.id) {
       try {
-        
+        // Защита от повторных вызовов на данной странице
         const viewKey = `post_viewed_${post.id}`;
         if (sessionStorage.getItem(viewKey)) {
+          console.log(`Post ${post.id} already viewed in this session`);
           return;
         }
 
-        
+        // Устанавливаем флаг просмотра в sessionStorage чтобы избежать повторных запросов
         sessionStorage.setItem(viewKey, 'true');
+        console.log(`Setting view flag for post ${post.id}`);
 
-        
+        // Функция для выполнения запроса с повторными попытками
         const attemptViewCount = async (retries = 3) => {
           try {
-            
+            // Делаем запрос на увеличение счетчика просмотров
+            console.log(`Incrementing view count for post ${post.id}`);
             const response = await axios.post(`/api/posts/${post.id}/view`);
             if (response.data && response.data.success) {
-              
+              // Обновляем счетчик просмотров в состоянии только если получили ответ
+              console.log(`View count updated for post ${post.id} to ${response.data.views_count}`);
               setViewsCount(response.data.views_count);
             }
           } catch (error) {
             console.error(`Error incrementing view count (attempt ${4-retries}/3):`, error);
-            
+            // Повторяем попытку, если еще есть доступные попытки
             if (retries > 1) {
-              setTimeout(() => attemptViewCount(retries - 1), 1000); 
+              setTimeout(() => attemptViewCount(retries - 1), 1000); // Пауза 1 секунда перед следующей попыткой
             }
           }
         };
 
-        
+        // Запускаем функцию с повторными попытками
         attemptViewCount();
       } catch (error) {
         console.error('Error incrementing view count:', error);
@@ -1305,7 +1392,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     }
   };
 
-  
+  // Используем Intersection Observer для отслеживания видимости поста
   const postRef = useRef(null);
 
   useEffect(() => {
@@ -1313,29 +1400,30 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
       (entries) => {
         const [entry] = entries;
         if (entry.isIntersecting) {
-          
+          console.log(`Post ${post.id} is more than 50% visible, triggering view count`);
+          // Пост стал видимым в viewport минимум на 50%, увеличиваем счетчик просмотров
           incrementViewCount();
-          
+          // Отключаем отслеживание этого поста после одного срабатывания
           observer.unobserve(entry.target);
         }
       },
-      { threshold: 0.5 } 
+      { threshold: 0.5 } // Пост должен быть виден как минимум на 50% для срабатывания
     );
 
-    
+    // Начинаем отслеживать пост
     if (postRef.current) {
       observer.observe(postRef.current);
     }
 
     return () => {
-      
+      // Очищаем observer при размонтировании компонента
       if (postRef.current) {
         observer.unobserve(postRef.current);
       }
     };
-  }, [post?.id]); 
+  }, [post?.id]); // Пересоздаем observer при изменении ID поста
 
-  
+  // Handle report form submission
   const handleReportSubmit = async () => {
     if (!reportDialog.reason) {
       setReportDialog({...reportDialog, error: "Пожалуйста, выберите причину жалобы"});
@@ -1345,8 +1433,8 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     setReportDialog({...reportDialog, submitting: true, error: null});
     
     try {
-      
-      
+      // Format report message with HTML-compatible format instead of Markdown
+      // Keeping the same formatting but with HTML tags for Telegram
       const reportMessage = `🚨 *ЖАЛОБА НА ПОСТ*\n\n` +
         `📝 *ID поста*: ${post.id}\n` +
         `👤 *Автор*: ${post.user?.name} (@${post.user?.username})\n` +
@@ -1355,7 +1443,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         `⏰ *Время*: ${new Date().toLocaleString()}` +
         (post.content ? `\n\n📄 *Текст поста*:\n${post.content?.substring(0, 300)}${post.content?.length > 300 ? '...' : ''}` : `\n\n📄 *Пост содержит медиа-контент без текста*`);
       
-      
+      // Send report to Telegram
       const response = await axios.post('/api/report/send-to-telegram', {
         message: reportMessage,
         post_id: post.id,
@@ -1366,7 +1454,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
       
       if (response.data && response.data.success) {
         setReportDialog({...reportDialog, submitting: false, submitted: true});
-        
+        // Close dialog after success
         setTimeout(() => {
           setReportDialog({open: false, reason: '', submitting: false, submitted: false, error: null});
         }, 2000);
@@ -1383,21 +1471,120 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     }
   };
   
-  
+  // Handle report option click
   const handleReportClick = () => {
     handleMenuClose();
     setReportDialog({...reportDialog, open: true});
   };
 
+  // Используем Solar иконки в ключевых местах интерфейса
+  const { openPostDetail } = usePostDetail();
   
+  // Modify the post click handler to use the overlay
+  const handlePostClick = (e) => {
+    // Don't trigger when clicking on specific interactive elements
+    if (
+      e.target.closest('[data-no-navigate]') ||
+      e.target.closest('.MuiMenu-root') ||
+      e.target.closest('.MuiMenuItem-root') ||
+      e.target.closest('.MuiDialog-root') ||
+      e.target.closest('.post-action-button') ||
+      e.target.closest('.lightbox-trigger') ||
+      e.target.closest('a') ||
+      e.target.closest('button') // Exclude all buttons
+    ) {
+      return;
+    }
+    
+    console.log("Post clicked, opening overlay for post ID:", post.id);
+    openPostDetail(post.id, e);
+  };
+  
+  // Состояние для контекстного меню
+  const { contextMenuState, handleContextMenu, closeContextMenu } = useContextMenu();
+  
+  // Обработчик контекстного меню
+  const handlePostContextMenu = (e) => {
+    // Предотвращаем обычное контекстное меню браузера и всплытие события
+    e.stopPropagation();
+    
+    // Открываем наше кастомное контекстное меню
+    handleContextMenu(e, { postId: post.id });
+  };
+  
+  // Создаем элементы для контекстного меню на основе доступных действий
+  const getContextMenuItems = () => {
+    const items = [];
+    
+    // Добавляем пункт "Копировать ссылку"
+    items.push({
+      id: 'share',
+      label: 'Копировать ссылку',
+      icon: <ShareIcon fontSize="small" />,
+      onClick: handleCopyLink // Используем версию функции без зависимости от event
+    });
+    
+    // Пункт "Комментировать"
+    items.push({
+      id: 'comment',
+      label: 'Комментировать',
+      icon: <ChatBubbleOutlineIcon fontSize="small" />,
+      onClick: handleOpenPostFromMenu // Используем безопасную функцию для открытия поста
+    });
+    
+    // Если это пост текущего пользователя, добавляем опции редактирования и удаления
+    if (isCurrentUserPost) {
+      // Пункт "Редактировать"
+      if (isPostEditable()) {
+        items.push({
+          id: 'edit',
+          label: 'Редактировать',
+          icon: <EditIcon fontSize="small" />,
+          onClick: () => handleEdit()
+        });
+      }
+      
+      // Пункт "Удалить"
+      items.push({
+        id: 'delete',
+        label: 'Удалить',
+        icon: <DeleteIcon fontSize="small" />,
+        onClick: () => handleDelete()
+      });
+    } else {
+      // Пункт "Пожаловаться" (только для чужих постов)
+      items.push({
+        id: 'report',
+        label: 'Пожаловаться',
+        icon: <FlagIcon fontSize="small" />,
+        onClick: () => handleReportClick()
+      });
+    }
+    
+    return items;
+  };
+  
+  // Return the composed component
   return (
     <React.Fragment>
-      <PostCard 
+      <Card 
+        elevation={0} 
+        onClick={(e) => handlePostClick(e)}
+        onContextMenu={handlePostContextMenu}
         ref={postRef}
-        sx={{ mb: 0.5 }}
+        sx={{
+          overflow: 'visible',
+          mb: 0.5, // 5 pixels spacing between posts
+          borderRadius: 2,
+          bgcolor: 'background.paper',
+          border: '1px solid',
+          borderColor: 'divider',
+          cursor: 'pointer',
+          // Removed hover animation
+        }}
       >
         <CardContent sx={{ p: { xs: 1.5, sm: 3 } }}>
-          {}
+          
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
             <Avatar 
               src={post.user ? getOptimizedImageUrl(post.user?.avatar_url || `/static/uploads/avatar/${post.user?.id}/${post.user?.photo}`) : '/static/uploads/avatar/system/avatar.png'} 
@@ -1430,6 +1617,16 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                 }}
               >
                 {post.user?.name}
+                
+                
+                {(post.user?.account_type === 'channel' || post.user?.is_channel === true) && (
+                  <ChannelTag 
+                    label="Канал"
+                    size="small"
+                    sx={{ ml: 1, height: 20 }}
+                  />
+                )}
+                
                 {post.user?.verification && post.user?.verification.status > 0 && (
                   <CheckCircleIcon 
                     sx={{ 
@@ -1469,67 +1666,8 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
               </Typography>
             </Box>
             
-            {}
-            <IconButton 
-              size="small"
-              aria-label="Действия с постом"
-              onClick={handleMenuOpen}
-              sx={{ 
-                p: 0.5, 
-                bgcolor: 'rgba(255, 255, 255, 0.05)', 
-                '&:hover': {
-                  bgcolor: 'rgba(255, 255, 255, 0.1)'
-                },
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <Icon icon="solar:menu-dots-bold" width="20" height="20" />
-            </IconButton>
-            <BlurredMenu
-              anchorEl={menuAnchorEl}
-              open={menuOpen}
-              onClose={handleMenuClose}
-              onClick={(e) => e.stopPropagation()}
-              PaperProps={{
-                sx: {
-                  bgcolor: '#1E1E1E',
-                  boxShadow: '0 5px 15px rgba(0, 0, 0, 0.2)',
-                  mt: 1
-                }
-              }}
-              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-            >
-              {}
-              {isCurrentUserPost && (
-                <MenuItem onClick={handleDelete} sx={{ color: '#f44336' }}>
-                  <ListItemIcon>
-                    <DeleteIcon fontSize="small" sx={{ color: '#f44336' }} />
-                  </ListItemIcon>
-                  <ListItemText primary="Удалить" />
-                </MenuItem>
-              )}
-              
-              {}
-              {isCurrentUserPost && (
-                <MenuItem onClick={handleEdit} sx={{ color: '#2196f3' }}>
-                  <ListItemIcon>
-                    <EditIcon fontSize="small" sx={{ color: '#2196f3' }} />
-                  </ListItemIcon>
-                  <ListItemText primary="Изменить" />
-                </MenuItem>
-              )}
-              
-              {}
-              {!isCurrentUserPost && (
-                <MenuItem onClick={handleReportClick} sx={{ color: '#ff9800' }}>
-                  <ListItemIcon>
-                    <FlagIcon fontSize="small" sx={{ color: '#ff9800' }} />
-                  </ListItemIcon>
-                  <ListItemText primary="Пожаловаться" />
-                </MenuItem>
-              )}
-            </BlurredMenu>
+            
+            
           </Box>
 
           <Box sx={{ position: 'relative' }}>
@@ -1543,12 +1681,12 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                 overflowWrap: 'break-word',
               }}
             >
-              {}
+              
               {processedContent && (
                 <ReactMarkdown 
                   components={linkRenderers}
                   skipHtml={false}
-                  transformLinkUri={null} 
+                  transformLinkUri={null} // Don't transform or escape URIs
                   remarkPlugins={[]}
                   rehypePlugins={[]}
                 >
@@ -1584,7 +1722,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             )}
           </Box>
           
-          {}
+          
           {videoUrl && (
             <Box sx={{ mb: 2 }}>
               <VideoPlayer 
@@ -1594,7 +1732,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             </Box>
           )}
           
-          {}
+          
           {images.length > 0 && (
             <Box sx={{ px: { xs: 1.5, sm: 2 }, mb: 2 }}>
               <ImageGrid 
@@ -1604,7 +1742,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             </Box>
           )}
           
-          {}
+          
           {musicTracks.length > 0 && (
             <Box sx={{ mt: 0, mb: 0 }}>
               {musicTracks.map((track, index) => (
@@ -1688,63 +1826,70 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             </Box>
           )}
           
-          {}
+          
           <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, px: 1, justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              {}
-              <ActionsPill whileTap={{ scale: 0.98 }}>
-                {}
+              
+              <ActionsPill>
+                
                 <ActionItem 
-                  onClick={handleLike} 
+                  onClick={handleLike}
+                  islike={true}
                   active={liked}
-                  isLike={true}
                 >
-                  {liked ? (
-                    <FavoriteIcon 
-                      sx={{ 
-                        color: 'primary.main',
-                        position: 'relative', 
-                        zIndex: 2,
-                        fontSize: { xs: 16, sm: 19 }
-                      }}
-                    />
-                  ) : (
-                    <FavoriteBorderIcon 
-                      sx={{ 
-                        color: 'text.secondary',
-                        position: 'relative',
-                        zIndex: 2,
-                        fontSize: { xs: 16, sm: 19 }
-                      }}
-                    />
-                  )}
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', ml: 0.5, position: 'relative', zIndex: 2 }}>
+                  <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    {liked ? (
+                      <Icon 
+                        icon="solar:heart-bold" 
+                        color={primaryColor} 
+                        width={18} 
+                        height={18}
+                      />
+                    ) : (
+                      <Icon 
+                        icon="solar:heart-linear" 
+                        width={18} 
+                        height={18} 
+                        color="rgba(255, 255, 255, 0.8)"
+                      />
+                    )}
+                  </Box>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    ml: 0.5
+                  }}>
                     {lastLikedUsers.length > 0 && (
                       <AvatarGroup 
                         max={3}
+                        spacing="small"
                         sx={{ 
                           mr: 0.5,
-                          '& .MuiAvatar-root': { 
-                            width: 18, 
-                            height: 18, 
-                            fontSize: '0.65rem',
-                            border: '1px solid #1A1A1A'
-                          } 
+                          '& .MuiAvatar-root': {
+                            width: 18,
+                            height: 18,
+                            fontSize: '0.7rem',
+                            border: '1px solid rgba(0, 0, 0, 0.1)',
+                            '&:hover': {
+                              zIndex: 10,
+                              transform: 'scale(1.3)',
+                              transition: 'transform 0.2s ease'
+                            }
+                          }
                         }}
                       >
                         {lastLikedUsers.map(user => {
-                          
+                          // Правильно сформируем URL аватарки
                           let avatarUrl = user.avatar || user.photo || '';
                           
-                          
+                          // Если URL не начинается с http или slash, добавляем путь
                           if (avatarUrl && !avatarUrl.startsWith('/') && !avatarUrl.startsWith('http')) {
                             avatarUrl = `/static/uploads/avatar/${user.id}/${avatarUrl}`;
                           }
                           
-                          
+                          // Добавляем параметр webp для оптимизации если браузер поддерживает
                           if (avatarUrl && !avatarUrl.includes('format=webp') && 'imageRendering' in document.documentElement.style) {
-                            
+                            // Добавляем параметр только если это URL нашего сервера
                             if (avatarUrl.startsWith('/static/')) {
                               avatarUrl = `${avatarUrl}${avatarUrl.includes('?') ? '&' : '?'}format=webp`;
                             }
@@ -1758,7 +1903,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                               sx={{ width: 18, height: 18 }}
                               onError={(e) => {
                                 console.log(`Error loading avatar for user ${user.id}`);
-                                e.target.onerror = null; 
+                                e.target.onerror = null; // Предотвращаем рекурсию
                                 e.target.src = `/static/uploads/avatar/system/avatar.png`;
                               }}
                             >
@@ -1779,10 +1924,10 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                   </Box>
                 </ActionItem>
                 
-                {}
+                
                 <ActionItem
                   onClick={handleCommentClick}
-                  isLike={false}
+                  islike={false}
                 >
                   {post?.total_comments_count > 0 || post?.comments_count > 0 ? (
                     <ChatBubbleIcon 
@@ -1819,9 +1964,10 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                 </ActionItem>
               </ActionsPill>
               
-              {}
+              
               <SharePill 
                 onClick={handleShare}
+                component={motion.div}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -1834,28 +1980,76 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
               </SharePill>
             </Box>
             
-            {}
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center',
-                ml: 'auto',
-                color: 'text.secondary',
-                backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                borderRadius: '16px',
-                padding: '3px 8px',
-                border: '1px solid rgba(255, 255, 255, 0.05)'
-              }}
-              title="Количество просмотров"
-            >
-              <VisibilityIcon sx={{ fontSize: '0.9rem', mr: 0.5, opacity: 0.7 }} />
-              <Typography variant="caption" sx={{ fontSize: '0.75rem' }}>
-                {viewsCount}
-              </Typography>
-            </Box>
+            
+            <ViewMenuPill>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <VisibilityIcon sx={{ fontSize: 16, mr: 0.5, color: 'text.secondary' }} />
+                <Typography variant="caption" sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+                  {viewsCount}
+                </Typography>
+              </Box>
+              <IconButton 
+                size="small"
+                aria-label="Действия с постом"
+                onClick={handleMenuOpen}
+                sx={{ 
+                  ml: 0.5,
+                  p: 0.5,
+                  color: 'text.secondary',
+                }}
+                data-no-navigate
+              >
+                <Icon icon="solar:menu-dots-bold" width="18" height="18" />
+              </IconButton>
+              <BlurredMenu
+                anchorEl={menuAnchorEl}
+                open={menuOpen}
+                onClose={handleMenuClose}
+                onClick={(e) => e.stopPropagation()}
+                PaperProps={{
+                  sx: {
+                    bgcolor: '#1E1E1E',
+                    boxShadow: '0 5px 15px rgba(0, 0, 0, 0.2)',
+                    mt: 1
+                  }
+                }}
+                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+              >
+                
+                {isCurrentUserPost && (
+                  <MenuItem onClick={handleDelete} sx={{ color: '#f44336' }}>
+                    <ListItemIcon>
+                      <DeleteIcon fontSize="small" sx={{ color: '#f44336' }} />
+                    </ListItemIcon>
+                    <ListItemText primary="Удалить" />
+                  </MenuItem>
+                )}
+                
+                
+                {isCurrentUserPost && (
+                  <MenuItem onClick={handleEdit} sx={{ color: '#2196f3' }}>
+                    <ListItemIcon>
+                      <EditIcon fontSize="small" sx={{ color: '#2196f3' }} />
+                    </ListItemIcon>
+                    <ListItemText primary="Изменить" />
+                  </MenuItem>
+                )}
+                
+                
+                {!isCurrentUserPost && (
+                  <MenuItem onClick={handleReportClick} sx={{ color: '#ff9800' }}>
+                    <ListItemIcon>
+                      <FlagIcon fontSize="small" sx={{ color: '#ff9800' }} />
+                    </ListItemIcon>
+                    <ListItemText primary="Пожаловаться" />
+                  </MenuItem>
+                )}
+              </BlurredMenu>
+            </ViewMenuPill>
           </Box>
         </CardContent>
-      </PostCard>
+      </Card>
 
       <Snackbar
         open={snackbarOpen}
@@ -1865,7 +2059,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       />
       
-      {}
+      
       <Dialog
         open={repostModalOpen}
         onClose={handleCloseRepostModal}
@@ -1948,8 +2142,8 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                   },
                   '& .MuiOutlinedInput-input': {
                     fontSize: '0.95rem',
-                    color: 'transparent',  
-                    caretColor: 'rgba(255, 255, 255, 0.9)'  
+                    color: 'transparent',  // Make the actual input text transparent
+                    caretColor: 'rgba(255, 255, 255, 0.9)'  // Keep the cursor visible
                   }
                 },
                 '& .MuiFormHelperText-root': {
@@ -1962,7 +2156,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             {renderRepostInputWithMentions()}
           </Box>
           
-          {}
+          
           <Box 
             sx={{ 
               p: 2.5, 
@@ -2095,7 +2289,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         </DialogActions>
       </Dialog>
       
-      {}
+      
       {lightboxOpen && (
         <LightBox
           isOpen={lightboxOpen}
@@ -2115,7 +2309,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         />
       )}
       
-      {}
+      
       <Dialog
         open={deleteDialog.open}
         onClose={() => !deleteDialog.deleting && !deleteDialog.deleted && setDeleteDialog({ ...deleteDialog, open: false })}
@@ -2209,7 +2403,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         </Box>
       </Dialog>
       
-      {}
+      
       <Dialog
         open={reportDialog.open}
         onClose={() => !reportDialog.submitting && !reportDialog.submitted && setReportDialog({...reportDialog, open: false})}
@@ -2341,7 +2535,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                 />
               )}
               
-              {}
+              
               <Box 
                 sx={{ 
                   p: 2, 
@@ -2401,7 +2595,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         )}
       </Dialog>
       
-      {}
+      
       <Snackbar
         open={snackbar.open}
         autoHideDuration={5000}
@@ -2417,7 +2611,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         </Alert>
       </Snackbar>
       
-      {}
+      
       <Dialog
         open={editDialog.open}
         onClose={() => !editDialog.submitting && handleCloseEditDialog()}
@@ -2480,7 +2674,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             </Alert>
           )}
           
-          {}
+          
           <TextField
             fullWidth
             multiline
@@ -2518,7 +2712,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             }}
           />
           
-          {}
+          
           {(post.images?.length > 0 || post.image) && !editDialog.deleteImages && (
             <Box sx={{ mt: 2, mb: 1 }}>
               <Typography variant="subtitle2" gutterBottom>
@@ -2578,7 +2772,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             </Box>
           )}
           
-          {}
+          
           {post.video && !editDialog.deleteVideo && (
             <Box sx={{ mt: 2, mb: 1 }}>
               <Typography variant="subtitle2" gutterBottom>
@@ -2621,7 +2815,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             </Box>
           )}
           
-          {}
+          
           {post.music && post.music.length > 0 && !editDialog.deleteMusic && (
             <Box sx={{ mt: 2, mb: 1 }}>
               <Typography variant="subtitle2" gutterBottom>
@@ -2668,7 +2862,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             </Box>
           )}
           
-          {}
+          
           <Box sx={{ mt: 2 }}>
             <Button
               variant="outlined"
@@ -2728,7 +2922,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             </Button>
           </Box>
           
-          {}
+          
           {editDialog.previews.length > 0 && (
             <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {editDialog.previews.map((preview, idx) => (
@@ -2758,7 +2952,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             </Box>
           )}
           
-          {}
+          
           {editDialog.newVideo && (
             <Box sx={{ 
               mt: 2,
@@ -2809,6 +3003,15 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
           </Button>
         </DialogActions>
       </Dialog>
+      
+      
+      <ContextMenu
+        items={getContextMenuItems()}
+        x={contextMenuState.x}
+        y={contextMenuState.y}
+        show={contextMenuState.show && contextMenuState.data?.postId === post.id}
+        onClose={closeContextMenu}
+      />
     </React.Fragment>
   );
 };

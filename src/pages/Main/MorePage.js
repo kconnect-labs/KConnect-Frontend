@@ -21,6 +21,7 @@ import { AuthContext } from '../../context/AuthContext';
 import axios from 'axios';
 import { Icon } from '@iconify/react';
 
+// Стилизованные компоненты
 const ProfileBanner = styled(Box)(({ theme }) => ({
   position: 'relative',
   height: 160,
@@ -101,12 +102,15 @@ const MorePage = () => {
   const theme = useTheme();
   const [userPoints, setUserPoints] = useState(0);
   
+  // Проверяем является ли пользователь админом
+  const isAdmin = user?.id === 3; // Такое же условие как в Sidebar.js
   
-  const isAdmin = user?.id === 3; 
+  // Проверка является ли пользователь каналом
+  const isChannel = user?.account_type === 'channel';
   
-  
+  // Проверяем, является ли пользователь модератором
   const [isModeratorUser, setIsModeratorUser] = useState(false);
-  
+  // Кэш и время последней проверки модератора
   const [lastModeratorCheck, setLastModeratorCheck] = useState(0);
   
   useEffect(() => {
@@ -118,20 +122,20 @@ const MorePage = () => {
 
   const checkModeratorStatus = async () => {
     try {
-      
+      // Проверяем, не выполняется ли уже проверка
       if (window._moderatorCheckInProgress) {
         console.log('MorePage: Moderator check already in progress, skipping...');
         return;
       }
       
-      
+      // Используем кэш, если проверка была недавно (в течение 15 минут)
       const now = Date.now();
       if (now - lastModeratorCheck < 15 * 60 * 1000) {
         console.log('MorePage: Using cached moderator status');
         return;
       }
       
-      
+      // Устанавливаем флаг, что проверка выполняется
       window._moderatorCheckInProgress = true;
       
       const response = await axios.get('/api/moderator/status');
@@ -141,18 +145,18 @@ const MorePage = () => {
         setIsModeratorUser(false);
       }
       
-      
+      // Обновляем время последней проверки
       setLastModeratorCheck(now);
     } catch (error) {
       console.error('Error checking moderator status:', error);
       setIsModeratorUser(false);
     } finally {
-      
+      // Сбрасываем флаг
       window._moderatorCheckInProgress = false;
     }
   };
   
-  
+  // Функция для получения баланса пользователя
   const fetchUserPoints = async () => {
     try {
       const response = await axios.get('/api/user/points');
@@ -163,13 +167,13 @@ const MorePage = () => {
     }
   };
   
-  
+  // Функция для выхода из аккаунта
   const handleLogout = async () => {
     try {
       await logout();
-      
+      // Logout and redirect handled in AuthContext
     } catch (error) {
-      
+      // Fallback if logout from AuthContext fails
       navigate('/login');
     }
   };
@@ -208,7 +212,7 @@ const MorePage = () => {
         </ProfileAvatar>
       </ProfileBanner>
 
-      {}
+      
       <Box sx={{ mb: 4, px: 2 }}>
         <ProfileName variant="h5">
           {user?.name || 'Пользователь'}
@@ -247,7 +251,7 @@ const MorePage = () => {
           @{user?.username || 'username'}
         </Typography>
         
-        {}
+        
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
           <Button
             variant="contained"
@@ -267,7 +271,7 @@ const MorePage = () => {
         </Box>
       </Box>
 
-      {}
+      
       <Paper 
         elevation={2} 
         sx={{ 
@@ -277,7 +281,7 @@ const MorePage = () => {
         }}
       >
         <List sx={{ p: 1 }}>
-          {}
+          
           <Box 
             sx={{ 
               display: 'flex', 
@@ -336,34 +340,6 @@ const MorePage = () => {
             </MenuListItem>
           </Box>
 
-          {}
-          <MenuListItem 
-            button 
-            component={Link} 
-            to="/minigames"
-            sx={{
-              backgroundColor: theme.palette.mode === 'dark' 
-                ? alpha(theme.palette.secondary.dark, 0.15)
-                : alpha(theme.palette.secondary.light, 0.15),
-              borderRadius: '16px',
-              mb: 2
-            }}
-          >
-            <MenuItemIcon sx={{ color: theme.palette.secondary.main }}>
-              <Icon icon="solar:gamepad-bold" width="24" height="24" />
-            </MenuItemIcon>
-            <ListItemText 
-              primary="Мини-игры" 
-              secondary="Кликер, Три чаши и другие"
-              primaryTypographyProps={{ 
-                sx: { 
-                  color: theme.palette.secondary.main,
-                  fontWeight: 600
-                }
-              }}
-            />
-          </MenuListItem>
-
           <MenuListItem button component={Link} to="/search">
             <MenuItemIcon>
               <Icon icon="solar:magnifer-bold" width="24" height="24" />
@@ -371,28 +347,82 @@ const MorePage = () => {
             <ListItemText primary="Поиск" />
           </MenuListItem>
 
-          <MenuListItem button component={Link} to="/leaderboard">
-            <MenuItemIcon>
-              <Icon icon="solar:chart-bold" width="24" height="24" />
-            </MenuItemIcon>
-            <ListItemText primary="Лидерборд" />
-          </MenuListItem>
           <MenuListItem button component={Link} to="/subscriptions">
             <MenuItemIcon>
               <Icon icon="solar:users-group-rounded-bold" width="24" height="24" />
             </MenuItemIcon>
             <ListItemText primary="Подписки" />
           </MenuListItem>
+
           
-          {}
-          <MenuListItem button component={Link} to="/sub-planes">
+          {!isChannel && (
+            <MenuListItem 
+              button 
+              component={Link} 
+              to="/minigames"
+              sx={{
+                backgroundColor: theme.palette.mode === 'dark' 
+                  ? alpha(theme.palette.secondary.dark, 0.15)
+                  : alpha(theme.palette.secondary.light, 0.15),
+                borderRadius: '16px',
+                mb: 2
+              }}
+            >
+              <MenuItemIcon sx={{ color: theme.palette.secondary.main }}>
+                <Icon icon="solar:gamepad-bold" width="24" height="24" />
+              </MenuItemIcon>
+              <ListItemText 
+                primary="Мини-игры" 
+                secondary="Кликер, Три чаши и другие"
+                primaryTypographyProps={{ 
+                  sx: { 
+                    color: theme.palette.secondary.main,
+                    fontWeight: 600
+                  }
+                }}
+              />
+            </MenuListItem>
+          )}
+          
+          
+          {!isChannel && (
+            <MenuListItem button component={Link} to="/sub-planes">
+              <MenuItemIcon>
+                <Icon icon="solar:star-bold" width="24" height="24" />
+              </MenuItemIcon>
+              <ListItemText primary="Планы подписок" />
+            </MenuListItem>
+          )}
+          
+          
+          {!isChannel && (
+            <MenuListItem button component={Link} to="/leaderboard">
+              <MenuItemIcon>
+                <Icon icon="solar:chart-bold" width="24" height="24" />
+              </MenuItemIcon>
+              <ListItemText primary="Лидерборд" />
+            </MenuListItem>
+          )}
+          
+          
+          {!isChannel && (
+            <MenuListItem button component={Link} to="/bugs">
+              <MenuItemIcon>
+                <Icon icon="solar:bug-bold" width="24" height="24" />
+              </MenuItemIcon>
+              <ListItemText primary="Баг-репорты" />
+            </MenuListItem>
+          )}
+          
+          
+          <MenuListItem button component={Link} to="/about">
             <MenuItemIcon>
-              <Icon icon="solar:star-bold" width="24" height="24" />
+              <Icon icon="solar:info-circle-bold" width="24" height="24" />
             </MenuItemIcon>
-            <ListItemText primary="Планы подписок" />
+            <ListItemText primary="О платформе" />
           </MenuListItem>
           
-          {}
+          
           <MenuListItem button component={Link} to="/rules">
             <MenuItemIcon>
               <Icon icon="solar:document-text-bold" width="24" height="24" />
@@ -400,7 +430,7 @@ const MorePage = () => {
             <ListItemText primary="Правила" />
           </MenuListItem>
           
-          {}
+          
           <MenuListItem button component={Link} to="/api-docs">
             <MenuItemIcon>
               <Icon icon="solar:code-bold" width="24" height="24" />
@@ -408,54 +438,52 @@ const MorePage = () => {
             <ListItemText primary="API Документация" />
           </MenuListItem>
           
-          {}
-          {isModeratorUser && (
-            <MenuListItem 
-              button 
-              component={Link} 
-              to="/moderator"
-              sx={{ 
-                background: alpha('#f44336', 0.08),
-                '&:hover': {
-                  backgroundColor: alpha('#f44336', 0.1),
-                }
-              }}
-            >
-              <MenuItemIcon sx={{ color: '#f44336' }}>
-                <Icon icon="solar:shield-star-bold" width="24" height="24" style={{ color: '#f44336' }} />
-              </MenuItemIcon>
-              <ListItemText 
-                primary="Модерировать" 
-                primaryTypographyProps={{ 
-                  sx: { 
-                    color: '#f44336',
-                    fontWeight: 600
-                  } 
-                }}
-              />
-            </MenuListItem>
-          )}
+          
+          {(isAdmin || isModeratorUser) && (
+            <>
+              
+              {isModeratorUser && (
+                <MenuListItem 
+                  button 
+                  component={Link} 
+                  to="/moderator"
+                  sx={{ 
+                    background: alpha('#f44336', 0.08),
+                    '&:hover': {
+                      backgroundColor: alpha('#f44336', 0.1),
+                    }
+                  }}
+                >
+                  <MenuItemIcon sx={{ color: '#f44336' }}>
+                    <Icon icon="solar:shield-star-bold" width="24" height="24" style={{ color: '#f44336' }} />
+                  </MenuItemIcon>
+                  <ListItemText 
+                    primary="Модерировать" 
+                    primaryTypographyProps={{ 
+                      sx: { 
+                        color: '#f44336',
+                        fontWeight: 600
+                      } 
+                    }}
+                  />
+                </MenuListItem>
+              )}
 
-          <MenuListItem button component={Link} to="/bugs">
-            <MenuItemIcon>
-              <Icon icon="solar:bug-bold" width="24" height="24" />
-            </MenuItemIcon>
-            <ListItemText primary="Баг-репорты" />
-          </MenuListItem>
-
-          {}
-          {isAdmin && (
-            <MenuListItem button component={Link} to="/admin">
-              <MenuItemIcon>
-                <Icon icon="solar:shield-user-bold" width="24" height="24" />
-              </MenuItemIcon>
-              <ListItemText primary="Админ-панель" />
-            </MenuListItem>
+              
+              {isAdmin && (
+                <MenuListItem button component={Link} to="/admin">
+                  <MenuItemIcon>
+                    <Icon icon="solar:shield-user-bold" width="24" height="24" />
+                  </MenuItemIcon>
+                  <ListItemText primary="Админ-панель" />
+                </MenuListItem>
+              )}
+            </>
           )}
         </List>
       </Paper>
 
-      {}
+      
       <Paper 
         elevation={2} 
         sx={{ 
@@ -479,7 +507,7 @@ const MorePage = () => {
         </List>
       </Paper>
 
-      {}
+      
       <FooterSection>
         <Typography variant="caption" display="block" gutterBottom sx={{ fontWeight: 500, color: alpha(theme.palette.primary.main, 0.85) }}>
           К-Коннект v2.3 React

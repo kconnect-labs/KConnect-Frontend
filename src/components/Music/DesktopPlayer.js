@@ -34,6 +34,7 @@ import { useContext } from 'react';
 import FullScreenPlayer from './FullScreenPlayer';
 import { extractDominantColor } from '../../utils/imageUtils';
 
+// Используем styled для создания более красивых компонентов с сильными эффектами блюра
 const PlayerContainer = styled(Paper)(({ theme, covercolor }) => ({
   position: 'fixed',
   bottom: 20,
@@ -71,6 +72,7 @@ const PlayerContainer = styled(Paper)(({ theme, covercolor }) => ({
   },
 }));
 
+// Стилизованный компонент для прокручивающегося текста
 const MarqueeText = styled(Typography)(({ isactive }) => ({
   whiteSpace: 'nowrap',
   overflow: 'hidden',
@@ -135,6 +137,7 @@ const VolumeSlider = styled(Slider)(({ theme, covercolor }) => ({
   },
 }));
 
+// Функция для извлечения цвета из обложки
 const getColorFromImage = extractDominantColor;
 
 const DesktopPlayer = () => {
@@ -159,16 +162,16 @@ const DesktopPlayer = () => {
   const [seekValue, setSeekValue] = useState(0);
   const [isSeeking, setIsSeeking] = useState(false);
   const [fullScreenOpen, setFullScreenOpen] = useState(false);
-  const [repeatMode, setRepeatMode] = useState('off'); 
+  const [repeatMode, setRepeatMode] = useState('off'); // 'off', 'all', 'one'
   const [shuffleMode, setShuffleMode] = useState(false);
   const [dominantColor, setDominantColor] = useState(null);
   const [isPlayerHovered, setIsPlayerHovered] = useState(false);
   
-  
+  // Состояния для анимации текста
   const [titleOverflowing, setTitleOverflowing] = useState(false);
   const [artistOverflowing, setArtistOverflowing] = useState(false);
   
-  
+  // Add state for share notification
   const [shareSnackbar, setShareSnackbar] = useState({
     open: false,
     message: '',
@@ -179,7 +182,7 @@ const DesktopPlayer = () => {
   const titleRef = useRef(null);
   const artistRef = useRef(null);
   
-  
+  // Проверяем, переполняется ли текст
   useEffect(() => {
     if (titleRef.current) {
       setTitleOverflowing(titleRef.current.scrollWidth > titleRef.current.clientWidth);
@@ -189,7 +192,7 @@ const DesktopPlayer = () => {
     }
   }, [currentTrack]);
   
-  
+  // Эффект для извлечения цвета из обложки при смене трека
   useEffect(() => {
     if (currentTrack?.cover_path) {
       getColorFromImage(
@@ -234,19 +237,42 @@ const DesktopPlayer = () => {
     }
   };
 
-  const handleLike = () => {
+  const toggleLikeTrack = (e) => {
+    // Stop event propagation to prevent other handlers
+    if (e) {
+      e.stopPropagation();
+    }
+    
     if (currentTrack?.id) {
-      likeTrack(currentTrack.id);
+      try {
+        // Create animation effect on the button
+        const likeButton = e.currentTarget;
+        likeButton.style.transform = 'scale(1.3)';
+        setTimeout(() => {
+          likeButton.style.transform = 'scale(1)';
+        }, 150);
+        
+        likeTrack(currentTrack.id)
+          .then(result => {
+            console.log("Like result:", result);
+            // Success animation could be added here if needed
+          })
+          .catch(error => {
+            console.error("Error liking track:", error);
+          });
+      } catch (error) {
+        console.error("Error liking track:", error);
+      }
     }
   };
 
-  
+  // Add share function
   const handleShare = () => {
     if (!currentTrack) return;
     
     const trackLink = `${window.location.origin}/music?track=${currentTrack.id}`;
     
-    
+    // Просто копируем ссылку в буфер обмена вместо использования Web Share API
     copyToClipboard(trackLink);
   };
   
@@ -269,7 +295,7 @@ const DesktopPlayer = () => {
       });
   };
   
-  
+  // Handle closing the snackbar
   const handleCloseSnackbar = (event, reason) => {
     if (reason === 'clickaway') {
       return;
@@ -307,7 +333,7 @@ const DesktopPlayer = () => {
         onMouseEnter={() => setIsPlayerHovered(true)}
         onMouseLeave={() => setIsPlayerHovered(false)}
       >
-        {}
+        
         <Box 
           sx={{ 
             display: 'flex', 
@@ -390,20 +416,51 @@ const DesktopPlayer = () => {
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <IconButton 
               size="small" 
-              onClick={handleLike}
+              onClick={(e) => toggleLikeTrack(e)}
               sx={{ 
                 color: currentTrack.is_liked ? 'error.main' : 'rgba(255,255,255,0.8)',
                 ml: 1,
                 p: 0.8,
+                transition: 'all 0.2s ease',
                 '&:hover': {
-                  color: currentTrack.is_liked ? 'error.light' : 'white'
+                  color: currentTrack.is_liked ? 'error.light' : '#ff6b6b',
+                  transform: 'scale(1.1)'
                 }
               }}
             >
-              {currentTrack.is_liked ? <Favorite fontSize="small" /> : <FavoriteBorder fontSize="small" />}
+              {currentTrack.is_liked ? (
+                <Favorite fontSize="small" 
+                  sx={{ 
+                    animation: 'heartRadiate 0.6s ease-out',
+                    '@keyframes heartRadiate': {
+                      '0%': { transform: 'scale(1)' },
+                      '15%': { transform: 'scale(0.85)' },
+                      '30%': { transform: 'scale(1.4)', filter: 'drop-shadow(0 0 6px rgba(255,82,82,0.7))' },
+                      '50%': { transform: 'scale(1.2)', filter: 'drop-shadow(0 0 4px rgba(255,82,82,0.5))' },
+                      '75%': { transform: 'scale(1.1)', filter: 'drop-shadow(0 0 2px rgba(255,82,82,0.3))' },
+                      '100%': { transform: 'scale(1)' }
+                    }
+                  }} 
+                />
+              ) : (
+                <FavoriteBorder 
+                  fontSize="small" 
+                  sx={{
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      animation: 'pulseOutline 1.8s infinite ease-in-out',
+                      '@keyframes pulseOutline': {
+                        '0%': { transform: 'scale(1)', opacity: 1 },
+                        '50%': { transform: 'scale(1.15)', opacity: 0.7 },
+                        '100%': { transform: 'scale(1)', opacity: 1 }
+                      }
+                    }
+                  }}
+                />
+              )}
             </IconButton>
             
-            {}
+            
             <IconButton 
               size="small" 
               onClick={handleShare}
@@ -421,7 +478,7 @@ const DesktopPlayer = () => {
           </Box>
         </Box>
         
-        {}
+        
         <Box 
           sx={{ 
             display: 'flex', 
@@ -433,7 +490,7 @@ const DesktopPlayer = () => {
             zIndex: 1
           }}
         >
-          {}
+          
           <Box sx={{ 
             display: 'flex', 
             alignItems: 'center',
@@ -517,7 +574,7 @@ const DesktopPlayer = () => {
             </IconButton>
           </Box>
           
-          {}
+          
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="caption" sx={{ mr: 1, minWidth: 32, textAlign: 'right', color: 'rgba(255,255,255,0.8)', fontSize: '0.65rem' }}>
               {formatDuration(currentTime)}
@@ -543,7 +600,7 @@ const DesktopPlayer = () => {
           </Box>
         </Box>
         
-        {}
+        
         <Box sx={{ 
           display: 'flex', 
           alignItems: 'center',
@@ -593,7 +650,7 @@ const DesktopPlayer = () => {
         </Box>
       </PlayerContainer>
 
-      {}
+      
       <Snackbar 
         open={shareSnackbar.open} 
         autoHideDuration={4000} 

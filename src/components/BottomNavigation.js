@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { Paper, BottomNavigation as MuiBottomNavigation, BottomNavigationAction } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Icon } from '@iconify/react';
@@ -10,15 +10,23 @@ import AppsIcon from '@mui/icons-material/Apps';
 import VideogameAssetRoundedIcon from '@mui/icons-material/VideogameAssetRounded';
 import SearchIcon from '@mui/icons-material/Search';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import { useTheme } from '@mui/material/styles';
+import { ThemeSettingsContext } from '../App';
 
+// Export an ID constant for targeting this component from other files
 export const BOTTOM_NAV_ID = 'app-bottom-navigation';
 
 const AppBottomNavigation = ({ user }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [visibleInMessenger, setVisibleInMessenger] = useState(true);
+  const { themeSettings } = useContext(ThemeSettingsContext);
+  const theme = useTheme();
   
+  // Check if the user is a channel
+  const isChannel = user?.account_type === 'channel';
   
+  // Listen for messenger layout changes
   useEffect(() => {
     const handleMessengerLayoutChange = (event) => {
       const { isInChat } = event.detail;
@@ -26,34 +34,34 @@ const AppBottomNavigation = ({ user }) => {
       setVisibleInMessenger(!isInChat);
     };
     
-    
+    // Add event listener
     document.addEventListener('messenger-layout-change', handleMessengerLayoutChange);
     
-    
+    // Clean up
     return () => {
       document.removeEventListener('messenger-layout-change', handleMessengerLayoutChange);
     };
   }, []);
   
-  
+  // Skip rendering if in messenger chat
   const isInMessenger = location.pathname.startsWith('/messenger');
   if (isInMessenger && !visibleInMessenger) {
     console.log('Bottom navigation hidden in messenger chat');
     return null;
   }
   
-  
+  // Скрываем навигацию на страницах авторизации и настроек
   const authPages = ['/login', '/register', '/register/profile', '/confirm-email'];
   const isAuthPage = authPages.some(path => location.pathname.startsWith(path));
   const isSettingsPage = location.pathname.startsWith('/settings');
   const isBadgeShopPage = location.pathname.startsWith('/badge-shop');
   
-  
+  // Если мы на странице авторизации, настроек или магазина бейджей, не показываем панель навигации
   if (isAuthPage || isSettingsPage || isBadgeShopPage) {
     return null;
   }
   
-  
+  // Добавим проверку на страницу кликера, где будет своя навигация
   const isClickerPage = location.pathname.startsWith('/clicker');
   if (isClickerPage) {
     return null;
@@ -71,6 +79,34 @@ const AppBottomNavigation = ({ user }) => {
 
   console.log("BottomNavigation rendering, user:", user, "pathname:", location.pathname);
 
+  // Handle navigation based on user type (channel or regular user)
+  const handleNavigationChange = (event, newValue) => {
+    switch(newValue) {
+      case 0:
+        navigate('/');
+        break;
+      case 1:
+        navigate('/music');
+        break;
+      case 2:
+        navigate('/subscriptions');
+        break;
+      case 3:
+        navigate(user ? `/profile/${user.username}` : '/login');
+        break;
+      case 4:
+        // For all users, navigate to /more
+        navigate('/more');
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Set background color from theme settings
+  const bottomNavColor = themeSettings.bottomNavColor || theme.palette.background.paper;
+  const borderColor = theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
   return (
     <Paper 
       id={BOTTOM_NAV_ID}
@@ -81,42 +117,23 @@ const AppBottomNavigation = ({ user }) => {
         right: 0,
         display: { xs: 'block', md: 'none' },
         zIndex: 1000,
-        borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-        background: 'linear-gradient(180deg, rgba(26,26,26,0.8) 0%, rgba(26,26,26,0.95) 100%)',
+        borderTop: `1px solid ${borderColor}`,
+        backgroundColor: bottomNavColor,
+        backgroundImage: 'unset',
         backdropFilter: 'blur(10px)'
       }} 
       elevation={3}
     >
       <MuiBottomNavigation
         value={getCurrentValue()}
-        onChange={(event, newValue) => {
-          switch(newValue) {
-            case 0:
-              navigate('/');
-              break;
-            case 1:
-              navigate('/music');
-              break;
-            case 2:
-              navigate('/subscriptions');
-              break;
-            case 3:
-              navigate(user ? `/profile/${user.username}` : '/login');
-              break;
-            case 4:
-              navigate('/more');
-              break;
-            default:
-              break;
-          }
-        }}
+        onChange={handleNavigationChange}
         sx={{
           bgcolor: 'transparent',
           height: 75,
           '& .MuiBottomNavigationAction-root': {
-            color: 'text.secondary',
+            color: theme.palette.mode === 'dark' ? '#FFFFFF' : theme.palette.text.secondary,
             '&.Mui-selected': {
-              color: 'primary.main'
+              color: themeSettings.primaryColor || theme.palette.primary.main
             }
           }
         }}

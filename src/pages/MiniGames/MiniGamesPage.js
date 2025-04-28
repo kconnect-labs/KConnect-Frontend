@@ -28,6 +28,7 @@ import NumbersIcon from '@mui/icons-material/Numbers';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import SEO from '../../components/SEO';
 
+// Компоненты стилизации
 const PageHeader = styled(Box)(({ theme }) => ({
   textAlign: 'center',
   marginBottom: theme.spacing(4),
@@ -132,6 +133,7 @@ const InfoButton = styled(Button)(({ theme }) => ({
   }
 }));
 
+// Заглушки для изображений игр до загрузки с сервера
 const DEFAULT_GAME_IMAGES = {
   cups: '/static/img/minigames/cups.jpg',
   dice: '/static/img/minigames/dice.jpg',
@@ -145,7 +147,7 @@ const MiniGamesPage = () => {
   const [loading, setLoading] = useState(false);
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  
+  // Запрос баланса пользователя
   useEffect(() => {
     const fetchBalance = async () => {
       try {
@@ -165,12 +167,12 @@ const MiniGamesPage = () => {
     fetchBalance();
   }, []);
 
-  
+  // Форматирование чисел
   const formatNumber = (num) => {
     return parseInt(num).toLocaleString();
   };
 
-  
+  // Список доступных мини-игр
   const games = [
 
     {
@@ -224,13 +226,13 @@ const MiniGamesPage = () => {
     if (path) navigate(path);
   };
 
-  
+  // Проверяем работоспособность API перед переходом
   const checkAPIandNavigate = async (game) => {
     if (!game.available || !game.path) return;
     
     try {
       setLoading(true);
-      
+      // Убираем проверку API, просто переходим на страницу игры
       navigate(game.path);
     } catch (error) {
       console.error(`Ошибка при переходе к ${game.name}:`, error);
@@ -245,7 +247,7 @@ const MiniGamesPage = () => {
       mt: { xs: 1, sm: 2 }, 
       mb: { xs: 10, sm: 10 },
       px: { xs: 1, sm: 2 },
-      pb: { xs: '80px', sm: 0 } 
+      pb: { xs: '80px', sm: 0 } // Added padding for mobile bottom navigation
     }}>
       <SEO title="Мини-игры | К-Коннект" description="Играйте в мини-игры и зарабатывайте баллы" />
       

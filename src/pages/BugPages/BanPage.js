@@ -6,14 +6,11 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-
 const BanPage = () => {
   const { logout } = useContext(AuthContext);
-
   const handleLogout = () => {
     logout();
   };
-
   return (
     <Container maxWidth="sm" sx={{ mt: 5, mb: 5 }}>
       <motion.div
@@ -53,7 +50,6 @@ const BanPage = () => {
               }} 
             />
           </Box>
-          
           <Typography 
             variant="h4" 
             component="h1" 
@@ -66,7 +62,6 @@ const BanPage = () => {
           >
             Аккаунт заблокирован
           </Typography>
-          
           <Typography 
             variant="body1" 
             gutterBottom
@@ -75,7 +70,6 @@ const BanPage = () => {
             Ваш аккаунт был заблокирован модератором из-за нарушения правил сообщества. 
             Если вы считаете, что это произошло по ошибке, пожалуйста, обратитесь к администрации сайта.
           </Typography>
-          
           <Box 
             sx={{ 
               p: 3, 
@@ -114,7 +108,6 @@ const BanPage = () => {
               </li>
             </ul>
           </Box>
-          
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'center', gap: 2 }}>
             <Button 
               variant="outlined" 
@@ -130,7 +123,6 @@ const BanPage = () => {
             >
               Правила сообщества
             </Button>
-            
             <Button 
               variant="contained" 
               color="primary"
@@ -145,7 +137,6 @@ const BanPage = () => {
             >
               Обратиться в поддержку
             </Button>
-            
             <Button 
               variant="outlined" 
               color="error"
@@ -168,5 +159,4 @@ const BanPage = () => {
     </Container>
   );
 };
-
 export default BanPage; 

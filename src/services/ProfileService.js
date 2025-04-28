@@ -1,7 +1,8 @@
 import axios from 'axios';
 
+// Сервис для работы с профилем пользователя
 const ProfileService = {
-  
+  // Получить данные профиля
   getProfile: async (username) => {
     try {
       const endpoint = username ? `/api/profile/${username}` : '/api/profile';
@@ -13,7 +14,7 @@ const ProfileService = {
     }
   },
 
-  
+  // Получить настройки профиля
   getSettings: async () => {
     try {
       const response = await axios.get('/api/profile/settings');
@@ -24,7 +25,7 @@ const ProfileService = {
     }
   },
 
-  
+  // Обновить настройки профиля
   updateSettings: async (settings) => {
     try {
       const response = await axios.post('/api/profile/settings', settings, {
@@ -39,7 +40,7 @@ const ProfileService = {
     }
   },
 
-  
+  // Обновить имя пользователя
   updateName: async (name) => {
     try {
       const formData = new FormData();
@@ -56,7 +57,7 @@ const ProfileService = {
     }
   },
 
-  
+  // Обновить имя пользователя (username)
   updateUsername: async (username) => {
     try {
       const formData = new FormData();
@@ -73,10 +74,10 @@ const ProfileService = {
     }
   },
 
-  
+  // Обновить информацию о себе
   updateAbout: async (about) => {
     try {
-      
+      // Поддержка как form-data, так и JSON
       const formData = new FormData();
       formData.append('about', about);
       const response = await axios.post('/api/profile/update-about', formData, {
@@ -91,7 +92,7 @@ const ProfileService = {
     }
   },
 
-  
+  // Загрузить аватар
   uploadAvatar: async (file) => {
     try {
       const formData = new FormData();
@@ -110,7 +111,7 @@ const ProfileService = {
     }
   },
 
-  
+  // Загрузить баннер
   uploadBanner: async (file) => {
     try {
       const formData = new FormData();
@@ -129,7 +130,7 @@ const ProfileService = {
     }
   },
 
-  
+  // Обновить социальную сеть
   updateSocial: async (name, link) => {
     try {
       const formData = new FormData();
@@ -143,7 +144,7 @@ const ProfileService = {
     }
   },
 
-  
+  // Удалить социальную сеть
   deleteSocial: async (name) => {
     try {
       const formData = new FormData();
@@ -156,7 +157,7 @@ const ProfileService = {
     }
   },
 
-  
+  // Подписаться на пользователя
   followUser: async (userId) => {
     try {
       const response = await axios.post('/api/profile/follow', {
@@ -169,11 +170,11 @@ const ProfileService = {
     }
   },
   
-  
+  // Отписаться от пользователя
   unfollowUser: async (userId) => {
     try {
-      
-      
+      // Используем тот же endpoint, так как он автоматически определяет,
+      // подписаны ли мы уже на пользователя или нет
       const response = await axios.post('/api/profile/follow', {
         followed_id: userId
       });
@@ -184,7 +185,7 @@ const ProfileService = {
     }
   },
   
-  
+  // Проверить статус подписки на пользователя
   checkFollowing: async (userId) => {
     try {
       const response = await axios.get(`/api/profile/${userId}`);

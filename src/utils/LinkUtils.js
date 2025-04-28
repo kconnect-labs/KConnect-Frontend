@@ -8,12 +8,24 @@ import {
 import LinkIcon from '@mui/icons-material/Link';
 import axios from 'axios';
 
+// Глобальный флаг для отключения превью ссылок
 export const DISABLE_LINK_PREVIEWS = false;
 
-export const URL_REGEX = /\b((?:https?:\/\/)?(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,63}\b(?:[-a-zA-Z0-9()@:%_+.~#?&
+// Супер-универсальное регулярное выражение для поиска URL
+// Находит:
+// - URL с http/https и без них
+// - URL с www и без
+// - Международные доменные имена
+// - URL с параметрами запроса и фрагментами
+// - URL с номерами портов
+// - URL с разными доменами верхнего уровня
+// - URL со спецсимволами
+export const URL_REGEX = /\b((?:https?:\/\/)?(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,63}\b(?:[-a-zA-Z0-9()@:%_+.~#?&//=]*)|(?:www\.)?(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?::\d{1,5})?(?:[/?#]\S*)?|(?:@)?\b(?:donationalerts\.[a-zA-Z]{2,6})\/\S+\b)/gi;
 
+// Регулярка для @упоминаний пользователей
 export const USERNAME_MENTION_REGEX = /(?<!\w)@(\w+)/g;
 
+// Компонент предпросмотра ссылки, который можно использовать везде
 export const LinkPreview = ({ url }) => {
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -23,7 +35,7 @@ export const LinkPreview = ({ url }) => {
     const fetchPreview = async () => {
       try {
         setLoading(true);
-        
+        // Запрос на получение метаданных ссылки
         const response = await axios.post('/api/utils/link-preview', { url });
         if (response.data) {
           setPreview(response.data);
@@ -43,7 +55,7 @@ export const LinkPreview = ({ url }) => {
     }
   }, [url]);
 
-  
+  // Не показываем ничего при ошибке
   if (error) {
     return null;
   }
@@ -53,7 +65,7 @@ export const LinkPreview = ({ url }) => {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
-  
+  // Function to extract the domain name
   const getDomainName = (url) => {
     try {
       const hostname = new URL(url).hostname;
@@ -202,6 +214,7 @@ export const LinkPreview = ({ url }) => {
   );
 };
 
+// Функция для обработки текста с ссылками
 export const processTextWithLinks = (text) => {
   if (!text) return null;
   
@@ -210,11 +223,11 @@ export const processTextWithLinks = (text) => {
   let lastIndex = 0;
   let match;
   
-  
+  // Prepare combined text for processing
   let processedText = text;
   let combinedMatches = [];
   
-  
+  // Find all URL matches
   URL_REGEX.lastIndex = 0;
   while ((match = URL_REGEX.exec(text)) !== null) {
     combinedMatches.push({
@@ -225,7 +238,7 @@ export const processTextWithLinks = (text) => {
     });
   }
   
-  
+  // Find all @username mentions
   USERNAME_MENTION_REGEX.lastIndex = 0;
   while ((match = USERNAME_MENTION_REGEX.exec(text)) !== null) {
     combinedMatches.push({
@@ -237,22 +250,22 @@ export const processTextWithLinks = (text) => {
     });
   }
   
-  
+  // Sort matches by their position in the text
   combinedMatches.sort((a, b) => a.index - b.index);
   
-  
+  // Process all matches in order
   for (const matchInfo of combinedMatches) {
-    
+    // Add text before the current match
     if (matchInfo.index > lastIndex) {
       parts.push(text.substring(lastIndex, matchInfo.index));
     }
     
     if (matchInfo.type === 'url') {
       const urlMatch = matchInfo.match;
-      
+      // Add protocol if missing
       const url = urlMatch.startsWith('http') ? urlMatch : `https://${urlMatch}`;
       
-      
+      // Add clickable URL
       parts.push(
         <a 
           href={url} 
@@ -275,10 +288,10 @@ export const processTextWithLinks = (text) => {
         </a>
       );
       
-      
+      // Save URL for preview
       urls.add(url);
     } else if (matchInfo.type === 'mention') {
-      
+      // Add clickable username mention
       parts.push(
         <a 
           href={`/profile/${matchInfo.username}`} 
@@ -286,7 +299,7 @@ export const processTextWithLinks = (text) => {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            
+            // Navigate to user profile
             if (window.location) {
               window.location.href = `/profile/${matchInfo.username}`;
             }
@@ -308,7 +321,7 @@ export const processTextWithLinks = (text) => {
     lastIndex = matchInfo.index + matchInfo.length;
   }
   
-  
+  // Add remaining text after the last match
   if (lastIndex < text.length) {
     parts.push(text.substring(lastIndex));
   }
@@ -319,10 +332,11 @@ export const processTextWithLinks = (text) => {
   };
 };
 
+// Custom renderer для ReactMarkdown
 export const linkRenderers = {
   p: ({ children }) => {
     if (typeof children === 'string') {
-      
+      // Process text content to detect and convert URLs and @mentions
       const { content, urls } = processTextWithLinks(children);
       
       return (
@@ -331,7 +345,7 @@ export const linkRenderers = {
             {content}
           </Typography>
           
-          {}
+          
           {urls.length > 0 && !DISABLE_LINK_PREVIEWS && urls.map((url, index) => (
             <LinkPreview key={`preview-${index}`} url={url} />
           ))}
@@ -341,9 +355,9 @@ export const linkRenderers = {
     
     return <Typography component="p" variant="body1" sx={{ mb: 1 }}>{children}</Typography>;
   },
-  
+  // Add a custom renderer for links to make them more prominent
   a: ({ node, children, href }) => {
-    
+    // Check if this is a username mention link (starts with /profile/)
     if (href.startsWith('/profile/')) {
       const username = href.substring('/profile/'.length);
       return (
@@ -352,7 +366,7 @@ export const linkRenderers = {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            
+            // Navigate to the profile page
             window.location.href = href;
           }}
           style={{ 
@@ -369,8 +383,8 @@ export const linkRenderers = {
       );
     }
     
-    
-    
+    // For regular links (not username mentions)
+    // Ensure href has protocol
     const enhancedHref = href.startsWith('http') ? href : `https://${href}`;
     
     return (
@@ -393,13 +407,14 @@ export const linkRenderers = {
         >
           {children}
         </a>
-        {}
+        
         {!DISABLE_LINK_PREVIEWS && <LinkPreview url={enhancedHref} />}
       </>
     );
   }
 };
 
+// Компонент для отображения текста с ссылками - для использования везде, где не используется ReactMarkdown
 export const TextWithLinks = ({ text }) => {
   const { content, urls } = processTextWithLinks(text);
   
@@ -409,7 +424,7 @@ export const TextWithLinks = ({ text }) => {
         {content}
       </Typography>
       
-      {}
+      
       {urls.length > 0 && urls.map((url, index) => (
         <LinkPreview key={`preview-${index}`} url={url} />
       ))}

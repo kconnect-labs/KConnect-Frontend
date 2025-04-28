@@ -2,8 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Box, Typography } from '@mui/material';
 import Confetti from 'react-confetti';
 
+/**
+ * Компонент мини-игры "Поймай цель" для профиля
+ * @param {Object} props - Свойства компонента
+ * @param {Object} props.gameData - Конфигурация мини-игры
+ * @param {Object} props.colors - Цвета для мини-игры
+ * @param {Boolean} props.confettiOnClick - Показывать конфетти при клике
+ */
 const ProfileMiniGame = ({ gameData, colors, confettiOnClick = false }) => {
-  
+  // Конфигурация игры с значениями по умолчанию
   const config = {
     targetSize: gameData?.target_size || '40px',
     maxTargets: gameData?.max_targets || 3,
@@ -19,28 +26,28 @@ const ProfileMiniGame = ({ gameData, colors, confettiOnClick = false }) => {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const containerRef = useRef(null);
   
-  
+  // Цвета для целей (берем из props или используем значения по умолчанию)
   const targetColors = colors?.target || ['#FF9800', '#F57C00', '#FB8C00', '#EF6C00', '#E65100'];
   const primaryColor = colors?.primary || '#FF9800';
   const scoreColor = colors?.score || '#FFFFFF';
   
-  
+  // Создаем случайную позицию для цели
   const createRandomTarget = () => {
     if (!containerRef.current) return null;
     
-    
+    // Учитываем размеры контейнера
     const containerRect = containerRef.current.getBoundingClientRect();
     const containerWidth = containerRect.width;
     const containerHeight = containerRect.height;
     
-    
+    // Получаем числовое значение размера цели (без 'px')
     const targetSizeNum = parseInt(config.targetSize.replace('px', ''), 10);
     
-    
+    // Генерируем случайную позицию
     const x = Math.random() * (containerWidth - targetSizeNum);
-    const y = Math.random() * (containerHeight - targetSizeNum - 60) + 60; 
+    const y = Math.random() * (containerHeight - targetSizeNum - 60) + 60; // Отступ сверху, чтобы не перекрывать счет
     
-    
+    // Случайный цвет из массива targetColors
     const color = targetColors[Math.floor(Math.random() * targetColors.length)];
     
     return {
@@ -52,7 +59,7 @@ const ProfileMiniGame = ({ gameData, colors, confettiOnClick = false }) => {
     };
   };
   
-  
+  // Обновляем размеры контейнера игры
   useEffect(() => {
     if (containerRef.current) {
       const updateDimensions = () => {
@@ -72,7 +79,7 @@ const ProfileMiniGame = ({ gameData, colors, confettiOnClick = false }) => {
     }
   }, []);
   
-  
+  // Спавн новых целей
   useEffect(() => {
     if (targets.length >= config.maxTargets) return;
     
@@ -88,15 +95,15 @@ const ProfileMiniGame = ({ gameData, colors, confettiOnClick = false }) => {
     return () => clearInterval(spawnInterval);
   }, [targets, config.maxTargets, config.targetSpawnRate]);
   
-  
+  // Обработчик клика по цели
   const handleTargetClick = (targetId) => {
-    
+    // Удаляем цель из массива
     setTargets(prev => prev.filter(target => target.id !== targetId));
     
-    
+    // Увеличиваем счет
     setScore(prev => prev + config.pointsPerClick);
     
-    
+    // Показываем конфетти если настроено
     if (confettiOnClick) {
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 1000);
@@ -117,7 +124,7 @@ const ProfileMiniGame = ({ gameData, colors, confettiOnClick = false }) => {
         cursor: 'crosshair'
       }}
     >
-      {}
+      
       {config.displayScore && (
         <Box
           sx={{ 
@@ -146,7 +153,7 @@ const ProfileMiniGame = ({ gameData, colors, confettiOnClick = false }) => {
         </Box>
       )}
       
-      {}
+      
       {targets.map(target => (
         <Box
           key={target.id}
@@ -184,7 +191,7 @@ const ProfileMiniGame = ({ gameData, colors, confettiOnClick = false }) => {
         </Box>
       ))}
       
-      {}
+      
       {showConfetti && dimensions.width > 0 && (
         <Confetti
           width={dimensions.width}

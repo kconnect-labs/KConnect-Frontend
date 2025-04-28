@@ -2,6 +2,17 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import PropTypes from 'prop-types';
 
+/**
+ * Компонент SEO для управления метатегами и предпросмотром контента
+ * 
+ * @param {Object} props - Свойства компонента
+ * @param {string} props.title - Заголовок страницы
+ * @param {string} props.description - Описание страницы
+ * @param {string} props.image - URL изображения для предпросмотра
+ * @param {string} props.url - URL страницы
+ * @param {string} props.type - Тип контента (article, profile, website и т.д.)
+ * @param {Object} props.meta - Дополнительные мета-теги
+ */
 const SEO = ({
   title = 'К-Коннект',
   description = 'К-Коннект - социальная сеть от независимого разработчика',
@@ -10,25 +21,25 @@ const SEO = ({
   type = 'website',
   meta = {},
 }) => {
-  
-  const imageUrl = !image ? '/icon-512.png' : 
+  // Создаем абсолютный URL для изображения, если он относительный
+  const imageUrl = !image ? '/icon-512.png' : // Устанавливаем дефолтное изображение, если image не передан
                   typeof image === 'string' && image.startsWith('http') ? image : 
                   `${window.location.origin}${(typeof image === 'string' && image.startsWith('/')) ? '' : '/'}${image}`;
 
   return (
     <Helmet>
-      {}
+      
       <title>{title}</title>
       <meta name="description" content={description} />
       
-      {}
+      
       <meta name="robots" content="index, follow" />
       <meta name="googlebot" content="index, follow" />
       <meta name="google" content="notranslate" />
       <meta name="google-site-verification" content={meta.googleVerification || ''} />
       <meta name="yandex-verification" content={meta.yandexVerification || ''} />
       
-      {}
+      
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={imageUrl} />
@@ -37,17 +48,17 @@ const SEO = ({
       <meta property="og:site_name" content="К-Коннект" />
       <meta property="og:locale" content="ru_RU" />
       
-      {}
+      
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={imageUrl} />
       
-      {}
+      
       {meta.author && <meta name="author" content={meta.author} />}
       {meta.canonical && <link rel="canonical" href={meta.canonical} />}
       
-      {}
+      
       {type === 'profile' && meta.firstName && (
         <meta property="profile:first_name" content={meta.firstName} />
       )}
@@ -58,7 +69,7 @@ const SEO = ({
         <meta property="profile:username" content={meta.username} />
       )}
       
-      {}
+      
       {type === 'article' && meta.publishedTime && (
         <meta property="article:published_time" content={meta.publishedTime} />
       )}
@@ -75,7 +86,7 @@ const SEO = ({
         <meta property="article:tag" content={meta.tags} />
       )}
       
-      {}
+      
       {type === 'music' && meta.song && (
         <meta property="music:song" content={meta.song} />
       )}
@@ -86,7 +97,7 @@ const SEO = ({
         <meta property="music:album" content={meta.album} />
       )}
       
-      {}
+      
       {meta.keywords && <meta name="keywords" content={meta.keywords} />}
       {meta.viewport && <meta name="viewport" content={meta.viewport} />}
     </Helmet>

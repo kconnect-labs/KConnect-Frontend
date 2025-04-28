@@ -41,6 +41,7 @@ import { AuthContext } from '../../context/AuthContext';
 import ClickerBottomNavigation from '../../components/ClickerBottomNavigation';
 import { toast } from 'react-hot-toast';
 
+// Icons
 import TouchAppIcon from '@mui/icons-material/TouchApp';
 import UpgradeIcon from '@mui/icons-material/Upgrade';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
@@ -58,6 +59,7 @@ import MilitaryTechIcon from '@mui/icons-material/MilitaryTech';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
+// Styled components
 const ClickButton = styled(Button)(({ theme }) => ({
   width: '100%',
   height: 200,
@@ -183,6 +185,7 @@ const UpgradeCard = styled(Card)(({ theme, disabled }) => ({
   }
 }));
 
+// Форматирование больших чисел (например 43000 -> 43к)
 const formatCompactNumber = (number) => {
   if (number < 1000) {
     return number.toString();
@@ -197,9 +200,9 @@ const ClickerPage = () => {
   const theme = useTheme();
   const { user } = useContext(AuthContext);
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [activeSection, setActiveSection] = useState('click'); 
+  const [activeSection, setActiveSection] = useState('click'); // click, shop, stats
   
-  
+  // Game state
   const [balance, setBalance] = useState(0);
   const [clickPower, setClickPower] = useState(0.001);
   const [totalEarned, setTotalEarned] = useState(0);
@@ -209,47 +212,47 @@ const ClickerPage = () => {
   const [userPoints, setUserPoints] = useState(0);
   const [autoClickerPaused, setAutoClickerPaused] = useState(false);
   
-  
+  // Click batching state
   const pendingClicksRef = useRef(0);
   const batchTimerRef = useRef(null);
   const lastClickTimeRef = useRef(Date.now());
   const [isSendingBatch, setIsSendingBatch] = useState(false);
   
-  
+  // Auto-click state
   const [lastAutoClick, setLastAutoClick] = useState(Date.now());
   const autoClickIntervalRef = useRef(null);
   
-  
+  // UI state
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
   const [clickEffects, setClickEffects] = useState([]);
   
-  
+  // Touch event system for mobile devices
   const touchStartTimeRef = useRef(0);
   const [touchActive, setTouchActive] = useState(false);
   const rapidClickIntervalRef = useRef(null);
   const [rapidClicksEnabled, setRapidClicksEnabled] = useState(false);
   
-  
+  // Leaderboard state
   const [leaderboardData, setLeaderboardData] = useState([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(true);
   
-  
+  // Ref для отслеживания первого рендера
   const isInitialRender = useRef(true);
   
-  
+  // Initialize on page load
   useEffect(() => {
-    
+    // Fetch initial balance with a small delay to ensure everything is loaded
     fetchBalance();
     
-    
+    // Fetch user ID if not available in AuthContext
     const fetchUserIdIfNeeded = async () => {
       if (!user?.id) {
         try {
           const response = await axios.get('/api/auth/check');
           if (response.data && response.data.user && response.data.user.id) {
             console.log("Получили ID пользователя напрямую:", response.data.user.id);
-            
+            // Create a temporary user object with ID for token generation
             window._tempUserId = response.data.user.id;
           }
         } catch (error) {
@@ -261,7 +264,7 @@ const ClickerPage = () => {
     fetchUserIdIfNeeded();
     fetchLeaderboard();
     
-    
+    // Setup click sending interval - send accumulated clicks every second
     const intervalId = setInterval(() => {
       if (pendingClicksRef.current > 0) {
         sendBatchedClicks();
@@ -279,19 +282,19 @@ const ClickerPage = () => {
     };
   }, []);
   
-  
+  // Setup batch sending timer
   useEffect(() => {
-    
+    // Set up timer to check for inactive period and send batched clicks
     batchTimerRef.current = setInterval(() => {
       const now = Date.now();
       const timeSinceLastClick = now - lastClickTimeRef.current;
       
-      
+      // Если прошло 1.5 секунды с последнего клика и у нас есть накопленные клики
       if (timeSinceLastClick >= 1500 && pendingClicksRef.current > 0 && !isSendingBatch) {
         console.log(`Прошло ${timeSinceLastClick}мс с последнего клика, отправляем ${pendingClicksRef.current} кликов`);
         sendBatchedClicks();
       }
-    }, 300); 
+    }, 300); // Проверяем каждые 300мс
     
     return () => {
       if (batchTimerRef.current) {
@@ -300,23 +303,23 @@ const ClickerPage = () => {
     };
   }, [isSendingBatch]);
   
-  
+  // Auto-click handler
   useEffect(() => {
-    
+    // Используем актуальные данные внутри intervalHandler
     const intervalHandler = () => {
       const now = Date.now();
       const secondsElapsed = (now - lastAutoClick) / 1000;
       const timeSinceLastManualClick = now - lastClickTimeRef.current;
       
-      
-      
+      // Проверяем, не кликал ли пользователь вручную в последние 2 секунды
+      // Если кликал - приостанавливаем автоклик
       if (timeSinceLastManualClick < 2000) {
-        
+        // Пользователь активно кликает, пропускаем автоклик
         setAutoClickerPaused(true);
         return;
       }
       
-      
+      // Если автокликер был на паузе, убираем паузу
       if (autoClickerPaused) {
         setAutoClickerPaused(false);
       }
@@ -329,15 +332,15 @@ const ClickerPage = () => {
     
     const autoClickUpgrade = upgrades.find(u => u.type === 'auto_click');
     
-    
+    // Clear existing interval
     if (autoClickIntervalRef.current) {
       clearInterval(autoClickIntervalRef.current);
       autoClickIntervalRef.current = null;
     }
     
-    
+    // Set up new interval if auto-click level > 0
     if (autoClickUpgrade && autoClickUpgrade.level > 0) {
-      
+      // Update every second
       autoClickIntervalRef.current = setInterval(intervalHandler, 1000);
     }
     
@@ -346,14 +349,14 @@ const ClickerPage = () => {
         clearInterval(autoClickIntervalRef.current);
       }
     };
-  }, [lastAutoClick, autoClickerPaused]); 
+  }, [lastAutoClick, autoClickerPaused]); // Чистые зависимости без upgrades
   
   const fetchBalance = async () => {
     try {
       const response = await axios.get('/api/clicker/balance');
       console.log('Получены данные баланса:', response.data);
       
-      
+      // Устанавливаем все данные
       setBalance(response.data.balance);
       setClickPower(response.data.click_power);
       setTotalEarned(response.data.total_earned);
@@ -362,11 +365,11 @@ const ClickerPage = () => {
       setMinWithdrawal(response.data.min_withdrawal);
       setUserPoints(response.data.user_points || 0);
       
-      
+      // Проверяем, что улучшения загрузились правильно
       if (response.data.upgrades && response.data.upgrades.length > 0) {
         console.log('Загружены улучшения:', response.data.upgrades);
         
-        
+        // Принудительно применяем эффекты улучшений
         const clickPowerUpgrade = response.data.upgrades.find(u => u.type === 'click_power');
         if (clickPowerUpgrade) {
           console.log('Применяем улучшение мощности клика:', clickPowerUpgrade);
@@ -393,7 +396,7 @@ const ClickerPage = () => {
     }
   };
   
-  
+  // Send the batched clicks to the server
   const sendBatchedClicks = async () => {
     if (pendingClicksRef.current === 0 || isSendingBatch) return;
     
@@ -404,9 +407,9 @@ const ClickerPage = () => {
     console.log(`ОТПРАВЛЯЕМ ${clicksToSend} КЛИКОВ НА СЕРВЕР`);
     
     try {
-      
+      // Создаем токен для защиты
       const timestamp = Math.floor(Date.now() / 1000);
-      
+      // Try to get user ID from multiple sources
       const userId = user?.id || window._tempUserId || (await fetchUserId()) || 'guest';
       const clickToken = `clicker_${userId}_${timestamp}_${Math.random().toString(36).substring(2, 10)}`;
       
@@ -431,7 +434,7 @@ const ClickerPage = () => {
     }
   };
   
-  
+  // Add utility function to fetch user ID
   const fetchUserId = async () => {
     try {
       const response = await axios.get('/api/auth/check');
@@ -445,55 +448,55 @@ const ClickerPage = () => {
     return null;
   };
   
-  
+  // Add a click to the batch
   const handleClick = () => {
-    
+    // Update time of last click
     lastClickTimeRef.current = Date.now();
     
-    
+    // При ручном клике автокликер ставится на паузу
     if (!autoClickerPaused && getUpgrade('auto_click').level > 0) {
       setAutoClickerPaused(true);
     }
     
-    
+    // Increment pending clicks
     pendingClicksRef.current += 1;
     
+    // Create random position for click effect
+    const x = Math.random() * 80 + 10; // 10% to 90%
+    const y = Math.random() * 80 + 10; // 10% to 90%
     
-    const x = Math.random() * 80 + 10; 
-    const y = Math.random() * 80 + 10; 
-    
-    
-    
+    // Calculate points for this click - for display only
+    // Используем getUpgrade вместо прямого поиска в массиве
     const multiplier = getUpgrade('multiplier').level > 0 ? getUpgrade('multiplier').power : 1.0;
     const clickPowerValue = getUpgrade('click_power').level > 0 ? getUpgrade('click_power').power : clickPower;
     const pointsPerClick = clickPowerValue * multiplier;
     
     console.log(`Клик: сила=${clickPowerValue}, множитель=${multiplier}, итого=${pointsPerClick}`);
     
-    
+    // Show a visual effect for the click
     const newEffect = {
       amount: pointsPerClick,
       position: { x, y },
-      id: Date.now() + Math.random() 
+      id: Date.now() + Math.random() // Ensure unique ID
     };
     
     setClickEffects(prev => [...prev, newEffect]);
     
-    
+    // Remove effect after animation completes
     setTimeout(() => {
       setClickEffects(prev => prev.filter(effect => effect.id !== newEffect.id));
     }, 1000);
     
-    
+    // Update balance immediately (optimistic update)
     setBalance(prev => prev + pointsPerClick);
     
-    
+    // Log the accumulated clicks
     if (pendingClicksRef.current % 10 === 0) {
       console.log(`Накоплено ${pendingClicksRef.current} кликов`);
     }
   };
   
-  
+  // Touch event system for mobile devices
   useEffect(() => {
     const buttonElement = document.querySelector('.click-button');
     if (!buttonElement) return;
@@ -503,10 +506,10 @@ const ClickerPage = () => {
       touchStartTimeRef.current = Date.now();
       setTouchActive(true);
       
-      
+      // Process the first tap immediately
       handleClick();
       
-      
+      // Set up rapid clicking if enabled
       if (rapidClicksEnabled) {
         clearRapidClickInterval();
         rapidClickIntervalRef.current = setInterval(() => {
@@ -540,7 +543,7 @@ const ClickerPage = () => {
     };
   }, [rapidClicksEnabled]);
   
-  
+  // When component unmounts or updates, ensure we clean up
   useEffect(() => {
     return () => {
       if (rapidClickIntervalRef.current) {
@@ -555,9 +558,9 @@ const ClickerPage = () => {
     if (!autoClickUpgrade || autoClickUpgrade.level === 0) return;
     
     try {
-      
+      // Создаем токен для защиты автоклика
       const timestamp = Math.floor(Date.now() / 1000);
-      
+      // Используем тот же способ получения ID пользователя, что и в sendBatchedClicks
       const userId = user?.id || window._tempUserId || (await fetchUserId()) || 'guest';
       const autoClickToken = `auto_${userId}_${timestamp}_${Math.random().toString(36).substring(2, 7)}`;
       
@@ -565,7 +568,7 @@ const ClickerPage = () => {
         seconds,
         auto_click_token: autoClickToken,
         timestamp: timestamp,
-        silent_request: true 
+        silent_request: true // Добавляем флаг для отключения логирования
       });
       
       if (response.data.success) {
@@ -573,8 +576,8 @@ const ClickerPage = () => {
         setTotalEarned(prev => prev + response.data.earned);
       }
     } catch (error) {
-      
-      
+      // Полностью подавляем все ошибки для автоклика - не логируем ничего
+      // Ошибки автоклика не важны для пользователя и только засоряют логи
     }
   };
   
@@ -585,11 +588,11 @@ const ClickerPage = () => {
       });
       
       if (response.data.success) {
-        
+        // Update balances
         setBalance(response.data.balance);
         setUserPoints(response.data.user_points || 0);
         
-        
+        // Update upgrades
         setUpgrades(prev => prev.map(u => 
           u.type === upgradeType 
             ? {
@@ -601,12 +604,12 @@ const ClickerPage = () => {
             : u
         ));
         
-        
+        // Update click power if needed
         if (upgradeType === 'click_power') {
           setClickPower(response.data.upgrade.power);
         }
         
-        
+        // Show success toast
         toast.success(response.data.message || 'Улучшение успешно приобретено');
       }
     } catch (error) {
@@ -644,7 +647,7 @@ const ClickerPage = () => {
     }
   };
   
-  
+  // Get upgrade by type
   const getUpgrade = (type) => upgrades.find(u => u.type === type) || { level: 0, power: 0, next_level_cost: 0 };
   
   const renderClickSection = () => (
@@ -683,7 +686,7 @@ const ClickerPage = () => {
             </Grid>
           </Grid>
           
-          {}
+          
           {getUpgrade('auto_click').level > 0 && (
             <Paper 
               sx={{ 
@@ -725,7 +728,7 @@ const ClickerPage = () => {
             </Paper>
           )}
           
-          {}
+          
           {isMobile && (
             <Paper 
               sx={{ 
@@ -774,7 +777,7 @@ const ClickerPage = () => {
             borderRadius: 4,
             boxShadow: '0 0 10px rgba(0,0,0,0.1)'
           }}>
-            {}
+            
             +{(() => {
               const multiplierUpgrade = upgrades.find(u => u.type === 'multiplier');
               const multiplier = multiplierUpgrade && multiplierUpgrade.level > 0 ? multiplierUpgrade.power : 1.0;
@@ -782,7 +785,7 @@ const ClickerPage = () => {
             })()} за клик
           </Typography>
           
-          {}
+          
           {clickEffects.map(effect => (
             <Box
               key={effect.id}
@@ -905,7 +908,7 @@ const ClickerPage = () => {
       </Typography>
       
       <Grid container spacing={2}>
-        {}
+        
         <Grid item xs={12}>
           <UpgradeCard 
             elevation={2} 
@@ -973,7 +976,7 @@ const ClickerPage = () => {
                 sx={{ mt: 2, height: 6, borderRadius: 3 }}
               />
               
-              {}
+              
               <Button
                 fullWidth
                 variant="contained"
@@ -989,7 +992,7 @@ const ClickerPage = () => {
           </UpgradeCard>
         </Grid>
         
-        {}
+        
         <Grid item xs={12}>
           <UpgradeCard 
             elevation={2} 
@@ -1057,7 +1060,7 @@ const ClickerPage = () => {
                 sx={{ mt: 2, height: 6, borderRadius: 3 }}
               />
               
-              {}
+              
               <Button
                 fullWidth
                 variant="contained"
@@ -1073,7 +1076,7 @@ const ClickerPage = () => {
           </UpgradeCard>
         </Grid>
         
-        {}
+        
         <Grid item xs={12}>
           <UpgradeCard 
             elevation={2} 
@@ -1141,7 +1144,7 @@ const ClickerPage = () => {
                 sx={{ mt: 2, height: 6, borderRadius: 3 }}
               />
               
-              {}
+              
               <Button
                 fullWidth
                 variant="contained"
@@ -1290,7 +1293,7 @@ const ClickerPage = () => {
     </Box>
   );
   
-  
+  // New section for leaderboard
   const renderLeaderboardSection = () => (
     <Box>
       <Typography variant="h5" sx={{ 
@@ -1337,7 +1340,7 @@ const ClickerPage = () => {
         </Paper>
       ) : (
         <>
-          {}
+          
           <Box sx={{ 
             display: 'flex', 
             flexDirection: { xs: 'column', sm: 'row' },
@@ -1346,7 +1349,7 @@ const ClickerPage = () => {
             mb: 3,
             gap: { xs: 1, sm: 2, md: 3 }
           }}>
-            {}
+            
             {leaderboardData.length > 1 && (
               <Box sx={{ 
                 width: { xs: '100%', sm: '32%' },
@@ -1517,7 +1520,7 @@ const ClickerPage = () => {
               </Box>
             )}
             
-            {}
+            
             {leaderboardData.length > 0 && (
               <Box sx={{ 
                 width: { xs: '100%', sm: '32%' },
@@ -1689,7 +1692,7 @@ const ClickerPage = () => {
               </Box>
             )}
             
-            {}
+            
             {leaderboardData.length > 2 && (
               <Box sx={{ 
                 width: { xs: '100%', sm: '32%' },
@@ -1861,7 +1864,7 @@ const ClickerPage = () => {
             )}
           </Box>
           
-          {}
+          
           {leaderboardData.length > 3 && (
             <Box sx={{ 
               mt: 4, 
@@ -1995,7 +1998,7 @@ const ClickerPage = () => {
             </Box>
           )}
           
-          {}
+          
           <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
             <Button
               variant="outlined"
@@ -2016,7 +2019,7 @@ const ClickerPage = () => {
     </Box>
   );
   
-  
+  // Render active section
   const renderActiveSection = () => {
     switch (activeSection) {
       case 'shop':
@@ -2077,7 +2080,7 @@ const ClickerPage = () => {
       
       {renderActiveSection()}
       
-      {}
+      
       <Dialog
         open={withdrawDialogOpen}
         onClose={() => setWithdrawDialogOpen(false)}
@@ -2085,7 +2088,13 @@ const ClickerPage = () => {
           sx: {
             borderRadius: 4,
             width: '100%',
-            maxWidth: 360
+            maxWidth: 360,
+            '@media (max-width: 600px)': {
+              width: '100%',
+              maxWidth: '100%',
+              margin: 0,
+              borderRadius: 0,
+            }
           }
         }}
       >
@@ -2121,7 +2130,7 @@ const ClickerPage = () => {
         </DialogActions>
       </Dialog>
       
-      {}
+      
       {isMobile && (
         <ClickerBottomNavigation 
           activeSection={activeSection}
@@ -2132,6 +2141,7 @@ const ClickerPage = () => {
   );
 };
 
+// Constants for upgrade descriptions
 const UPGRADES = {
   'click_power': {
     description: 'Увеличивает мощность одного клика'

@@ -20,6 +20,8 @@ import {
 import { styled } from '@mui/material/styles';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { Icon } from '@iconify/react';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import homeIcon from '@iconify-icons/solar/home-bold';
 import personIcon from '@iconify-icons/solar/user-bold';
 import groupIcon from '@iconify-icons/solar/users-group-rounded-bold';
@@ -44,10 +46,12 @@ import shopIcon from '@iconify-icons/solar/shop-bold';
 import apiIcon from '@iconify-icons/solar/code-bold';
 import starIcon from '@iconify-icons/solar/star-bold';
 import subscriptionIcon from '@iconify-icons/solar/crown-bold';
+import GroupsIcon from '@mui/icons-material/Groups';
 import { AuthContext } from '../../context/AuthContext';
 import { ThemeSettingsContext } from '../../App';
 import axios from 'axios';
 
+// Обновленные стилизованные компоненты
 const SidebarContainer = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2, 1.5),
   borderRadius: theme.spacing(2),
@@ -57,17 +61,17 @@ const SidebarContainer = styled(Paper)(({ theme }) => ({
   overflowY: 'auto',
   overflowX: 'hidden',
   boxShadow: '0 4px 15px rgba(0, 0, 0, 0.07)',
-  background: 'rgba(255, 255, 255, 0.03)',
+  background: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.03)',
   backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)', 
-  border: '1px solid rgba(255, 255, 255, 0.08)',
+  WebkitBackdropFilter: 'blur(20px)', // Safari поддержка
+  border: theme.palette.mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(0, 0, 0, 0.08)',
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'space-between',
   transition: 'all 0.3s ease',
-  scrollbarWidth: 'none', 
+  scrollbarWidth: 'none', // Firefox
   '&::-webkit-scrollbar': {
-    width: '0px', 
+    width: '0px', // Скрываем скроллбар, но оставляем функциональность
     background: 'transparent',
   },
   '&::-webkit-scrollbar-track': {
@@ -79,13 +83,13 @@ const SidebarContainer = styled(Paper)(({ theme }) => ({
   '&:hover': {
     boxShadow: '0 6px 20px rgba(0, 0, 0, 0.1)',
   },
-  
+  // Сохраняем оригинальное позиционирование
   [theme.breakpoints.up('md')]: {
     width: '230px',
     marginRight: 0,
     marginLeft: 'auto',
   },
-  
+  // Адаптивность
   [theme.breakpoints.down('lg')]: {
     padding: theme.spacing(1.5, 1.2),
     width: '220px',
@@ -96,7 +100,7 @@ const SidebarContainer = styled(Paper)(({ theme }) => ({
   }
 }));
 
-const UserProfile = styled(Box)(({ theme }) => ({
+const UserProfile = styled(Box)(({ theme, themecolor }) => ({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
@@ -109,7 +113,9 @@ const UserProfile = styled(Box)(({ theme }) => ({
     left: '15%',
     right: '15%',
     height: '1px',
-    background: `linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)`,
+    background: theme.palette.mode === 'dark' 
+      ? `linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)`
+      : `linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.1), transparent)`,
   },
   [theme.breakpoints.down('lg')]: {
     padding: theme.spacing(1.2, 1, 1.5, 1),
@@ -122,7 +128,7 @@ const UserProfile = styled(Box)(({ theme }) => ({
 const StyledAvatar = styled(Avatar)(({ theme, themecolor }) => ({
   width: 70,
   height: 70,
-  border: `1px solid rgba(255, 255, 255, 0.15)`,
+  border: theme.palette.mode === 'dark' ? `1px solid rgba(255, 255, 255, 0.15)` : `1px solid rgba(0, 0, 0, 0.15)`,
   boxShadow: `0 4px 12px rgba(0, 0, 0, 0.12)`,
   transition: 'all 0.35s ease',
   position: 'relative',
@@ -138,7 +144,9 @@ const StyledAvatar = styled(Avatar)(({ theme, themecolor }) => ({
     right: '-4px',
     bottom: '-4px',
     borderRadius: '50%',
-    background: `linear-gradient(135deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.1) 100%)`,
+    background: theme.palette.mode === 'dark' 
+      ? `linear-gradient(135deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.1) 100%)`
+      : `linear-gradient(135deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.1) 100%)`,
     opacity: 0,
     transition: 'opacity 0.3s ease',
     zIndex: -1,
@@ -162,7 +170,7 @@ const UserName = styled(Typography)(({ theme, themecolor }) => ({
   marginTop: theme.spacing(1),
   marginBottom: theme.spacing(0.2),
   letterSpacing: '0.4px',
-  color: 'rgba(255, 255, 255, 0.95)',
+  color: theme.palette.mode === 'dark' ? '#FFFFFF' : theme.palette.text.primary,
   textShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
   [theme.breakpoints.down('lg')]: {
     fontSize: '0.9rem',
@@ -175,7 +183,7 @@ const UserName = styled(Typography)(({ theme, themecolor }) => ({
 }));
 
 const UserNameTag = styled(Typography)(({ theme }) => ({
-  color: 'rgba(255, 255, 255, 0.7)',
+  color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
   fontSize: '0.75rem',
   letterSpacing: '0.3px',
   marginBottom: theme.spacing(1),
@@ -213,7 +221,7 @@ const EditButton = styled(Button)(({ theme, themecolor }) => ({
   }
 }));
 
-const NavItem = styled(ListItem)(({ theme, active, isSpecial, themecolor }) => ({
+const NavItem = styled(ListItem)(({ theme, active, isspecial, themecolor }) => ({
   borderRadius: theme.spacing(1.5),
   marginBottom: theme.spacing(0.5),
   padding: theme.spacing(0.7, 1.3),
@@ -236,7 +244,7 @@ const NavItem = styled(ListItem)(({ theme, active, isSpecial, themecolor }) => (
     top: '30%',
     height: '40%',
     width: active ? '2px' : '0px',
-    backgroundColor: isSpecial ? '#f44336' : (themecolor || theme.palette.primary.main),
+    backgroundColor: isspecial ? '#f44336' : (themecolor || theme.palette.primary.main),
     borderRadius: '0 2px 2px 0',
     transition: 'width 0.2s ease',
   },
@@ -253,11 +261,11 @@ const NavItem = styled(ListItem)(({ theme, active, isSpecial, themecolor }) => (
   }
 }));
 
-const NavIcon = styled(ListItemIcon)(({ theme, active, isSpecial, themecolor }) => ({
+const NavIcon = styled(ListItemIcon)(({ theme, active, isspecial, themecolor }) => ({
   minWidth: '32px',
   color: active ? 
-    (isSpecial ? '#f44336' : themecolor || theme.palette.primary.main) : 
-    'rgba(255, 255, 255, 0.7)',
+    (isspecial ? '#f44336' : themecolor || theme.palette.primary.main) : 
+    (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'),
   transition: 'all 0.25s ease',
   '& .MuiSvgIcon-root': {
     fontSize: '1.15rem',
@@ -266,8 +274,8 @@ const NavIcon = styled(ListItemIcon)(({ theme, active, isSpecial, themecolor }) 
   },
   '.MuiListItem-root:hover &': {
     color: active ? 
-      (isSpecial ? '#f44336' : themecolor || theme.palette.primary.main) : 
-      'rgba(255, 255, 255, 0.9)',
+      (isspecial ? '#f44336' : themecolor || theme.palette.primary.main) : 
+      (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'),
     '& .MuiSvgIcon-root': {
       transform: 'scale(1.12)',
     }
@@ -286,13 +294,13 @@ const NavIcon = styled(ListItemIcon)(({ theme, active, isSpecial, themecolor }) 
   }
 }));
 
-const NavText = styled(ListItemText)(({ theme, active, isSpecial, themecolor }) => ({
+const NavText = styled(ListItemText)(({ theme, active, isspecial, themecolor }) => ({
   '& .MuiListItemText-primary': {
     fontWeight: active ? 500 : 400,
     fontSize: '0.85rem',
-    color: active ? 
-      (isSpecial ? '#f44336' : themecolor || theme.palette.primary.main) : 
-      'rgba(255, 255, 255, 0.85)',
+    color: active 
+      ? (isspecial ? '#f44336' : themecolor || theme.palette.primary.main) 
+      : (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.85)'),
     letterSpacing: active ? '0.3px' : '0.2px',
     transition: 'all 0.25s ease',
     textShadow: active ? '0 1px 2px rgba(0, 0, 0, 0.1)' : 'none',
@@ -320,7 +328,8 @@ const MoreButton = styled(NavItem)(({ theme, active, themecolor }) => ({
   '& .arrow-icon': {
     transition: 'transform 0.3s ease',
     transform: active ? 'rotate(180deg)' : 'rotate(0deg)',
-    color: active ? (themecolor || theme.palette.primary.main) : 'rgba(255, 255, 255, 0.7)',
+    color: active ? (themecolor || theme.palette.primary.main) : 
+      (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'),
   }
 }));
 
@@ -342,15 +351,18 @@ const SidebarFooter = styled(Box)(({ theme, themecolor }) => ({
     left: '15%',
     right: '15%',
     height: '1px',
-    background: `linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)`,
+    background: theme.palette.mode === 'dark' 
+      ? `linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)`
+      : `linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.1), transparent)`,
   },
   [theme.breakpoints.down('lg')]: {
     padding: theme.spacing(1.2, 1, 0.6),
   }
 }));
 
+// Стилизованный компонент для FooterTypography
 const FooterTypography = styled(Typography)(({ theme }) => ({
-  color: 'rgba(255, 255, 255, 0.6)',
+  color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)',
   fontSize: {
     xs: '0.6rem',
     sm: '0.65rem',
@@ -358,15 +370,31 @@ const FooterTypography = styled(Typography)(({ theme }) => ({
   }
 }));
 
+// Основной компонент сайдбара (существующий)
 const Sidebar = ({ mobile, closeDrawer }) => {
+  const [expandedMore, setExpandedMore] = useState(false);
+  const [expandedAdminMod, setExpandedAdminMod] = useState(false);
   const { user } = useContext(AuthContext);
   const { themeSettings } = useContext(ThemeSettingsContext);
   const location = useLocation();
-  const [expandMore, setExpandMore] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const [isModeratorUser, setIsModeratorUser] = useState(false);
   const theme = useTheme();
 
-  
+  // Get colors from theme settings
+  const sidebarBackgroundColor = themeSettings.paperColor || theme.palette.background.paper;
+  const sidebarTextColor = themeSettings.textColor || theme.palette.text.primary;
+  const primaryColor = themeSettings.primaryColor || theme.palette.primary.main;
+
+  // Update the SidebarContainer component style
+  const sidebarStyle = {
+    backgroundColor: sidebarBackgroundColor,
+    color: sidebarTextColor,
+    boxShadow: `0 4px 15px ${alpha('#000000', 0.07)}`,
+    borderColor: alpha(sidebarTextColor, 0.08)
+  };
+
+  // Проверка активного пути
   const isActive = (path) => {
     if (path === '/' && location.pathname === '/') {
       return true;
@@ -374,39 +402,42 @@ const Sidebar = ({ mobile, closeDrawer }) => {
     return location.pathname === path;
   };
 
-  
+  // Проверка является ли пользователь админом (id === 3)
   const isAdmin = user?.id === 3;
   
+  // Проверка является ли пользователь каналом
+  const isChannel = user?.account_type === 'channel';
   
+  // Проверяем, есть ли пользователь в таблице moderator_permission
   useEffect(() => {
     if (user) {
       checkModeratorStatus();
     }
   }, [user]);
 
-  
+  // Кэш и время последней проверки модератора
   const [lastModeratorCheck, setLastModeratorCheck] = useState(0);
 
   const checkModeratorStatus = async () => {
     try {
-      
+      // Проверяем, не выполняется ли уже проверка
       if (window._moderatorCheckInProgress) {
         console.log('Moderator check already in progress, skipping...');
         return;
       }
       
-      
+      // Используем кэш, если проверка была недавно (в течение 15 минут)
       const now = Date.now();
       if (now - lastModeratorCheck < 15 * 60 * 1000) {
         console.log('Using cached moderator status');
         return;
       }
       
-      
-      
+      // Быстрая проверка, только для UI - использует легкий endpoint
+      // Устанавливаем флаг, что проверка выполняется
       window._moderatorCheckInProgress = true;
       
-      
+      // Используем endpoint quick-status, который не требует полных прав модератора
       const response = await axios.get('/api/moderator/quick-status');
       if (response.data && response.data.is_moderator) {
         setIsModeratorUser(true);
@@ -414,46 +445,49 @@ const Sidebar = ({ mobile, closeDrawer }) => {
         setIsModeratorUser(false);
       }
       
-      
+      // Обновляем время последней проверки
       setLastModeratorCheck(now);
     } catch (error) {
       console.error('Error checking moderator status:', error);
       setIsModeratorUser(false);
     } finally {
-      
+      // Сбрасываем флаг
       window._moderatorCheckInProgress = false;
     }
   };
   
-  
+  // Основные пункты меню с обновленными иконками
   const mainMenuItems = [
     { text: 'Мой профиль', icon: 'user', path: `/profile/${user?.username || user?.id}` },
     { text: 'Лента', icon: 'home', path: '/' },
     { text: 'Музыка', icon: 'music-notes', path: '/music' },
     { text: 'Подписки', icon: 'users-group-two-rounded', path: '/subscriptions' },
+    { text: 'Каналы', icon: 'users-group-rounded', path: '/channels' },
     { text: 'Поиск', icon: 'magnifer', path: '/search' },
     { text: 'Мини-игры', icon: 'gamepad', path: '/minigames' },
     { text: 'Магазин бейджиков', icon: 'shop', path: '/badge-shop' },
     { text: 'Планы подписок', icon: 'crown', path: '/sub-planes' },
   ];
 
-  
+  // Дополнительные пункты меню (для раздела "Еще")
   const moreMenuItems = [
     { text: 'Лидерборд', icon: 'chart', path: '/leaderboard' },
     { text: 'Баг-репорты', icon: 'bug', path: '/bugs' },
     { text: 'Правила', icon: 'document-text', path: '/rules' },
     { text: 'API Документация', icon: 'code', path: '/api-docs' },
+    { text: 'О платформе', icon: 'info-circle', path: '/about' },
   ];
 
   const toggleExpandMore = () => {
-    setExpandMore(!expandMore);
+    setExpandedMore(!expandedMore);
   };
 
-  
-  const primaryColor = themeSettings?.primaryColor || theme.palette.primary.main;
+  const toggleExpandAdminMod = () => {
+    setExpandedAdminMod(!expandedAdminMod);
+  };
 
   return (
-    <SidebarContainer elevation={2}>
+    <SidebarContainer elevation={2} style={sidebarStyle}>
       <Box>
         {user && (
           <UserProfile>
@@ -463,7 +497,7 @@ const Sidebar = ({ mobile, closeDrawer }) => {
               themecolor={primaryColor}
               onError={(e) => {
                 console.error(`Failed to load avatar for ${user?.username}`);
-                e.target.onerror = null; 
+                e.target.onerror = null; // Prevent infinite recursion
                 e.target.src = `/static/uploads/avatar/system/avatar.png`;
               }}
             />
@@ -487,7 +521,7 @@ const Sidebar = ({ mobile, closeDrawer }) => {
         )}
 
         <List component="nav" sx={{ p: 1, mt: 1 }}>
-          {}
+          
           <NavItem
             button
             component={RouterLink}
@@ -508,30 +542,7 @@ const Sidebar = ({ mobile, closeDrawer }) => {
             />
           </NavItem>
           
-          {}
-          {isModeratorUser && (
-            <NavItem
-              button
-              component={RouterLink}
-              to="/moderator"
-              active={isActive('/moderator') ? 1 : 0}
-              isSpecial={1}
-            >
-              <NavIcon 
-                active={isActive('/moderator') ? 1 : 0}
-                isSpecial={1}
-              >
-                <Icon icon={moderatorIcon} width="20" height="20" />
-              </NavIcon>
-              <NavText 
-                primary="Модерировать" 
-                active={isActive('/moderator') ? 1 : 0}
-                isSpecial={1}
-              />
-            </NavItem>
-          )}
           
-          {}
           <NavItem
             button
             component={RouterLink}
@@ -552,7 +563,7 @@ const Sidebar = ({ mobile, closeDrawer }) => {
             />
           </NavItem>
           
-          {}
+          
           <NavItem
             button
             component={RouterLink}
@@ -573,7 +584,7 @@ const Sidebar = ({ mobile, closeDrawer }) => {
             />
           </NavItem>
           
-          {}
+          
           <NavItem
             button
             component={RouterLink}
@@ -594,7 +605,28 @@ const Sidebar = ({ mobile, closeDrawer }) => {
             />
           </NavItem>
           
-          {}
+          
+          <NavItem
+            button
+            component={RouterLink}
+            to="/channels"
+            active={isActive('/channels') ? 1 : 0}
+            themecolor={primaryColor}
+          >
+            <NavIcon 
+              active={isActive('/channels') ? 1 : 0}
+              themecolor={primaryColor}
+            >
+              <Icon icon="solar:users-group-rounded-bold" width="20" height="20" />
+            </NavIcon>
+            <NavText 
+              primary="Каналы" 
+              active={isActive('/channels') ? 1 : 0}
+              themecolor={primaryColor}
+            />
+          </NavItem>
+          
+          
           <NavItem
             button
             component={RouterLink}
@@ -615,28 +647,7 @@ const Sidebar = ({ mobile, closeDrawer }) => {
             />
           </NavItem>
           
-          {}
-          <NavItem
-            button
-            component={RouterLink}
-            to="/minigames"
-            active={isActive('/minigames') ? 1 : 0}
-            themecolor={primaryColor}
-          >
-            <NavIcon 
-              active={isActive('/minigames') ? 1 : 0}
-              themecolor={primaryColor}
-            >
-              <Icon icon={gameIcon} width="20" height="20" />
-            </NavIcon>
-            <NavText 
-              primary="Мини-игры" 
-              active={isActive('/minigames') ? 1 : 0}
-              themecolor={primaryColor}
-            />
-          </NavItem>
           
-          {}
           <NavItem
             button
             component={RouterLink}
@@ -657,120 +668,202 @@ const Sidebar = ({ mobile, closeDrawer }) => {
             />
           </NavItem>
           
-          {}
-          <NavItem
-            button
-            component={RouterLink}
-            to="/sub-planes"
-            active={isActive('/sub-planes') ? 1 : 0}
-            themecolor={primaryColor}
-          >
-            <NavIcon 
-              active={isActive('/sub-planes') ? 1 : 0}
-              themecolor={primaryColor}
-            >
-              <Icon icon={subscriptionIcon} width="20" height="20" />
-            </NavIcon>
-            <NavText 
-              primary="Планы подписок" 
-              active={isActive('/sub-planes') ? 1 : 0}
-              themecolor={primaryColor}
-            />
-          </NavItem>
           
-          {}
-          {isAdmin && (
+          {(isAdmin || isModeratorUser) && (
+            <>
+              <NavItem
+                onClick={toggleExpandAdminMod}
+                active={expandedAdminMod ? 1 : 0}
+                isspecial="true"
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <NavIcon 
+                    active={expandedAdminMod ? 1 : 0}
+                    isspecial="true"
+                  >
+                    <Icon icon={adminIcon} width="20" height="20" />
+                  </NavIcon>
+                  <NavText 
+                    primary="Управление" 
+                    active={expandedAdminMod ? 1 : 0}
+                    isspecial="true"
+                  />
+                </Box>
+                {expandedAdminMod ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </NavItem>
+              
+              <Collapse in={expandedAdminMod} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding sx={{ pl: 1.5, pt: 0.5 }}>
+                  
+                  {isAdmin && (
+                    <NestedItem
+                      button
+                      component={RouterLink}
+                      to="/admin"
+                      active={isActive('/admin') ? 1 : 0}
+                      isspecial="true"
+                    >
+                      <NavIcon 
+                        active={isActive('/admin') ? 1 : 0}
+                        isspecial="true"
+                      >
+                        <Icon icon={adminIcon} width="20" height="20" />
+                      </NavIcon>
+                      <NavText 
+                        primary="Админ Панель" 
+                        active={isActive('/admin') ? 1 : 0}
+                        isspecial="true"
+                      />
+                    </NestedItem>
+                  )}
+                  
+                  
+                  {isModeratorUser && (
+                    <NestedItem
+                      button
+                      component={RouterLink}
+                      to="/moderator"
+                      active={isActive('/moderator') ? 1 : 0}
+                      isspecial="true"
+                    >
+                      <NavIcon 
+                        active={isActive('/moderator') ? 1 : 0}
+                        isspecial="true"
+                      >
+                        <Icon icon={moderatorIcon} width="20" height="20" />
+                      </NavIcon>
+                      <NavText 
+                        primary="Модерировать" 
+                        active={isActive('/moderator') ? 1 : 0}
+                        isspecial="true"
+                      />
+                    </NestedItem>
+                  )}
+                </List>
+              </Collapse>
+            </>
+          )}
+          
+          
+          {!isChannel && (
             <NavItem
               button
               component={RouterLink}
-              to="/admin"
-              active={isActive('/admin') ? 1 : 0}
+              to="/minigames"
+              active={isActive('/minigames') ? 1 : 0}
               themecolor={primaryColor}
             >
               <NavIcon 
-                active={isActive('/admin') ? 1 : 0}
+                active={isActive('/minigames') ? 1 : 0}
                 themecolor={primaryColor}
               >
-                <Icon icon={adminIcon} width="20" height="20" />
+                <Icon icon={gameIcon} width="20" height="20" />
               </NavIcon>
               <NavText 
-                primary="Админ Панель" 
-                active={isActive('/admin') ? 1 : 0}
+                primary="Мини-игры" 
+                active={isActive('/minigames') ? 1 : 0}
+                themecolor={primaryColor}
+              />
+            </NavItem>
+          )}
+          
+          
+          {!isChannel && (
+            <NavItem
+              button
+              component={RouterLink}
+              to="/sub-planes"
+              active={isActive('/sub-planes') ? 1 : 0}
+              themecolor={primaryColor}
+            >
+              <NavIcon 
+                active={isActive('/sub-planes') ? 1 : 0}
+                themecolor={primaryColor}
+              >
+                <Icon icon={subscriptionIcon} width="20" height="20" />
+              </NavIcon>
+              <NavText 
+                primary="Планы подписок" 
+                active={isActive('/sub-planes') ? 1 : 0}
                 themecolor={primaryColor}
               />
             </NavItem>
           )}
 
-          {}
+          
           <MoreButton 
             button 
             onClick={toggleExpandMore}
-            active={expandMore ? 1 : 0}
+            active={expandedMore ? 1 : 0}
             themecolor={primaryColor}
           >
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <NavIcon 
-                active={expandMore ? 1 : 0}
+                active={expandedMore ? 1 : 0}
                 themecolor={primaryColor}
               >
                 <Icon icon={moreIcon} width="20" height="20" />
               </NavIcon>
               <NavText 
                 primary="Еще" 
-                active={expandMore ? 1 : 0}
+                active={expandedMore ? 1 : 0}
                 themecolor={primaryColor}
               />
             </Box>
             <Box className="arrow-icon">
-              {expandMore ? <Icon icon={arrowUpIcon} width="20" height="20" /> : <Icon icon={arrowDownIcon} width="20" height="20" />}
+              {expandedMore ? <Icon icon={arrowUpIcon} width="20" height="20" /> : <Icon icon={arrowDownIcon} width="20" height="20" />}
             </Box>
           </MoreButton>
 
-          <Collapse in={expandMore} timeout="auto" unmountOnExit>
+          <Collapse in={expandedMore} timeout="auto" unmountOnExit>
             <List component="div" disablePadding sx={{ pl: 1.5, pt: 0.5 }}>
-              {}
-              <NestedItem
-                button
-                component={RouterLink}
-                to="/leaderboard"
-                active={isActive('/leaderboard') ? 1 : 0}
-                themecolor={primaryColor}
-              >
-                <NavIcon 
+              
+              {!isChannel && (
+                <NestedItem
+                  button
+                  component={RouterLink}
+                  to="/leaderboard"
                   active={isActive('/leaderboard') ? 1 : 0}
                   themecolor={primaryColor}
                 >
-                  <Icon icon={leaderboardIcon} width="20" height="20" />
-                </NavIcon>
-                <NavText 
-                  primary="Лидерборд" 
-                  active={isActive('/leaderboard') ? 1 : 0}
-                  themecolor={primaryColor}
-                />
-              </NestedItem>
+                  <NavIcon 
+                    active={isActive('/leaderboard') ? 1 : 0}
+                    themecolor={primaryColor}
+                  >
+                    <Icon icon={leaderboardIcon} width="20" height="20" />
+                  </NavIcon>
+                  <NavText 
+                    primary="Лидерборд" 
+                    active={isActive('/leaderboard') ? 1 : 0}
+                    themecolor={primaryColor}
+                  />
+                </NestedItem>
+              )}
               
-              {}
-              <NestedItem
-                button
-                component={RouterLink}
-                to="/bugs"
-                active={isActive('/bugs') ? 1 : 0}
-                themecolor={primaryColor}
-              >
-                <NavIcon 
+              
+              {!isChannel && (
+                <NestedItem
+                  button
+                  component={RouterLink}
+                  to="/bugs"
                   active={isActive('/bugs') ? 1 : 0}
                   themecolor={primaryColor}
                 >
-                  <Icon icon={bugIcon} width="20" height="20" />
-                </NavIcon>
-                <NavText 
-                  primary="Баг-репорты" 
-                  active={isActive('/bugs') ? 1 : 0}
-                  themecolor={primaryColor}
-                />
-              </NestedItem>
+                  <NavIcon 
+                    active={isActive('/bugs') ? 1 : 0}
+                    themecolor={primaryColor}
+                  >
+                    <Icon icon={bugIcon} width="20" height="20" />
+                  </NavIcon>
+                  <NavText 
+                    primary="Баг-репорты" 
+                    active={isActive('/bugs') ? 1 : 0}
+                    themecolor={primaryColor}
+                  />
+                </NestedItem>
+              )}
               
-              {}
+              
               <NestedItem
                 button
                 component={RouterLink}
@@ -791,7 +884,7 @@ const Sidebar = ({ mobile, closeDrawer }) => {
                 />
               </NestedItem>
               
-              {}
+              
               <NestedItem
                 button
                 component={RouterLink}
@@ -811,18 +904,39 @@ const Sidebar = ({ mobile, closeDrawer }) => {
                   themecolor={primaryColor}
                 />
               </NestedItem>
+              
+              
+              <NestedItem
+                button
+                component={RouterLink}
+                to="/about"
+                active={isActive('/about') ? 1 : 0}
+                themecolor={primaryColor}
+              >
+                <NavIcon 
+                  active={isActive('/about') ? 1 : 0}
+                  themecolor={primaryColor}
+                >
+                  <Icon icon={rulesIcon} width="20" height="20" />
+                </NavIcon>
+                <NavText 
+                  primary="О платформе" 
+                  active={isActive('/about') ? 1 : 0}
+                  themecolor={primaryColor}
+                />
+              </NestedItem>
             </List>
           </Collapse>
         </List>
       </Box>
 
-      {}
+      
       <SidebarFooter themecolor={primaryColor}>
         <Typography 
           variant="subtitle2" 
           sx={{ 
             fontWeight: 500, 
-            color: 'rgba(255, 255, 255, 0.9)',
+            color: theme => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
             mb: 0.8,
             letterSpacing: '0.4px',
             fontSize: {

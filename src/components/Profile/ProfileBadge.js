@@ -1,13 +1,20 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 
+/**
+ * Компонент для отображения бейджа/значка в профиле пользователя
+ * @param {Object} props - Свойства компонента
+ * @param {Object} props.badgeData - Данные значка (текст, эмодзи, позиция)
+ * @param {Array|String} props.gradientColors - Цвета градиента или строка с цветом
+ * @param {String} props.textColor - Цвет текста
+ */
 const ProfileBadge = ({ badgeData, gradientColors, textColor = '#ffffff' }) => {
   if (!badgeData || !badgeData.show) return null;
   
-  
+  // Позиция бейджа (по умолчанию в правом верхнем углу)
   const position = badgeData.position || { top: 10, right: 10 };
   
-  
+  // Определяем фон (градиент или сплошной цвет)
   let background;
   if (Array.isArray(gradientColors) && gradientColors.length >= 2) {
     background = `linear-gradient(45deg, ${gradientColors.join(', ')})`;

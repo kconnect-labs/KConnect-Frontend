@@ -20,7 +20,9 @@ import {
   Slide,
   Fade,
   ListItemSecondaryAction,
-  Tooltip
+  Tooltip,
+  Card,
+  CardContent
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import SwipeableDrawer from '@mui/material/SwipeableDrawer';
@@ -34,9 +36,13 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
 import CloseIcon from '@mui/icons-material/Close';
+import ForumIcon from '@mui/icons-material/Forum';
+import ArticleIcon from '@mui/icons-material/Article';
+import PersonIcon from '@mui/icons-material/Person';
 import axios from 'axios';
 import { formatDateTimeShort } from '../../utils/dateUtils';
 
+// Get notification icon based on type
 const getNotificationIcon = (type) => {
   switch (type) {
     case 'comment_like':
@@ -54,29 +60,263 @@ const getNotificationIcon = (type) => {
   }
 };
 
+// Format relative time
+const formatRelativeTime = (dateString) => {
+  if (!dateString) return 'Только что';
+  
+  try {
+    // Parse the ISO date string with timezone information
+    const date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.error('Invalid date string:', dateString);
+      return 'Недавно';
+    }
+    
+    // Get current time
+    const now = new Date();
+    
+    // Calculate difference in seconds
+    const diffMs = now - date;
+    const seconds = Math.floor(diffMs / 1000);
+    
+    // Less than a minute
+    if (seconds < 60) {
+      return 'Только что';
+    }
+    
+    // Less than an hour
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) {
+      return `${minutes} ${getMinutesString(minutes)} назад`;
+    }
+    
+    // Less than a day
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) {
+      return `${hours} ${getHoursString(hours)} назад`;
+    }
+    
+    // Less than a week
+    const days = Math.floor(hours / 24);
+    if (days < 7) {
+      return `${days} ${getDaysString(days)} назад`;
+    }
+    
+    // Format date for older notifications
+    return formatDateTimeShort(dateString);
+  } catch (error) {
+    console.error('Error formatting relative time:', error);
+    return 'Недавно';
+  }
+};
+
+// Helper functions for Russian grammatical cases
+const getMinutesString = (minutes) => {
+  if (minutes % 10 === 1 && minutes % 100 !== 11) {
+    return 'минуту';
+  } else if ([2, 3, 4].includes(minutes % 10) && ![12, 13, 14].includes(minutes % 100)) {
+    return 'минуты';
+  } else {
+    return 'минут';
+  }
+};
+
+const getHoursString = (hours) => {
+  if (hours % 10 === 1 && hours % 100 !== 11) {
+    return 'час';
+  } else if ([2, 3, 4].includes(hours % 10) && ![12, 13, 14].includes(hours % 100)) {
+    return 'часа';
+  } else {
+    return 'часов';
+  }
+};
+
+const getDaysString = (days) => {
+  if (days % 10 === 1 && days % 100 !== 11) {
+    return 'день';
+  } else if ([2, 3, 4].includes(days % 10) && ![12, 13, 14].includes(days % 100)) {
+    return 'дня';
+  } else {
+    return 'дней';
+  }
+};
+
+// Parse notification link to determine type and extract IDs
+const parseNotificationLink = (link) => {
+  if (!link) return { type: 'unknown' };
+  
+  // Profile link - /profile/username
+  if (link.startsWith('/profile/')) {
+    return {
+      type: 'profile',
+      username: link.split('/profile/')[1]
+    };
+  }
+  
+  // Post link with comment and reply - /post/1493?comment=2194&reply=822
+  if (link.includes('?comment=') && link.includes('&reply=')) {
+    const postId = link.split('/post/')[1].split('?')[0];
+    const commentId = link.split('comment=')[1].split('&')[0];
+    const replyId = link.split('reply=')[1];
+    
+    return {
+      type: 'reply',
+      postId,
+      commentId,
+      replyId
+    };
+  }
+  
+  // Post link with just comment - /post/1493?comment=2194
+  if (link.includes('?comment=')) {
+    const postId = link.split('/post/')[1].split('?')[0];
+    const commentId = link.split('comment=')[1];
+    
+    return {
+      type: 'comment',
+      postId,
+      commentId
+    };
+  }
+  
+  // Post link - /post/1500
+  if (link.startsWith('/post/')) {
+    const postId = link.split('/post/')[1];
+    
+    return {
+      type: 'post',
+      postId
+    };
+  }
+  
+  return { type: 'unknown' };
+};
+
+// Helper to truncate text
+const truncateText = (text, maxLength) => {
+  if (!text) return '';
+  return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+};
+
+// Function to get context icon based on notification link
+const getContextIcon = (link) => {
+  if (!link) return null;
+  
+  const linkInfo = parseNotificationLink(link);
+  
+  switch (linkInfo.type) {
+    case 'post':
+      return <ArticleIcon fontSize="small" sx={{ opacity: 0.7 }} />;
+    case 'comment':
+    case 'reply':
+      return <ForumIcon fontSize="small" sx={{ opacity: 0.7 }} />;
+    case 'profile':
+      return <PersonIcon fontSize="small" sx={{ opacity: 0.7 }} />;
+    default:
+      return null;
+  }
+};
+
+// Function to get proper avatar URL
 const getAvatarUrl = (sender) => {
   if (!sender) return '/static/uploads/avatar/system/avatar.png';
   
-  
+  // If avatar_url is provided, use it directly
   if (sender.avatar_url) {
-    
+    // Check if the URL already has the full path to avoid duplicating
     if (sender.avatar_url.startsWith('/static/uploads/avatar/')) {
       return sender.avatar_url;
     }
     return sender.avatar_url;
   }
   
-  
+  // Otherwise construct from id and photo name
   if (sender.id && sender.photo) {
-    
+    // Make sure we're not duplicating paths
     if (sender.photo.startsWith('/static/uploads/avatar/')) {
       return sender.photo;
     }
     return `/static/uploads/avatar/${sender.id}/${sender.photo}`;
   }
   
-  
+  // Fallback
   return `/static/uploads/avatar/system/avatar.png`;
+};
+
+// Get descriptive text for notification context with enhanced data
+const getContextText = (notification) => {
+  if (!notification || !notification.link) return '';
+  
+  const linkInfo = parseNotificationLink(notification.link);
+  
+  switch (linkInfo.type) {
+    case 'post':
+      // Use enhanced post_data that includes preview or full text
+      if (notification.post_data) {
+        if (notification.post_data.preview) {
+          return notification.post_data.preview;
+        } else if (notification.post_data.text) {
+          return truncateText(notification.post_data.text, 150);
+        } else if (notification.post_content) {
+          return truncateText(notification.post_content, 150);
+        }
+      }
+      return "публикацию";
+      
+    case 'comment':
+      // Use enhanced comment_data that includes preview or full text
+      if (notification.comment_data) {
+        if (notification.comment_data.preview) {
+          return notification.comment_data.preview;
+        } else if (notification.comment_data.text) {
+          return truncateText(notification.comment_data.text, 150);
+        } else if (notification.comment_content) {
+          return truncateText(notification.comment_content, 150);
+        }
+      }
+      return "комментарий";
+      
+    case 'reply':
+      // Use enhanced reply_data that includes preview or full text
+      if (notification.reply_data) {
+        if (notification.reply_data.preview) {
+          return notification.reply_data.preview;
+        } else if (notification.reply_data.text) {
+          return truncateText(notification.reply_data.text, 150);
+        } else if (notification.reply_content) {
+          return truncateText(notification.reply_content, 150);
+        }
+      }
+      return "ответ на комментарий";
+      
+    case 'profile':
+      return `профиль`;
+      
+    default:
+      return '';
+  }
+};
+
+// Get descriptive title for notification context
+const getContextTitle = (notification) => {
+  if (!notification || !notification.link) return '';
+  
+  const linkInfo = parseNotificationLink(notification.link);
+  
+  switch (linkInfo.type) {
+    case 'post':
+      return "Публикация:";
+    case 'comment':
+      return "Комментарий:";
+    case 'reply':
+      return "Ответ:";
+    case 'profile':
+      return "Профиль";
+    default:
+      return '';
+  }
 };
 
 const NotificationItem = ({ notification, onNotificationClick, onDelete }) => {
@@ -86,9 +326,112 @@ const NotificationItem = ({ notification, onNotificationClick, onDelete }) => {
     return null;
   }
   
-  
+  // Get sender name and avatar
   const senderName = notification.sender_user?.name || 'Пользователь';
   const avatar = getAvatarUrl(notification.sender_user);
+  
+  // Get context description based on notification type and content
+  const contextText = getContextText(notification);
+  const contextTitle = getContextTitle(notification);
+  
+  // Get notification type description
+  const getActionText = () => {
+    switch (notification.type) {
+      case 'post_like':
+        return 'поставил(-a) лайк на вашу публикацию';
+      case 'comment_like':
+        return 'поставил(-a) лайк на ваш комментарий';
+      case 'reply_like':
+        return 'поставил(-a) лайк на ваш ответ';
+      case 'comment':
+        return 'оставил(-a) комментарий к вашей публикации';
+      case 'reply':
+        return 'ответил(-a) на ваш комментарий';
+      case 'follow':
+        return 'подписался(-ась) на вас';
+      default:
+        return notification.message || 'выполнил действие';
+    }
+  };
+  
+  // Get the appropriate content for display in context box
+  const getContentPreview = () => {
+    // Check for content_type provided by backend first
+    if (notification.content_type) {
+      switch (notification.content_type) {
+        case 'comment':
+          if (notification.comment_data) {
+            if (notification.comment_data.preview) {
+              return notification.comment_data.preview;
+            } else if (notification.comment_data.text) {
+              return truncateText(notification.comment_data.text, 150);
+            } else if (notification.comment_content) {
+              return truncateText(notification.comment_content, 150);
+            }
+          }
+          break;
+          
+        case 'reply':
+          if (notification.reply_data) {
+            if (notification.reply_data.preview) {
+              return notification.reply_data.preview;
+            } else if (notification.reply_data.text) {
+              return truncateText(notification.reply_data.text, 150);
+            } else if (notification.reply_content) {
+              return truncateText(notification.reply_content, 150);
+            }
+          }
+          break;
+          
+        case 'post':
+          if (notification.post_data) {
+            if (notification.post_data.preview) {
+              return notification.post_data.preview;
+            } else if (notification.post_data.text) {
+              return truncateText(notification.post_data.text, 150);
+            } else if (notification.post_content) {
+              return truncateText(notification.post_content, 150);
+            }
+          }
+          break;
+      }
+    }
+    
+    // Fallback to determining based on link parsing if content_type not available
+    const linkInfo = parseNotificationLink(notification.link);
+    
+    // If it's a comment notification, prioritize showing comment content
+    if (linkInfo.type === 'comment' && notification.comment_data) {
+      if (notification.comment_data.preview) {
+        return notification.comment_data.preview;
+      } else if (notification.comment_data.text) {
+        return truncateText(notification.comment_data.text, 150);
+      } else if (notification.comment_content) {
+        return truncateText(notification.comment_content, 150);
+      }
+    }
+    
+    // If it's a reply notification, prioritize showing reply content
+    if (linkInfo.type === 'reply' && notification.reply_data) {
+      if (notification.reply_data.preview) {
+        return notification.reply_data.preview;
+      } else if (notification.reply_data.text) {
+        return truncateText(notification.reply_data.text, 150);
+      } else if (notification.reply_content) {
+        return truncateText(notification.reply_content, 150);
+      }
+    }
+    
+    // Otherwise show post content if available
+    if (notification.post_data && notification.post_data.preview) {
+      return notification.post_data.preview;
+    } else if (notification.post_content) {
+      return truncateText(notification.post_content, 150);
+    }
+    
+    // Fallback to context text
+    return contextText;
+  };
   
   return (
     <ListItem
@@ -133,9 +476,10 @@ const NotificationItem = ({ notification, onNotificationClick, onDelete }) => {
       </ListItemAvatar>
       
       <ListItemText
+        disableTypography={true}
         primary={
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-            <Typography variant="subtitle2" fontWeight={notification.is_read ? 'normal' : 'medium'}>
+            <Typography component="span" variant="subtitle2" fontWeight={notification.is_read ? 'normal' : 'medium'}>
               {senderName}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', ml: 1 }}>
@@ -146,6 +490,7 @@ const NotificationItem = ({ notification, onNotificationClick, onDelete }) => {
         secondary={
           <Box>
             <Typography 
+              component="span"
               variant="body2" 
               color={notification.is_read ? "text.secondary" : "text.primary"}
               sx={{ 
@@ -155,14 +500,64 @@ const NotificationItem = ({ notification, onNotificationClick, onDelete }) => {
                 mb: 0.5 
               }}
             >
-              {notification.message || 'Новое уведомление'}
+              {getActionText()}
             </Typography>
+            
+            
+            {getContentPreview() && (
+              <Box sx={{ 
+                mt: 1, 
+                p: 1, 
+                borderRadius: 1,
+                bgcolor: alpha(theme.palette.background.paper, 0.4),
+                border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 0.5
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {getContextIcon(notification.link)}
+                  <Typography 
+                    component="span"
+                    variant="caption" 
+                    sx={{ 
+                      color: theme.palette.text.secondary,
+                      fontSize: '0.75rem',
+                      fontWeight: 'medium'
+                    }}
+                  >
+                    {contextTitle}
+                  </Typography>
+                </Box>
+                
+                <Typography 
+                  component="span"
+                  variant="body2" 
+                  sx={{ 
+                    color: theme.palette.text.primary,
+                    fontSize: '0.8rem',
+                    lineHeight: 1.4,
+                    fontWeight: notification.is_read ? 'normal' : 'medium',
+                    pl: 0.5
+                  }}
+                >
+                  {getContentPreview()}
+                </Typography>
+              </Box>
+            )}
+            
             <Typography 
+              component="span"
               variant="caption" 
               color="text.secondary"
-              sx={{ opacity: 0.7, fontSize: '0.7rem' }}
+              sx={{ 
+                opacity: 0.7, 
+                fontSize: '0.7rem', 
+                display: 'block',
+                mt: 0.5
+              }}
             >
-              {notification.created_at ? formatDateTimeShort(notification.created_at) : 'Только что'}
+              {notification.created_at ? formatRelativeTime(notification.created_at) : 'Только что'}
             </Typography>
           </Box>
         }
@@ -197,19 +592,19 @@ const NotificationItem = ({ notification, onNotificationClick, onDelete }) => {
 const NotificationList = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [anchorEl, setAnchorEl] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const theme = useTheme();
   const navigate = useNavigate();
 
-  
+  // Fetch notifications
   const fetchNotifications = async () => {
     try {
       setLoading(true);
       const response = await axios.get('/api/notifications');
       
-      if (response.data && response.data.notifications) {
+      if (response.data && response.data.success && response.data.notifications) {
+        // We now get notifications with enriched data directly from the backend
         setNotifications(response.data.notifications || []);
         setUnreadCount(response.data.unread_count || 0);
       } else {
@@ -225,13 +620,13 @@ const NotificationList = () => {
     }
   };
 
-  
+  // Mark all notifications as read
   const markAllAsRead = async () => {
     try {
       const response = await axios.post('/api/notifications/mark-all-read');
       
       if (response.data && response.data.success) {
-        
+        // Update local state to mark all as read
         setNotifications(prev => 
           prev.map(n => ({ ...n, is_read: true }))
         );
@@ -242,16 +637,16 @@ const NotificationList = () => {
     }
   };
   
-  
+  // Delete a single notification
   const deleteNotification = async (notificationId) => {
     try {
       const response = await axios.delete(`/api/notifications/${notificationId}`);
       
       if (response.data && response.data.success) {
-        
+        // Remove the notification from state
         setNotifications(prev => prev.filter(n => n.id !== notificationId));
         
-        
+        // Update unread count if the deleted notification was unread
         const deletedNotification = notifications.find(n => n.id === notificationId);
         if (deletedNotification && !deletedNotification.is_read) {
           setUnreadCount(prev => Math.max(0, prev - 1));
@@ -262,7 +657,7 @@ const NotificationList = () => {
     }
   };
   
-  
+  // Clear all notifications
   const clearAllNotifications = async () => {
     try {
       const response = await axios.delete('/api/notifications');
@@ -288,7 +683,7 @@ const NotificationList = () => {
     try {
       await axios.post(`/api/notifications/${notification.id}/read`);
       
-      
+      // Update local state
       setNotifications(prev => 
         prev.map(n => n.id === notification.id ? { ...n, is_read: true } : n)
       );
@@ -297,17 +692,17 @@ const NotificationList = () => {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
       
-      
+      // Close drawer
       setDrawerOpen(false);
       
-      
+      // Navigate to link if provided
       if (notification.link) {
         navigate(notification.link);
       }
     } catch (error) {
       console.error('Error marking notification as read:', error);
       
-      
+      // Even if the API call fails, still navigate to the link
       if (notification.link) {
         setDrawerOpen(false);
         navigate(notification.link);
@@ -317,86 +712,96 @@ const NotificationList = () => {
 
   const handleOpenDrawer = () => {
     setDrawerOpen(true);
-    
-    if (unreadCount > 0) {
-      markAllAsRead();
-    }
+  };
+  
+  const handleCloseDrawer = () => {
+    setDrawerOpen(false);
   };
 
   return (
     <>
-      <IconButton 
-        color="inherit" 
+      
+      <IconButton
+        color="inherit"
         onClick={handleOpenDrawer}
-        sx={{ position: 'relative' }}
+        sx={{ 
+          position: 'relative', 
+          mr: 1,
+          '&:hover': {
+            backgroundColor: alpha(theme.palette.primary.main, 0.1)
+          }
+        }}
       >
         <Badge 
           badgeContent={unreadCount} 
-          color="primary"
+          color="error"
+          max={99}
           sx={{
             '& .MuiBadge-badge': {
-              fontSize: '0.6rem',
-              minWidth: '18px',
+              fontSize: '0.7rem',
               height: '18px',
-              padding: '0 4px'
+              minWidth: '18px'
             }
           }}
         >
           <NotificationsIcon />
         </Badge>
       </IconButton>
-
+      
+      
       <SwipeableDrawer
         anchor="right"
         open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        onOpen={() => setDrawerOpen(true)}
-        PaperProps={{
-          sx: {
-            width: {
-              xs: '100%',
-              sm: 400
-            },
-            borderTopLeftRadius: 16,
-            borderBottomLeftRadius: 16,
-            boxShadow: '0 0 30px rgba(0,0,0,0.2)',
-            background: alpha(theme.palette.background.paper, 0.9),
-            backdropFilter: 'blur(10px)'
+        onClose={handleCloseDrawer}
+        onOpen={handleOpenDrawer}
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: { xs: '100%', sm: 360, md: 420 },
+            maxWidth: '100%',
+            boxSizing: 'border-box',
+            boxShadow: '0 0 15px rgba(0,0,0,0.15)',
+            borderRadius: { xs: 0, sm: '16px 0 0 16px' },
+            bgcolor: theme.palette.mode === 'dark' ? alpha('#000', 0.9) : alpha('#121212', 0.95)
           }
         }}
+        disableBackdropTransition={true}
+        disableDiscovery={true}
       >
-        <Box 
-          sx={{ 
-            p: 2.5, 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between',
-            borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`
-          }}
-        >
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              fontWeight: 600,
-              fontSize: '1.25rem'
-            }}
-          >
+        <Box sx={{ 
+          p: 2, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`
+        }}>
+          <Typography variant="h6" sx={{ fontWeight: 'medium' }}>
             Уведомления
           </Typography>
           
-          <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {notifications.length > 0 && (
+              <Tooltip title="Отметить все как прочитанные">
+                <IconButton 
+                  size="small" 
+                  onClick={markAllAsRead}
+                  disabled={notifications.length === 0 || unreadCount === 0}
+                  sx={{ 
+                    opacity: notifications.length > 0 && unreadCount > 0 ? 1 : 0.5,
+                  }}
+                >
+                  <ExpandLess fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+            
             {notifications.length > 0 && (
               <Tooltip title="Очистить все уведомления">
                 <IconButton 
                   size="small" 
                   onClick={clearAllNotifications}
+                  disabled={notifications.length === 0}
                   sx={{ 
-                    ml: 1,
-                    bgcolor: alpha(theme.palette.error.main, 0.1),
-                    color: theme.palette.error.main,
-                    '&:hover': {
-                      bgcolor: alpha(theme.palette.error.main, 0.2),
-                    }
+                    opacity: notifications.length > 0 ? 1 : 0.5,
                   }}
                 >
                   <ClearAllIcon fontSize="small" />
@@ -404,54 +809,66 @@ const NotificationList = () => {
               </Tooltip>
             )}
             
-            <IconButton 
-              onClick={() => setDrawerOpen(false)}
-              sx={{ ml: 1 }}
-            >
-              <CloseIcon />
+            <IconButton size="small" onClick={handleCloseDrawer}>
+              <CloseIcon fontSize="small" />
             </IconButton>
           </Box>
         </Box>
         
-        <Box sx={{ p: 2, height: 'calc(100% - 70px)', overflow: 'auto' }}>
+        <Box sx={{ 
+          height: 'calc(100% - 56px)', 
+          overflowY: 'auto',
+          p: 2,
+          bgcolor: theme.palette.mode === 'dark' ? alpha('#121212', 0.7) : alpha('#1a1a1a', 0.8),
+        }}>
           {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-              <CircularProgress size={30} />
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center',
+              height: '100%' 
+            }}>
+              <CircularProgress size={32} />
             </Box>
-          ) : notifications.length > 0 ? (
-            <List sx={{ p: 0 }}>
-              {notifications.map((notification) => (
-                <Fade 
-                  key={notification.id} 
-                  in={true} 
-                  timeout={300}
-                >
-                  <Box>
-                    <NotificationItem 
-                      notification={notification}
-                      onNotificationClick={handleNotificationClick}
-                      onDelete={deleteNotification}
-                    />
-                  </Box>
-                </Fade>
-              ))}
-            </List>
-          ) : (
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                flexDirection: 'column',
-                justifyContent: 'center', 
-                alignItems: 'center', 
-                height: '100%',
-                opacity: 0.7
-              }}
-            >
-              <NotificationsIcon sx={{ fontSize: 56, opacity: 0.3, mb: 2 }} />
-              <Typography color="text.secondary" variant="body1">
-                Нет новых уведомлений
+          ) : notifications.length === 0 ? (
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              justifyContent: 'center', 
+              alignItems: 'center',
+              height: '100%',
+              opacity: 0.7
+            }}>
+              <NotificationsIcon sx={{ fontSize: 48, opacity: 0.3, mb: 2 }} />
+              <Typography variant="body1" color="text.secondary">
+                У вас пока нет уведомлений
               </Typography>
             </Box>
+          ) : (
+            <List sx={{ p: 0 }}>
+              <Fade in={true} timeout={500}>
+                <Box>
+                  {notifications.map((notification, index) => (
+                    <Slide 
+                      key={notification.id} 
+                      direction="left" 
+                      in={true} 
+                      timeout={(index + 1) * 100}
+                      mountOnEnter
+                      unmountOnExit
+                    >
+                      <Box>
+                        <NotificationItem
+                          notification={notification}
+                          onNotificationClick={handleNotificationClick}
+                          onDelete={deleteNotification}
+                        />
+                      </Box>
+                    </Slide>
+                  ))}
+                </Box>
+              </Fade>
+            </List>
           )}
         </Box>
       </SwipeableDrawer>
