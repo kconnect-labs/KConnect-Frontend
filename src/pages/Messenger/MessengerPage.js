@@ -1118,8 +1118,8 @@ const MessengerPage = () => {
     if (files.length === 0) return;
     console.log("Selected files:", files);
     const validFiles = files.filter(file => {
-      if (file.size > 10 * 1024 * 1024) {
-        setErrorMessage(`Файл ${file.name} слишком большой (макс. 10МБ)`);
+      if (file.size > 50 * 1024 * 1024) {
+        setErrorMessage(`Файл ${file.name} слишком большой (макс. 50МБ)`);
         return false;
       }
       const validTypes = ['image/', 'video/', 'audio/', 'application/pdf', 'text/', 'application/msword', 'application/vnd.openxmlformats-officedocument'];

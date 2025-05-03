@@ -42,12 +42,12 @@ const MusicUploadDialog = ({ open, onClose, onSuccess }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  // Список жанров
+  
   const genres = [
     'рэп', 'бодрое', 'грустное', 'весёлое', 'спокойное', 'поп', 'электроника'
   ];
 
-  // Сброс формы
+  
   const resetForm = () => {
     setFile(null);
     setCoverFile(null);
@@ -68,7 +68,7 @@ const MusicUploadDialog = ({ open, onClose, onSuccess }) => {
     }
   }, [open]);
 
-  // Обработчик загрузки аудиофайла
+  
   const handleFileChange = async (event) => {
     const selectedFile = event.target.files[0];
     if (!selectedFile) return;
@@ -80,38 +80,38 @@ const MusicUploadDialog = ({ open, onClose, onSuccess }) => {
 
     setFile(selectedFile);
     
-    // Загружаем метаданные
+    
     setLoadingMetadata(true);
     setError('');
     
     try {
-      // Создаем FormData для отправки файла на сервер
+      
       const formData = new FormData();
       formData.append('file', selectedFile);
       
-      // Запрос к API для извлечения метаданных
+      
       const response = await axios.post('/api/music/metadata', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
       
-      // Если успешно получили метаданные
+      
       if (response.data.success) {
         const metadata = response.data.metadata;
         
-        // Заполняем форму полученными данными
+        
         if (metadata.title) setTitle(metadata.title);
         if (metadata.artist) setArtist(metadata.artist);
         if (metadata.album) setAlbum(metadata.album);
         if (metadata.genre) setGenre(metadata.genre);
         if (metadata.duration) setDuration(metadata.duration);
         
-        // Если получили обложку, отображаем ее
+        
         if (metadata.cover_data) {
           setCoverPreview(metadata.cover_data);
           
-          // Преобразуем base64 в Blob для сохранения как файл
+          
           try {
             const base64Response = await fetch(metadata.cover_data);
             const blob = await base64Response.blob();
@@ -128,7 +128,7 @@ const MusicUploadDialog = ({ open, onClose, onSuccess }) => {
         
         console.log('Metadata extracted successfully:', metadata);
       } else {
-        // Создаем аудио элемент для получения длительности (запасной вариант)
+        
         const audioElement = new Audio();
         const objectUrl = URL.createObjectURL(selectedFile);
         
@@ -143,10 +143,10 @@ const MusicUploadDialog = ({ open, onClose, onSuccess }) => {
         
         audioElement.src = objectUrl;
         
-        // Извлекаем информацию из имени файла
-        let fileName = selectedFile.name.replace(/\.[^/.]+$/, ""); // удаляем расширение
         
-        // Если в имени файла есть тире или дефис, пробуем разделить на артиста и название
+        let fileName = selectedFile.name.replace(/\.[^/.]+$/, ""); 
+        
+        
         if (fileName.includes(" - ")) {
           const parts = fileName.split(" - ");
           setArtist(parts[0].trim());
@@ -159,7 +159,7 @@ const MusicUploadDialog = ({ open, onClose, onSuccess }) => {
       console.error('Ошибка при получении метаданных:', error);
       setError('Не удалось получить метаданные из файла');
       
-      // Запасной вариант - извлекаем хотя бы длительность и имя
+      
       try {
         const audioElement = new Audio();
         const objectUrl = URL.createObjectURL(selectedFile);
@@ -187,7 +187,7 @@ const MusicUploadDialog = ({ open, onClose, onSuccess }) => {
     }
   };
 
-  // Обработчик загрузки обложки
+  
   const handleCoverChange = (event) => {
     const selectedFile = event.target.files[0];
     if (!selectedFile) return;
@@ -201,7 +201,7 @@ const MusicUploadDialog = ({ open, onClose, onSuccess }) => {
     setCoverPreview(URL.createObjectURL(selectedFile));
   };
 
-  // Отправка формы
+  
   const handleSubmit = async () => {
     if (!file) {
       setError('Выберите аудиофайл');

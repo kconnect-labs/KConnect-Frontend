@@ -33,10 +33,10 @@ import DateRangeIcon from '@mui/icons-material/DateRange';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 
-// Define API_URL for relative paths (empty string)
+
 const API_URL = '';
 
-// Styled components
+
 const LeaderboardContainer = styled(Container)(({ theme }) => ({
   marginTop: theme.spacing(4),
   marginBottom: theme.spacing(8),
@@ -149,7 +149,7 @@ const DateRangeChip = styled(Chip)(({ theme }) => ({
   }
 }));
 
-// Helper function to format date
+
 const formatDateForDisplay = (dateString) => {
   if (!dateString) return '';
   const date = new Date(dateString);
@@ -182,7 +182,7 @@ const LeaderboardPage = () => {
           setUserPosition(response.data.current_user.position);
           setUserScore(response.data.current_user.score);
           
-          // Set date range if available
+          
           if (response.data.date_range) {
             setDateRange(response.data.date_range);
           } else {
@@ -205,12 +205,12 @@ const LeaderboardPage = () => {
     setTimePeriod(newValue);
   };
 
-  // Helper to format score
+  
   const formatScore = (score) => {
     return new Intl.NumberFormat('ru-RU').format(score);
   };
 
-  // Get date range display text based on time period
+  
   const getDateRangeText = () => {
     if (!dateRange) {
       if (timePeriod === 'all_time') {
@@ -225,7 +225,7 @@ const LeaderboardPage = () => {
     return `${startDate} — ${endDate}`;
   };
 
-  // Get date range icon based on time period
+  
   const getDateRangeIcon = () => {
     return timePeriod === 'week' ? <DateRangeIcon /> : <CalendarMonthIcon />;
   };

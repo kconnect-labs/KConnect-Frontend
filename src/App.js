@@ -13,23 +13,24 @@ import { PostDetailProvider } from './context/PostDetailContext';
 import RegisterChannel from './pages/Auth/RegisterChannel';
 import { ErrorBoundary } from 'react-error-boundary';
 import ChannelsPage from './pages/Main/ChannelsPage';
+import MusicPlayerCore from './components/MusicPlayerCore';
 
-// RequireAuth component for protected routes
+
 const RequireAuth = ({ children }) => {
   const { isAuthenticated, loading } = useContext(AuthContext);
   const location = useLocation();
   
-  // If still loading auth state, show nothing to prevent flash of redirect
+  
   if (loading) {
     return null;
   }
   
-  // If authenticated, render the protected route
+  
   if (isAuthenticated) {
     return children;
   }
   
-  // If not authenticated, redirect to login with return path
+  
   return (
     <Navigate 
       to="/login" 
@@ -39,14 +40,14 @@ const RequireAuth = ({ children }) => {
   );
 };
 
-// Страницы с ленивой загрузкой для оптимизации производительности
+
 const Login = lazy(() => import('./pages/Auth/Login'));
 const Register = lazy(() => import('./pages/Auth/Register'));
 const RegisterProfile = lazy(() => import('./pages/Auth/RegisterProfile'));
 const EmailConfirmation = lazy(() => import('./pages/Auth/EmailConfirmation'));
 const ElementAuth = lazy(() => import('./pages/Auth/ElementAuth'));
 
-// Ленивая загрузка основных компонентов
+
 const MainLayout = lazy(() => import('./components/Layout/MainLayout'));
 const ProfilePage = lazy(() => import('./pages/User/ProfilePage'));
 const MainPage = lazy(() => import('./pages/Main/MainPage'));
@@ -65,19 +66,19 @@ const MorePage = lazy(() => import('./pages/Main/MorePage'));
 const NotFound = lazy(() => import('./pages/Info/NotFound'));
 const AdminPage = lazy(() => import('./pages/Admin/AdminPage'));
 const ModeratorPage = lazy(() => import('./pages/Admin/ModeratorPage'));
-// const MessengerPage = lazy(() => import('./pages/Messenger/MessengerPage'));
+
 const SharePreviewTest = lazy(() => import('./components/SharePreviewTest'));
 const BadgeShopPage = lazy(() => import('./pages/Economic/BadgeShopPage'));
 const BalancePage = lazy(() => import('./pages/Economic/BalancePage'));
 const SimpleApiDocsPage = lazy(() => import('./pages/Info/SimpleApiDocsPage'));
 const SubPlanes = lazy(() => import('./pages/Economic/SubPlanes'));
-// const ClickerPage = lazy(() => import('./pages/MiniGames/ClickerPage'));
+
 const MiniGamesPage = lazy(() => import('./pages/MiniGames/MiniGamesPage'));
 const CupsGamePage = lazy(() => import('./pages/MiniGames/CupsGamePage'));
 const LuckyNumberGame = lazy(() => import('./pages/MiniGames/LuckyNumberGame'));
 const AboutPage = lazy(() => import('./pages/Info/AboutPage'));
 
-// Создание контекста для темы
+
 export const ThemeSettingsContext = React.createContext({
   themeSettings: {
     mode: 'dark',
@@ -87,7 +88,7 @@ export const ThemeSettingsContext = React.createContext({
   updateThemeSettings: () => {}
 });
 
-// Fallback для Suspense - показывается во время загрузки компонентов
+
 const SuspenseFallback = () => {
   const theme = useTheme();
   
@@ -114,12 +115,12 @@ const SuspenseFallback = () => {
   );
 };
 
-// Обертка для анимации перехода между страницами
+
 const PageTransition = ({ children }) => {
   return children;
 };
 
-// Индикатор загрузки приложения
+
 const LoadingIndicator = () => {
   const theme = useTheme();
   
@@ -163,18 +164,18 @@ const LoadingIndicator = () => {
   );
 };
 
-// Проверяем, находимся ли мы на поддомене about
+
 const isAboutSubdomain = () => {
   const hostname = window.location.hostname;
   return hostname === 'about.k-connect.ru';
 };
 
-// Правка для компонента AboutRoute - сделать его максимально простым
+
 const AboutRoute = () => {
   return <AboutPage />;
 };
 
-// Компонент для обработки ошибок UI
+
 const ErrorFallback = ({ error, resetErrorBoundary }) => {
   return (
     <Box sx={{ 
@@ -202,21 +203,21 @@ const ErrorFallback = ({ error, resetErrorBoundary }) => {
   );
 };
 
-// Компонент для статичного отображения контента (общий для всех страниц)
+
 const AppRoutes = () => {
   const { user, isAuthenticated, loading, checkAuth, error, setUser } = useContext(AuthContext);
   const location = useLocation();
   const theme = useTheme();
   
-  // Get the background location from location state
+  
   const background = location.state && location.state.background;
   
-  // Используем useTransition для улучшения отзывчивости UI
+  
   const [isPending, startTransition] = useTransition();
   
-  // Проверяем авторизацию только один раз при монтировании и не делаем это на странице логина
+  
   useEffect(() => {
-    // Страницы входа и регистрации - не проверяем авторизацию автоматически
+    
     const isAuthPage = ['/login', '/register', '/register/profile', '/confirm-email', '/auth_elem', '/about'].some(
       path => location.pathname.startsWith(path)
     );
@@ -224,11 +225,11 @@ const AppRoutes = () => {
     const hasSavedLoginError = !!localStorage.getItem('login_error');
     const authSuccessFlag = localStorage.getItem('auth_success') === 'true';
     
-    // Если был успешный вход и пользователь перенаправлен на главную, очищаем флаг
+    
     if (authSuccessFlag && location.pathname === '/') {
       console.log('Обнаружен флаг успешной авторизации, применяем сессию');
       localStorage.removeItem('auth_success');
-      // Принудительно проверяем состояние авторизации
+      
       startTransition(() => {
         checkAuth(true);
       });
@@ -238,7 +239,7 @@ const AppRoutes = () => {
     if (!isAuthPage && !error && !hasSavedLoginError) {
       console.log('Проверка авторизации при загрузке страницы...');
       const initAuth = async () => {
-        // Используем startTransition для плавного обновления UI
+        
         startTransition(() => {
           checkAuth(true);
         });
@@ -252,18 +253,18 @@ const AppRoutes = () => {
     } else if (hasSavedLoginError) {
       console.log('Пропускаем проверку авторизации из-за наличия сохраненной ошибки входа');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]); // Зависимость от пути страницы
+    
+  }, [location.pathname]); 
   
-  // ПРОСТАЯ ЛОГИКА: Только на /login и /register показываем формы логина
-  // На всех остальных страницах показываем основной контент
+  
+  
   const currentPath = location.pathname;
   const isLoginPage = currentPath === '/login';
   const isRegisterPage = currentPath === '/register';
   const isElementAuthPage = currentPath.startsWith('/auth_elem') || currentPath === '/element-auth';
   
-  // Отображаем адаптированную страницу логина/регистрации только если пользователь
-  // специально перешел на эти страницы
+  
+  
   if (isLoginPage || isRegisterPage) {
     return (
       <Box sx={{ minHeight: '100vh', background: theme.palette.background.default, display: 'flex', flexDirection: 'column' }}>
@@ -278,7 +279,7 @@ const AppRoutes = () => {
     );
   }
   
-  // Для страниц Element Auth показываем только компонент авторизации без основного layout
+  
   if (isElementAuthPage) {
     return (
       <Box sx={{ minHeight: '100vh', background: theme.palette.background.default, display: 'flex', flexDirection: 'column' }}>
@@ -292,7 +293,7 @@ const AppRoutes = () => {
     );
   }
   
-  // Главный компонент Routes
+  
   return (
     <MainLayout>
       <PageTransition>
@@ -339,7 +340,7 @@ const AppRoutes = () => {
           <Route path="/minigames/cups" element={isAuthenticated ? <CupsGamePage /> : <Navigate to="/login" replace />} />
           <Route path="/minigames/lucky-number" element={isAuthenticated ? <LuckyNumberGame /> : <Navigate to="/login" replace />} />
           <Route path="/balance" element={isAuthenticated ? <BalancePage /> : <Navigate to="/login" replace />} />
-          <Route path="/api-docs" element={isAuthenticated ? <SimpleApiDocsPage /> : <Navigate to="/login" replace />} />
+          {/* <Route path="/api-docs" element={isAuthenticated ? <SimpleApiDocsPage /> : <Navigate to="/login" replace />} /> */}
           <Route path="/sub-planes" element={isAuthenticated ? <SubPlanes /> : <Navigate to="/login" replace />} />
           <Route path="/channels" element={<RequireAuth><ChannelsPage /></RequireAuth>} />
           <Route path="*" element={<NotFound />} />
@@ -362,12 +363,12 @@ const AppRoutes = () => {
   );
 };
 
-// Мемоизированный AppRoutes для предотвращения лишних перерисовок
+
 const MemoizedAppRoutes = React.memo(AppRoutes);
 
-// Preload required images for music player
+
 const preloadMusicImages = () => {
-  // Paths to check - try both with and without /static prefix
+  
   const basePaths = [
     '/static/uploads/system',
     '/uploads/system'
@@ -381,7 +382,7 @@ const preloadMusicImages = () => {
     'playlist_placeholder.jpg'
   ];
   
-  // Try all combinations of paths
+  
   basePaths.forEach(basePath => {
     imageFiles.forEach(file => {
       const path = `${basePath}/${file}`;
@@ -394,7 +395,7 @@ const preloadMusicImages = () => {
   });
 };
 
-// Создаем компонент DefaultSEO для установки дефолтных SEO-метаданных
+
 const DefaultSEO = () => {
   return (
     <SEO 
@@ -435,53 +436,53 @@ function App() {
     };
   });
   
-  // Determine if we're on about subdomain
+  
   const onAboutSubdomain = useMemo(() => isAboutSubdomain(), []);
   
-  // Preload images when app starts
+  
   useEffect(() => {
     preloadMusicImages();
   }, []);
 
-  // Function to calculate contrast color (black or white) based on background
+  
   const getContrastTextColor = (hexColor) => {
-    // Dark mode should always have white text on components
+    
     if (themeSettings.mode === 'dark') {
       return '#FFFFFF';
     }
     
-    // For light mode, calculate based on background color
-    // Handle empty or invalid values
+    
+    
     if (!hexColor || typeof hexColor !== 'string') {
-      return '#000000'; // Default to black for light mode
+      return '#000000'; 
     }
     
-    // Remove the # if present
+    
     const color = hexColor.charAt(0) === '#' ? hexColor.substring(1) : hexColor;
     
-    // Handle invalid hex values
+    
     if (!/^[0-9A-Fa-f]{6}$/.test(color)) {
       console.warn('Invalid hex color provided to getContrastTextColor:', hexColor);
       return '#000000';
     }
     
-    // Convert to RGB
+    
     const r = parseInt(color.substr(0, 2), 16);
     const g = parseInt(color.substr(2, 2), 16);
     const b = parseInt(color.substr(4, 2), 16);
     
-    // Calculate relative luminance (per WCAG 2.0)
+    
     const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
     
-    // Return black for light colors, white for dark ones
+    
     return luminance > 0.6 ? '#000000' : '#FFFFFF';
   };
 
-  // Загрузка настроек темы из сервера
+  
   const loadThemeSettings = async (forceDefault = false) => {
     try {
       if (forceDefault) {
-        // Use default settings
+        
         const defaultSettings = {
           background_color: '#131313',
           container_color: '#1A1A1A',
@@ -501,7 +502,7 @@ function App() {
       }
     } catch (error) {
       console.error('Error loading theme settings:', error);
-      // Fallback to default settings on error
+      
       applyThemeSettings({
         background_color: '#131313',
         container_color: '#1A1A1A',
@@ -514,9 +515,9 @@ function App() {
     }
   };
 
-  // Function to apply theme settings
+  
   const applyThemeSettings = (settings) => {
-    // Extract background colors for each UI element
+    
     const backgroundColor = settings.background_color || '#131313';
     const containerColor = settings.container_color || '#1A1A1A';
     const headerColor = settings.header_color || settings.container_color || '#1A1A1A';
@@ -525,14 +526,14 @@ function App() {
     const welcomeBubbleColor = settings.welcome_bubble_color || '#131313';
     const primaryColor = settings.avatar_border_color || '#D0BCFF';
 
-    // Calculate contrast text colors
+    
     const backgroundTextColor = getContrastTextColor(backgroundColor);
     const containerTextColor = getContrastTextColor(containerColor);
     const headerTextColor = getContrastTextColor(headerColor);
     const contentTextColor = getContrastTextColor(contentColor);
     const bottomNavTextColor = getContrastTextColor(bottomNavColor);
 
-    // Update theme settings state with text colors explicitly included
+    
     updateThemeSettings({
       backgroundColor: backgroundColor,
       paperColor: containerColor,
@@ -547,7 +548,7 @@ function App() {
       backgroundTextColor: backgroundTextColor
     });
     
-    // Apply settings to CSS variables
+    
     document.documentElement.style.setProperty('--background-color', backgroundColor);
     document.documentElement.style.setProperty('--container-color', containerColor);
     document.documentElement.style.setProperty('--header-color', headerColor);
@@ -556,14 +557,14 @@ function App() {
     document.documentElement.style.setProperty('--welcome-bubble-color', welcomeBubbleColor);
     document.documentElement.style.setProperty('--avatar-border-color', primaryColor);
     
-    // Apply text colors
+    
     document.documentElement.style.setProperty('--background-text-color', backgroundTextColor);
     document.documentElement.style.setProperty('--container-text-color', containerTextColor);
     document.documentElement.style.setProperty('--header-text-color', headerTextColor);
     document.documentElement.style.setProperty('--content-text-color', contentTextColor);
     document.documentElement.style.setProperty('--bottom-nav-text-color', bottomNavTextColor);
     
-    // Set accent colors
+    
     document.documentElement.style.setProperty('--primary', primaryColor);
     document.documentElement.style.setProperty('--primary-light', primaryColor);
     document.documentElement.style.setProperty('--primary-dark', primaryColor);
@@ -582,29 +583,29 @@ function App() {
     });
   };
   
-  // Hook to Auth context to detect login/logout
+  
   const authContextValue = useContext(AuthContext) || {};
   
-  // Watch for auth state changes to load or reset theme settings
+  
   useEffect(() => {
     if (authContextValue.isAuthenticated) {
-      // User logged in - load their theme settings
+      
       loadThemeSettings();
     } else if (!authContextValue.loading) {
-      // User logged out and not in loading state - reset to defaults
+      
       loadThemeSettings(true);
     }
   }, [authContextValue.isAuthenticated, authContextValue.loading]);
   
-  // Функция для обновления настроек темы
+  
   const updateThemeSettings = (newSettings) => {
     setThemeSettings(prev => {
       const updated = { ...prev, ...newSettings };
       
-      // When theme settings are updated, save to localStorage
+      
       if (newSettings.mode) {
         localStorage.setItem('theme', newSettings.mode);
-        localStorage.setItem('themeMode', newSettings.mode); // Save to additional key for persistence
+        localStorage.setItem('themeMode', newSettings.mode); 
       }
       if (newSettings.backgroundColor) localStorage.setItem('backgroundColor', newSettings.backgroundColor);
       if (newSettings.paperColor) localStorage.setItem('paperColor', newSettings.paperColor);
@@ -618,7 +619,7 @@ function App() {
     });
   };
 
-  // Создаем тему на основе настроек
+  
   const theme = useMemo(() => {
     const themeObj = createTheme({
       palette: {
@@ -666,13 +667,13 @@ function App() {
         h6: { fontSize: '1rem', fontWeight: 500 },
       },
       shape: {
-        borderRadius: 12, // Скругление для всех элементов 12px
+        borderRadius: 12, 
       },
       components: {
         MuiButton: {
           styleOverrides: {
             root: {
-              borderRadius: '12px', // Скругление для кнопок
+              borderRadius: '12px', 
               textTransform: 'none',
               fontWeight: 500,
             },
@@ -690,7 +691,7 @@ function App() {
         MuiCard: {
           styleOverrides: {
             root: {
-              borderRadius: '15px', // Скругление для карточек
+              borderRadius: '15px', 
               overflow: 'hidden',
               backgroundColor: themeSettings.contentColor || themeSettings.paperColor || '#1A1A1A',
             },
@@ -699,7 +700,7 @@ function App() {
         MuiPaper: {
           styleOverrides: {
             root: {
-              borderRadius: '12px', // Скругление для Paper
+              borderRadius: '12px', 
               backgroundColor: themeSettings.paperColor || '#1A1A1A',
             },
           },
@@ -742,7 +743,7 @@ function App() {
           styleOverrides: {
             root: {
               '& .MuiOutlinedInput-root': {
-                borderRadius: '10px', // Скругление для текстовых полей
+                borderRadius: '10px', 
                 '& fieldset': {
                   borderColor: themeSettings.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
                 },
@@ -750,13 +751,13 @@ function App() {
                   borderColor: themeSettings.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)',
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: themeSettings.primaryColor || '#D0BCFF', // Основной цвет для обводки при фокусе
+                  borderColor: themeSettings.primaryColor || '#D0BCFF', 
                 },
               },
               '& .MuiInputLabel-root': {
                 color: themeSettings.mode === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)',
                 '&.Mui-focused': {
-                  color: themeSettings.primaryColor || '#D0BCFF', // Основной цвет для лейбла при фокусе
+                  color: themeSettings.primaryColor || '#D0BCFF', 
                 },
               },
             },
@@ -767,24 +768,24 @@ function App() {
     return themeObj;
   }, [themeSettings]);
 
-  // Оптимизация для контекста темы
+  
   const themeContextValue = useMemo(() => ({
     themeSettings,
     updateThemeSettings,
     loadThemeSettings
   }), [themeSettings]);
 
-  // Быстрый прямой доступ к публичным страницам (about, rules, и т.д.)
+  
   const location = useLocation();
   const currentPath = location.pathname;
   
-  // Быстрый прямой доступ к публичным страницам (about, rules, и т.д.)
+  
   const isPublicPage = currentPath === '/about' || 
                         currentPath === '/rules' || 
                         currentPath === '/privacy-policy' || 
                         currentPath === '/terms-of-service';
   
-  // Публичные страницы доступны без авторизации
+  
   if (isPublicPage) {
     let PublicPage;
     
@@ -810,7 +811,7 @@ function App() {
     );
   }
   
-  // Упрощенный рендеринг для поддомена
+  
   if (onAboutSubdomain) {
     return (
       <ErrorBoundary FallbackComponent={ErrorFallback}>
@@ -837,16 +838,16 @@ function App() {
     );
   }
 
-  // Explicitly save theme mode to ensure it persists
+  
   useEffect(() => {
-    // Make sure themeMode is always saved, regardless of where the mode came from
+    
     localStorage.setItem('themeMode', themeSettings.mode);
   }, [themeSettings.mode]);
 
-  // Ensure theme consistency by checking localStorage on each render
+  
   useEffect(() => {
     const savedThemeMode = localStorage.getItem('themeMode');
-    // If mode in state doesn't match localStorage, update it
+    
     if (savedThemeMode && savedThemeMode !== themeSettings.mode) {
       console.log('Theme mode mismatch, restoring from localStorage');
       updateThemeSettings({ mode: savedThemeMode });
@@ -871,6 +872,7 @@ function App() {
                     <Suspense fallback={<LoadingIndicator />}>
                       <DefaultSEO />
                       <AppRoutes />
+                      <MusicPlayerCore />
                     </Suspense>
                   </Box>
                 </ErrorBoundary>

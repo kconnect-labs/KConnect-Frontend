@@ -21,8 +21,8 @@ const SEO = ({
   type = 'website',
   meta = {},
 }) => {
-  // Создаем абсолютный URL для изображения, если он относительный
-  const imageUrl = !image ? '/icon-512.png' : // Устанавливаем дефолтное изображение, если image не передан
+  
+  const imageUrl = !image ? '/icon-512.png' : 
                   typeof image === 'string' && image.startsWith('http') ? image : 
                   `${window.location.origin}${(typeof image === 'string' && image.startsWith('/')) ? '' : '/'}${image}`;
 

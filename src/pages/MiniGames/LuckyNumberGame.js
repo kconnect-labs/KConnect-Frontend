@@ -26,7 +26,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
-// Icons
+
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
@@ -34,7 +34,7 @@ import CasinoIcon from '@mui/icons-material/Casino';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TimerIcon from '@mui/icons-material/Timer';
 
-// Стилизованные компоненты
+
 const GameContainer = styled(Box)(({ theme }) => ({
   minHeight: '80vh',
   display: 'flex',
@@ -254,7 +254,7 @@ const LuckyNumberGame = () => {
   const [countdown, setCountdown] = useState(0);
 
   useEffect(() => {
-    // Загружаем данные о балансе пользователя при монтировании компонента
+    
     const fetchBalance = async () => {
       try {
         const response = await axios.get('/api/user/points');
@@ -291,14 +291,14 @@ const LuckyNumberGame = () => {
     try {
       setLoading(true);
       
-      // Для тестирования без API создаем имитацию
+      
       setGameActive(true);
       setSelectedNumber(null);
       setResult(null);
       setGameResult(null);
       setResultMessage('');
       
-      // Обновляем баланс
+      
       const response = await axios.get('/api/user/points');
       if (response?.data?.points !== undefined) {
         setBalance(parseInt(response.data.points));
@@ -319,19 +319,19 @@ const LuckyNumberGame = () => {
     try {
       setSpinning(true);
       
-      // Имитация вращения барабана с обратным отсчетом
+      
       setCountdown(3);
       
-      // Имитация запроса к API для тестирования
-      // В реальном сценарии тут был бы запрос к API
       
-      // Обратный отсчет
+      
+      
+      
       for (let i = 3; i > 0; i--) {
         setCountdown(i);
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
       
-      // Имитация результата
+      
       const randomResult = Math.floor(Math.random() * 10);
       const win = randomResult === selectedNumber;
       
@@ -341,7 +341,7 @@ const LuckyNumberGame = () => {
         `Выпало число ${randomResult}! Вы выиграли ${betAmount * multiplier} баллов!` : 
         `Выпало число ${randomResult}. Вы выбрали ${selectedNumber}. Попробуйте еще раз!`);
       
-      // Обновляем баланс
+      
       const response = await axios.get('/api/user/points');
       if (response?.data?.points !== undefined) {
         setBalance(parseInt(response.data.points));
@@ -421,7 +421,7 @@ const LuckyNumberGame = () => {
     <Container maxWidth="md" sx={{ 
       mt: { xs: 2, sm: 3 }, 
       mb: { xs: 10, sm: 8 },
-      pb: { xs: '80px', sm: 0 } // Add padding for mobile bottom navigation
+      pb: { xs: '80px', sm: 0 } 
     }}>
       <GameHeader>
         <Box sx={{ zIndex: 1, position: 'relative' }}>

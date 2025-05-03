@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react';
 import {
   Box,
   Typography,
@@ -34,7 +34,7 @@ import { useContext } from 'react';
 import FullScreenPlayer from './FullScreenPlayer';
 import { extractDominantColor } from '../../utils/imageUtils';
 
-// Используем styled для создания более красивых компонентов с сильными эффектами блюра
+
 const PlayerContainer = styled(Paper)(({ theme, covercolor }) => ({
   position: 'fixed',
   bottom: 20,
@@ -72,7 +72,7 @@ const PlayerContainer = styled(Paper)(({ theme, covercolor }) => ({
   },
 }));
 
-// Стилизованный компонент для прокручивающегося текста
+
 const MarqueeText = styled(Typography)(({ isactive }) => ({
   whiteSpace: 'nowrap',
   overflow: 'hidden',
@@ -137,10 +137,26 @@ const VolumeSlider = styled(Slider)(({ theme, covercolor }) => ({
   },
 }));
 
-// Функция для извлечения цвета из обложки
+
+const ControlButton = memo(({ icon, onClick, ariaLabel, color = 'white', active = false, activeColor = null }) => (
+  <IconButton
+    onClick={onClick}
+    aria-label={ariaLabel}
+    sx={{
+      color: active ? (activeColor || 'primary.main') : color,
+      '&:hover': {
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      }
+    }}
+  >
+    {icon}
+  </IconButton>
+));
+
+
 const getColorFromImage = extractDominantColor;
 
-const DesktopPlayer = () => {
+const DesktopPlayer = memo(() => {
   const theme = useTheme();
   const { themeSettings } = useContext(ThemeSettingsContext);
   const { 
@@ -156,22 +172,24 @@ const DesktopPlayer = () => {
     volume,
     setVolume,
     isMuted,
-    toggleMute
+    toggleMute,
+    getCurrentTimeRaw,
+    getDurationRaw,
+    audioRef
   } = useMusic();
 
   const [seekValue, setSeekValue] = useState(0);
   const [isSeeking, setIsSeeking] = useState(false);
   const [fullScreenOpen, setFullScreenOpen] = useState(false);
-  const [repeatMode, setRepeatMode] = useState('off'); // 'off', 'all', 'one'
+  const [repeatMode, setRepeatMode] = useState('off'); 
   const [shuffleMode, setShuffleMode] = useState(false);
   const [dominantColor, setDominantColor] = useState(null);
   const [isPlayerHovered, setIsPlayerHovered] = useState(false);
   
-  // Состояния для анимации текста
+  
   const [titleOverflowing, setTitleOverflowing] = useState(false);
   const [artistOverflowing, setArtistOverflowing] = useState(false);
   
-  // Add state for share notification
   const [shareSnackbar, setShareSnackbar] = useState({
     open: false,
     message: '',
@@ -181,8 +199,67 @@ const DesktopPlayer = () => {
   const progressRef = useRef(null);
   const titleRef = useRef(null);
   const artistRef = useRef(null);
+  const lastUpdateRef = useRef(0);
+  const currentSeekValueRef = useRef(0);
   
-  // Проверяем, переполняется ли текст
+  const formattedCurrentTime = useMemo(() => {
+    
+    const globalTimeElement = document.getElementById('global-player-current-time');
+    if (globalTimeElement && globalTimeElement.textContent) {
+      return globalTimeElement.textContent;
+    }
+    
+    return formatDuration(typeof getCurrentTimeRaw === 'function' ? getCurrentTimeRaw() : 0);
+  }, [getCurrentTimeRaw]);
+  
+  const formattedDuration = useMemo(() => {
+    
+    const globalDurationElement = document.getElementById('global-player-duration');
+    if (globalDurationElement && globalDurationElement.textContent) {
+      return globalDurationElement.textContent;
+    }
+    
+    return formatDuration(typeof getDurationRaw === 'function' ? getDurationRaw() : 0);
+  }, [getDurationRaw]);
+
+  
+  useEffect(() => {
+    
+    const updateDisplays = () => {
+      
+      const currentTimeEl = document.getElementById('desktop-current-time');
+      const durationEl = document.getElementById('desktop-duration');
+      
+      
+      if (currentTimeEl && window.audioTiming) {
+        currentTimeEl.textContent = window.audioTiming.formattedCurrentTime;
+      }
+      
+      if (durationEl && window.audioTiming) {
+        durationEl.textContent = window.audioTiming.formattedDuration;
+      }
+      
+      
+      if (!isSeeking && window.audioTiming) {
+        setSeekValue(window.audioTiming.progress);
+      }
+      
+      
+      requestAnimationFrame(updateDisplays);
+    };
+    
+    
+    const animationId = requestAnimationFrame(updateDisplays);
+    
+    
+    return () => cancelAnimationFrame(animationId);
+  }, [isSeeking]);
+
+  
+  useEffect(() => {
+    
+  }, []);
+  
   useEffect(() => {
     if (titleRef.current) {
       setTitleOverflowing(titleRef.current.scrollWidth > titleRef.current.clientWidth);
@@ -192,7 +269,6 @@ const DesktopPlayer = () => {
     }
   }, [currentTrack]);
   
-  // Эффект для извлечения цвета из обложки при смене трека
   useEffect(() => {
     if (currentTrack?.cover_path) {
       getColorFromImage(
@@ -205,47 +281,65 @@ const DesktopPlayer = () => {
   }, [currentTrack]);
   
   useEffect(() => {
-    if (!isSeeking && duration > 0) {
-      setSeekValue((currentTime / duration) * 100);
+    
+    const handleProgressUpdate = (event) => {
+      if (!isSeeking && event.detail && event.detail.progressPercent) {
+        setSeekValue(event.detail.progressPercent);
+        currentSeekValueRef.current = event.detail.progressPercent;
+      }
+    };
+    
+    document.addEventListener('audioProgressUpdate', handleProgressUpdate);
+    
+    
+    if (window.currentAudioProgress !== undefined && !isSeeking) {
+      setSeekValue(window.currentAudioProgress);
+      currentSeekValueRef.current = window.currentAudioProgress;
     }
-  }, [currentTime, duration, isSeeking]);
+    
+    return () => {
+      document.removeEventListener('audioProgressUpdate', handleProgressUpdate);
+    };
+  }, [isSeeking]);
   
   if (!currentTrack) {
     return null;
   }
   
-  const handleSeekStart = () => {
+  const handleSeekStart = useCallback(() => {
     setIsSeeking(true);
-  };
+  }, []);
   
-  const handleSeekChange = (_, newValue) => {
+  const handleSeekChange = useCallback((_, newValue) => {
     setSeekValue(newValue);
-  };
+  }, []);
   
-  const handleSeekEnd = (_, newValue) => {
-    seekTo((newValue * duration) / 100);
+  const handleSeekEnd = useCallback((_, newValue) => {
+    const durationValue = typeof getDurationRaw === 'function' ? getDurationRaw() : duration;
+    seekTo((newValue * durationValue) / 100);
     setIsSeeking(false);
-  };
+  }, [seekTo, getDurationRaw, duration]);
 
-  const handleClickProgress = (event) => {
-    if (progressRef.current && duration) {
+  const handleClickProgress = useCallback((event) => {
+    if (progressRef.current) {
+      const durationValue = typeof getDurationRaw === 'function' ? getDurationRaw() : duration;
       const rect = progressRef.current.getBoundingClientRect();
       const position = ((event.clientX - rect.left) / rect.width) * 100;
       const clampedPosition = Math.min(Math.max(position, 0), 100);
       setSeekValue(clampedPosition);
-      seekTo((clampedPosition * duration) / 100);
+      seekTo((clampedPosition * durationValue) / 100);
     }
-  };
+  }, [progressRef, seekTo, getDurationRaw, duration]);
 
-  const toggleLikeTrack = (e) => {
-    // Stop event propagation to prevent other handlers
+  const toggleLikeTrack = useCallback((e) => {
+    
     if (e) {
       e.stopPropagation();
     }
     
     if (currentTrack?.id) {
       try {
-        // Create animation effect on the button
+        
         const likeButton = e.currentTarget;
         likeButton.style.transform = 'scale(1.3)';
         setTimeout(() => {
@@ -255,7 +349,7 @@ const DesktopPlayer = () => {
         likeTrack(currentTrack.id)
           .then(result => {
             console.log("Like result:", result);
-            // Success animation could be added here if needed
+            
           })
           .catch(error => {
             console.error("Error liking track:", error);
@@ -264,19 +358,17 @@ const DesktopPlayer = () => {
         console.error("Error liking track:", error);
       }
     }
-  };
+  }, [currentTrack, likeTrack]);
 
-  // Add share function
-  const handleShare = () => {
+  const handleShare = useCallback(() => {
     if (!currentTrack) return;
     
     const trackLink = `${window.location.origin}/music?track=${currentTrack.id}`;
     
-    // Просто копируем ссылку в буфер обмена вместо использования Web Share API
     copyToClipboard(trackLink);
-  };
+  }, [currentTrack]);
   
-  const copyToClipboard = (text) => {
+  const copyToClipboard = useCallback((text) => {
     navigator.clipboard.writeText(text)
       .then(() => {
         setShareSnackbar({
@@ -293,385 +385,250 @@ const DesktopPlayer = () => {
           severity: 'error'
         });
       });
-  };
+  }, []);
   
-  // Handle closing the snackbar
-  const handleCloseSnackbar = (event, reason) => {
+  const handleCloseSnackbar = useCallback((event, reason) => {
     if (reason === 'clickaway') {
       return;
     }
-    setShareSnackbar({...shareSnackbar, open: false});
-  };
-
-  const handleVolumeChange = (_, newValue) => {
+    setShareSnackbar(prev => ({ ...prev, open: false }));
+  }, []);
+  
+  const handleVolumeChange = useCallback((_, newValue) => {
     setVolume(newValue / 100);
-  };
-
-  const handleRepeatClick = () => {
-    if (repeatMode === 'off') setRepeatMode('all');
-    else if (repeatMode === 'all') setRepeatMode('one');
-    else setRepeatMode('off');
-  };
-
-  const handleShuffleClick = () => {
-    setShuffleMode(!shuffleMode);
-  };
-
-  const openFullScreen = () => {
+  }, [setVolume]);
+  
+  const handleRepeatClick = useCallback(() => {
+    
+    setRepeatMode(prev => {
+      if (prev === 'off') return 'all';
+      if (prev === 'all') return 'one';
+      return 'off';
+    });
+  }, []);
+  
+  const handleShuffleClick = useCallback(() => {
+    setShuffleMode(prev => !prev);
+  }, []);
+  
+  const openFullScreen = useCallback(() => {
     setFullScreenOpen(true);
-  };
-
-  const closeFullScreen = () => {
+  }, []);
+  
+  const closeFullScreen = useCallback(() => {
     setFullScreenOpen(false);
-  };
+  }, []);
+  
+  const getVolumeIcon = useMemo(() => {
+    if (isMuted || volume === 0) return <VolumeOff />;
+    if (volume < 0.5) return <VolumeDown />;
+    return <VolumeUp />;
+  }, [isMuted, volume]);
+  
+  const getRepeatIcon = useMemo(() => {
+    if (repeatMode === 'one') return <RepeatOne />;
+    return <Repeat />;
+  }, [repeatMode]);
   
   return (
-    <>
+    <React.Fragment>
       <PlayerContainer 
         elevation={0} 
         covercolor={dominantColor}
         onMouseEnter={() => setIsPlayerHovered(true)}
         onMouseLeave={() => setIsPlayerHovered(false)}
       >
-        
-        <Box 
-          sx={{ 
-            display: 'flex', 
+        {/* Трек-информация */}
+        <Box
+          sx={{
+            display: 'flex',
             alignItems: 'center',
-            mr: 2,
-            minWidth: 140,
-            maxWidth: 200,
-            width: '20%',
-            flex: '0 0 auto',
-            position: 'relative',
-            zIndex: 1
+            width: '25%',
+            cursor: 'pointer',
           }}
+          onClick={openFullScreen}
         >
-          <Box 
-            sx={{ 
-              width: 45, 
-              height: 45, 
-              borderRadius: 1.5, 
-              overflow: 'hidden', 
-              mr: 1.5, 
-              flexShrink: 0,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-              cursor: 'pointer',
-              transition: 'transform 0.2s ease',
+          <Box
+            component="img"
+            src={currentTrack?.cover_path || '/static/uploads/system/album_placeholder.jpg'}
+            alt={currentTrack?.title || ''}
+            sx={{
+              width: 52,
+              height: 52,
+              borderRadius: 1.5,
+              objectFit: 'cover',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              marginRight: 1.5,
+              transition: 'all 0.3s ease',
               '&:hover': {
-                transform: 'scale(1.05)'
-              }
+                boxShadow: '0 0 15px rgba(255, 255, 255, 0.1)',
+              },
             }}
-            onClick={openFullScreen}
-          >
-            <img
-              src={currentTrack.cover_path || '/static/uploads/system/album_placeholder.jpg'}
-              alt={currentTrack.title}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          </Box>
+          />
           
-          <Box 
-            sx={{ 
-              overflow: 'hidden',
-              minWidth: 0,
-              flexGrow: 0,
-              flexShrink: 1,
-              cursor: 'pointer'
-            }}
-            onClick={openFullScreen}
-          >
+          <Box sx={{ overflow: 'hidden', maxWidth: '70%' }}>
             <MarqueeText
+              variant="body1"
               ref={titleRef}
-              variant="subtitle1"
+              fontWeight="medium"
               isactive={titleOverflowing && isPlayerHovered ? 'true' : 'false'}
-              data-text={currentTrack.title}
-              sx={{
-                fontWeight: 'medium',
+              data-text={currentTrack?.title || 'Unknown Title'}
+              sx={{ 
                 fontSize: '0.95rem',
-                lineHeight: 1.2,
-                color: 'white',
-                textShadow: '0 1px 2px rgba(0,0,0,0.2)'
+                color: 'white'
               }}
             >
-              {currentTrack.title}
+              {currentTrack?.title || 'Unknown Title'}
             </MarqueeText>
             
             <MarqueeText
-              ref={artistRef}
               variant="body2"
+              ref={artistRef}
               isactive={artistOverflowing && isPlayerHovered ? 'true' : 'false'}
-              data-text={currentTrack.artist}
-              sx={{
+              data-text={currentTrack?.artist || 'Unknown Artist'}
+              sx={{ 
                 fontSize: '0.8rem',
-                lineHeight: 1.2,
-                color: 'rgba(255,255,255,0.7)',
-                mt: 0.5
+                opacity: 0.7,
+                color: 'white'
               }}
             >
-              {currentTrack.artist}
+              {currentTrack?.artist || 'Unknown Artist'}
             </MarqueeText>
-          </Box>
-          
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton 
-              size="small" 
-              onClick={(e) => toggleLikeTrack(e)}
-              sx={{ 
-                color: currentTrack.is_liked ? 'error.main' : 'rgba(255,255,255,0.8)',
-                ml: 1,
-                p: 0.8,
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  color: currentTrack.is_liked ? 'error.light' : '#ff6b6b',
-                  transform: 'scale(1.1)'
-                }
-              }}
-            >
-              {currentTrack.is_liked ? (
-                <Favorite fontSize="small" 
-                  sx={{ 
-                    animation: 'heartRadiate 0.6s ease-out',
-                    '@keyframes heartRadiate': {
-                      '0%': { transform: 'scale(1)' },
-                      '15%': { transform: 'scale(0.85)' },
-                      '30%': { transform: 'scale(1.4)', filter: 'drop-shadow(0 0 6px rgba(255,82,82,0.7))' },
-                      '50%': { transform: 'scale(1.2)', filter: 'drop-shadow(0 0 4px rgba(255,82,82,0.5))' },
-                      '75%': { transform: 'scale(1.1)', filter: 'drop-shadow(0 0 2px rgba(255,82,82,0.3))' },
-                      '100%': { transform: 'scale(1)' }
-                    }
-                  }} 
-                />
-              ) : (
-                <FavoriteBorder 
-                  fontSize="small" 
-                  sx={{
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      animation: 'pulseOutline 1.8s infinite ease-in-out',
-                      '@keyframes pulseOutline': {
-                        '0%': { transform: 'scale(1)', opacity: 1 },
-                        '50%': { transform: 'scale(1.15)', opacity: 0.7 },
-                        '100%': { transform: 'scale(1)', opacity: 1 }
-                      }
-                    }
-                  }}
-                />
-              )}
-            </IconButton>
-            
-            
-            <IconButton 
-              size="small" 
-              onClick={handleShare}
-              sx={{ 
-                color: 'rgba(255,255,255,0.8)',
-                ml: 0.5,
-                p: 0.8,
-                '&:hover': {
-                  color: 'white'
-                }
-              }}
-            >
-              <Share fontSize="small" />
-            </IconButton>
           </Box>
         </Box>
         
-        
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            flexDirection: 'column',
-            flexGrow: 1,
-            mx: 2,
-            minWidth: 300,
-            position: 'relative',
-            zIndex: 1
-          }}
-        >
-          
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center',
-            justifyContent: 'center',
-            mb: 0.5
-          }}>
-            <IconButton 
-              size="small" 
+        {/* Кнопки управления и прогресс */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, mx: 2 }}>
+          {/* Кнопки */}
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 0.8 }}>
+            <ControlButton
+              icon={<Shuffle />}
               onClick={handleShuffleClick}
-              sx={{ 
-                color: shuffleMode ? (dominantColor ? `rgba(${dominantColor}, 1)` : theme.palette.primary.main) : 'rgba(255,255,255,0.6)',
-                mx: 0.5,
-                p: 0.6,
-                transition: 'color 0.3s ease'
-              }}
-            >
-              <Shuffle sx={{ fontSize: 16 }} />
-            </IconButton>
+              ariaLabel="Toggle shuffle"
+              active={shuffleMode}
+            />
             
-            <IconButton 
+            <ControlButton
+              icon={<SkipPrevious />}
               onClick={prevTrack}
-              size="small"
-              sx={{ 
-                mx: 1,
-                color: 'white',
-                transition: 'transform 0.2s ease',
-                p: 0.6,
-                '&:hover': {
-                  transform: 'scale(1.1)'
-                }
-              }}
-            >
-              <SkipPrevious sx={{ fontSize: 20 }} />
-            </IconButton>
+              ariaLabel="Previous track"
+            />
             
-            <IconButton
+            <ControlButton
+              icon={isPlaying ? <Pause /> : <PlayArrow />}
               onClick={togglePlay}
-              size="small"
-              sx={{
-                mx: 1,
-                bgcolor: dominantColor ? `rgba(${dominantColor}, 0.9)` : 'primary.main',
-                color: 'white',
-                p: 1,
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  bgcolor: dominantColor ? `rgba(${dominantColor}, 1)` : 'primary.dark',
-                  transform: 'scale(1.08)'
-                }
-              }}
-            >
-              {isPlaying ? <Pause style={{ fontSize: 20 }} /> : <PlayArrow style={{ fontSize: 20 }} />}
-            </IconButton>
+              ariaLabel={isPlaying ? "Pause" : "Play"}
+              active={true}
+              activeColor={dominantColor ? `rgba(${dominantColor}, 1)` : null}
+            />
             
-            <IconButton 
+            <ControlButton
+              icon={<SkipNext />}
               onClick={nextTrack}
-              size="small"
-              sx={{ 
-                mx: 1,
-                color: 'white',
-                p: 0.6,
-                transition: 'transform 0.2s ease',
-                '&:hover': {
-                  transform: 'scale(1.1)'
-                }
-              }}
-            >
-              <SkipNext sx={{ fontSize: 20 }} />
-            </IconButton>
+              ariaLabel="Next track"
+            />
             
-            <IconButton 
-              size="small" 
+            <ControlButton
+              icon={getRepeatIcon}
               onClick={handleRepeatClick}
-              sx={{ 
-                color: repeatMode !== 'off' ? (dominantColor ? `rgba(${dominantColor}, 1)` : theme.palette.primary.main) : 'rgba(255,255,255,0.6)',
-                mx: 0.5,
-                p: 0.6,
-                transition: 'color 0.3s ease'
-              }}
-            >
-              {repeatMode === 'one' ? <RepeatOne sx={{ fontSize: 16 }} /> : <Repeat sx={{ fontSize: 16 }} />}
-            </IconButton>
+              ariaLabel="Toggle repeat mode"
+              active={repeatMode !== 'off'}
+            />
           </Box>
           
-          
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="caption" sx={{ mr: 1, minWidth: 32, textAlign: 'right', color: 'rgba(255,255,255,0.8)', fontSize: '0.65rem' }}>
-              {formatDuration(currentTime)}
+          {/* Прогресс */}
+          <Box sx={{ display: 'flex', alignItems: 'center', px: 1 }}>
+            <Typography 
+              id="desktop-current-time"
+              variant="caption" 
+              sx={{ color: 'rgba(255, 255, 255, 0.7)', mr: 1, minWidth: 35, textAlign: 'center' }}
+            >
+              {formattedCurrentTime}
             </Typography>
             
-            <Box sx={{ flexGrow: 1, my: 0.2 }}>
+            <Box
+              ref={progressRef}
+              onClick={handleClickProgress}
+              sx={{ flexGrow: 1 }}
+            >
               <TrackSlider
-                ref={progressRef}
+                covercolor={dominantColor}
                 value={seekValue}
                 onChange={handleSeekChange}
-                onChangeCommitted={handleSeekEnd}
                 onMouseDown={handleSeekStart}
+                onChangeCommitted={handleSeekEnd}
                 onTouchStart={handleSeekStart}
-                onClick={handleClickProgress}
-                aria-label="time-indicator"
-                covercolor={dominantColor}
+                aria-labelledby="track-progress-slider"
+                step={0.01}
               />
             </Box>
             
-            <Typography variant="caption" sx={{ ml: 1, minWidth: 32, color: 'rgba(255,255,255,0.8)', fontSize: '0.65rem' }}>
-              {formatDuration(duration)}
+            <Typography 
+              id="desktop-duration"
+              variant="caption" 
+              sx={{ color: 'rgba(255, 255, 255, 0.7)', ml: 1, minWidth: 35, textAlign: 'center' }}
+            >
+              {formattedDuration}
             </Typography>
           </Box>
         </Box>
         
-        
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center',
-          ml: 1,
-          flexShrink: 0,
-          position: 'relative',
-          zIndex: 1
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', ml: 1 }}>
-            <IconButton 
-              size="small" 
-              onClick={toggleMute}
-              sx={{ color: 'rgba(255,255,255,0.8)', p: 0.8 }}
-            >
-              {isMuted || volume === 0 ? 
-                <VolumeOff sx={{ fontSize: 18 }} /> : 
-                volume < 0.5 ? 
-                  <VolumeDown sx={{ fontSize: 18 }} /> : 
-                  <VolumeUp sx={{ fontSize: 18 }} />
-              }
-            </IconButton>
-            
-            <VolumeSlider
-              value={isMuted ? 0 : volume * 100}
-              onChange={handleVolumeChange}
-              aria-label="volume-slider"
-              sx={{ ml: 1 }}
-              covercolor={dominantColor}
-              size="small"
-            />
-          </Box>
+        {/* Дополнительные кнопки */}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', width: '25%' }}>
+          <ControlButton
+            icon={currentTrack?.is_liked ? <Favorite /> : <FavoriteBorder />}
+            onClick={toggleLikeTrack}
+            ariaLabel="Toggle like"
+            active={currentTrack?.is_liked}
+            activeColor="error.main"
+          />
           
-          <IconButton 
+          <ControlButton
+            icon={<Share />}
+            onClick={handleShare}
+            ariaLabel="Share track"
+          />
+          
+          <ControlButton
+            icon={getVolumeIcon}
+            onClick={toggleMute}
+            ariaLabel="Toggle mute"
+          />
+          
+          <VolumeSlider
+            covercolor={dominantColor}
+            value={isMuted ? 0 : volume * 100}
+            onChange={handleVolumeChange}
+            aria-labelledby="volume-slider"
+            sx={{ mx: 1 }}
+          />
+          
+          <ControlButton
+            icon={<ExpandMore />}
             onClick={openFullScreen}
-            size="small"
-            sx={{ 
-              ml: 1.5,
-              color: 'rgba(255,255,255,0.8)',
-              p: 0.8,
-              '&:hover': {
-                color: 'white'
-              }
-            }}
-          >
-            <ExpandMore sx={{ fontSize: 20 }} />
-          </IconButton>
+            ariaLabel="Open fullscreen player"
+          />
         </Box>
       </PlayerContainer>
-
       
-      <Snackbar 
-        open={shareSnackbar.open} 
-        autoHideDuration={4000} 
+      <FullScreenPlayer open={fullScreenOpen} onClose={closeFullScreen} />
+      
+      <Snackbar
+        open={shareSnackbar.open}
+        autoHideDuration={3000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        sx={{ zIndex: 999999999 }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity={shareSnackbar.severity} 
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={shareSnackbar.severity}
           sx={{ width: '100%' }}
-          elevation={6}
-          variant="filled"
         >
           {shareSnackbar.message}
         </Alert>
       </Snackbar>
-
-      <FullScreenPlayer open={fullScreenOpen} onClose={closeFullScreen} />
-    </>
+    </React.Fragment>
   );
-};
+});
 
 export default DesktopPlayer; 

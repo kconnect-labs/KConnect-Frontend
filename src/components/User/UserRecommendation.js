@@ -27,19 +27,19 @@ const UserRecommendation = ({ user }) => {
   const handleFollow = async (e) => {
     e.stopPropagation();
     try {
-      // Делаем локальное обновление перед ответом сервера для лучшей отзывчивости
+      
       setFollowing(!following);
       
       const response = await axios.post(`/api/profile/follow`, {
         followed_id: user.id
       });
       
-      // Update based on actual server response
+      
       if (response.data && response.data.success) {
         setFollowing(response.data.is_following);
       }
     } catch (error) {
-      // В случае ошибки восстанавливаем предыдущее состояние
+      
       setFollowing(following);
       console.error('Error toggling follow:', error);
     }

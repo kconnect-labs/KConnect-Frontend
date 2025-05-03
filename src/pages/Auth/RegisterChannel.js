@@ -269,6 +269,7 @@ const RegisterChannel = () => {
                   '& .MuiAlert-icon': { alignItems: 'center' }
                 }}
               >
+                {error}
               </Alert>
             )}
             <form onSubmit={handleSubmit} style={{ width: '100%' }}>

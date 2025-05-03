@@ -28,7 +28,7 @@ import NumbersIcon from '@mui/icons-material/Numbers';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import SEO from '../../components/SEO';
 
-// Компоненты стилизации
+
 const PageHeader = styled(Box)(({ theme }) => ({
   textAlign: 'center',
   marginBottom: theme.spacing(4),
@@ -75,6 +75,8 @@ const GameCardMedia = styled(CardMedia)(({ theme }) => ({
   height: 200,
   transition: 'transform 0.3s ease',
   position: 'relative',
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
   '&::after': {
     content: '""',
     position: 'absolute',
@@ -133,11 +135,53 @@ const InfoButton = styled(Button)(({ theme }) => ({
   }
 }));
 
-// Заглушки для изображений игр до загрузки с сервера
+
 const DEFAULT_GAME_IMAGES = {
-  cups: '/static/img/minigames/cups.jpg',
-  dice: '/static/img/minigames/dice.jpg',
-  lucky: '/static/img/minigames/lucky-number.jpg'
+  cups: '/static/img/minigames/cups.png',
+  dice: '/static/img/minigames/dice.png',
+  lucky: '/static/img/minigames/lucky-number.png',
+  clicker: '/static/img/minigames/clicker.png'
+};
+
+const generateBackgroundStyles = (gameId, color) => {
+  const colors = {
+    cups: '#e91e63',
+    'lucky-number': '#9c27b0',
+    clicker: '#3f51b5',
+    dice: '#ff9800',
+    'coming-soon': '#607d8b'
+  };
+  
+  const gameColor = color || colors[gameId] || '#3f51b5';
+  
+  return {
+    backgroundImage: `linear-gradient(45deg, ${alpha(gameColor, 0.8)}, ${alpha(gameColor, 0.4)})`,
+    backgroundSize: 'cover',
+    position: 'relative',
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundImage: 'radial-gradient(circle at top right, rgba(255,255,255,0.2), transparent 70%)',
+      opacity: 0.8,
+      zIndex: 1
+    },
+    '&::after': {
+      content: '""',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z\' fill=\'rgba(255,255,255,0.1)\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")',
+      backgroundSize: '150px',
+      opacity: 0.5,
+      zIndex: 2
+    }
+  };
 };
 
 const MiniGamesPage = () => {
@@ -147,7 +191,7 @@ const MiniGamesPage = () => {
   const [loading, setLoading] = useState(false);
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // Запрос баланса пользователя
+  
   useEffect(() => {
     const fetchBalance = async () => {
       try {
@@ -167,14 +211,13 @@ const MiniGamesPage = () => {
     fetchBalance();
   }, []);
 
-  // Форматирование чисел
+  
   const formatNumber = (num) => {
     return parseInt(num).toLocaleString();
   };
 
-  // Список доступных мини-игр
+  
   const games = [
-
     {
       id: 'cups',
       name: 'Три чаши',
@@ -200,7 +243,8 @@ const MiniGamesPage = () => {
       icon: <TouchAppIcon sx={{ fontSize: 40 }} />,
       color: '#3f51b5',
       path: '/clicker',
-      available: true
+      available: false,
+      seasonEnded: true
     },
     {
       id: 'dice',
@@ -226,13 +270,12 @@ const MiniGamesPage = () => {
     if (path) navigate(path);
   };
 
-  // Проверяем работоспособность API перед переходом
+  
   const checkAPIandNavigate = async (game) => {
     if (!game.available || !game.path) return;
     
     try {
       setLoading(true);
-      // Убираем проверку API, просто переходим на страницу игры
       navigate(game.path);
     } catch (error) {
       console.error(`Ошибка при переходе к ${game.name}:`, error);
@@ -247,150 +290,139 @@ const MiniGamesPage = () => {
       mt: { xs: 1, sm: 2 }, 
       mb: { xs: 10, sm: 10 },
       px: { xs: 1, sm: 2 },
-      pb: { xs: '80px', sm: 0 } // Added padding for mobile bottom navigation
+      pb: { xs: '80px', sm: 0 } 
     }}>
-      <SEO title="Мини-игры | К-Коннект" description="Играйте в мини-игры и зарабатывайте баллы" />
+      <SEO 
+        title="Мини-игры | K-Connect"
+        description="Играйте в увлекательные мини-игры и зарабатывайте баллы!"
+      />
       
-      <Paper 
-        elevation={0}
-        sx={{ 
-          p: { xs: 2, sm: 3 }, 
-          mb: 3, 
-          borderRadius: 4,
-          background: `linear-gradient(145deg, ${theme.palette.primary.main}20, ${theme.palette.primary.main}05)`,
-          backdropFilter: 'blur(10px)',
-          border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-        }}
-      >
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: { xs: 'column', sm: 'row' },
-          alignItems: { xs: 'flex-start', sm: 'center' }, 
-          justifyContent: 'space-between',
-          gap: { xs: 2, sm: 0 }
-        }}>
-          <Box>
-            <Typography variant="h4" component="h1" sx={{ 
-              fontWeight: 700, 
-              mb: 1,
-              fontSize: { xs: '1.75rem', sm: '2.125rem' }
-            }}>
+      <PageHeader>
+        <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', position: 'relative', zIndex: 1 }}>
               Мини-игры
+        </Typography>
+        <Typography variant="subtitle1" color="text.secondary" sx={{ position: 'relative', zIndex: 1 }}>
+          Играйте и зарабатывайте баллы в наших увлекательных мини-играх!
+        </Typography>
+      </PageHeader>
+
+      <BalanceCard>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%', position: 'relative', zIndex: 1 }}>
+          <CreditCardIcon sx={{ fontSize: 40, color: 'secondary.light' }} />
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="subtitle2" color="text.secondary">
+              Ваш баланс
             </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Играйте в игры и зарабатывайте баллы
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+              {loading ? (
+                <CircularProgress size={20} />
+              ) : (
+                userBalance !== null ? `${formatNumber(userBalance)} баллов` : 'Загрузка...'
+              )}
             </Typography>
           </Box>
-
+          <Button 
+            variant="contained" 
+            color="secondary"
+            onClick={() => navigate('/balance')}
+            sx={{ 
+              borderRadius: 2,
+              textTransform: 'none',
+              minWidth: 120
+            }}
+          >
+            Пополнить
+          </Button>
         </Box>
-      </Paper>
+      </BalanceCard>
 
-      <Grid container spacing={isMobile ? 2 : 3}>
-        {games.map((game) => {
-            const isClicker = game.id === 'clicker';
-            return (
+      <Grid container spacing={3}>
+        {games.map((game) => (
           <Grid item xs={12} sm={6} md={4} key={game.id}>
-            <Card 
-              sx={{ 
-                height: '100%', 
-                display: 'flex', 
-                flexDirection: 'column',
-                borderRadius: { xs: 3, sm: 4 },
-                transition: 'all 0.3s ease',
-                boxShadow: '0 6px 12px rgba(0,0,0,0.1)',
-                overflow: 'visible',
+            <GameCard>
+              <Box sx={{ 
+                height: 200, 
+                width: '100%', 
+                ...generateBackgroundStyles(game.id, game.color),
                 position: 'relative',
-                '&:hover': {
-                  transform: 'translateY(-5px)',
-                  boxShadow: '0 12px 20px rgba(0,0,0,0.15)',
-                },
-                opacity: game.available ? 1 : 0.7
-              }}
-            >
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: -15,
-                  left: 20,
-                  zIndex: 2,
-                  width: 60,
-                  height: 60,
-                  borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: game.color,
-                  boxShadow: `0 4px 10px ${alpha(game.color, 0.5)}`,
-                  border: `3px solid ${theme.palette.background.paper}`,
-                  color: '#fff',
-                  transition: 'all 0.3s ease',
-                }}
-              >
-                {game.icon}
+              }}>
+                {(game.id === 'cups' || game.id === 'dice' || game.id === 'lucky-number' || game.id === 'clicker') && (
+                  <Box 
+                    component="img"
+                    src={DEFAULT_GAME_IMAGES[game.id === 'lucky-number' ? 'lucky' : game.id]}
+                    alt={game.name}
+                    sx={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      maxWidth: '80%',
+                      maxHeight: '80%',
+                      objectFit: 'contain',
+                      zIndex: 10
+                    }}
+                  />
+                )}
               </Box>
-              
-              <Box
-                sx={{
-                  height: { xs: 140, sm: 160 },
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: alpha(game.color, 0.1),
-                  transition: 'all 0.5s ease',
-                  filter: game.available ? 'none' : 'grayscale(50%)',
-                  overflow: 'hidden',
-                  borderRadius: '48px',
-                }}
-              >
-                <Box
-                  sx={{
-                    fontSize: 100,
-                    color: alpha(game.color, 0.2),
-                    transform: 'scale(1.5)',
-                    opacity: 0.7,
-                  }}
-                >
+              <CardContent sx={{ flexGrow: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
+                  <Box sx={{ 
+                    p: 1, 
+                    borderRadius: 2, 
+                    bgcolor: alpha(game.color, 0.1),
+                    color: game.color,
+                    display: 'flex'
+                  }}>
                   {game.icon}
                 </Box>
-              </Box>
-              
-              <CardContent sx={{ flexGrow: 1, pt: 3, pb: 3 }}>
-                <Typography gutterBottom variant="h5" component="h2" sx={{ 
-                  fontWeight: 600,
-                  fontSize: { xs: '1.25rem', sm: '1.5rem' }
-                }}>
+                  <Box>
+                    <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>
                   {game.name}
                 </Typography>
+                    {!game.available && (
+                      <Chip 
+                        label={game.seasonEnded ? "Сезон закончился" : "Скоро"} 
+                        size="small" 
+                        color={game.seasonEnded ? "error" : "secondary"}
+                        sx={{ mt: 0.5 }}
+                      />
+                    )}
+                  </Box>
+                </Box>
                 
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary" paragraph>
                   {game.description}
                 </Typography>
                 
-                <Button
+                <Box sx={{ display: 'flex', gap: 1, mt: 'auto' }}>
+                  <PlayButton
                     variant="contained"
                     fullWidth
-                    disabled={isClicker || loading}
+                    disabled={!game.available}
                     onClick={() => checkAPIandNavigate(game)}
                     sx={{
-                      mt: 'auto',
-                      backgroundColor: game.color,
-                      '&:hover': {
-                        backgroundColor: alpha(game.color, 0.8),
-                      },
-                      borderRadius: 2,
-                      fontWeight: 600,
-                      height: { xs: 40, sm: 44 },
-                      textTransform: 'none',
-                      fontSize: { xs: '0.875rem', sm: '1rem' }
+                      opacity: game.seasonEnded ? 0.6 : 1
                     }}
                   >
-                    {isClicker ? 'Сезон закончился' : (loading ? 'Загрузка...' : (game.available ? 'Играть' : 'Скоро'))}
+                    {game.seasonEnded ? 'Сезон закончился' : (game.available ? 'Играть' : 'Скоро')}
+                  </PlayButton>
+                  
+                  {game.available && !game.seasonEnded && false && (
+                    <Button
+                      variant="outlined"
+                      onClick={() => handleGameClick(game.path)}
+                    >
+                      Инфо
                 </Button>
+                  )}
+                </Box>
               </CardContent>
-            </Card>
+            </GameCard>
           </Grid>
-        );
-      })}
+        ))}
       </Grid>
     </Container>
   );

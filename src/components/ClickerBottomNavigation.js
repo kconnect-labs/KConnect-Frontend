@@ -10,7 +10,7 @@ const ClickerBottomNavigation = ({ activeSection, onSectionChange }) => {
   const theme = useTheme();
   const { themeSettings } = useContext(ThemeSettingsContext);
 
-  // Set background color from theme settings
+  
   const bottomNavColor = themeSettings.bottomNavColor || theme.palette.background.paper;
   const borderColor = theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
 
@@ -34,7 +34,7 @@ const ClickerBottomNavigation = ({ activeSection, onSectionChange }) => {
         value={activeSection}
         onChange={(event, newValue) => {
           if (newValue === 'back') {
-            navigate(-1); // Go back
+            navigate(-1); 
           } else {
             onSectionChange(newValue);
           }

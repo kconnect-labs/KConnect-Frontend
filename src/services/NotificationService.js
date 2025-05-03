@@ -6,7 +6,7 @@ class NotificationService {
     const maxRetries = 2;
     
     // NOTE: We're using a hardcoded VAPID key for compatibility
-    // If this key ever changes, make sure to update it on the backend as well in FIXED_VAPID_KEYS
+    
     const hardcodedVapidKey = 'BHHDcCL7H0Aze-qL17sSPR-x4PcDrvConfsgy-BaRmEkSBq8QyacSjt-EDocdQbxvEwplO0GbBVFe0UWmM0HKp0=';
     console.log(`Using hardcoded VAPID key: ${hardcodedVapidKey.substring(0, 10)}...`);
     return hardcodedVapidKey;
@@ -16,7 +16,7 @@ class NotificationService {
   async registerServiceWorker() {
     if ('serviceWorker' in navigator) {
       try {
-        // First check if we already have a registration for our push service worker
+        
         const existingRegistrations = await navigator.serviceWorker.getRegistrations();
         for (const reg of existingRegistrations) {
           if (reg.active && reg.active.scriptURL.includes('service-worker.js')) {
@@ -25,15 +25,15 @@ class NotificationService {
           }
         }
         
-        // If not found, register a new one
+        
         console.log('Registering push service worker...');
         const registration = await navigator.serviceWorker.register('/service-worker.js', {
           scope: '/',
-          updateViaCache: 'none' // Avoid caching the service worker
+          updateViaCache: 'none' 
         });
         console.log('Push service worker registered with scope:', registration.scope);
         
-        // Force activation
+        
         if (registration.installing) {
           console.log('Service worker installing...');
           registration.installing.addEventListener('statechange', e => {
@@ -57,7 +57,7 @@ class NotificationService {
     try {
       console.log('Starting push notification subscription process...');
       
-      // Check permission first
+      
       if (Notification.permission !== 'granted') {
         console.log('Notification permission not granted, requesting permission...');
         const permission = await this.requestNotificationPermission();
@@ -66,7 +66,7 @@ class NotificationService {
         }
       }
       
-      // Get the service worker registration
+      
       let registration;
       if (navigator.serviceWorker.controller) {
         console.log('Service worker already controlling, getting ready state...');
@@ -80,18 +80,18 @@ class NotificationService {
       const vapidPublicKey = await this.getVapidPublicKey();
       console.log('VAPID public key retrieved, length:', vapidPublicKey.length);
       
-      // Convert base64 string to Uint8Array
+      
       const convertedVapidKey = this.urlBase64ToUint8Array(vapidPublicKey);
       console.log('Converted VAPID key to Uint8Array, length:', convertedVapidKey.length);
       
-      // Check for existing subscription
+      
       console.log('Checking for existing push subscriptions...');
       let subscription = await registration.pushManager.getSubscription();
       
       if (subscription) {
         console.log('Existing subscription found:', subscription.endpoint);
         
-        // Compare with new applicationServerKey - if different, we need to resubscribe
+        
         const currentServerKey = new Uint8Array(subscription.options.applicationServerKey);
         let needsResubscribe = currentServerKey.length !== convertedVapidKey.length;
         
@@ -111,7 +111,7 @@ class NotificationService {
         }
       }
       
-      // If no subscription exists, create one
+      
       if (!subscription) {
         console.log('Creating new push subscription...');
         try {
@@ -126,7 +126,7 @@ class NotificationService {
         }
       }
       
-      // Save subscription on server
+      
       console.log('Saving subscription to server...');
       await this.saveSubscription(subscription);
       console.log('Subscription successfully saved to server');
@@ -149,12 +149,12 @@ class NotificationService {
       const subscription = await registration.pushManager.getSubscription();
       
       if (subscription) {
-        // Сначала удаляем с сервера
+        
         await axios.delete('/api/notifications/push-subscription', {
           data: { endpoint: subscription.endpoint }
         });
         
-        // Потом отписываемся локально
+        
         await subscription.unsubscribe();
         
         return true;
@@ -170,11 +170,11 @@ class NotificationService {
     try {
       const subscriptionJSON = subscription.toJSON();
       
-      // Добавляем параметр отправки тестового уведомления
+      
       const payload = {
         ...subscriptionJSON,
-        send_test: true,  // Всегда отправляем тестовое уведомление при сохранении подписки
-        platform: this.getBrowserInfo(), // Добавляем информацию о браузере
+        send_test: true,  
+        platform: this.getBrowserInfo(), 
         url: 'https://k-connect.ru'  // Всегда включаем параметр url вместо link
       };
       
@@ -234,16 +234,12 @@ class NotificationService {
   // Helper to parse notification links and content
   parseNotificationLink(link) {
     if (!link) return { type: 'unknown' };
-    
-    // Profile link - /profile/username
     if (link.startsWith('/profile/')) {
       return {
         type: 'profile',
         username: link.split('/profile/')[1]
       };
     }
-    
-    // Post link with comment and reply - /post/1493?comment=2194&reply=822
     if (link.includes('?comment=') && link.includes('&reply=')) {
       const postId = link.split('/post/')[1].split('?')[0];
       const commentId = link.split('comment=')[1].split('&')[0];
@@ -256,8 +252,6 @@ class NotificationService {
         replyId
       };
     }
-    
-    // Post link with just comment - /post/1493?comment=2194
     if (link.includes('?comment=')) {
       const postId = link.split('/post/')[1].split('?')[0];
       const commentId = link.split('comment=')[1];
@@ -268,8 +262,6 @@ class NotificationService {
         commentId
       };
     }
-    
-    // Post link - /post/1500
     if (link.startsWith('/post/')) {
       const postId = link.split('/post/')[1];
       
@@ -281,8 +273,6 @@ class NotificationService {
     
     return { type: 'unknown' };
   }
-  
-  // Get content related to notification from server
   async fetchNotificationContent(notification) {
     try {
       if (!notification || !notification.link) {
@@ -293,7 +283,6 @@ class NotificationService {
       
       switch (linkInfo.type) {
         case 'post':
-          // Get post data
           try {
             const postResponse = await axios.get(`/api/posts/${linkInfo.postId}/preview`);
             if (postResponse.data && postResponse.data.success) {
@@ -308,7 +297,6 @@ class NotificationService {
           break;
           
         case 'comment':
-          // Get comment data
           try {
             const commentResponse = await axios.get(`/api/comments/${linkInfo.commentId}/preview`);
             if (commentResponse.data && commentResponse.data.success) {
@@ -323,7 +311,6 @@ class NotificationService {
           break;
           
         case 'reply':
-          // Get reply data
           try {
             const replyResponse = await axios.get(`/api/comments/${linkInfo.replyId}/preview`);
             if (replyResponse.data && replyResponse.data.success) {
@@ -344,9 +331,6 @@ class NotificationService {
       return notification;
     }
   }
-  
-  // Вспомогательная функция для преобразования VAPID-ключа из base64 в Uint8Array
-  // Метод работает со всеми браузерами, включая Safari/iOS
   urlBase64ToUint8Array(base64String) {
     if (!base64String) {
       console.error('Empty base64String provided to urlBase64ToUint8Array');
@@ -356,30 +340,20 @@ class NotificationService {
     console.log(`Converting VAPID key to Uint8Array. Input length: ${base64String.length}, browser: ${this.getBrowserInfo()}`);
     
     try {
-      // Ключ может быть с паддингом или без, с URL-safe или стандартными символами base64
-      // Заменяем URL-safe символы стандартными символами base64
       let base64 = base64String.replace(/-/g, '+').replace(/_/g, '/');
-      
-      // Добавляем паддинг если нужно (должно быть кратно 4)
       while (base64.length % 4 !== 0) {
         base64 += '=';
       }
       
       console.log(`Normalized base64 length: ${base64.length}`);
-      
-      // Декодируем base64
       const binaryStr = atob(base64);
       console.log(`Decoded binary string length: ${binaryStr.length}`);
-      
-      // Конвертируем в Uint8Array
       const outputArray = new Uint8Array(binaryStr.length);
       for (let i = 0; i < binaryStr.length; ++i) {
         outputArray[i] = binaryStr.charCodeAt(i);
       }
       
       console.log(`Final Uint8Array length: ${outputArray.length}`);
-      
-      // Специальная обработка для iOS/Safari (нужно 65 байт для P-256)
       const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       
@@ -393,8 +367,6 @@ class NotificationService {
       throw new Error(`Failed to convert VAPID key: ${error.message}`);
     }
   }
-  
-  // Send a test notification
   async sendTestNotification() {
     try {
       console.log('Sending test notification request...');

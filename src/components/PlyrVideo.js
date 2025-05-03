@@ -8,7 +8,7 @@ const PlyrVideo = ({ src, poster }) => {
 
   useEffect(() => {
     if (videoRef.current && !plyrInstance.current) {
-      // Инициализация Plyr с нужными настройками
+      
       plyrInstance.current = new Plyr(videoRef.current, {
         controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
         hideControls: false,
@@ -33,13 +33,13 @@ const PlyrVideo = ({ src, poster }) => {
         }
       });
       
-      // Установка акцентного цвета
+      
       const root = document.documentElement;
       root.style.setProperty('--plyr-color-main', '#8c54ff');
     }
 
     return () => {
-      // Очистка при размонтировании компонента
+      
       if (plyrInstance.current) {
         plyrInstance.current.destroy();
         plyrInstance.current = null;

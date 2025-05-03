@@ -30,7 +30,7 @@ import ReactMarkdown from 'react-markdown';
 import axios from 'axios';
 import { formatDate } from '../../utils/dateUtils';
 
-// Стилизованные компоненты
+
 const PostCard = styled(Card)(({ theme }) => ({
   marginBottom: theme.spacing(2),
   borderRadius: theme.spacing(1.5),
@@ -64,7 +64,7 @@ const PostContent = styled(CardContent)(({ theme }) => ({
 
 const PostMedia = styled(CardMedia)(({ theme }) => ({
   height: 0,
-  paddingTop: '56.25%', // 16:9
+  paddingTop: '56.25%', 
 }));
 
 const PostActions = styled(CardActions)(({ theme }) => ({
@@ -109,7 +109,7 @@ const MarkdownContent = styled('div')(({ theme }) => ({
   },
 }));
 
-// Компонент скелета для загрузки
+
 const PostSkeleton = () => (
   <Card sx={{ mb: 2, borderRadius: 3, boxShadow: 3 }}>
     <Box sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
@@ -132,23 +132,23 @@ const PostSkeleton = () => (
   </Card>
 );
 
-// Основной компонент списка постов
+
 const PostsList = ({ posts, loading, userAvatar, userName, userId, isCurrentUser, onPostsUpdate }) => {
   const [localPosts, setLocalPosts] = useState(posts || []);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState(null);
 
-  // Обновляем локальное состояние при изменении props
+  
   React.useEffect(() => {
     setLocalPosts(posts);
   }, [posts]);
 
-  // Обработка лайка поста
+  
   const handleLikeClick = async (postId, isLiked) => {
     try {
       const response = await axios.post(`/api/posts/${postId}/like`);
       if (response.data) {
-        // Обновляем локальное состояние
+        
         const updatedPosts = localPosts.map(post => {
           if (post.id === postId) {
             return {
@@ -166,7 +166,7 @@ const PostsList = ({ posts, loading, userAvatar, userName, userId, isCurrentUser
     }
   };
 
-  // Копирование ссылки на пост
+  
   const handleShareClick = (postId) => {
     const postUrl = `${window.location.origin}/post/${postId}`;
     navigator.clipboard.writeText(postUrl)
@@ -178,7 +178,7 @@ const PostsList = ({ posts, loading, userAvatar, userName, userId, isCurrentUser
       });
   };
 
-  // Удаление поста
+  
   const handleDeleteClick = (post) => {
     setPostToDelete(post);
     setDeleteDialogOpen(true);
@@ -190,11 +190,11 @@ const PostsList = ({ posts, loading, userAvatar, userName, userId, isCurrentUser
     try {
       await axios.delete(`/api/posts/${postToDelete.id}`);
       
-      // Удаляем пост из локального состояния
+      
       const updatedPosts = localPosts.filter(post => post.id !== postToDelete.id);
       setLocalPosts(updatedPosts);
       
-      // Уведомляем родительский компонент об обновлении
+      
       if (onPostsUpdate) {
         onPostsUpdate();
       }

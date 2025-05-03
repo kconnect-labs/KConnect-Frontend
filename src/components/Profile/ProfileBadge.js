@@ -11,10 +11,10 @@ import { Box, Typography } from '@mui/material';
 const ProfileBadge = ({ badgeData, gradientColors, textColor = '#ffffff' }) => {
   if (!badgeData || !badgeData.show) return null;
   
-  // Позиция бейджа (по умолчанию в правом верхнем углу)
+  
   const position = badgeData.position || { top: 10, right: 10 };
   
-  // Определяем фон (градиент или сплошной цвет)
+  
   let background;
   if (Array.isArray(gradientColors) && gradientColors.length >= 2) {
     background = `linear-gradient(45deg, ${gradientColors.join(', ')})`;

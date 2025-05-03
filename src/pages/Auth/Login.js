@@ -39,50 +39,50 @@ const Login = () => {
   const location = useLocation();
   const { login, isAuthenticated, error: contextError, checkAuth } = useContext(AuthContext);
 
-  // Проверяем наличие параметра redirectTo в URL или state
+  
   useEffect(() => {
-    // Проверяем state из location (если переход был через navigate)
+    
     const fromPath = location.state?.from;
     
-    // Проверяем URL-параметры для redirectTo
+    
     const params = new URLSearchParams(location.search);
     const redirectTo = params.get('redirectTo');
     
-    // Проверяем localStorage для сохраненного redirect_after_login
+    
     const savedRedirect = localStorage.getItem('redirect_after_login');
     
-    // Используем найденный путь для редиректа или '/' по умолчанию
+    
     if (redirectTo) {
       setRedirectPath(redirectTo);
     } else if (fromPath) {
       setRedirectPath(fromPath);
     } else if (savedRedirect) {
       setRedirectPath(savedRedirect);
-      // Очищаем сохраненный путь после использования
+      
       localStorage.removeItem('redirect_after_login');
     }
   }, [location]);
 
-  // Check immediately if user is already authenticated and redirect to home page
+  
   useEffect(() => {
     const checkAuthentication = async () => {
       try {
-        // Check if the session cookie exists
+        
         const hasSessionCookie = document.cookie.split(';').some(cookie => 
           cookie.trim().startsWith('kconnect_session=')
         );
         
-        // If session cookie exists, redirect to home immediately
+        
         if (hasSessionCookie) {
           console.log('Session cookie found, redirecting to saved path:', redirectPath);
           navigate(redirectPath, { replace: true });
           return;
         }
         
-        // Otherwise, check if user is already authenticated
+        
         await checkAuth();
         
-        // If authenticated, redirect to home page
+        
         if (isAuthenticated) {
           console.log('User already authenticated, redirecting to saved path:', redirectPath);
           navigate(redirectPath, { replace: true });
@@ -95,12 +95,12 @@ const Login = () => {
     checkAuthentication();
   }, [checkAuth, isAuthenticated, navigate, redirectPath]);
 
-  // Проверяем, есть ли сохраненное сообщение об ошибке при монтировании компонента
+  
   useEffect(() => {
     const savedError = localStorage.getItem('login_error');
     if (savedError) {
       try {
-        // Проверяем, является ли сохраненная ошибка JSON-объектом с информацией о бане
+        
         const parsedError = JSON.parse(savedError);
         if (parsedError.ban_info) {
           setBanInfo(parsedError.ban_info);
@@ -108,48 +108,48 @@ const Login = () => {
           setError(savedError);
         }
       } catch (e) {
-        // Если не JSON, просто устанавливаем как текст ошибки
+        
         setError(savedError);
       }
-      // Очищаем сохраненную ошибку после того, как отобразили её
+      
       localStorage.removeItem('login_error');
     }
   }, []);
 
-  // Обработка ошибок из контекста авторизации
+  
   useEffect(() => {
     if (contextError) {
       if (contextError.ban_info) {
-        // Если ошибка содержит информацию о бане
+        
         setBanInfo(contextError.ban_info);
-        // Сохраняем информацию о бане в localStorage
+        
         localStorage.setItem('login_error', JSON.stringify(contextError));
       } else {
         const errorMessage = contextError.details || contextError.message || 'Произошла ошибка при входе';
         setError(errorMessage);
-        // Сохраняем ошибку в localStorage на случай перезагрузки страницы
+        
         localStorage.setItem('login_error', errorMessage);
       }
     }
   }, [contextError]);
 
-  // Если пользователь уже авторизован, перенаправляем на сохраненный путь
-  // ТОЛЬКО если нет ошибок и это действительно успешная авторизация
+  
+  
   useEffect(() => {
-    // Перенаправление только если:
-    // 1. Пользователь авторизован 
-    // 2. Нет ошибок в контексте или компоненте
-    // 3. Не идет процесс загрузки
-    // 4. Нет информации о бане
+    
+    
+    
+    
+    
     if (isAuthenticated && !error && !contextError && !loading && !banInfo) {
       console.log('Успешная авторизация, перенаправляем на:', redirectPath);
-      // Очищаем возможные сохраненные ошибки перед редиректом
+      
       localStorage.removeItem('login_error');
       navigate(redirectPath, { replace: true });
     }
   }, [isAuthenticated, navigate, error, contextError, loading, banInfo, redirectPath]);
   
-  // Обрабатываем сообщение от окна авторизации Telegram
+  
   useEffect(() => {
     const handleTelegramAuthMessage = (event) => {
       if (event.data.type === 'telegram-auth-success') {
@@ -157,25 +157,25 @@ const Login = () => {
         setLoading(true);
         
         try {
-          // Сохраняем данные пользователя, если они есть
+          
           if (event.data.user) {
             localStorage.setItem('kconnect-user', JSON.stringify(event.data.user));
           }
           
-          // Устанавливаем флаг настройки профиля, если требуется
+          
           if (event.data.needs_profile_setup) {
             localStorage.setItem('k-connect-needs-profile-setup', 'true');
           } else {
             localStorage.removeItem('k-connect-needs-profile-setup');
           }
           
-          // Выполняем перенаправление основываясь на данных от сервера
+          
           if (event.data.needs_profile_setup) {
             navigate('/register/profile');
           } else if (event.data.redirect) {
             navigate(event.data.redirect);
           } else {
-            // Используем сохраненный путь или профиль по умолчанию
+            
             navigate(redirectPath !== '/' ? redirectPath : '/profile');
           }
         } catch (err) {
@@ -194,40 +194,40 @@ const Login = () => {
     };
   }, [navigate, redirectPath]);
 
-  // Обработчик для входа через Element
+  
   const handleElementLogin = () => {
-    // Настраиваем обработчик сообщений от Element
+    
     const elementAuthHandler = (event) => {
       try {
-        // Проверяем источник сообщения для безопасности
+        
         const elemPattern = /^https?:\/\/(.*\.)?elemsocial\.com(\/.*)?$/;
         if (!elemPattern.test(event.origin)) {
           console.warn("Получено сообщение с неизвестного источника:", event.origin);
           return;
         }
 
-        // Если это сообщение с токеном авторизации от Element
+        
         if (event.data && typeof event.data === 'string') {
           console.log("Получено сообщение от Element:", event.data);
           
-          // Удаляем обработчик, чтобы избежать утечек памяти
+          
           window.removeEventListener('message', elementAuthHandler);
           
           let token = null;
           
-          // Проверяем различные возможные форматы URL
+          
           if (event.data.includes('/auth_elem/')) {
             token = event.data.split('/auth_elem/')[1];
           } else if (event.data.includes('/auth/element/')) {
             token = event.data.split('/auth/element/')[1];
           } else if (event.data.includes('.')) {
-            // Предполагаем, что сообщение само является токеном
+            
             token = event.data;
           }
           
           if (token) {
             console.log("Извлечён токен авторизации Element:", token);
-            // Перенаправляем на прямой маршрут авторизации через Element
+            
             window.location.href = `/auth_elem/direct/${token}`;
           }
         }
@@ -236,19 +236,19 @@ const Login = () => {
       }
     };
 
-    // Добавляем обработчик событий сообщений
+    
     window.addEventListener('message', elementAuthHandler);
     
-    // Открываем страницу Element для авторизации
+    
     window.location.href = "https://elemsocial.com/connect_app/0195a00f-826a-7a34-85f1-45065c8c727d";
   };
   
-  // Функция для открытия окна авторизации через Telegram
+  
   const handleTelegramLogin = () => {
-    // Устанавливаем индикатор загрузки
+    
     setError('');
     
-    // Открываем новое окно по центру экрана
+    
     const width = 550;
     const height = 650;
     const left = window.screen.width / 2 - width / 2;
@@ -260,7 +260,7 @@ const Login = () => {
       `width=${width},height=${height},left=${left},top=${top}`
     );
     
-    // Проверяем, что окно успешно открылось
+    
     if (!telegramWindow || telegramWindow.closed || typeof telegramWindow.closed === 'undefined') {
       setError('Не удалось открыть окно авторизации. Пожалуйста, проверьте настройки блокировки всплывающих окон в вашем браузере.');
     }
@@ -269,9 +269,9 @@ const Login = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    setError(''); // Очищаем ошибку при изменении полей
-    setBanInfo(null); // Очищаем информацию о бане
-    localStorage.removeItem('login_error'); // Очищаем сохраненную ошибку
+    setError(''); 
+    setBanInfo(null); 
+    localStorage.removeItem('login_error'); 
   };
 
   const handleClickShowPassword = () => {
@@ -280,12 +280,12 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (loading) return; // Предотвращаем повторную отправку во время загрузки
+    if (loading) return; 
     
     setLoading(true);
     setError('');
     setBanInfo(null);
-    localStorage.removeItem('login_error'); // Очищаем предыдущие ошибки
+    localStorage.removeItem('login_error'); 
     
     try {
       const { usernameOrEmail, password } = formData;
@@ -298,21 +298,21 @@ const Login = () => {
         return;
       }
       
-      // Добавляем параметр preventRedirect: true, чтобы предотвратить автоматический редирект
+      
       const result = await login({
         usernameOrEmail,
         password,
         preventRedirect: false
       });
       
-      // Проверяем успешность входа или наличие ошибки
+      
       if (result && !result.success) {
         if (result.ban_info) {
-          // Если пользователь забанен, отображаем информацию о бане
+          
           setBanInfo(result.ban_info);
           localStorage.setItem('login_error', JSON.stringify(result));
         } else if (result.error) {
-          // Отображаем ошибку из результата
+          
           let errorMsg;
           if (result.error.includes('не верифицирован')) {
             errorMsg = 'Ваша почта не подтверждена. Пожалуйста, проверьте вашу электронную почту и перейдите по ссылке в письме для подтверждения аккаунта.';
@@ -321,25 +321,25 @@ const Login = () => {
           }
           
           setError(errorMsg);
-          // Сохраняем ошибку в localStorage для случая перезагрузки
+          
           localStorage.setItem('login_error', errorMsg);
         }
         
-        // Явно устанавливаем loading в false, чтобы гарантировать, что форма разблокирована
+        
         setLoading(false);
         
-        // Принудительно устанавливаем фокус на кнопку входа для лучшего UX
+        
         document.getElementById('login-button')?.focus();
         
-        // Предотвращаем автоматическое перенаправление при ошибке
+        
         return;
       }
       
-      // Если мы здесь, значит вход был успешным
-      // Очищаем любые сохраненные ошибки
+      
+      
       localStorage.removeItem('login_error');
       
-      // При успешном входе, редирект будет выполнен через useEffect
+      
     } catch (error) {
       const errorMsg = 'Произошла ошибка при обработке запроса. Пожалуйста, попробуйте снова.';
       setError(errorMsg);
@@ -349,7 +349,7 @@ const Login = () => {
     }
   };
 
-  // Format ban expiration date
+  
   const formatBanExpiration = (expirationDate) => {
     if (!expirationDate) return 'Неизвестно';
     
@@ -368,7 +368,7 @@ const Login = () => {
     }
   };
   
-  // Calculate time remaining in ban
+  
   const getBanTimeRemaining = (expirationDate) => {
     if (!expirationDate) return null;
     
@@ -394,7 +394,7 @@ const Login = () => {
     }
   };
 
-  // Если пользователь забанен, показываем специальное сообщение
+  
   if (banInfo) {
     return (
       <Container 

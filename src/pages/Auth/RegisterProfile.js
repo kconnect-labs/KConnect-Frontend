@@ -64,19 +64,19 @@ const RegisterProfile = ({ setUser }) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Проверяем размер файла (максимум 5MB)
+    
     if (file.size > 5 * 1024 * 1024) {
       setError('Размер файла не должен превышать 5MB');
       return;
     }
 
-    // Проверяем тип файла
+    
     if (!file.type.startsWith('image/')) {
       setError('Пожалуйста, выберите изображение');
       return;
     }
 
-    // Сохраняем файл в состоянии и создаем превью
+    
     setAvatar(file);
     setAvatarPreview(URL.createObjectURL(file));
     setError(null);
@@ -105,29 +105,29 @@ const RegisterProfile = ({ setUser }) => {
     setError('');
     
     try {
-      // Получаем chat_id из LocalStorage, если он там есть
+      
       const chatId = localStorage.getItem('k-connect-chat-id');
       
-      // Создаем FormData для отправки профиля и аватара
+      
       const profileFormData = new FormData();
       
-      // Добавляем все поля формы
+      
       Object.keys(formData).forEach(key => {
         profileFormData.append(key, formData[key]);
       });
       
-      // Если есть сохраненный chat_id и он отсутствует в formData, добавляем его
+      
       if (chatId && !formData.chat_id) {
         profileFormData.append('chat_id', chatId);
         console.log('Добавлен chat_id из localStorage:', chatId);
       }
       
-      // Если есть аватар, добавляем его
+      
       if (avatar) {
         profileFormData.append('photo', avatar);
       }
       
-      // Логируем все данные, которые отправляем
+      
       console.log('Отправка профиля:');
       for (let pair of profileFormData.entries()) {
         console.log(pair[0] + ': ' + pair[1]);
@@ -145,7 +145,7 @@ const RegisterProfile = ({ setUser }) => {
     } catch (err) {
       console.error("Error:", err);
       if (err.response && err.response.data && err.response.data.error) {
-        // Более понятное сообщение об ошибке для пользователя
+        
         const errorMsg = err.response.data.error;
         if (errorMsg.includes('chat_id is required')) {
           setError('Ошибка идентификации. Попробуйте перейти по ссылке из письма повторно или обратитесь в поддержку.');
@@ -332,7 +332,7 @@ const RegisterProfile = ({ setUser }) => {
                   '& .MuiAlert-icon': { alignItems: 'center' }
                 }}
               >
-                {error}
+                {error ? error.toString() : 'Произошла ошибка при обработке запроса'}
               </Alert>
             )}
             

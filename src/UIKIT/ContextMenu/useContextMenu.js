@@ -12,10 +12,8 @@ const useContextMenu = () => {
     data: null
   });
 
-  // Обработчик открытия контекстного меню
-  const handleContextMenu = useCallback((e, data = null) => {
-    e.preventDefault(); // Предотвращаем стандартное контекстное меню браузера
-    
+    const handleContextMenu = useCallback((e, data = null) => {
+    e.preventDefault();     
     setContextMenuState({
       show: true,
       x: e.clientX,
@@ -24,8 +22,7 @@ const useContextMenu = () => {
     });
   }, []);
 
-  // Обработчик закрытия контекстного меню
-  const closeContextMenu = useCallback(() => {
+    const closeContextMenu = useCallback(() => {
     setContextMenuState(prev => ({
       ...prev,
       show: false

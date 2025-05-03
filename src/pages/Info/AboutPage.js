@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 
-// Icons
+
 import CodeIcon from '@mui/icons-material/Code';
 import GroupIcon from '@mui/icons-material/Group';
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
@@ -146,7 +146,7 @@ const TeamMember = ({ name, role, avatar, delay, description, username }) => {
   );
 };
 
-// New component for platform benefits
+
 const BenefitCard = ({ icon, title, description, index }) => {
   const theme = useTheme();
   
@@ -233,7 +233,7 @@ const AboutPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
-  // Reference for scroll to next section
+  
   const featuresRef = React.useRef(null);
   const teamRef = React.useRef(null);
   
@@ -261,7 +261,7 @@ const AboutPage = () => {
     }
   };
 
-  // Updated Features data with economic system features
+  
   const features = [
     {
       title: "Лента контента",
@@ -340,24 +340,24 @@ const AboutPage = () => {
     }
   ];
   
-  // Team members
+  
   const teamMembers = [
     {
       name: "Ян Брагин",
       role: "Founder & Developer",
-      avatar: "https://k-connect.ru/static/uploads/avatar/3/bo4hc37yKu.jpg", // Обновленный аватар
+      avatar: "https://k-connect.ru/static/uploads/avatar/3/bo4hc37yKu.jpg", 
       description: "Created K-Connect as a modern social network focused on uniting people through creative content."
     },
     {
       name: "алинк",
       role: "Designer",
-      avatar: "https://about.k-connect.ru/static/uploads/avatar/9/9tGEbQE29B.jpeg", // Обновленный аватар
+      avatar: "https://about.k-connect.ru/static/uploads/avatar/9/9tGEbQE29B.jpeg", 
       description: "Responsible for the visual aesthetics and user experience of K-Connect.",
       username: "@yalinks"
     }
   ];
   
-  // Platform benefits data
+  
   const benefits = [
     {
       title: "Privacy-Focused",

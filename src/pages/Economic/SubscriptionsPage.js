@@ -65,22 +65,18 @@ const SubscriptionsPage = ({ tabIndex = 0 }) => {
   
   const loaderRef = useRef(null);
   
-  // Get user data for the profile we're viewing
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // If username is not provided, use current user
         const targetUsername = username || currentUser?.username;
         if (!targetUsername) {
           setProfileUser(currentUser);
           return;
         }
         
-        // If viewing our own profile/subscriptions
         if (currentUser && targetUsername === currentUser.username) {
           setProfileUser(currentUser);
         } else {
-          // Fetch user data for the specified username
           const response = await axios.get(`/api/users/${targetUsername}`);
           setProfileUser(response.data);
         }
@@ -92,21 +88,18 @@ const SubscriptionsPage = ({ tabIndex = 0 }) => {
     fetchUserData();
   }, [username, currentUser]);
   
-  // Load followers
   useEffect(() => {
     if (value === 0) {
       fetchFollowers();
     }
   }, [value, username]);
   
-  // Load following
   useEffect(() => {
     if (value === 1) {
       fetchFollowing();
     }
   }, [value, username]);
   
-  // Intersection observer for infinite scrolling
   useEffect(() => {
     const observer = new IntersectionObserver(
       entries => {
@@ -232,12 +225,10 @@ const SubscriptionsPage = ({ tabIndex = 0 }) => {
       });
       
       if (response.data.success) {
-        // Update followers list with new is_following status
         setFollowers(prev => prev.map(user => 
           user.id === userId ? { ...user, is_following: true } : user
         ));
         
-        // Update following list with new is_following status
         setFollowing(prev => prev.map(user => 
           user.id === userId ? { ...user, is_following: true } : user
         ));
@@ -252,19 +243,17 @@ const SubscriptionsPage = ({ tabIndex = 0 }) => {
   const handleUnfollow = async (userId) => {
     try {
       setLoadingFollow(prev => ({ ...prev, [userId]: true }));
-      const response = await axios.post(`/api/profile/follow`, {
-        followed_id: userId
+      const response = await axios.post(`/api/profile/unfollow`, {
+        unfollowed_id: userId
       });
       
       if (response.data.success) {
-        // Update followers list with new is_following status
         setFollowers(prev => prev.map(user => 
-          user.id === userId ? { ...user, is_following: response.data.is_following } : user
+          user.id === userId ? { ...user, is_following: false } : user
         ));
         
-        // Update following list with new is_following status
         setFollowing(prev => prev.map(user => 
-          user.id === userId ? { ...user, is_following: response.data.is_following } : user
+          user.id === userId ? { ...user, is_following: false } : user
         ));
       }
     } catch (error) {
@@ -275,196 +264,160 @@ const SubscriptionsPage = ({ tabIndex = 0 }) => {
   };
   
   const renderProfileCard = (user) => {
-    const isCurrentUser = currentUser && user.id === currentUser.id;
     const isFollowing = user.is_following;
-    const isLoading = loadingFollow[user.id] || false;
+    const isCurrentUser = currentUser && user.id === currentUser.id;
+    
+    let avatarUrl = user.photo;
+    if (avatarUrl && !avatarUrl.startsWith('http') && !avatarUrl.startsWith('/')) {
+      avatarUrl = `/static/uploads/avatar/${user.id}/${avatarUrl}`;
+    }
     
     return (
-      <ProfileCard key={user.id} component={motion.div} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <Avatar
-          src={user.photo ? `/static/uploads/avatar/${user.id}/${user.photo}` : '/static/uploads/avatar/system/avatar.png'}
-          alt={user.name}
-          component={Link}
-          to={`/profile/${user.username}`}
-          sx={{ 
-            width: 50, 
-            height: 50,
-            mr: 2,
-            border: '2px solid #D0BCFF'
-          }}
-        />
-        
-        <Box sx={{ flex: 1 }}>
-          <Typography 
-            variant="h6" 
-            component={Link} 
-            to={`/profile/${user.username}`}
-            sx={{ 
-              textDecoration: 'none', 
-              color: 'text.primary',
-              '&:hover': { color: 'primary.main' },
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            {user.name}
-            {user.verification && user.verification.status > 0 && (
-              <CheckCircleIcon 
-                sx={{ 
-                  color: user.verification.status === 1 ? '#9e9e9e' : 
-                         user.verification.status === 2 ? '#d67270' : 
-                         user.verification.status === 3 ? '#b39ddb' :
-                         user.verification.status === 4 ? '#ff9800' : 
-                         'primary.main',
-                  ml: 0.5,
-                  width: 20,
-                  height: 20
-                }} 
-              />
-            )}
-            {user.achievement && (
-              <Box 
-                component="img" 
-                sx={{ 
-                  width: 20, 
-                  height: 20, 
-                  ml: 0.5 
-                }} 
-                src={`/bages/${user.achievement.image_path}`} 
-                alt={user.achievement.bage}
-                onError={(e) => {
-                  console.error("Achievement badge failed to load:", e);
-                  e.target.style.display = 'none';
-                }}
-              />
-            )}
-          </Typography>
+      <motion.div
+        key={user.id}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <ProfileCard>
+          <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+            <Avatar
+              src={avatarUrl || '/static/uploads/avatar/system/avatar.png'}
+              alt={user.name || user.username}
+              sx={{ 
+                width: 50, 
+                height: 50,
+                marginRight: 2,
+                border: '2px solid',
+                borderColor: 'primary.main'
+              }}
+            />
+            <Box sx={{ flex: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography 
+                  variant="subtitle1" 
+                  component={Link} 
+                  to={`/profile/${user.username}`}
+                  sx={{ 
+                    color: 'text.primary',
+                    textDecoration: 'none', 
+                    '&:hover': {
+                      color: 'primary.main'
+                    }
+                  }}
+                >
+                  {user.name || user.username}
+                </Typography>
+                {user.is_verified && (
+                  <CheckCircleIcon 
+                    sx={{ 
+                      ml: 0.5,
+                      fontSize: 16, 
+                      color: 'primary.main' 
+                    }} 
+                  />
+                )}
+              </Box>
+              <Typography variant="body2" color="text.secondary" noWrap>
+                {user.about ? 
+                  (user.about.length > 15 ? user.about.substring(0, 15) + '...' : user.about) 
+                  : 'Нет описания'}
+              </Typography>
+            </Box>
+          </Box>
           
-          {user.username && (
-            <Typography variant="body2" color="text.secondary">
-              @{user.username}
-            </Typography>
+          {!isCurrentUser && currentUser && (
+            <Box sx={{ ml: 2 }}>
+              {isFollowing ? (
+                <IconButton
+                  onClick={() => handleUnfollow(user.id)}
+                  disabled={loadingFollow[user.id]}
+                  color="primary"
+                  size="small"
+                >
+                  {loadingFollow[user.id] ? (
+                    <CircularProgress size={24} />
+                  ) : (
+                    <PersonRemoveIcon />
+                  )}
+                </IconButton>
+              ) : (
+                <IconButton
+                  onClick={() => handleFollow(user.id)}
+                  disabled={loadingFollow[user.id]}
+                  color="primary"
+                  size="small"
+                >
+                  {loadingFollow[user.id] ? (
+                    <CircularProgress size={24} />
+                  ) : (
+                    <PersonAddIcon />
+                  )}
+                </IconButton>
+              )}
+            </Box>
           )}
-          
-          {user.about && (
-            <Typography 
-              variant="body2" 
-              color="text.secondary" 
-              sx={{ 
-                mt: 0.5,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                display: '-webkit-box',
-                WebkitLineClamp: 1,
-                WebkitBoxOrient: 'vertical'
-              }}
-            >
-              {user.about}
-            </Typography>
-          )}
-        </Box>
-        
-        {!isCurrentUser && (
-          isFollowing ? (
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={isLoading ? <CircularProgress size={16} /> : <PersonRemoveIcon />}
-              onClick={() => handleUnfollow(user.id)}
-              disabled={isLoading}
-              sx={{ 
-                minWidth: isMobile ? 'auto' : '120px',
-                ml: 1
-              }}
-            >
-              {isMobile ? '' : 'Отписаться'}
-            </Button>
-          ) : (
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={isLoading ? <CircularProgress size={16} /> : <PersonAddIcon />}
-              onClick={() => handleFollow(user.id)}
-              disabled={isLoading}
-              sx={{ 
-                minWidth: isMobile ? 'auto' : '120px',
-                ml: 1
-              }}
-            >
-              {isMobile ? '' : 'Подписаться'}
-            </Button>
-          )
-        )}
-      </ProfileCard>
+        </ProfileCard>
+      </motion.div>
     );
   };
   
   const renderSkeletonCards = () => {
-    return Array(5).fill().map((_, index) => (
+    return Array(3).fill(0).map((_, index) => (
       <ProfileCard key={index}>
+        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
         <Skeleton variant="circular" width={50} height={50} sx={{ mr: 2 }} />
         <Box sx={{ flex: 1 }}>
-          <Skeleton variant="text" width="60%" height={24} />
-          <Skeleton variant="text" width="40%" height={20} />
+            <Skeleton variant="text" width={120} />
+            <Skeleton variant="text" width={200} />
+          </Box>
+          <Skeleton variant="circular" width={40} height={40} />
         </Box>
-        <Skeleton variant="rectangular" width={100} height={36} sx={{ borderRadius: 1 }} />
       </ProfileCard>
     ));
   };
   
-  const targetUsername = username || currentUser?.username || '';
-  const title = profileUser ? 
-    `${profileUser.name}${username ? '' : ' — Ваши подписки'}` : 
-    'Подписки';
-  
   return (
-    <Container maxWidth="md" sx={{ mt: 4, mb: 8 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      <Box sx={{ mb: 4, display: 'flex', alignItems: 'center' }}>
         <IconButton 
           onClick={() => navigate(-1)}
           sx={{ mr: 2 }}
-          aria-label="Назад"
+          color="primary"
         >
           <ArrowBackIcon />
         </IconButton>
-        <Typography variant="h5">{title}</Typography>
+        <Typography variant="h5" component="h1">
+          {profileUser ? `Подписки ${profileUser.username}` : 'Подписки'}
+        </Typography>
       </Box>
       
-      <Box sx={{ width: '100%', mb: 3 }}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs 
           value={value} 
           onChange={handleChange} 
-          variant="fullWidth"
+          variant={isMobile ? "fullWidth" : "standard"}
           sx={{ 
-            mb: 2,
             '& .MuiTab-root': {
-              fontWeight: 'bold',
-            }
+              color: 'text.secondary',
+              '&.Mui-selected': {
+                color: 'primary.main',
+              },
+            },
           }}
         >
-          <Tab label="Подписчики" />
-          <Tab label="Подписки" />
+          <Tab label={`Подписчики (${followers.length})`} />
+          <Tab label={`Подписки (${following.length})`} />
         </Tabs>
+      </Box>
         
         <Box role="tabpanel" hidden={value !== 0}>
           {value === 0 && (
             <>
               {isLoadingFollowers && followers.length === 0 ? (
                 renderSkeletonCards()
-              ) : followers.length > 0 ? (
-                <>
-                  {followers.map(renderProfileCard)}
-                  
-                  {hasMoreFollowers && (
-                    <LoadingContainer ref={loaderRef}>
-                      <CircularProgress size={30} />
-                    </LoadingContainer>
-                  )}
-                </>
-              ) : (
-                <Paper sx={{ p: 3, textAlign: 'center' }}>
-                  <Typography variant="h6">У {username ? 'этого пользователя' : 'вас'} еще нет подписчиков</Typography>
-                </Paper>
+            ) : (
+              followers.map(user => renderProfileCard(user))
               )}
             </>
           )}
@@ -475,25 +428,18 @@ const SubscriptionsPage = ({ tabIndex = 0 }) => {
             <>
               {isLoadingFollowing && following.length === 0 ? (
                 renderSkeletonCards()
-              ) : following.length > 0 ? (
-                <>
-                  {following.map(renderProfileCard)}
-                  
-                  {hasMoreFollowing && (
-                    <LoadingContainer ref={loaderRef}>
-                      <CircularProgress size={30} />
-                    </LoadingContainer>
-                  )}
-                </>
-              ) : (
-                <Paper sx={{ p: 3, textAlign: 'center' }}>
-                  <Typography variant="h6">{username ? 'Этот пользователь' : 'Вы'} еще ни на кого не подписались</Typography>
-                </Paper>
+            ) : (
+              following.map(user => renderProfileCard(user))
               )}
             </>
           )}
         </Box>
-      </Box>
+      
+      {((value === 0 && hasMoreFollowers) || (value === 1 && hasMoreFollowing)) && (
+        <LoadingContainer ref={loaderRef}>
+          <CircularProgress size={40} />
+        </LoadingContainer>
+      )}
     </Container>
   );
 };

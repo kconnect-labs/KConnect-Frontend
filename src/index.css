@@ -1,4 +1,4 @@
-@import url('https:
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
   --primary: #D0BCFF;
@@ -82,4 +82,13 @@ input, textarea, select {
 
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--primary);
+}
+
+.PrivateSwipeArea-root {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  pointer-events: none !important;
 } 

@@ -87,7 +87,7 @@ import LinkIcon from '@mui/icons-material/Link';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
-// Create styled Dialog component with blurred background
+
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialog-container": {
     zIndex: 999999999999
@@ -124,7 +124,7 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
   }
 }));
 
-// Snackbar style with high z-index
+
 const snackbarStyle = {
   zIndex: 9999999
 };
@@ -140,14 +140,14 @@ const ModeratorPage = () => {
   const [error, setError] = useState(null);
   const [lastModeratorCheck, setLastModeratorCheck] = useState(0);
   
-  // Notification state
+  
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success'
   });
 
-  // Загрузка данных
+  
   const [posts, setPosts] = useState([]);
   const [tracks, setTracks] = useState([]);
   const [bugReports, setBugReports] = useState([]);
@@ -155,7 +155,7 @@ const ModeratorPage = () => {
   const [comments, setComments] = useState([]);
   const [badges, setBadges] = useState([]);
   
-  // Dialog states
+  
   const [deletePostDialogOpen, setDeletePostDialogOpen] = useState(false);
   const [deleteTrackDialogOpen, setDeleteTrackDialogOpen] = useState(false);
   const [deleteCommentDialogOpen, setDeleteCommentDialogOpen] = useState(false);
@@ -165,7 +165,7 @@ const ModeratorPage = () => {
   const [editBadgeDialogOpen, setEditBadgeDialogOpen] = useState(false);
   const [deleteBadgeDialogOpen, setDeleteBadgeDialogOpen] = useState(false);
   
-  // Selected items
+  
   const [selectedPost, setSelectedPost] = useState(null);
   const [selectedTrack, setSelectedTrack] = useState(null);
   const [selectedComment, setSelectedComment] = useState(null);
@@ -173,7 +173,7 @@ const ModeratorPage = () => {
   const [selectedBugReport, setSelectedBugReport] = useState(null);
   const [selectedBadge, setSelectedBadge] = useState(null);
   
-  // Form states
+  
   const [editUserName, setEditUserName] = useState('');
   const [editUsername, setEditUsername] = useState('');
   const [bugReportStatus, setBugReportStatus] = useState('');
@@ -184,10 +184,10 @@ const ModeratorPage = () => {
   const [editBadgeImage, setEditBadgeImage] = useState(null);
   const [editBadgeImagePreview, setEditBadgeImagePreview] = useState('');
   
-  // Pagination
-  const [page, setPage] = useState(1); // Страница начинается с 1
   
-  // Create separate page states for each tab
+  const [page, setPage] = useState(1); 
+  
+  
   const [pageStates, setPageStates] = useState({
     posts: 1,
     tracks: 1,
@@ -207,7 +207,7 @@ const ModeratorPage = () => {
   });
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // Refs for infinite scroll
+  
   const postsObserver = useRef();
   const tracksObserver = useRef();
   const commentsObserver = useRef();
@@ -215,7 +215,7 @@ const ModeratorPage = () => {
   const bugReportsObserver = useRef();
   const badgesObserver = useRef();
 
-  // Search state for each tab
+  
   const [search, setSearch] = useState({
     posts: '',
     tracks: '',
@@ -225,10 +225,10 @@ const ModeratorPage = () => {
     badges: ''
   });
   
-  // Debounce timeout for search
+  
   const searchTimeout = useRef(null);
 
-  // Новые состояния для предупреждений и банов
+  
   const [warningUser, setWarningUser] = useState(null);
   const [warningDialogOpen, setWarningDialogOpen] = useState(false);
   const [warningData, setWarningData] = useState({
@@ -251,7 +251,7 @@ const ModeratorPage = () => {
   const [userBans, setUserBans] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   
-  // Add state for statistics
+  
   const [moderatorStats, setModeratorStats] = useState({
     deleted_posts: 0,
     deleted_tracks: 0,
@@ -264,29 +264,29 @@ const ModeratorPage = () => {
     loading: true
   });
   
-  // Проверяем статус при монтировании
+  
   useEffect(() => {
     checkModeratorStatus();
     
-    // Load moderator statistics
+    
     fetchModeratorStats();
   }, []);
 
-  // Загрузка данных при изменении вкладки
+  
   useEffect(() => {
     if (moderatorData) {
-      // Сбрасываем состояние для новой вкладки
+      
       resetTabData();
       loadTabData(tabValue);
     }
   }, [tabValue]);
   
-  // Сброс состояния для новой вкладки
+  
   const resetTabData = () => {
-    // Reset page state to 1
+    
     setPage(1);
     
-    // Reset all page states for each tab
+    
     setPageStates({
       posts: 1,
       tracks: 1,
@@ -296,7 +296,7 @@ const ModeratorPage = () => {
       badges: 1
     });
     
-    // Reset hasMore state
+    
     setHasMore({
       posts: true,
       tracks: true,
@@ -307,13 +307,13 @@ const ModeratorPage = () => {
     });
   };
 
-  // Проверяем статус модератора и получаем права доступа
+  
   const checkModeratorStatus = async () => {
     try {
-      // Проверяем, не выполняется ли уже проверка в другом компоненте
+      
       if (window._moderatorCheckInProgress) {
         console.log('ModeratorPage: Moderator check already in progress, waiting...');
-        // Ждем завершения текущей проверки
+        
         await new Promise(resolve => {
           const checkInterval = setInterval(() => {
             if (!window._moderatorCheckInProgress) {
@@ -325,63 +325,63 @@ const ModeratorPage = () => {
         return;
       }
       
-      // Используем кэш, если проверка была недавно (в течение 15 минут)
+      
       const now = Date.now();
       if (now - lastModeratorCheck < 15 * 60 * 1000 && moderatorData) {
         console.log('ModeratorPage: Using cached moderator data');
         return;
       }
       
-      // Первичная быстрая проверка - имеет ли пользователь вообще доступ модератора
+      
       window._moderatorCheckInProgress = true;
       const quickCheckResponse = await axios.get('/api/moderator/quick-status');
       
       if (!quickCheckResponse.data.is_moderator) {
-        // Если пользователь не является модератором, не делаем основной запрос
+        
         setLoading(false);
         showNotification('error', 'У вас нет прав модератора');
-        navigate('/'); // Перенаправляем на главную страницу
+        navigate('/'); 
         window._moderatorCheckInProgress = false;
         return;
       }
       
-      // Если пользователь прошел быструю проверку, делаем полный запрос для получения прав
+      
       setLoading(true);
       const response = await axios.get('/api/moderator/status');
       
       if (response.data.is_moderator) {
         setModeratorData(response.data);
         setPermissions(response.data.permissions);
-        // Обновляем время последней проверки
+        
         setLastModeratorCheck(now);
       } else {
-        // User is not a moderator
+        
         showNotification('error', 'У вас нет прав модератора');
-        navigate('/'); // Перенаправляем на главную страницу
+        navigate('/'); 
       }
     } catch (error) {
       console.error('Error checking moderator status:', error);
       showNotification('error', 'Не удалось проверить права модератора');
-      navigate('/'); // Перенаправляем на главную страницу в случае ошибки
+      navigate('/'); 
     } finally {
       setLoading(false);
-      // Снимаем флаг проверки
+      
       window._moderatorCheckInProgress = false;
     }
   };
 
-  // Функция для получения статистики действий модератора
+  
   const fetchModeratorStats = async () => {
     try {
       setModeratorStats(prev => ({ ...prev, loading: true }));
       
-      // Запрос к API для получения действий модератора
+      
       const response = await axios.get('/api/moderator/actions');
       
       if (response.data && response.data.success) {
         const stats = response.data.stats || {};
         
-        // Обновляем статистику
+        
         setModeratorStats({
           deleted_posts: stats.deleted_posts || 0,
           deleted_tracks: stats.deleted_tracks || 0,
@@ -403,7 +403,7 @@ const ModeratorPage = () => {
     }
   };
 
-  // Show notification
+  
   const showNotification = (severity, message) => {
     setSnackbar({
       open: true,
@@ -412,47 +412,47 @@ const ModeratorPage = () => {
     });
   };
 
-  // Загрузка данных для активной вкладки
+  
   const loadTabData = (tabIndex) => {
-    // Сбрасываем данные
+    
     setPage(1);
     setHasMore(prev => ({...prev}));
 
     switch (tabIndex) {
-      case 0: // Профиль
-        // Для профиля не нужно загружать дополнительные данные, они загружаются в checkModeratorStatus
+      case 0: 
+        
         break;
-      case 1: // Посты
+      case 1: 
         if (permissions.delete_posts) {
           setPosts([]);
           fetchPosts();
         }
         break;
-      case 2: // Треки
+      case 2: 
         if (permissions.delete_music) {
           setTracks([]);
           fetchTracks();
         }
         break;
-      case 3: // Комментарии
+      case 3: 
         if (permissions.delete_comments) {
           setComments([]);
           fetchComments();
         }
         break;
-      case 4: // Пользователи
+      case 4: 
         if (permissions.change_user_name || permissions.change_username || permissions.delete_avatar) {
           setUsers([]);
           fetchUsers();
         }
         break;
-      case 5: // Баг-репорты
+      case 5: 
         if (permissions.manage_bug_reports || permissions.delete_bug_reports) {
           setBugReports([]);
           fetchBugReports();
         }
         break;
-      case 6: // Бейджики
+      case 6: 
         if (permissions.edit_badges || permissions.delete_badges) {
           setBadges([]);
           fetchBadges();
@@ -463,24 +463,24 @@ const ModeratorPage = () => {
     }
   };
   
-  // Обработка изменения строки поиска
+  
   const handleSearchChange = (tab, value) => {
     setSearch(prev => ({...prev, [tab]: value}));
     
-    // Отменяем предыдущий таймаут поиска
+    
     if (searchTimeout.current) {
       clearTimeout(searchTimeout.current);
     }
     
-    // Устанавливаем новый таймаут для поиска
+    
     searchTimeout.current = setTimeout(() => {
-      // Reset the specific tab's page state
+      
       setPageStates(prev => ({
         ...prev,
         [tab]: 1
       }));
       
-      // Сбрасываем пагинацию и данные
+      
       switch (tab) {
         case 'posts':
           setPosts([]);
@@ -512,17 +512,17 @@ const ModeratorPage = () => {
     }, 500);
   };
 
-  // Очистка поиска
+  
   const clearSearch = (tab) => {
     setSearch(prev => ({...prev, [tab]: ''}));
     
-    // Reset the specific tab's page state
+    
     setPageStates(prev => ({
       ...prev,
       [tab]: 1
     }));
     
-    // Сбрасываем пагинацию и данные
+    
     switch (tab) {
       case 'posts':
         setPosts([]);
@@ -553,7 +553,7 @@ const ModeratorPage = () => {
     }
   };
 
-  // Функции для работы с данными
+  
   const fetchPosts = async (loadMore = false, searchQuery = search.posts) => {
     try {
       if (!hasMore.posts && loadMore) return;
@@ -571,7 +571,7 @@ const ModeratorPage = () => {
           setPosts(newPosts);
         }
         
-        // Проверяем, есть ли еще записи
+        
         setHasMore(prev => ({
           ...prev,
           posts: newPosts.length === rowsPerPage
@@ -609,7 +609,7 @@ const ModeratorPage = () => {
           setTracks(newTracks);
         }
         
-        // Проверяем, есть ли еще записи
+        
         setHasMore(prev => ({
           ...prev,
           tracks: newTracks.length === rowsPerPage
@@ -647,7 +647,7 @@ const ModeratorPage = () => {
           setComments(newComments);
         }
         
-        // Проверяем, есть ли еще записи
+        
         setHasMore(prev => ({
           ...prev,
           comments: newComments.length === rowsPerPage
@@ -685,7 +685,7 @@ const ModeratorPage = () => {
           setUsers(newUsers);
         }
         
-        // Проверяем, есть ли еще записи
+        
         setHasMore(prev => ({
           ...prev,
           users: newUsers.length === rowsPerPage
@@ -708,7 +708,7 @@ const ModeratorPage = () => {
 
   const fetchBugReports = async (loadMore = false, searchQuery = search.bugReports) => {
     try {
-      // Explicitly check if we have permission to view bug reports
+      
       if (!permissions.manage_bug_reports && !permissions.delete_bug_reports) {
         console.error('No permission to view bug reports');
         showNotification('error', 'У вас нет прав на просмотр баг-репортов');
@@ -726,7 +726,7 @@ const ModeratorPage = () => {
       
       console.log('[DEBUG] Bug reports API response:', response.data);
       
-      // Check if the response has bug_reports field
+      
       if (response.data && response.data.bug_reports) {
         const newReports = response.data.bug_reports;
         console.log(`[DEBUG] Bug reports found: ${newReports.length}`);
@@ -737,7 +737,7 @@ const ModeratorPage = () => {
           setBugReports(newReports);
         }
         
-        // Проверяем, есть ли еще записи
+        
         setHasMore(prev => ({
           ...prev,
           bugReports: newReports.length === rowsPerPage
@@ -764,7 +764,7 @@ const ModeratorPage = () => {
 
   const fetchBadges = async (loadMore = false, searchQuery = search.badges) => {
     try {
-      // Проверяем права на работу с бейджиками
+      
       if (!permissions.edit_badges && !permissions.delete_badges) {
         console.error('No permission to view badges');
         showNotification('error', 'У вас нет прав на просмотр бейджиков');
@@ -792,7 +792,7 @@ const ModeratorPage = () => {
           setBadges(newBadges);
         }
         
-        // Проверяем, есть ли еще записи
+        
         setHasMore(prev => ({
           ...prev,
           badges: newBadges.length === rowsPerPage
@@ -817,7 +817,7 @@ const ModeratorPage = () => {
     }
   };
 
-  // Intersection Observer callback functions for infinite scroll
+  
   const lastPostElementRef = useCallback(node => {
     if (loading || loadingMore) return;
     if (postsObserver.current) postsObserver.current.disconnect();
@@ -896,7 +896,7 @@ const ModeratorPage = () => {
     if (node) badgesObserver.current.observe(node);
   }, [loading, loadingMore, hasMore.badges]);
 
-  // Обработчики действий модератора
+  
   const handleDeletePost = async () => {
     if (!selectedPost) return;
     
@@ -972,7 +972,7 @@ const ModeratorPage = () => {
       
       if (response.data.success) {
         showNotification('success', 'Аватар пользователя успешно удален');
-        // Обновляем список пользователей с новым состоянием аватара
+        
         setUsers(users.map(user => 
           user.id === selectedUser.id 
             ? { ...user, photo: null } 
@@ -1009,7 +1009,7 @@ const ModeratorPage = () => {
       
       if (response.data.success) {
         showNotification('success', 'Информация о пользователе обновлена');
-        // Обновляем список пользователей
+        
         setUsers(users.map(user => 
           user.id === selectedUser.id 
             ? { 
@@ -1042,7 +1042,7 @@ const ModeratorPage = () => {
       
       if (response.data.success) {
         showNotification('success', 'Статус баг-репорта обновлен');
-        // Обновляем список баг-репортов
+        
         setBugReports(bugReports.map(report => 
           report.id === selectedBugReport.id 
             ? { ...report, status: bugReportStatus } 
@@ -1062,13 +1062,13 @@ const ModeratorPage = () => {
 
   const handleDeleteBugReport = async (reportId) => {
     try {
-      // Check if we have permission to delete bug reports
+      
       if (!permissions.delete_bug_reports) {
         showNotification('error', 'У вас нет прав на удаление баг-репортов');
         return;
       }
       
-      // Confirm deletion
+      
       if (!window.confirm('Вы уверены, что хотите удалить этот баг-репорт?')) {
         return;
       }
@@ -1077,7 +1077,7 @@ const ModeratorPage = () => {
       const response = await axios.delete(`/api/moderator/bug-reports/${reportId}`);
       
       if (response.data && response.data.success) {
-        // Remove the deleted bug report from the state
+        
         setBugReports(prevReports => prevReports.filter(report => report.id !== reportId));
         showNotification('success', 'Баг-репорт успешно удален');
       }
@@ -1089,7 +1089,7 @@ const ModeratorPage = () => {
     }
   };
 
-  // Открытие диалогов
+  
   const openDeletePostDialog = (post) => {
     setSelectedPost(post);
     setDeletePostDialogOpen(true);
@@ -1123,7 +1123,7 @@ const ModeratorPage = () => {
     setBugReportStatusDialogOpen(true);
   };
 
-  // Debug functions
+  
   const debugBugReports = async () => {
     try {
       setLoading(true);
@@ -1153,13 +1153,13 @@ const ModeratorPage = () => {
     }
   };
 
-  // Add the deepDebugBugReports function
+  
   const deepDebugBugReports = async () => {
     setLoading(true);
     console.log('Performing deep debug of bug reports...');
     
     try {
-      // Try to access admin debug endpoint first
+      
       const adminCheckResponse = await axios.get('/api/admin/debug/bug-report-table');
       console.log('Admin DB check response:', adminCheckResponse.data);
       
@@ -1167,7 +1167,7 @@ const ModeratorPage = () => {
       const sampleData = adminCheckResponse.data.sample_data || [];
       const permissionsInfo = adminCheckResponse.data.permissions_info || {};
       
-      // Create formatted message for alert
+      
       let alertMessage = `🔍 Database Direct Check:\n`;
       alertMessage += `Table columns: ${Object.keys(tableInfo).join(', ')}\n\n`;
       alertMessage += `Found ${sampleData.length} bug reports in DB directly.\n`;
@@ -1180,12 +1180,12 @@ const ModeratorPage = () => {
       
       alert(alertMessage);
       
-      // Compare with regular API call
+      
       try {
         const regularResponse = await axios.get('/api/moderator/bug-reports');
         console.log('Regular API response:', regularResponse.data);
         
-        // Check pagination parameters
+        
         const paginationResponse = await axios.get('/api/moderator/bug-reports?page=1&per_page=10');
         console.log('Pagination check response:', paginationResponse.data);
         
@@ -1216,7 +1216,7 @@ const ModeratorPage = () => {
       console.error('Admin debug check failed:', adminError);
       alert(`Admin debug check failed: ${adminError.message}. Trying regular debug...`);
       
-      // Fallback to regular debug if admin check fails
+      
       try {
         const debugResponse = await axios.get('/api/moderator/debug/bug-reports');
         console.log('Regular debug response:', debugResponse.data);
@@ -1247,12 +1247,12 @@ const ModeratorPage = () => {
     }
   };
 
-  // Unauthorized redirect
+  
   if (!user) {
     return <Navigate to="/login" />;
   }
 
-  // Render loading state
+  
   if (loading && !moderatorData) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -1266,7 +1266,7 @@ const ModeratorPage = () => {
     );
   }
 
-  // Render unauthorized state
+  
   if (!loading && !moderatorData) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -1286,7 +1286,7 @@ const ModeratorPage = () => {
     );
   }
 
-  // Обновляем рендеринг вкладки постов для бесконечной прокрутки
+  
   const renderPosts = () => {
     return (
       <>
@@ -1407,7 +1407,7 @@ const ModeratorPage = () => {
     );
   };
 
-  // Add copy link functionality for tracks
+  
   const copyTrackLink = (track) => {
     const trackLink = `${window.location.origin}/music?track=${track.id}`;
     navigator.clipboard.writeText(trackLink)
@@ -1420,12 +1420,12 @@ const ModeratorPage = () => {
       });
   };
 
-  // Open track in music player
+  
   const openTrack = (track) => {
     navigate(`/music?track=${track.id}`);
   };
 
-  // Обновляем рендеринг вкладки треков для бесконечной прокрутки
+  
   const renderTracks = () => {
     return (
       <>
@@ -1536,7 +1536,7 @@ const ModeratorPage = () => {
     );
   };
 
-  // Обновляем рендеринг вкладки пользователей для бесконечной прокрутки
+  
   const renderUsers = () => {
     return (
       <>
@@ -1977,7 +1977,7 @@ const ModeratorPage = () => {
     );
   };
 
-  // Обновляем рендеринг вкладки комментариев для бесконечной прокрутки
+  
   const renderComments = () => {
     return (
       <>
@@ -2083,9 +2083,9 @@ const ModeratorPage = () => {
     );
   };
 
-  // Обновляем рендеринг вкладки баг-репортов для бесконечной прокрутки
+  
   const renderBugReports = () => {
-    // Check if we have any bug report related permissions
+    
     if (!permissions.manage_bug_reports && !permissions.delete_bug_reports) {
       return (
         <Box sx={{ textAlign: 'center', py: 4 }}>
@@ -2264,7 +2264,7 @@ const ModeratorPage = () => {
     );
   };
 
-  // Открыть диалог редактирования бейджика
+  
   const openEditBadgeDialog = (badge) => {
     setSelectedBadge(badge);
     setEditBadgeName(badge.name);
@@ -2276,24 +2276,24 @@ const ModeratorPage = () => {
     setEditBadgeDialogOpen(true);
   };
 
-  // Открыть диалог удаления бейджика
+  
   const openDeleteBadgeDialog = (badge) => {
     setSelectedBadge(badge);
     setDeleteBadgeDialogOpen(true);
   };
 
-  // Обработка редактирования бейджика
+  
   const handleUpdateBadge = async () => {
     try {
       if (!selectedBadge) return;
 
-      // Проверяем валидность данных
+      
       if (!editBadgeName) {
         showNotification('error', 'Название бейджика не может быть пустым');
         return;
       }
 
-      // Проверяем цену
+      
       const price = parseInt(editBadgePrice);
       if (isNaN(price) || price <= 0) {
         showNotification('error', 'Цена должна быть положительным числом');
@@ -2304,7 +2304,7 @@ const ModeratorPage = () => {
       
       let response;
       
-      // Если есть новое изображение, используем FormData
+      
       if (editBadgeImage) {
         const formData = new FormData();
         formData.append('name', editBadgeName);
@@ -2327,7 +2327,7 @@ const ModeratorPage = () => {
           }
         });
       } else {
-        // Если изображение не изменилось, используем JSON
+        
         const data = {
           name: editBadgeName,
           description: editBadgeDescription || '',
@@ -2348,7 +2348,7 @@ const ModeratorPage = () => {
       if (response.data.success) {
         showNotification('success', 'Бейджик успешно обновлен');
         
-        // Обновляем бейджик в списке
+        
         setBadges(prev => 
           prev.map(badge => 
             badge.id === selectedBadge.id 
@@ -2378,7 +2378,7 @@ const ModeratorPage = () => {
     }
   };
 
-  // Обработка удаления бейджика
+  
   const handleDeleteBadge = async () => {
     try {
       if (!selectedBadge) return;
@@ -2394,7 +2394,7 @@ const ModeratorPage = () => {
       if (response.data.success) {
         showNotification('success', 'Бейджик успешно удален');
         
-        // Удаляем бейджик из списка
+        
         setBadges(prev => prev.filter(badge => badge.id !== selectedBadge.id));
         
         setDeleteBadgeDialogOpen(false);
@@ -2411,11 +2411,11 @@ const ModeratorPage = () => {
     }
   };
 
-  // Обработка изменения изображения бейджика
+  
   const handleBadgeImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      // Проверяем тип файла (SVG и GIF для модераторов)
+      
       if (file.type !== 'image/svg+xml' && file.type !== 'image/gif') {
         showNotification('error', 'Разрешены только SVG и GIF файлы');
         return;
@@ -2423,7 +2423,7 @@ const ModeratorPage = () => {
 
       setEditBadgeImage(file);
       
-      // Создаем превью изображения
+      
       const reader = new FileReader();
       reader.onload = (e) => {
         setEditBadgeImagePreview(e.target.result);
@@ -2432,9 +2432,9 @@ const ModeratorPage = () => {
     }
   };
 
-  // Рендер бейджиков
+  
   const renderBadges = () => {
-    // Проверяем права на просмотр бейджиков
+    
     if (!permissions.edit_badges && !permissions.delete_badges) {
       return (
         <Alert severity="warning" sx={{ mt: 2 }}>
@@ -2443,7 +2443,7 @@ const ModeratorPage = () => {
       );
     }
     
-    // Если идет загрузка и данных еще нет
+    
     if (loading && badges.length === 0) {
       return (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
@@ -2452,7 +2452,7 @@ const ModeratorPage = () => {
       );
     }
     
-    // Если данных нет после загрузки
+    
     if (!loading && badges.length === 0) {
       return (
         <Alert severity="info" sx={{ mt: 2 }}>
@@ -2461,7 +2461,7 @@ const ModeratorPage = () => {
       );
     }
     
-    // Проверяем, есть ли ошибки в данных бейджиков
+    
     try {
       return (
         <>
@@ -2494,13 +2494,13 @@ const ModeratorPage = () => {
           
           <Grid container spacing={3}>
             {badges.map((badge, index) => {
-              // Безопасная проверка полей бейджика
+              
               if (!badge || typeof badge !== 'object') {
                 console.error('[DEBUG] Invalid badge object:', badge);
                 return null;
               }
               
-              // Для последнего элемента добавляем ref для бесконечной прокрутки
+              
               const isLastElement = index === badges.length - 1;
               
               return (
@@ -2652,9 +2652,9 @@ const ModeratorPage = () => {
     }
   };
 
-  // Рендер профиля модератора
+  
   const renderProfile = () => {
-    // Если данные еще загружаются
+    
     if (loading && !moderatorData) {
       return (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
@@ -2663,7 +2663,7 @@ const ModeratorPage = () => {
       );
     }
     
-    // Если данные отсутствуют
+    
     if (!moderatorData) {
       return (
         <Alert severity="error" sx={{ mt: 2 }}>
@@ -2672,12 +2672,12 @@ const ModeratorPage = () => {
       );
     }
     
-    // Рассчитываем дату назначения модератором
+    
     const assignedDate = moderatorData.assigned_info?.assigned_at 
       ? new Date(moderatorData.assigned_info.assigned_at) 
       : null;
     
-    // Вычисляем, сколько дней прошло с момента назначения
+    
     const daysSinceAssigned = assignedDate 
       ? Math.floor((new Date() - assignedDate) / (1000 * 60 * 60 * 24)) 
       : null;
@@ -3042,7 +3042,7 @@ const ModeratorPage = () => {
     );
   };
   
-  // Компонент для отображения права модератора
+  
   const PermissionItem = ({ title, enabled, icon }) => {
     return (
       <Paper 
@@ -3082,7 +3082,7 @@ const ModeratorPage = () => {
     );
   };
 
-  // Открыть диалог предупреждения
+  
   const openWarningDialog = (user) => {
     setWarningUser(user);
     setWarningData({
@@ -3092,7 +3092,7 @@ const ModeratorPage = () => {
     setWarningDialogOpen(true);
   };
   
-  // Открыть диалог бана
+  
   const openBanDialog = (user) => {
     setBanUser(user);
     setBanData({
@@ -3103,7 +3103,7 @@ const ModeratorPage = () => {
     setBanDialogOpen(true);
   };
   
-  // Открыть диалог истории предупреждений
+  
   const openUserWarningsDialog = async (user) => {
     setSelectedUserHistory(user);
     setLoadingHistory(true);
@@ -3124,7 +3124,7 @@ const ModeratorPage = () => {
     }
   };
   
-  // Открыть диалог истории банов
+  
   const openUserBansDialog = async (user) => {
     setSelectedUserHistory(user);
     setLoadingHistory(true);
@@ -3145,7 +3145,7 @@ const ModeratorPage = () => {
     }
   };
   
-  // Выдать предупреждение пользователю
+  
   const handleIssueWarning = async () => {
     if (!warningUser) return;
     
@@ -3164,7 +3164,7 @@ const ModeratorPage = () => {
       if (response.data.success) {
         showNotification('success', 'Предупреждение успешно выдано');
         
-        // Если был автоматический бан
+        
         if (response.data.auto_ban) {
           showNotification('info', `Пользователь автоматически заблокирован за 3 предупреждения до ${response.data.ban_info.formatted_end_date}`);
         }
@@ -3179,7 +3179,7 @@ const ModeratorPage = () => {
     }
   };
   
-  // Забанить пользователя
+  
   const handleBanUser = async () => {
     if (!banUser) return;
     
@@ -3208,14 +3208,14 @@ const ModeratorPage = () => {
     }
   };
   
-  // Снять предупреждение
+  
   const handleRemoveWarning = async (warningId) => {
     try {
       const response = await axios.delete(`/api/moderator/warnings/${warningId}`);
       
       if (response.data.success) {
         showNotification('success', 'Предупреждение успешно снято');
-        // Обновляем список предупреждений
+        
         setUserWarnings(userWarnings.map(warning => 
           warning.id === warningId ? { ...warning, is_active: false } : warning
         ));
@@ -3228,14 +3228,14 @@ const ModeratorPage = () => {
     }
   };
   
-  // Снять бан
+  
   const handleRemoveBan = async (banId) => {
     try {
       const response = await axios.delete(`/api/moderator/bans/${banId}`);
       
       if (response.data.success) {
         showNotification('success', 'Бан успешно снят');
-        // Обновляем список банов
+        
         setUserBans(userBans.map(ban => 
           ban.id === banId ? { ...ban, is_active: false } : ban
         ));

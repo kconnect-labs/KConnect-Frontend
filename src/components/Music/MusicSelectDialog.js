@@ -35,7 +35,7 @@ import {
 import { useMusic } from '../../context/MusicContext';
 import { motion } from 'framer-motion';
 
-// Styled components
+
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
     borderRadius: 16,
@@ -109,7 +109,7 @@ const MusicSelectDialog = ({ open, onClose, onSelectTracks, maxTracks = 3 }) => 
   const audioRef = React.useRef(new Audio());
   const lastSearchQuery = React.useRef('');
   
-  // Get tracks from music context
+  
   const { 
     tracks, 
     likedTracks,
@@ -118,26 +118,26 @@ const MusicSelectDialog = ({ open, onClose, onSelectTracks, maxTracks = 3 }) => 
     searchTracks: contextSearchTracks,
   } = useMusic();
   
-  // Function to stop playing audio
+  
   const stopAudio = () => {
     if (audioRef.current) {
       audioRef.current.pause();
-      audioRef.current.src = ''; // Reset source to release resources
+      audioRef.current.src = ''; 
       setIsPlaying(false);
     }
   };
   
-  // Handle tab change
+  
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
   
-  // Handle search input change
+  
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
   };
   
-  // Debounce search to avoid too many API calls
+  
   const debounce = (func, wait) => {
     let timeout;
     return (...args) => {
@@ -146,41 +146,41 @@ const MusicSelectDialog = ({ open, onClose, onSelectTracks, maxTracks = 3 }) => 
     };
   };
   
-  // Search for tracks
+  
   const searchTracksHandler = useCallback(
     debounce(async (query) => {
       if (query.trim()) {
-        // Don't search if the query is the same as the last one
+        
         if (query === lastSearchQuery.current) {
           return;
         }
         
-        // Save current query
+        
         lastSearchQuery.current = query;
         
         setIsSearching(true);
         try {
-          // First try to filter local tracks
+          
           const filteredTracks = tracks.filter(track => 
             track.title.toLowerCase().includes(query.toLowerCase()) ||
             track.artist.toLowerCase().includes(query.toLowerCase())
           );
           
-          // If we have enough results locally, use them
+          
           if (filteredTracks.length >= 5) {
             setSearchResults(filteredTracks);
           } else {
-            // Otherwise, search from API
+            
             try {
               const response = await contextSearchTracks(query);
               if (response && Array.isArray(response)) {
                 setSearchResults(response);
               } else {
-                setSearchResults(filteredTracks); // Fallback to local results
+                setSearchResults(filteredTracks); 
               }
             } catch (error) {
               console.error('Error searching tracks from API:', error);
-              setSearchResults(filteredTracks); // Fallback to local results
+              setSearchResults(filteredTracks); 
             }
           }
         } catch (error) {
@@ -196,15 +196,15 @@ const MusicSelectDialog = ({ open, onClose, onSelectTracks, maxTracks = 3 }) => 
     [tracks, contextSearchTracks]
   );
   
-  // Trigger search when query changes
+  
   useEffect(() => {
     searchTracksHandler(searchQuery);
   }, [searchQuery, searchTracksHandler]);
   
-  // Handle audio play/pause
+  
   const handleTogglePlay = (track) => {
     if (currentPlayingTrack && currentPlayingTrack.id === track.id) {
-      // Toggle play/pause for current track
+      
       if (isPlaying) {
         audioRef.current.pause();
       } else {
@@ -214,13 +214,13 @@ const MusicSelectDialog = ({ open, onClose, onSelectTracks, maxTracks = 3 }) => 
       }
       setIsPlaying(!isPlaying);
     } else {
-      // Play new track
+      
       if (audioRef.current) {
         audioRef.current.pause();
         
-        // Use the file path directly, without adding extra prefix
+        
         let audioSrc = track.file_path;
-        // Ensure the path starts with a slash
+        
         if (!audioSrc.startsWith('/')) {
           audioSrc = `/${audioSrc}`;
         }
@@ -235,7 +235,7 @@ const MusicSelectDialog = ({ open, onClose, onSelectTracks, maxTracks = 3 }) => 
     }
   };
   
-  // Handle track selection
+  
   const handleSelectTrack = (track) => {
     setSelectedTracks(prev => {
       const isAlreadySelected = prev.some(t => t.id === track.id);
@@ -244,7 +244,7 @@ const MusicSelectDialog = ({ open, onClose, onSelectTracks, maxTracks = 3 }) => 
         return prev.filter(t => t.id !== track.id);
       } else {
         if (prev.length >= maxTracks) {
-          // If we reached the max, remove the first one and add the new one
+          
           return [...prev.slice(1), track];
         }
         return [...prev, track];
@@ -252,7 +252,7 @@ const MusicSelectDialog = ({ open, onClose, onSelectTracks, maxTracks = 3 }) => 
     });
   };
   
-  // Handle track selection complete
+  
   const handleComplete = () => {
     stopAudio();
     setCurrentPlayingTrack(null);
@@ -260,7 +260,7 @@ const MusicSelectDialog = ({ open, onClose, onSelectTracks, maxTracks = 3 }) => 
     onClose();
   };
   
-  // Format track duration
+  
   const formatDuration = (seconds) => {
     if (!seconds) return '0:00';
     const minutes = Math.floor(seconds / 60);
@@ -268,56 +268,56 @@ const MusicSelectDialog = ({ open, onClose, onSelectTracks, maxTracks = 3 }) => 
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
   
-  // Get track cover with fallback
+  
   const getCoverWithFallback = (coverPath) => {
     if (!coverPath) return '/uploads/system/album_placeholder.jpg';
     
-    // If the path already includes /static/, use it directly
+    
     if (coverPath.startsWith('/static/')) {
       return coverPath;
     }
     
-    // Handle paths that don't start with slash
+    
     if (coverPath.startsWith('static/')) {
       return `/${coverPath}`;
     }
     
-    // Direct URL paths
+    
     if (coverPath.startsWith('http')) {
       return coverPath;
     }
     
-    // Legacy path format - assume it's a relative path in the music directory
+    
     return `/static/music/${coverPath}`;
   };
   
-  // Clean up audio on unmount and pause on visibility change
+  
   useEffect(() => {
-    // Handle visibility change
+    
     const handleVisibilityChange = () => {
       if (document.hidden) {
         stopAudio();
       }
     };
     
-    // Add event listener for visibility change
+    
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
-    // Clean up on unmount
+    
     return () => {
       stopAudio();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
   
-  // Additional handler to stop audio when dialog is closed
+  
   const handleClose = () => {
     stopAudio();
     setCurrentPlayingTrack(null);
     onClose();
   };
   
-  // Get currently displayed tracks based on tab or search
+  
   const displayedTracks = searchQuery.trim()
     ? searchResults
     : tabValue === 0 ? tracks : likedTracks;

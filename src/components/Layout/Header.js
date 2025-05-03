@@ -63,7 +63,7 @@ import axios from 'axios';
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'rgb(18 18 18 / 81%)' 
-    ? alpha('#000000', 0.95) // Darker background in dark mode
+    ? alpha('#000000', 0.95) 
     : alpha('#ffffff', 0.9),
   backgroundImage: 'unset',
   color: theme.palette.mode === 'dark' ? '#FFFFFF' : theme.palette.text.primary,
@@ -88,7 +88,7 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   padding: theme.spacing(0, 1),
   height: 64,
   [theme.breakpoints.up('md')]: {
-    padding: theme.spacing(0, '15%'), // Simple 10% margin on both sides
+    padding: theme.spacing(0, '15%'), 
     width: '100%',
     margin: '0 auto',
   },
@@ -114,7 +114,7 @@ const PlayerSection = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   flexGrow: 1,
-  maxWidth: 500,
+  maxWidth: 400,
   [theme.breakpoints.down('md')]: {
     display: 'none',
   },
@@ -124,24 +124,38 @@ const PlayerControls = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  gap: theme.spacing(1),
+  gap: theme.spacing(0.5),
+}));
+
+const VolumeControl = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  position: 'relative',
+  '&:hover .volume-slider': {
+    width: 60,
+    opacity: 1,
+    marginLeft: theme.spacing(0.5),
+  }
 }));
 
 const VolumeSlider = styled('input')(({ theme }) => ({
-  width: 60,
-  height: 4,
-  borderRadius: 2,
+  width: 0,
+  height: 3,
+  borderRadius: 1.5,
   backgroundColor: alpha(theme.palette.primary.main, 0.2),
   appearance: 'none',
   outline: 'none',
+  transition: 'all 0.2s ease',
+  opacity: 0,
   '&::-webkit-slider-thumb': {
     appearance: 'none',
-    width: 12,
-    height: 12,
+    width: 10,
+    height: 10,
     borderRadius: '50%',
     backgroundColor: theme.palette.primary.main,
     cursor: 'pointer',
   },
+  '&.volume-slider': {},
 }));
 
 const ActionsSection = styled(Box)(({ theme }) => ({
@@ -178,7 +192,6 @@ const PointsIcon = styled(Box)(({ theme }) => ({
   }
 }));
 
-// New styled components for search functionality
 const SearchInputWrapper = styled(Box)(({ theme, fullWidth }) => ({
   position: 'relative',
   borderRadius: 16,
@@ -255,7 +268,6 @@ const Header = ({ toggleSidebar }) => {
     channels: []
   });
   
-  // Search state
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState({ users: [], channels: [] });
@@ -264,13 +276,10 @@ const Header = ({ toggleSidebar }) => {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const searchInputRef = useRef(null);
   
-  // Get header color from theme settings
   const headerColor = themeSettings.headerColor || theme.palette.background.paper;
   
-  // Скрываем хедер на странице музыки только для мобильных устройств
   const isMusicPage = location.pathname === '/music';
 
-  // Music context
   const { 
     currentTrack, 
     isPlaying, 
@@ -283,7 +292,6 @@ const Header = ({ toggleSidebar }) => {
     setVolume 
   } = useMusic();
 
-  // Профиль меню
   const [anchorEl, setAnchorEl] = useState(null);
   const isMenuOpen = Boolean(anchorEl);
 
@@ -299,9 +307,7 @@ const Header = ({ toggleSidebar }) => {
     handleMenuClose();
     try {
       await logout();
-      // Logout handled in AuthContext with redirect
     } catch (error) {
-      // Fallback if logout fails in AuthContext
       navigate('/login');
     }
   };
@@ -355,13 +361,11 @@ const Header = ({ toggleSidebar }) => {
       });
       
       if (response.data.success) {
-        // Update the current user
         setUser({
           ...response.data.account,
           id: response.data.account.id
         });
         
-        // Reload the page to apply changes
         window.location.reload();
       }
     } catch (error) {
@@ -371,7 +375,6 @@ const Header = ({ toggleSidebar }) => {
     }
   };
 
-  // Обработчик поиска
   const handleSearchChange = (e) => {
     const query = e.target.value;
     setSearchQuery(query);
@@ -390,7 +393,6 @@ const Header = ({ toggleSidebar }) => {
     
     setSearchLoading(true);
     try {
-      // Поиск пользователей
       const usersResponse = await axios.get('/api/search/', {
         params: { 
           q: query,
@@ -399,7 +401,6 @@ const Header = ({ toggleSidebar }) => {
         }
       });
       
-      // Поиск каналов
       const channelsResponse = await axios.get('/api/search/channels', {
         params: { 
           q: query,
@@ -458,7 +459,6 @@ const Header = ({ toggleSidebar }) => {
     setShowSearch(false);
   };
   
-  // Debounced search
   useEffect(() => {
     const handler = setTimeout(() => {
       if (searchQuery.trim().length >= 2) {
@@ -704,7 +704,7 @@ const Header = ({ toggleSidebar }) => {
                           <CircularProgress size={24} />
                         </Box>
                       ) : searchTab === 0 ? (
-                        // Пользователи
+                        
                         <>
                           {searchResults.users.length > 0 ? (
                             <List sx={{ p: 0 }}>
@@ -744,7 +744,7 @@ const Header = ({ toggleSidebar }) => {
                           )}
                         </>
                       ) : (
-                        // Каналы
+                        
                         <>
                           {searchResults.channels.length > 0 ? (
                             <List sx={{ p: 0 }}>
@@ -822,7 +822,7 @@ const Header = ({ toggleSidebar }) => {
                     width: 'auto'
                   }} 
                 />
-                {!isMobile && ( // Only show text on non-mobile screens
+                {!isMobile && (
                   <LogoText>
                     <Box component="span" sx={{ color: 'primary.main' }}>K</Box>
                     <Box component="span" sx={{ 
@@ -837,69 +837,74 @@ const Header = ({ toggleSidebar }) => {
             
             {currentTrack && (
               <PlayerSection>
-                <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
                   
+                  {/* Compact Track Info */}
                   <Box 
                     component={Link} 
                     to="/music" 
                     sx={{ 
                       display: 'flex', 
-                      alignItems: 'center', 
-                      mr: 2,
+                      alignItems: 'center',
                       textDecoration: 'none',
-                      color: 'inherit'
+                      color: 'inherit',
+                      flex: '1',
+                      minWidth: 0, 
                     }}
                   >
                     <Avatar 
                       variant="rounded" 
                       src={currentTrack.cover_path || '/static/uploads/system/album_placeholder.jpg'} 
                       alt={currentTrack.title}
-                      sx={{ width: 40, height: 40, mr: 1, borderRadius: '8px' }}
+                      sx={{ width: 32, height: 32, mr: 1, borderRadius: '4px' }}
                     />
-                    <Box>
+                    <Box sx={{ minWidth: 0 }}> {/* Container for proper text truncation */}
                       <Typography variant="body2" fontWeight="medium" noWrap>
-                        {truncateTitle(currentTrack.title)}
+                        {truncateTitle(currentTrack.title, 20)}
                       </Typography>
                       <Typography variant="caption" color="text.secondary" noWrap>
-                        {currentTrack.artist}
+                        {truncateTitle(currentTrack.artist, 20)}
                       </Typography>
                     </Box>
                   </Box>
                   
-                  
+                  {/* Simplified Controls */}
                   <PlayerControls>
-                    <IconButton size="small" onClick={prevTrack}>
-                      <SkipPreviousIcon fontSize="small" />
+                    <IconButton size="small" onClick={prevTrack} sx={{ p: 0.5 }}>
+                      <SkipPreviousIcon sx={{ fontSize: '1.1rem' }} />
                     </IconButton>
                     
                     <IconButton 
                       onClick={togglePlay}
+                      size="small"
                       sx={{ 
                         color: 'primary.main',
-                        bgcolor: alpha(theme.palette.primary.main, 0.1),
-                        '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2) },
-                        p: 1
+                        bgcolor: alpha(theme.palette.primary.main, 0.05),
+                        '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.15) },
+                        p: 0.7,
+                        mx: 0.5,
                       }}
                     >
-                      {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+                      {isPlaying ? <PauseIcon sx={{ fontSize: '1.1rem' }} /> : <PlayArrowIcon sx={{ fontSize: '1.1rem' }} />}
                     </IconButton>
                     
-                    <IconButton size="small" onClick={nextTrack}>
-                      <SkipNextIcon fontSize="small" />
+                    <IconButton size="small" onClick={nextTrack} sx={{ p: 0.5 }}>
+                      <SkipNextIcon sx={{ fontSize: '1.1rem' }} />
                     </IconButton>
                     
-                    <Box sx={{ display: 'flex', alignItems: 'center', ml: 1 }}>
+                    <VolumeControl>
                       <IconButton 
                         size="small" 
                         onClick={toggleMute}
-                        sx={{ mr: 0.5 }}
+                        sx={{ p: 0.5, ml: 0.5 }}
                       >
                         {isMuted || volume === 0 ? 
-                          <VolumeOffIcon fontSize="small" /> : 
-                          <VolumeUpIcon fontSize="small" />
+                          <VolumeOffIcon sx={{ fontSize: '1.1rem' }} /> : 
+                          <VolumeUpIcon sx={{ fontSize: '1.1rem' }} />
                         }
                       </IconButton>
                       <VolumeSlider 
+                        className="volume-slider"
                         type="range" 
                         min={0} 
                         max={1} 
@@ -907,7 +912,7 @@ const Header = ({ toggleSidebar }) => {
                         value={isMuted ? 0 : volume}
                         onChange={(e) => setVolume(parseFloat(e.target.value))}
                       />
-                    </Box>
+                    </VolumeControl>
                   </PlayerControls>
                 </Box>
               </PlayerSection>

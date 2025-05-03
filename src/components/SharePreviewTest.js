@@ -36,21 +36,21 @@ const SharePreviewTest = () => {
     setError(null);
     
     try {
-      // В реальном приложении здесь был бы запрос к API для получения мета-данных страницы
-      // Но для демонстрации просто имитируем fetch с небольшой задержкой
+      
+      
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Проверяем, является ли URL относительным или абсолютным
+      
       const isRelative = !url.startsWith('http');
       const fullUrl = isRelative 
         ? `${window.location.origin}${url.startsWith('/') ? '' : '/'}${url}` 
         : url;
       
-      // Извлекаем путь
+      
       const urlObj = new URL(fullUrl);
       const path = urlObj.pathname;
       
-      // Условно определяем тип содержимого по пути 
+      
       let type = 'website';
       let title = 'K-Connect';
       let description = 'Социальная сеть от независимого разработчика';

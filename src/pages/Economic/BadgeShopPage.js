@@ -535,7 +535,7 @@ const CopiesChip = styled(Chip)(({ theme, issoldout }) => ({
   }
 }));
 
-// Replace regular Dialog with StyledDialog for purchase dialog
+
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialog-container": {
     zIndex: 999999999999
@@ -685,12 +685,12 @@ const BadgeShopPage = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [createdBadgesCount, setCreatedBadgesCount] = useState(0);
   const [badgeLimitReached, setBadgeLimitReached] = useState(false);
-  const [badgeLimit, setBadgeLimit] = useState(3); // По умолчанию без подписки
+  const [badgeLimit, setBadgeLimit] = useState(3); 
   const [userSubscription, setUserSubscription] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
   
-  // Получаем информацию о подписке и лимитах
+  
   const fetchSubscriptionStatus = async () => {
     try {
       const response = await axios.get('/api/user/subscription/status');
@@ -699,7 +699,7 @@ const BadgeShopPage = () => {
         updateBadgeLimit(response.data.subscription_type);
       } else {
         setUserSubscription(null);
-        setBadgeLimit(3); // Без подписки лимит 3 бейджа
+        setBadgeLimit(3); 
       }
     } catch (error) {
       console.error('Error fetching subscription status:', error);
@@ -708,14 +708,14 @@ const BadgeShopPage = () => {
     }
   };
   
-  // Обновляем лимит бейджей в зависимости от подписки
+  
   const updateBadgeLimit = (subscriptionType) => {
     if (!subscriptionType) {
-      setBadgeLimit(3); // Без подписки
+      setBadgeLimit(3); 
       return;
     }
     
-    // Преобразуем тип подписки в нижний регистр для более гибкого сравнения
+    
     const subType = subscriptionType.toLowerCase().trim();
     
     if (subType === 'basic') {
@@ -723,21 +723,21 @@ const BadgeShopPage = () => {
     } else if (subType === 'premium') {
       setBadgeLimit(8);
     } else if (subType === 'ultimate' || subType.includes('ultimate')) {
-      setBadgeLimit(Infinity); // Без ограничений
+      setBadgeLimit(Infinity); 
     } else {
       setBadgeLimit(3);
     }
   };
   
-  // Получаем количество созданных пользователем бейджей
+  
   const fetchCreatedBadgesCount = async () => {
     try {
       const response = await axios.get('/api/badges/created');
       if (response.data && response.data.total_badges !== undefined) {
         setCreatedBadgesCount(response.data.total_badges);
         
-        // Проверяем, достигнут ли лимит
-        // Для Ultimate подписки лимит не применяется
+        
+        
         const isUltimate = userSubscription && userSubscription.subscription_type && 
           (userSubscription.subscription_type.toLowerCase() === 'ultimate' || 
            userSubscription.subscription_type.toLowerCase().includes('ultimate'));
@@ -759,7 +759,7 @@ const BadgeShopPage = () => {
     fetchSubscriptionStatus();
   }, []);
   
-  // Обновляем лимит, когда меняется подписка или количество бейджей
+  
   useEffect(() => {
     const isUltimate = userSubscription && userSubscription.subscription_type && 
       (userSubscription.subscription_type.toLowerCase() === 'ultimate' || 
@@ -772,7 +772,7 @@ const BadgeShopPage = () => {
     }
   }, [badgeLimit, createdBadgesCount, userSubscription]);
   
-  // После получения информации о подписке, получаем количество созданных бейджей
+  
   useEffect(() => {
     fetchCreatedBadgesCount();
   }, [userSubscription]);
@@ -806,16 +806,16 @@ const BadgeShopPage = () => {
 
   const handleCreateBadge = async () => {
     try {
-      // Проверки лимита перенесены на бэкенд, фронтенд просто отправляет запрос
-      // и показывает ошибки от бэкенда, если они возникают
+      
+      
 
-      // Проверяем обязательные поля
+      
       if (!newBadge.name || !newBadge.description || !newBadge.price || !newBadge.image) {
         setError('Пожалуйста, заполните все обязательные поля');
         return;
       }
 
-      // Проверяем, что цена является положительным числом
+      
       const price = parseInt(newBadge.price);
       if (isNaN(price) || price <= 0) {
         setError('Цена должна быть положительным числом');
@@ -828,11 +828,11 @@ const BadgeShopPage = () => {
       formData.append('price', price);
       formData.append('royalty_percentage', newBadge.royalty_percentage);
       
-      // Если указано max_copies = 1, это значит что бейдж только для создателя
+      
       const maxCopies = parseInt(newBadge.max_copies) || 0;
       if (maxCopies === 1) {
         formData.append('max_copies', 1);
-        formData.append('is_sold_out', true); // Помечаем как распроданный сразу
+        formData.append('is_sold_out', true); 
       } else if (newBadge.max_copies) {
         formData.append('max_copies', newBadge.max_copies);
       }
@@ -840,7 +840,7 @@ const BadgeShopPage = () => {
       formData.append('image', newBadge.image);
       formData.append('strip_path_prefix', true);
       formData.append('file_path_mode', 'clean');
-      formData.append('auto_assign_to_creator', true); // Флаг для автоматической выдачи бейджа создателю
+      formData.append('auto_assign_to_creator', true); 
 
       const response = await axios.post('/api/badges/create', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -856,8 +856,8 @@ const BadgeShopPage = () => {
         image: null
       });
       
-      // Просто обновляем счетчик и обновляем данные через API
-      // без дополнительных проверок на фронте
+      
+      
       await fetchCreatedBadgesCount();
       fetchBadges();
       fetchUserPoints();
@@ -868,37 +868,37 @@ const BadgeShopPage = () => {
   };
 
   const handlePurchaseBadge = async (badge) => {
-    if (isPurchasing) return; // Предотвращаем повторные нажатия
+    if (isPurchasing) return; 
     
     try {
-      // Устанавливаем флаг покупки
+      
       setIsPurchasing(true);
       
-      // Анимация начала транзакции - переход к шагу подтверждения с анимацией
-      setPurchaseStep(1.5); // Промежуточное значение для анимации
       
-      // Имитируем задержку сети для анимации
+      setPurchaseStep(1.5); 
+      
+      
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Запрос на сервер
+      
       await axios.post(`/api/badges/purchase/${badge.id}`, {
-        // Указываем бэкенду, что нужно удалить префикс badges/ из image_path перед сохранением
+        
         badge_info: {
-          // Имя для поля bage в Achievement
+          
           name: badge.name !== 'shop_1' ? badge.name : 'Бейджик',
-          // Флаг для удаления префикса badges/ из пути
+          
           remove_badge_prefix: true,
-          // Добавляем префикс shop/ для покупок
+          
           add_shop_prefix: true
         }
       });
       
-      // Успешная покупка
+      
       setPurchaseStep(2);
       setPurchaseSuccess(true);
-      setShowConfetti(true); // Запускаем конфетти при успешной покупке
+      setShowConfetti(true); 
       
-      // Обновляем данные и сбрасываем состояния
+      
       setTimeout(() => {
         setOpenPurchaseDialog(false);
         setPurchaseStep(0);
@@ -906,12 +906,12 @@ const BadgeShopPage = () => {
         setShowConfetti(false);
         fetchBadges();
         fetchUserPoints();
-        setIsPurchasing(false); // Сбрасываем флаг покупки
+        setIsPurchasing(false); 
       }, 3000);
     } catch (err) {
       setError(err.response?.data?.error || 'Ошибка при покупке бейджика');
       setPurchaseStep(0);
-      setIsPurchasing(false); // Сбрасываем флаг покупки при ошибке
+      setIsPurchasing(false); 
     }
   };
 
@@ -931,7 +931,7 @@ const BadgeShopPage = () => {
     if (file && file.type === 'image/svg+xml') {
       setNewBadge({ ...newBadge, image: file });
       
-      // Создаем URL для превью загруженного SVG
+      
       const fileUrl = URL.createObjectURL(file);
       setPreviewUrl(fileUrl);
     } else {
@@ -950,59 +950,59 @@ const BadgeShopPage = () => {
     setSelectedBadge(null);
   };
 
-  // Sorting function for badges
+  
   const getSortedBadges = (badges) => {
     if (!badges.length) return [];
     
     switch (sortOption) {
       case 'newest':
-        // Sort by id descending (higher id = newer)
+        
         return [...badges].sort((a, b) => b.id - a.id);
       case 'oldest':
-        // Sort by id ascending (lower id = older)
+        
         return [...badges].sort((a, b) => a.id - b.id);
       case 'popular':
-        // Sort by number of purchases (most popular)
+        
         return [...badges].sort((a, b) => (b.purchases?.length || 0) - (a.purchases?.length || 0));
       case 'price-low':
-        // Sort by price (lowest first)
+        
         return [...badges].sort((a, b) => a.price - b.price);
       case 'price-high':
-        // Sort by price (highest first)
+        
         return [...badges].sort((a, b) => b.price - a.price);
       default:
         return badges;
     }
   };
 
-  // filter and sort badges
+  
   const processedBadges = () => {
-    // First filter by tab
+    
     let filtered = badges;
     if (tabValue === 0) {
-      // All badges tab - exclude sold out and purchased badges
+      
       filtered = badges.filter(badge => 
-        // Not sold out
+        
         !((badge.max_copies === 1 && badge.copies_sold >= 1) || 
           (badge.max_copies && badge.copies_sold >= badge.max_copies)) &&
-        // Not purchased by current user
+        
         !badge.purchases?.some(p => p.buyer_id === user?.id)
       );
     } else if (tabValue === 1) {
-      // My badges tab - badges created by user
+      
       filtered = badges.filter(badge => badge.creator_id === user?.id);
     } else if (tabValue === 2) {
-      // Purchased tab - badges purchased by user
+      
       filtered = badges.filter(badge => badge.purchases?.some(p => p.buyer_id === user?.id));
     } else if (tabValue === 3) {
-      // Sold out tab - only show sold out badges
+      
       filtered = badges.filter(badge => 
         (badge.max_copies === 1 && badge.copies_sold >= 1) || 
         (badge.max_copies && badge.copies_sold >= badge.max_copies)
       );
     }
 
-    // Then sort
+    
     return getSortedBadges(filtered);
   };
 
@@ -1010,7 +1010,7 @@ const BadgeShopPage = () => {
     setSortOption(event.target.value);
   };
 
-  // Очищаем URL при размонтировании компонента
+  
   useEffect(() => {
     return () => {
       if (previewUrl) {

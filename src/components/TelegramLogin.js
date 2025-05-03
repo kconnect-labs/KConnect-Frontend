@@ -7,7 +7,7 @@ const TelegramLogin = () => {
   const { updateUser, setIsAuthenticated } = useContext(AuthContext);
   const telegramBtnRef = useRef(null);
 
-  // Функция для обработки авторизации через Telegram
+  
   const handleTelegramAuth = (user) => {
     console.log('Telegram auth data:', user);
     
@@ -18,11 +18,11 @@ const TelegramLogin = () => {
     })
     .then(response => {
       if (response.data.success) {
-        // Обновляем контекст авторизации
+        
         updateUser(response.data.user);
         setIsAuthenticated(true);
         
-        // Перенаправляем пользователя
+        
         if (response.data.needsProfileSetup) {
           window.location.href = '/register-profile';
         } else {
@@ -38,18 +38,18 @@ const TelegramLogin = () => {
   };
 
   useEffect(() => {
-    // Определяем глобальную функцию для виджета Telegram
+    
     window.onTelegramAuth = function(user) {
       handleTelegramAuth(user);
     };
 
-    // Создаем скрытый div для Telegram виджета
+    
     const telegramWidgetContainer = document.createElement('div');
     telegramWidgetContainer.id = 'telegram-login';
     telegramWidgetContainer.style.display = 'none';
     document.body.appendChild(telegramWidgetContainer);
 
-    // Добавляем скрипт для виджета
+    
     const script = document.createElement('script');
     script.src = 'https://telegram.org/js/telegram-widget.js?22';
     script.setAttribute('data-telegram-login', 'KConnect');
@@ -59,7 +59,7 @@ const TelegramLogin = () => {
     script.async = true;
     telegramWidgetContainer.appendChild(script);
 
-    // Очистка при размонтировании
+    
     return () => {
       if (document.body.contains(telegramWidgetContainer)) {
         document.body.removeChild(telegramWidgetContainer);
@@ -68,9 +68,9 @@ const TelegramLogin = () => {
     };
   }, []);
 
-  // Функция для клика по кнопке Telegram
+  
   const handleTelegramClick = () => {
-    // Ищем iframe и кликаем по нему
+    
     setTimeout(() => {
       const telegramLoginIframe = document.querySelector('iframe[name^="telegram-login"]');
       
@@ -78,20 +78,20 @@ const TelegramLogin = () => {
         console.log('Кликаем на iframe Telegram');
         telegramLoginIframe.click();
       } else {
-        // Ищем кнопку внутри виджета и кликаем по ней
+        
         const telegramLoginButton = document.querySelector('#telegram-login .telegram-login-button');
         if (telegramLoginButton) {
           console.log('Кликаем на кнопку Telegram виджета');
           telegramLoginButton.click();
         } else {
           console.log('Не нашли элементы для клика, пробуем открыть напрямую');
-          // Правильная ссылка с корректным bot_id и параметрами
+          
           const currentUrl = window.location.origin;
           const redirectUrl = encodeURIComponent(currentUrl);
           window.open(`https://oauth.telegram.org/auth?bot_id=7669359470&origin=${redirectUrl}&embed=1&request_access=write&return_to=${redirectUrl}/login`, '_blank');
         }
       }
-    }, 500); // Даем виджету время на инициализацию
+    }, 500); 
   };
 
   return (

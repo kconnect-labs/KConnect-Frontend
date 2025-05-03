@@ -14,8 +14,7 @@ const ContextMenu = ({ items, x, y, show, onClose }) => {
   const menuRef = useRef(null);
   const [position, setPosition] = useState({ x, y });
 
-  // Корректируем позицию, чтобы меню не выходило за пределы экрана
-  useEffect(() => {
+    useEffect(() => {
     if (show && menuRef.current) {
       const menu = menuRef.current;
       const rect = menu.getBoundingClientRect();
@@ -25,13 +24,11 @@ const ContextMenu = ({ items, x, y, show, onClose }) => {
       let adjustedX = x;
       let adjustedY = y;
       
-      // Проверяем, не выходит ли меню за правый край экрана
-      if (x + rect.width > viewportWidth) {
+            if (x + rect.width > viewportWidth) {
         adjustedX = viewportWidth - rect.width;
       }
       
-      // Проверяем, не выходит ли меню за нижний край экрана
-      if (y + rect.height > viewportHeight) {
+            if (y + rect.height > viewportHeight) {
         adjustedY = viewportHeight - rect.height;
       }
       
@@ -39,8 +36,7 @@ const ContextMenu = ({ items, x, y, show, onClose }) => {
     }
   }, [show, x, y]);
 
-  // Закрываем меню при клике вне его области
-  useEffect(() => {
+    useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         onClose();
@@ -56,8 +52,7 @@ const ContextMenu = ({ items, x, y, show, onClose }) => {
     };
   }, [show, onClose]);
 
-  // Закрываем при нажатии Esc
-  useEffect(() => {
+    useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
         onClose();

@@ -69,7 +69,7 @@ import TouchAppIcon from '@mui/icons-material/TouchApp';
 import CallMadeIcon from '@mui/icons-material/CallMade';
 import CallReceivedIcon from '@mui/icons-material/CallReceived';
 
-// Создаем стилизованные компоненты
+
 const BalanceHeader = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
@@ -143,7 +143,7 @@ const StatsCard = styled(Paper)(({ theme }) => ({
   },
 }));
 
-// Modify TransactionItem styled component to look more like a banking app
+
 const TransactionItem = styled(ListItem)(({ theme }) => ({
   borderRadius: 16,
   marginBottom: theme.spacing(1.5),
@@ -193,7 +193,7 @@ const PointsIcon = styled(Box)(({ theme }) => ({
   }
 }));
 
-// Новые стилизованные компоненты
+
 const BadgeCard = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
   marginBottom: theme.spacing(2),
@@ -244,7 +244,7 @@ const ActionCircleIcon = styled(Box)(({ theme }) => ({
   width: 44,
   height: 44,
   borderRadius: '50%',
-  backgroundColor: '#614C93', // Более темный из градиента
+  backgroundColor: '#614C93', 
   marginBottom: theme.spacing(0.8),
   '& svg': {
     color: '#fff',
@@ -273,7 +273,7 @@ const TabPanel = ({ children, value, index, ...other }) => (
   </div>
 );
 
-// Новый компонент для карточек действий в стиле Тинькофф
+
 const ActionCardsContainer = styled(Box)(({ theme }) => ({
   display: 'grid',
   gridTemplateColumns: 'repeat(3, 1fr)',
@@ -347,7 +347,7 @@ const ActionSubtitle = styled(Typography)(({ theme }) => ({
   textAlign: 'center',
 }));
 
-// Add new styled components for the dialog design
+
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialog-container": {
     zIndex: 999999999999
@@ -499,7 +499,7 @@ const KeyTextField = styled(TextField)(({ theme }) => ({
   }
 }));
 
-// Add missing styled components
+
 const DialogAvatar = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -598,7 +598,7 @@ const GradientButton = styled(Button)(({ theme }) => ({
   }
 }));
 
-// Стилизованный компонент для иконки чека
+
 const ReceiptIconButton = styled(Button)(({ theme }) => ({
   marginTop: theme.spacing(2),
   marginBottom: theme.spacing(1),
@@ -623,13 +623,13 @@ const SuccessIconWrapper = styled(Box)(({ theme }) => ({
   marginBottom: theme.spacing(2),
 }));
 
-// Add a new function to generate receipt for past transfers
+
 const generateReceiptForTransaction = async (transaction) => {
   try {
-    // Create a transaction ID from the transaction data
+    
     const transactionId = `TR-${transaction.id || Date.now().toString().slice(-8)}`;
     
-    // Generate the receipt on the server
+    
     const response = await axios.post('/api/user/generate-receipt', {
       transaction_data: {
         transactionId: transactionId,
@@ -643,10 +643,10 @@ const generateReceiptForTransaction = async (transaction) => {
     });
     
     if (response.data && response.data.success) {
-      // Create a data URL from the returned base64 PDF data
+      
       const pdfDataUrl = `data:application/pdf;base64,${response.data.pdf_data}`;
       
-      // Open the receipt in a new tab instead of downloading
+      
       downloadPdfReceipt(pdfDataUrl, transactionId, response.data.file_path);
     } else {
       throw new Error('Не удалось сгенерировать чек на сервере');
@@ -656,7 +656,7 @@ const generateReceiptForTransaction = async (transaction) => {
   }
 };
 
-// Add new styled components for transaction details dialog
+
 const TransactionDetailDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
     borderRadius: 20,
@@ -790,7 +790,7 @@ const TransactionDetailContent = styled(DialogContent)(({ theme }) => ({
   padding: theme.spacing(3),
 }));
 
-// Главный компонент страницы
+
 const BalancePage = () => {
   const { user } = useContext(AuthContext);
   const theme = useTheme();
@@ -824,11 +824,11 @@ const BalancePage = () => {
   const [transferSuccess, setTransferSuccess] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
   const [subscription, setSubscription] = useState(null);
-  // Add state for transaction detail dialog
+  
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
 
-  // Объединяем историю покупок и роялти в единую историю транзакций
+  
   const allTransactions = React.useMemo(() => {
     const purchases = purchaseHistory.map(purchase => ({
       ...purchase,
@@ -853,17 +853,17 @@ const BalancePage = () => {
     }));
 
     const transfers = transferHistory.map(transfer => {
-      // Определяем, является ли текущий пользователь отправителем
-      // Convert both IDs to numbers for reliable comparison
+      
+      
       const senderId = parseInt(transfer.sender_id, 10);
       const userId = parseInt(user.id, 10);
       const is_sender = senderId === userId;
       
-      // Специальная обработка для вывода баллов из кликера (когда отправитель = получатель)
+      
       const isClickerWithdrawal = transfer.sender_id === transfer.recipient_id && 
                                  transfer.message === "Вывод баллов из кликера";
       
-      // Формируем краткое описание для показа в списке
+      
       let title = isClickerWithdrawal ? 'Вывод из кликера' : 
                  (is_sender ? 'Перевод' : 'Пополнение');
       let description = isClickerWithdrawal ? 'Баллы из кликера' : 
@@ -885,7 +885,7 @@ const BalancePage = () => {
       };
     });
 
-    // Добавляем покупки юзернеймов
+    
     const usernames = usernamePurchases.map(purchase => ({
       ...purchase,
       type: 'username',
@@ -896,13 +896,13 @@ const BalancePage = () => {
       icon: <AccountCircleIcon sx={{ color: 'error.main' }} />
     }));
 
-    // Сортируем по дате (новые сначала)
+    
     return [...purchases, ...royalties, ...transfers, ...usernames].sort((a, b) => b.date - a.date);
   }, [purchaseHistory, royaltyHistory, transferHistory, usernamePurchases, user?.id]);
 
   useEffect(() => {
     if (user) {
-      // Загружаем данные при монтировании компонента
+      
       fetchUserPoints();
       fetchWeeklyEstimate();
       fetchPurchaseHistory();
@@ -914,12 +914,12 @@ const BalancePage = () => {
     }
   }, [user]);
 
-  // Add a separate useEffect to log subscription changes for debugging
+  
   useEffect(() => {
     console.log('Subscription state changed:', subscription);
   }, [subscription]);
 
-  // Получение текущего баланса баллов
+  
   const fetchUserPoints = async () => {
     try {
       const response = await axios.get('/api/user/points');
@@ -930,10 +930,10 @@ const BalancePage = () => {
     }
   };
 
-  // Получение оценки баллов за текущую неделю
+  
   const fetchWeeklyEstimate = async () => {
     try {
-      // Получаем данные из лидерборда за текущую неделю
+      
       const response = await axios.get('/api/leaderboard/user/' + user.id + '?period=week');
       setWeeklyEstimate(response.data.score || 0);
     } catch (error) {
@@ -942,11 +942,11 @@ const BalancePage = () => {
     }
   };
 
-  // Получение истории покупок
+  
   const fetchPurchaseHistory = async () => {
     try {
       const response = await axios.get('/api/badges/purchases');
-      // Сортируем покупки по дате (новые сначала)
+      
       const sortedPurchases = response.data.purchases.sort((a, b) => 
         new Date(b.purchase_date) - new Date(a.purchase_date)
       );
@@ -959,11 +959,11 @@ const BalancePage = () => {
     }
   };
 
-  // Получение истории роялти от бейджиков
+  
   const fetchRoyaltyHistory = async () => {
     try {
       const response = await axios.get('/api/badges/royalties');
-      // Данные уже отсортированы на бэкенде
+      
       console.log('Received royalty data:', response.data);
       setRoyaltyHistory(response.data.royalties || []);
     } catch (error) {
@@ -972,7 +972,7 @@ const BalancePage = () => {
     }
   };
 
-  // Получение созданных пользователем бейджиков
+  
   const fetchCreatedBadges = async () => {
     try {
       const response = await axios.get('/api/badges/created');
@@ -984,7 +984,7 @@ const BalancePage = () => {
     }
   };
 
-  // Новая функция для получения истории переводов
+  
   const fetchTransferHistory = async () => {
     try {
       const response = await axios.get('/api/user/transfer-history');
@@ -993,11 +993,11 @@ const BalancePage = () => {
       }
     } catch (error) {
       console.error('Ошибка при получении истории переводов:', error);
-      // Не показываем ошибку пользователю, просто логируем
+      
     }
   };
 
-  // Функция для получения истории покупок юзернеймов
+  
   const fetchUsernamePurchases = async () => {
     try {
       const response = await axios.get('/api/user/username-purchases');
@@ -1006,16 +1006,16 @@ const BalancePage = () => {
       }
     } catch (error) {
       console.error('Ошибка при получении истории покупок юзернеймов:', error);
-      // Не показываем ошибку пользователю, просто логируем
+      
     }
   };
 
-  // Функция для поиска пользователя с debounce
+  
   const searchUser = useCallback((username) => {
-    // Очищаем предыдущий таймер
+    
     if (userSearch.timer) clearTimeout(userSearch.timer);
     
-    // Если имя пользователя пустое, сбрасываем состояние поиска
+    
     if (!username) {
       setUserSearch(prev => ({
         ...prev,
@@ -1024,39 +1024,39 @@ const BalancePage = () => {
         suggestions: [],
         timer: null
       }));
-      // Сбрасываем recipient_id при пустом username
+      
       setTransferData(prev => ({...prev, recipient_id: null}));
       return;
     }
     
-    // Устанавливаем состояние загрузки
+    
     setUserSearch(prev => ({
       ...prev,
       loading: true,
       timer: setTimeout(async () => {
         try {
-          // Запрос на API для проверки/поиска пользователя
+          
           const response = await axios.get(`/api/user/search-recipients?query=${username}`);
           
           if (response.data && response.data.users) {
-            // Проверяем, есть ли точное совпадение
+            
             const exactMatch = response.data.users.find(
               user => user.username.toLowerCase() === username.toLowerCase()
             );
             
-            // Если нашли точное совпадение, сохраняем ID получателя
+            
             if (exactMatch) {
               setTransferData(prev => ({...prev, recipient_id: exactMatch.id}));
             } else {
               setTransferData(prev => ({...prev, recipient_id: null}));
             }
             
-            // Обновляем состояние поиска
+            
             setUserSearch(prev => ({
               ...prev,
               loading: false,
               exists: !!exactMatch,
-              suggestions: response.data.users.slice(0, 3) // Ограничиваем до 3 предложений
+              suggestions: response.data.users.slice(0, 3) 
             }));
           } else {
             setUserSearch(prev => ({
@@ -1077,20 +1077,20 @@ const BalancePage = () => {
           }));
           setTransferData(prev => ({...prev, recipient_id: null}));
         }
-      }, 500) // Задержка в 500 мс перед отправкой запроса
+      }, 500) 
     }));
   }, [userSearch.timer]);
   
-  // Обработчик изменения имени пользователя
+  
   const handleUsernameChange = (e) => {
     const username = e.target.value;
     setTransferData(prev => ({...prev, username}));
     
-    // Запускаем поиск пользователя
+    
     searchUser(username);
   };
   
-  // Выбор предложенного пользователя
+  
   const selectSuggestion = (username, userId) => {
     setTransferData(prev => ({...prev, username, recipient_id: userId}));
     setUserSearch(prev => ({
@@ -1101,7 +1101,7 @@ const BalancePage = () => {
     }));
   };
 
-  // Функция перевода баллов
+  
   const handleTransferPoints = async () => {
     const errors = {};
     if (!transferData.username) errors.username = 'Введите имя пользователя';
@@ -1121,7 +1121,7 @@ const BalancePage = () => {
 
     setTransferErrors({});
     try {
-      // Отправляем и ID, и username для двойной верификации
+      
       const response = await axios.post('/api/user/transfer-points', {
         recipient_username: transferData.username,
         recipient_id: transferData.recipient_id,
@@ -1129,18 +1129,18 @@ const BalancePage = () => {
         message: transferData.message
       });
       
-      // Обновляем баланс
+      
       fetchUserPoints();
       
-      // Закрываем диалог ввода
+      
       setTransferDialogOpen(false);
       
-      // Генерируем квитанцию и показываем диалог успеха
+      
       try {
         const now = new Date();
         const transactionId = `TR-${Date.now().toString().slice(-8)}`;
         
-        // Generate the receipt on the server
+        
         const response = await axios.post('/api/user/generate-receipt', {
           transaction_data: {
             transactionId: transactionId,
@@ -1152,7 +1152,7 @@ const BalancePage = () => {
         });
         
         if (response.data && response.data.success) {
-          // Create a data URL from the returned base64 PDF data
+          
           const receiptData = {
             dataUrl: `data:application/pdf;base64,${response.data.pdf_data}`,
             filePath: response.data.file_path
@@ -1167,10 +1167,10 @@ const BalancePage = () => {
         console.error('Ошибка при создании чека:', error);
       }
       
-      // Обновляем историю транзакций
+      
       fetchTransferHistory();
       
-      // Сбрасываем данные формы
+      
       setTransferData({ username: '', amount: '', message: '', recipient_id: null });
     } catch (error) {
       console.error('Ошибка при переводе баллов:', error);
@@ -1182,35 +1182,35 @@ const BalancePage = () => {
     }
   };
 
-  // Функция форматирования даты с учетом часового пояса пользователя
+  
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     
-    // Получаем смещение часового пояса пользователя в минутах
+    
     const userTimezoneOffset = date.getTimezoneOffset();
     
-    // Создаем новую дату с учетом смещения
+    
     const userDate = new Date(date.getTime() - (userTimezoneOffset * 60000));
     
-    // Форматируем дату с учетом локали пользователя
+    
     const formattedDate = userDate.toLocaleString('ru-RU', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false, // Используем 24-часовой формат
-      timeZoneName: 'short' // Добавляем отображение часового пояса
+      hour12: false, 
+      timeZoneName: 'short' 
     });
     
     return formattedDate;
   };
 
-  // Получение информации о границах текущей недели
+  
   const getCurrentWeekRange = () => {
     const now = new Date();
-    const dayOfWeek = now.getDay(); // 0-воскресенье, 1-понедельник, ...
-    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Расчет смещения до понедельника
+    const dayOfWeek = now.getDay(); 
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; 
     
     const monday = new Date(now);
     monday.setDate(now.getDate() + mondayOffset);
@@ -1226,7 +1226,7 @@ const BalancePage = () => {
     };
   };
 
-  // Получаем границы текущей недели
+  
   const weekRange = getCurrentWeekRange();
 
   const handleTabChange = (event, newValue) => {
@@ -1237,18 +1237,18 @@ const BalancePage = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
-  // Format key input with dashes
+  
   const formatKeyInput = (input) => {
-    // Remove all non-alphanumeric characters
+    
     const cleaned = input.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
     
-    // Add dashes after every 4 characters
+    
     let formatted = '';
     for (let i = 0; i < cleaned.length; i++) {
       if (i > 0 && i % 4 === 0 && i < 16) {
         formatted += '-';
       }
-      if (i < 16) { // Limit to 16 characters (excluding dashes)
+      if (i < 16) { 
         formatted += cleaned[i];
       }
     }
@@ -1256,20 +1256,20 @@ const BalancePage = () => {
     return formatted;
   };
   
-  // Handle key input change
+  
   const handleKeyChange = (e) => {
     const formattedKey = formatKeyInput(e.target.value);
     setKeyValue(formattedKey);
     setKeyError('');
   };
   
-  // Check if key format is valid
+  
   const isValidKeyFormat = (key) => {
-    // Key should be in format XXXX-XXXX-XXXX-XXXX
+    
     return /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(key);
   };
   
-  // Handle key redemption
+  
   const handleRedeemKey = async () => {
     setKeyError('');
     setKeySuccess(null);
@@ -1293,23 +1293,23 @@ const BalancePage = () => {
       }
       
       if (data.type === 'points') {
-        // For points redemption
+        
         setKeySuccess({
           message: data.message,
           type: 'points',
           newBalance: data.new_balance
         });
-        // Update balance without refresh
+        
         setUserPoints(data.new_balance);
       } else if (data.type === 'subscription') {
-        // For subscription redemption
+        
         setKeySuccess({
           message: data.message,
           type: 'subscription',
           subscriptionType: data.subscription_type,
           expiresAt: data.expires_at
         });
-        // Update subscription status
+        
         fetchSubscriptionStatus();
       }
       
@@ -1321,7 +1321,7 @@ const BalancePage = () => {
     }
   };
 
-  // Update fetchSubscriptionStatus function
+  
   const fetchSubscriptionStatus = async () => {
     try {
       console.log('Fetching subscription status...');
@@ -1330,17 +1330,17 @@ const BalancePage = () => {
       if (response.data) {
         console.log('Received subscription data:', response.data);
         
-        // Format the data if needed and update subscription state
+        
         if (response.data.active && response.data.subscription_type) {
           setSubscription({
             active: true,
             type: response.data.subscription_type,
             expires_at: response.data.expiration_date,
-            // Add additional properties that might be in the response
+            
             features: response.data.features || []
           });
         } else {
-          // No active subscription
+          
           setSubscription(null);
         }
       } else {
@@ -1353,25 +1353,25 @@ const BalancePage = () => {
     }
   };
 
-  // Function to open transaction details
+  
   const handleOpenTransactionDetails = (transaction) => {
     setSelectedTransaction(transaction);
     setDetailDialogOpen(true);
   };
 
-  // Function to close transaction details
+  
   const handleCloseTransactionDetails = () => {
     setDetailDialogOpen(false);
     setSelectedTransaction(null);
   };
 
-  // Format currency for transaction details
+  
   const formatCurrency = (amount) => {
     const absAmount = Math.abs(amount);
     return `${amount < 0 ? '-' : '+'}${absAmount}`;
   };
 
-  // Get transaction ID
+  
   const getTransactionId = (transaction) => {
     return `TR-${transaction.id || new Date(transaction.date).getTime().toString().slice(-8)}`;
   };
@@ -2386,7 +2386,7 @@ const BalancePage = () => {
                 </Typography>
                 
                 {keySuccess.type === 'points' ? (
-                  // Анимированное отображение нового баланса для баллов
+                  
                   <Box sx={{ 
                     mt: 3,
                     p: 2,
@@ -2410,7 +2410,7 @@ const BalancePage = () => {
                     </Typography>
                   </Box>
                 ) : (
-                  // Отображение информации о подписке
+                  
                   <Box sx={{ 
                     mt: 3,
                     p: 2,
@@ -2460,7 +2460,7 @@ const BalancePage = () => {
               </CancelButton>
               <ActionButton
                 onClick={handleRedeemKey}
-                disabled={!keyValue || isSubmittingKey || keyValue.length < 19} // 19 chars with dashes
+                disabled={!keyValue || isSubmittingKey || keyValue.length < 19} 
                 startIcon={isSubmittingKey ? <CircularProgress size={16} color="inherit" /> : null}
               >
                 {isSubmittingKey ? 'Активация...' : 'Активировать ключ'}
@@ -2545,7 +2545,7 @@ const BalancePage = () => {
                     downloadPdfReceipt(receiptData.dataUrl, `TR-${Date.now().toString().slice(-8)}`, receiptData.filePath);
                   } catch (error) {
                     console.error('Ошибка при открытии PDF:', error);
-                    // Показываем уведомление об ошибке
+                    
                     setSnackbar({
                       open: true,
                       message: 'Не удалось открыть PDF. Попробуйте позже.',
@@ -2581,5 +2581,5 @@ const BalancePage = () => {
   );
 };
 
-// Move the definition of SubscriptionCard outside the rendering since we're using it in the tab panel
+
 export default BalancePage; 

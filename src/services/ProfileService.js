@@ -1,9 +1,7 @@
 import axios from 'axios';
 
-// Сервис для работы с профилем пользователя
 const ProfileService = {
-  // Получить данные профиля
-  getProfile: async (username) => {
+    getProfile: async (username) => {
     try {
       const endpoint = username ? `/api/profile/${username}` : '/api/profile';
       const response = await axios.get(endpoint);
@@ -14,8 +12,7 @@ const ProfileService = {
     }
   },
 
-  // Получить настройки профиля
-  getSettings: async () => {
+    getSettings: async () => {
     try {
       const response = await axios.get('/api/profile/settings');
       return response.data;
@@ -25,8 +22,7 @@ const ProfileService = {
     }
   },
 
-  // Обновить настройки профиля
-  updateSettings: async (settings) => {
+    updateSettings: async (settings) => {
     try {
       const response = await axios.post('/api/profile/settings', settings, {
         headers: {
@@ -40,8 +36,7 @@ const ProfileService = {
     }
   },
 
-  // Обновить имя пользователя
-  updateName: async (name) => {
+    updateName: async (name) => {
     try {
       const formData = new FormData();
       formData.append('name', name);
@@ -57,8 +52,7 @@ const ProfileService = {
     }
   },
 
-  // Обновить имя пользователя (username)
-  updateUsername: async (username) => {
+    updateUsername: async (username) => {
     try {
       const formData = new FormData();
       formData.append('username', username);
@@ -74,11 +68,9 @@ const ProfileService = {
     }
   },
 
-  // Обновить информацию о себе
-  updateAbout: async (about) => {
+    updateAbout: async (about) => {
     try {
-      // Поддержка как form-data, так и JSON
-      const formData = new FormData();
+            const formData = new FormData();
       formData.append('about', about);
       const response = await axios.post('/api/profile/update-about', formData, {
         headers: {
@@ -92,8 +84,7 @@ const ProfileService = {
     }
   },
 
-  // Загрузить аватар
-  uploadAvatar: async (file) => {
+    uploadAvatar: async (file) => {
     try {
       const formData = new FormData();
       formData.append('avatar', file);
@@ -111,8 +102,7 @@ const ProfileService = {
     }
   },
 
-  // Загрузить баннер
-  uploadBanner: async (file) => {
+    uploadBanner: async (file) => {
     try {
       const formData = new FormData();
       formData.append('banner', file);
@@ -130,8 +120,7 @@ const ProfileService = {
     }
   },
 
-  // Обновить социальную сеть
-  updateSocial: async (name, link) => {
+    updateSocial: async (name, link) => {
     try {
       const formData = new FormData();
       formData.append('name', name);
@@ -144,8 +133,7 @@ const ProfileService = {
     }
   },
 
-  // Удалить социальную сеть
-  deleteSocial: async (name) => {
+    deleteSocial: async (name) => {
     try {
       const formData = new FormData();
       formData.append('name', name);
@@ -157,8 +145,20 @@ const ProfileService = {
     }
   },
 
-  // Подписаться на пользователя
-  followUser: async (userId) => {
+    addSocial: async (name, link) => {
+    try {
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('link', link);
+      const response = await axios.post('/api/profile/update-social', formData);
+      return response.data;
+    } catch (error) {
+      console.error('Error adding social:', error);
+      throw error;
+    }
+  },
+
+    followUser: async (userId) => {
     try {
       const response = await axios.post('/api/profile/follow', {
         followed_id: userId
@@ -170,12 +170,9 @@ const ProfileService = {
     }
   },
   
-  // Отписаться от пользователя
-  unfollowUser: async (userId) => {
+    unfollowUser: async (userId) => {
     try {
-      // Используем тот же endpoint, так как он автоматически определяет,
-      // подписаны ли мы уже на пользователя или нет
-      const response = await axios.post('/api/profile/follow', {
+                  const response = await axios.post('/api/profile/follow', {
         followed_id: userId
       });
       return response.data;
@@ -185,8 +182,7 @@ const ProfileService = {
     }
   },
   
-  // Проверить статус подписки на пользователя
-  checkFollowing: async (userId) => {
+    checkFollowing: async (userId) => {
     try {
       const response = await axios.get(`/api/profile/${userId}`);
       return response.data.is_following;

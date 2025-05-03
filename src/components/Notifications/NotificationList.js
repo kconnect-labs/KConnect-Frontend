@@ -42,7 +42,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import axios from 'axios';
 import { formatDateTimeShort } from '../../utils/dateUtils';
 
-// Get notification icon based on type
+
 const getNotificationIcon = (type) => {
   switch (type) {
     case 'comment_like':
@@ -60,51 +60,51 @@ const getNotificationIcon = (type) => {
   }
 };
 
-// Format relative time
+
 const formatRelativeTime = (dateString) => {
   if (!dateString) return 'Только что';
   
   try {
-    // Parse the ISO date string with timezone information
+    
     const date = new Date(dateString);
     
-    // Check if date is valid
+    
     if (isNaN(date.getTime())) {
       console.error('Invalid date string:', dateString);
       return 'Недавно';
     }
     
-    // Get current time
+    
     const now = new Date();
     
-    // Calculate difference in seconds
+    
     const diffMs = now - date;
     const seconds = Math.floor(diffMs / 1000);
     
-    // Less than a minute
+    
     if (seconds < 60) {
       return 'Только что';
     }
     
-    // Less than an hour
+    
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) {
       return `${minutes} ${getMinutesString(minutes)} назад`;
     }
     
-    // Less than a day
+    
     const hours = Math.floor(minutes / 60);
     if (hours < 24) {
       return `${hours} ${getHoursString(hours)} назад`;
     }
     
-    // Less than a week
+    
     const days = Math.floor(hours / 24);
     if (days < 7) {
       return `${days} ${getDaysString(days)} назад`;
     }
     
-    // Format date for older notifications
+    
     return formatDateTimeShort(dateString);
   } catch (error) {
     console.error('Error formatting relative time:', error);
@@ -112,7 +112,7 @@ const formatRelativeTime = (dateString) => {
   }
 };
 
-// Helper functions for Russian grammatical cases
+
 const getMinutesString = (minutes) => {
   if (minutes % 10 === 1 && minutes % 100 !== 11) {
     return 'минуту';
@@ -143,11 +143,11 @@ const getDaysString = (days) => {
   }
 };
 
-// Parse notification link to determine type and extract IDs
+
 const parseNotificationLink = (link) => {
   if (!link) return { type: 'unknown' };
   
-  // Profile link - /profile/username
+  
   if (link.startsWith('/profile/')) {
     return {
       type: 'profile',
@@ -155,7 +155,7 @@ const parseNotificationLink = (link) => {
     };
   }
   
-  // Post link with comment and reply - /post/1493?comment=2194&reply=822
+  
   if (link.includes('?comment=') && link.includes('&reply=')) {
     const postId = link.split('/post/')[1].split('?')[0];
     const commentId = link.split('comment=')[1].split('&')[0];
@@ -169,7 +169,7 @@ const parseNotificationLink = (link) => {
     };
   }
   
-  // Post link with just comment - /post/1493?comment=2194
+  
   if (link.includes('?comment=')) {
     const postId = link.split('/post/')[1].split('?')[0];
     const commentId = link.split('comment=')[1];
@@ -181,7 +181,7 @@ const parseNotificationLink = (link) => {
     };
   }
   
-  // Post link - /post/1500
+  
   if (link.startsWith('/post/')) {
     const postId = link.split('/post/')[1];
     
@@ -194,13 +194,13 @@ const parseNotificationLink = (link) => {
   return { type: 'unknown' };
 };
 
-// Helper to truncate text
+
 const truncateText = (text, maxLength) => {
   if (!text) return '';
   return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
 };
 
-// Function to get context icon based on notification link
+
 const getContextIcon = (link) => {
   if (!link) return null;
   
@@ -219,33 +219,33 @@ const getContextIcon = (link) => {
   }
 };
 
-// Function to get proper avatar URL
+
 const getAvatarUrl = (sender) => {
   if (!sender) return '/static/uploads/avatar/system/avatar.png';
   
-  // If avatar_url is provided, use it directly
+  
   if (sender.avatar_url) {
-    // Check if the URL already has the full path to avoid duplicating
+    
     if (sender.avatar_url.startsWith('/static/uploads/avatar/')) {
       return sender.avatar_url;
     }
     return sender.avatar_url;
   }
   
-  // Otherwise construct from id and photo name
+  
   if (sender.id && sender.photo) {
-    // Make sure we're not duplicating paths
+    
     if (sender.photo.startsWith('/static/uploads/avatar/')) {
       return sender.photo;
     }
     return `/static/uploads/avatar/${sender.id}/${sender.photo}`;
   }
   
-  // Fallback
+  
   return `/static/uploads/avatar/system/avatar.png`;
 };
 
-// Get descriptive text for notification context with enhanced data
+
 const getContextText = (notification) => {
   if (!notification || !notification.link) return '';
   
@@ -253,7 +253,7 @@ const getContextText = (notification) => {
   
   switch (linkInfo.type) {
     case 'post':
-      // Use enhanced post_data that includes preview or full text
+      
       if (notification.post_data) {
         if (notification.post_data.preview) {
           return notification.post_data.preview;
@@ -266,7 +266,7 @@ const getContextText = (notification) => {
       return "публикацию";
       
     case 'comment':
-      // Use enhanced comment_data that includes preview or full text
+      
       if (notification.comment_data) {
         if (notification.comment_data.preview) {
           return notification.comment_data.preview;
@@ -279,7 +279,7 @@ const getContextText = (notification) => {
       return "комментарий";
       
     case 'reply':
-      // Use enhanced reply_data that includes preview or full text
+      
       if (notification.reply_data) {
         if (notification.reply_data.preview) {
           return notification.reply_data.preview;
@@ -299,7 +299,7 @@ const getContextText = (notification) => {
   }
 };
 
-// Get descriptive title for notification context
+
 const getContextTitle = (notification) => {
   if (!notification || !notification.link) return '';
   
@@ -326,15 +326,15 @@ const NotificationItem = ({ notification, onNotificationClick, onDelete }) => {
     return null;
   }
   
-  // Get sender name and avatar
+  
   const senderName = notification.sender_user?.name || 'Пользователь';
   const avatar = getAvatarUrl(notification.sender_user);
   
-  // Get context description based on notification type and content
+  
   const contextText = getContextText(notification);
   const contextTitle = getContextTitle(notification);
   
-  // Get notification type description
+  
   const getActionText = () => {
     switch (notification.type) {
       case 'post_like':
@@ -354,9 +354,9 @@ const NotificationItem = ({ notification, onNotificationClick, onDelete }) => {
     }
   };
   
-  // Get the appropriate content for display in context box
+  
   const getContentPreview = () => {
-    // Check for content_type provided by backend first
+    
     if (notification.content_type) {
       switch (notification.content_type) {
         case 'comment':
@@ -397,10 +397,10 @@ const NotificationItem = ({ notification, onNotificationClick, onDelete }) => {
       }
     }
     
-    // Fallback to determining based on link parsing if content_type not available
+    
     const linkInfo = parseNotificationLink(notification.link);
     
-    // If it's a comment notification, prioritize showing comment content
+    
     if (linkInfo.type === 'comment' && notification.comment_data) {
       if (notification.comment_data.preview) {
         return notification.comment_data.preview;
@@ -411,7 +411,7 @@ const NotificationItem = ({ notification, onNotificationClick, onDelete }) => {
       }
     }
     
-    // If it's a reply notification, prioritize showing reply content
+    
     if (linkInfo.type === 'reply' && notification.reply_data) {
       if (notification.reply_data.preview) {
         return notification.reply_data.preview;
@@ -422,14 +422,14 @@ const NotificationItem = ({ notification, onNotificationClick, onDelete }) => {
       }
     }
     
-    // Otherwise show post content if available
+    
     if (notification.post_data && notification.post_data.preview) {
       return notification.post_data.preview;
     } else if (notification.post_content) {
       return truncateText(notification.post_content, 150);
     }
     
-    // Fallback to context text
+    
     return contextText;
   };
   
@@ -597,14 +597,14 @@ const NotificationList = () => {
   const theme = useTheme();
   const navigate = useNavigate();
 
-  // Fetch notifications
+  
   const fetchNotifications = async () => {
     try {
       setLoading(true);
       const response = await axios.get('/api/notifications');
       
       if (response.data && response.data.success && response.data.notifications) {
-        // We now get notifications with enriched data directly from the backend
+        
         setNotifications(response.data.notifications || []);
         setUnreadCount(response.data.unread_count || 0);
       } else {
@@ -620,13 +620,13 @@ const NotificationList = () => {
     }
   };
 
-  // Mark all notifications as read
+  
   const markAllAsRead = async () => {
     try {
       const response = await axios.post('/api/notifications/mark-all-read');
       
       if (response.data && response.data.success) {
-        // Update local state to mark all as read
+        
         setNotifications(prev => 
           prev.map(n => ({ ...n, is_read: true }))
         );
@@ -637,16 +637,16 @@ const NotificationList = () => {
     }
   };
   
-  // Delete a single notification
+  
   const deleteNotification = async (notificationId) => {
     try {
       const response = await axios.delete(`/api/notifications/${notificationId}`);
       
       if (response.data && response.data.success) {
-        // Remove the notification from state
+        
         setNotifications(prev => prev.filter(n => n.id !== notificationId));
         
-        // Update unread count if the deleted notification was unread
+        
         const deletedNotification = notifications.find(n => n.id === notificationId);
         if (deletedNotification && !deletedNotification.is_read) {
           setUnreadCount(prev => Math.max(0, prev - 1));
@@ -657,7 +657,7 @@ const NotificationList = () => {
     }
   };
   
-  // Clear all notifications
+  
   const clearAllNotifications = async () => {
     try {
       const response = await axios.delete('/api/notifications');
@@ -683,7 +683,7 @@ const NotificationList = () => {
     try {
       await axios.post(`/api/notifications/${notification.id}/read`);
       
-      // Update local state
+      
       setNotifications(prev => 
         prev.map(n => n.id === notification.id ? { ...n, is_read: true } : n)
       );
@@ -692,17 +692,17 @@ const NotificationList = () => {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
       
-      // Close drawer
+      
       setDrawerOpen(false);
       
-      // Navigate to link if provided
+      
       if (notification.link) {
         navigate(notification.link);
       }
     } catch (error) {
       console.error('Error marking notification as read:', error);
       
-      // Even if the API call fails, still navigate to the link
+      
       if (notification.link) {
         setDrawerOpen(false);
         navigate(notification.link);
@@ -754,6 +754,7 @@ const NotificationList = () => {
         open={drawerOpen}
         onClose={handleCloseDrawer}
         onOpen={handleOpenDrawer}
+        disableSwipeToOpen={true}
         sx={{
           '& .MuiDrawer-paper': {
             width: { xs: '100%', sm: 360, md: 420 },

@@ -6,7 +6,7 @@ import {
 import { Icon } from '@iconify/react';
 import LockIcon from '@mui/icons-material/Lock';
 
-// Импортируем стилизованные компоненты из SettingsPage
+
 import { SettingsCard, SettingsCardContent, SectionTitle } from '../pages/User/SettingsPage';
 
 const LoginSettingsTab = () => {
@@ -26,7 +26,7 @@ const LoginSettingsTab = () => {
   });
 
   useEffect(() => {
-    // Проверяем, есть ли у пользователя настройки входа
+    
     const checkCredentials = async () => {
       try {
         const response = await fetch('/api/user/has-credentials', {
@@ -51,11 +51,11 @@ const LoginSettingsTab = () => {
     checkCredentials();
   }, []);
 
-  // Валидация полей формы
+  
   const validateForm = () => {
     let isValid = true;
     
-    // Проверка имени пользователя
+    
     if (!username) {
       setUsernameError('Имя пользователя обязательно');
       isValid = false;
@@ -66,7 +66,7 @@ const LoginSettingsTab = () => {
       setUsernameError('');
     }
     
-    // Проверка email
+    
     if (!email) {
       setEmailError('Email обязателен');
       isValid = false;
@@ -77,7 +77,7 @@ const LoginSettingsTab = () => {
       setEmailError('');
     }
     
-    // Проверка пароля
+    
     if (!password) {
       setPasswordError('Пароль обязателен');
       isValid = false;
@@ -109,7 +109,7 @@ const LoginSettingsTab = () => {
     });
   };
 
-  // Обработка отправки формы
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -138,7 +138,7 @@ const LoginSettingsTab = () => {
       if (response.ok) {
         showNotification('success', 'Учетные данные успешно сохранены');
         setHasCredentials(true);
-        // Очищаем поля пароля после успешного сохранения
+        
         setPassword('');
         setConfirmPassword('');
       } else {

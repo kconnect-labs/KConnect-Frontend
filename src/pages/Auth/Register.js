@@ -277,7 +277,8 @@ const Register = ({ setUser }) => {
                   '& .MuiAlert-icon': { alignItems: 'center' }
                 }}
               >
-        </Alert>
+                {error}
+              </Alert>
       )}
       {success && (
               <Alert 
@@ -288,7 +289,8 @@ const Register = ({ setUser }) => {
                   '& .MuiAlert-icon': { alignItems: 'center' }
                 }}
               >
-        </Alert>
+                {success}
+              </Alert>
       )}
       <form onSubmit={handleSubmit} style={{ width: '100%' }}>
         <TextField

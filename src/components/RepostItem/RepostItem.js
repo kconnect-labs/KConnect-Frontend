@@ -26,11 +26,11 @@ import PauseIcon from '@mui/icons-material/Pause';
 import { AuthContext } from '../../context/AuthContext';
 import { MusicContext } from '../../context/MusicContext';
 
-// Стилизованные компоненты
+
 const RepostCard = styled(Card)(({ theme, background }) => ({
   marginBottom: '4px',
   borderRadius: '12px',
-  backgroundColor: '#1E1E1E', // Fallback color
+  backgroundColor: '#1E1E1E', 
   backgroundImage: background ? `linear-gradient(rgba(120, 100, 160, 0.03), rgba(20, 20, 20, 0.95)), url(${background})` : 
                 'linear-gradient(145deg, rgba(30, 30, 30, 0.97), rgba(26, 26, 26, 0.99))',
   backgroundSize: 'cover',
@@ -132,7 +132,7 @@ const BlurredMenu = styled(Menu)(({ theme }) => ({
   }
 }));
 
-// Simple verification badge component if project-specific one is not available
+
 const VerificationBadge = ({ status, size }) => {
   if (!status) return null;
   
@@ -150,7 +150,7 @@ const VerificationBadge = ({ status, size }) => {
   );
 };
 
-// Music track preview component
+
 const MusicTrackPreview = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -176,13 +176,13 @@ const RepostItem = ({ repost, onDelete, onOpenLightbox }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const cardRef = useRef(null);
   
-  // Process music tracks
+  
   const [postMusicTracks, setPostMusicTracks] = useState([]);
   
-  // Получаем информацию о репосте и оригинальном посте
+  
   const originalPost = repost.original_post;
   
-  // Обрабатываем изображения из оригинального поста
+  
   const images = [];
   if (originalPost.images && Array.isArray(originalPost.images)) {
     images.push(...originalPost.images);
@@ -190,7 +190,7 @@ const RepostItem = ({ repost, onDelete, onOpenLightbox }) => {
     images.push(originalPost.image);
   }
   
-  // Parse music tracks on component mount
+  
   React.useEffect(() => {
     if (originalPost.music) {
       try {
@@ -206,29 +206,29 @@ const RepostItem = ({ repost, onDelete, onOpenLightbox }) => {
     }
   }, [originalPost]);
   
-  // Function to handle track play
+  
   const handleTrackPlay = (track, event) => {
     event.stopPropagation();
     
     if (currentTrack && currentTrack.id === track.id) {
-      togglePlay(); // Play/pause the current track
+      togglePlay(); 
     } else {
-      playTrack(track); // Play a new track
+      playTrack(track); 
     }
   };
   
-  // Функция для обработки клика на пост
+  
   const handleClick = (e) => {
-    // Предотвращаем переход по ссылке, если клик был на кнопке или другом интерактивном элементе
+    
     if (e.target.closest('button') || e.target.closest('.MuiIconButton-root')) {
       return;
     }
     
-    // Переход на страницу оригинального поста
+    
     navigate(`/post/${originalPost.id}`);
   };
   
-  // Функция для обработки клика на меню
+  
   const handleMenuOpen = (e) => {
     e.stopPropagation();
     setMenuAnchorEl(e.currentTarget);
@@ -238,7 +238,7 @@ const RepostItem = ({ repost, onDelete, onOpenLightbox }) => {
     setMenuAnchorEl(null);
   };
   
-  // Функция для удаления репоста
+  
   const handleDelete = async () => {
     handleMenuClose();
     setIsDeleting(true);
@@ -246,21 +246,21 @@ const RepostItem = ({ repost, onDelete, onOpenLightbox }) => {
     try {
       const response = await axios.delete(`/api/reposts/${repost.id}`);
       if (response.data && response.data.success) {
-        // Не сразу вызываем onDelete, а ждем анимацию
+        
         setTimeout(() => {
           if (onDelete) {
-            // Передаем ID с префиксом repost- чтобы обработчик мог отличить репост от обычного поста
+            
             onDelete(`repost-${repost.id}`);
           }
-        }, 300); // Длительность анимации
+        }, 300); 
       }
     } catch (error) {
       console.error('Error deleting repost:', error);
-      setIsDeleting(false); // В случае ошибки сбрасываем состояние удаления
+      setIsDeleting(false); 
     }
   };
   
-  // Получаем аватар пользователя для использования в качестве фона
+  
   const backgroundImage = repost.user?.avatar_url || null;
   
   return (

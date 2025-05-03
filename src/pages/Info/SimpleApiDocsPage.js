@@ -23,6 +23,8 @@ import PeopleIcon from '@mui/icons-material/People';
 import SearchIcon from '@mui/icons-material/Search';
 import QueueMusicIcon from '@mui/icons-material/QueueMusic';
 import StorefrontIcon from '@mui/icons-material/Storefront';
+import BugReportIcon from '@mui/icons-material/BugReport';
+import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 const PageContainer = styled(Container)(({ theme }) => ({
   paddingTop: theme.spacing(4),
   paddingBottom: theme.spacing(8),
@@ -135,6 +137,7 @@ const ApiEndpoint = ({ method, path, description, authRequired, request, respons
             sx={{ mr: 2 }}
           />
           <EndpointPath>
+            {path}
           </EndpointPath>
           {authRequired && (
             <Chip 
@@ -146,6 +149,7 @@ const ApiEndpoint = ({ method, path, description, authRequired, request, respons
           )}
         </Box>
         <Typography variant="body2" color="text.secondary" paragraph>
+          {description}
         </Typography>
         <Divider sx={{ my: 2 }} />
         <Typography variant="subtitle2" sx={{ mb: 1, display: 'flex', alignItems: 'center' }}>
@@ -153,12 +157,14 @@ const ApiEndpoint = ({ method, path, description, authRequired, request, respons
           Пример запроса:
         </Typography>
         <CodeBlock>
+          {request}
         </CodeBlock>
         <Typography variant="subtitle2" sx={{ mt: 2, mb: 1, display: 'flex', alignItems: 'center' }}>
           <CodeIcon fontSize="small" sx={{ mr: 1 }} />
           Пример ответа:
         </Typography>
         <CodeBlock>
+          {response}
         </CodeBlock>
       </CardContent>
     </ApiCard>
@@ -199,6 +205,8 @@ const SimpleApiDocsPage = () => {
           <Tab label="Поиск" sx={{ textTransform: 'none', fontWeight: 500 }} />
           <Tab label="Музыка" sx={{ textTransform: 'none', fontWeight: 500 }} />
           <Tab label="Магазин бейджиков" sx={{ textTransform: 'none', fontWeight: 500 }} />
+          <Tab label="Баг-репорты" sx={{ textTransform: 'none', fontWeight: 500 }} />
+          <Tab label="Мини-игры" sx={{ textTransform: 'none', fontWeight: 500 }} />
         </Tabs>
       </Paper>
       {activeTab === 0 && (
@@ -1315,6 +1323,296 @@ Content-Type: multipart/form-data
             response={`{
   "message": "Бейджик успешно создан",
   "badge_id": 123
+}`}
+          />
+        </>
+      )}
+      {activeTab === 9 && (
+        <>
+          <ApiTitle>
+            <BugReportIcon fontSize="large" />
+            Баг-репорты
+          </ApiTitle>
+          <Typography variant="body2" paragraph>
+            API для системы отслеживания багов, позволяющее пользователям сообщать о проблемах.
+          </Typography>
+          <ApiEndpoint
+            method="GET"
+            path="/api/bugs"
+            description="Получение списка зарегистрированных багов."
+            authRequired={false}
+            request={`GET /api/bugs`}
+            response={`{
+  "success": true,
+  "bugs": [
+    {
+      "id": 123,
+      "subject": "Проблема с регистрацией",
+      "text": "При регистрации через Google выдает ошибку",
+      "date": "2023-06-15T14:30:45",
+      "site_link": "https://k-connect.ru/register",
+      "status": "Открыт",
+      "user_id": 456,
+      "user_name": "Имя Пользователя",
+      "user_avatar": "/static/uploads/avatar/456/photo.jpg",
+      "image_name": "abc123.jpg",
+      "image_url": "/static/BugUpload/Images/abc123.jpg",
+      "likes_count": 5,
+      "is_liked_by_user": false
+    }
+  ]
+}`}
+          />
+          <ApiEndpoint
+            method="GET"
+            path="/api/bugs/:bug_id"
+            description="Получение детальной информации о конкретном баге с комментариями."
+            authRequired={false}
+            request={`GET /api/bugs/123`}
+            response={`{
+  "success": true,
+  "bug": {
+    "id": 123,
+    "subject": "Проблема с регистрацией",
+    "text": "При регистрации через Google выдает ошибку",
+    "date": "2023-06-15T14:30:45",
+    "site_link": "https://k-connect.ru/register",
+    "status": "Открыт",
+    "user_id": 456,
+    "user_name": "Имя Пользователя",
+    "user_avatar": "/static/uploads/avatar/456/photo.jpg",
+    "image_name": "abc123.jpg",
+    "image_url": "/static/BugUpload/Images/abc123.jpg",
+    "likes_count": 5,
+    "is_liked_by_user": false,
+    "comments": [
+      {
+        "id": 789,
+        "comment_text": "Это происходит только в Chrome или во всех браузерах?",
+        "timestamp": "2023-06-15T15:00:00",
+        "user_id": 567,
+        "user_name": "Администратор",
+        "user_avatar": "/static/uploads/avatar/567/photo.jpg"
+      }
+    ]
+  }
+}`}
+          />
+          <ApiEndpoint
+            method="POST"
+            path="/api/bugs"
+            description="Добавление нового баг-репорта."
+            authRequired={false}
+            request={`POST /api/bugs
+Content-Type: multipart/form-data
+{
+  "subject": "Проблема с регистрацией",
+  "text": "При регистрации через Google выдает ошибку",
+  "site_link": "https://k-connect.ru/register",
+  "image": [файл изображения]
+}`}
+            response={`{
+  "success": true,
+  "message": "Баг успешно добавлен",
+  "bug_id": 124,
+  "status": "Открыт"
+}`}
+          />
+          <ApiEndpoint
+            method="POST"
+            path="/api/bugs/:bug_id/comments"
+            description="Добавление комментария к баг-репорту."
+            authRequired={true}
+            request={`POST /api/bugs/123/comments
+Content-Type: application/json
+{
+  "comment_text": "У меня тоже возникла эта проблема"
+}`}
+            response={`{
+  "success": true,
+  "comment": {
+    "id": 790,
+    "comment_text": "У меня тоже возникла эта проблема",
+    "timestamp": "2023-06-15T16:00:00",
+    "user_id": 789,
+    "user_name": "Имя Пользователя",
+    "user_avatar": "/static/uploads/avatar/789/photo.jpg"
+  }
+}`}
+          />
+          <ApiEndpoint
+            method="POST"
+            path="/api/bugs/:bug_id/reaction"
+            description="Лайк/подтверждение баг-репорта (чтобы показать, что проблема затрагивает нескольких пользователей)."
+            authRequired={true}
+            request={`POST /api/bugs/123/reaction`}
+            response={`{
+  "success": true,
+  "is_liked": true,
+  "likes_count": 6
+}`}
+          />
+          <ApiEndpoint
+            method="PUT"
+            path="/api/bugs/:bug_id/status"
+            description="Обновление статуса баг-репорта (только для администраторов)."
+            authRequired={true}
+            request={`PUT /api/bugs/123/status
+Content-Type: application/json
+{
+  "status": "В работе"
+}`}
+            response={`{
+  "success": true,
+  "message": "Статус успешно обновлен",
+  "status": "В работе"
+}`}
+          />
+        </>
+      )}
+      {activeTab === 10 && (
+        <>
+          <ApiTitle>
+            <SportsEsportsIcon fontSize="large" />
+            Мини-игры
+          </ApiTitle>
+          <Typography variant="body2" paragraph>
+            API для мини-игр, включающих в себя игры на очки, такие как "Кости" и "Три чаши".
+          </Typography>
+          <ApiEndpoint
+            method="GET"
+            path="/api/minigames/balance"
+            description="Получение баланса очков пользователя."
+            authRequired={true}
+            request={`GET /api/minigames/balance`}
+            response={`{
+  "success": true,
+  "balance": 500
+}`}
+          />
+          <ApiEndpoint
+            method="GET"
+            path="/api/minigames/games"
+            description="Получение списка доступных мини-игр."
+            authRequired={true}
+            request={`GET /api/minigames/games`}
+            response={`{
+  "success": true,
+  "games": [
+    {
+      "id": "dice",
+      "name": "Кости",
+      "description": "Бросьте кости и выиграйте, если выпадет число больше или равное 50!",
+      "icon": "casino",
+      "minBet": 1,
+      "maxBet": 1000
+    },
+    {
+      "id": "cups",
+      "name": "Три чаши",
+      "description": "Угадайте, под какой чашей находится шарик!",
+      "icon": "sports_bar",
+      "minBet": 1,
+      "maxBet": 1000
+    }
+  ]
+}`}
+          />
+          <SectionTitle variant="h6">
+            Игра "Кости"
+          </SectionTitle>
+          <ApiEndpoint
+            method="POST"
+            path="/api/minigames/dice/roll"
+            description="Сделать ставку и бросить кости."
+            authRequired={true}
+            request={`POST /api/minigames/dice/roll
+Content-Type: application/json
+{
+  "bet": 50
+}`}
+            response={`{
+  "success": true,
+  "player_won": true,
+  "dice1": 5,
+  "dice2": 6,
+  "total": 11,
+  "multiplier": 18,
+  "is_double": false,
+  "bet_amount": 50,
+  "winnings": 900,
+  "message": "Поздравляем! Вы выиграли 900 баллов!"
+}`}
+          />
+          <ApiEndpoint
+            method="GET"
+            path="/api/minigames/dice/payout-table"
+            description="Получение таблицы выплат для игры в кости."
+            authRequired={true}
+            request={`GET /api/minigames/dice/payout-table`}
+            response={`{
+  "success": true,
+  "payout_table": [
+    {
+      "total": 2,
+      "multiplier": 36,
+      "description": "2 очков - выигрыш x36"
+    },
+    {
+      "total": 3,
+      "multiplier": 18,
+      "description": "3 очков - выигрыш x18"
+    }
+  ],
+  "special_rules": [
+    {
+      "rule": "Дубль",
+      "description": "При выпадении двух одинаковых чисел множитель увеличивается в 1.5 раза",
+      "example": "Например, при выпадении 3+3=6, множитель будет 6 × 1.5 = 9"
+    }
+  ]
+}`}
+          />
+          <SectionTitle variant="h6">
+            Игра "Три чаши"
+          </SectionTitle>
+          <ApiEndpoint
+            method="POST"
+            path="/api/minigames/cups/play"
+            description="Сделать ставку и выбрать чашу."
+            authRequired={true}
+            request={`POST /api/minigames/cups/play
+Content-Type: application/json
+{
+  "bet": 100,
+  "cup": 2
+}`}
+            response={`{
+  "success": true,
+  "player_won": true,
+  "correct_cup": 2,
+  "bet_amount": 100,
+  "multiplier": 3,
+  "winnings": 300,
+  "message": "Поздравляем! Вы угадали правильную чашу и выиграли 300 баллов!"
+}`}
+          />
+          <ApiEndpoint
+            method="GET"
+            path="/api/minigames/cups/info"
+            description="Получение информации об игре 'Три чаши'."
+            authRequired={true}
+            request={`GET /api/minigames/cups/info`}
+            response={`{
+  "success": true,
+  "game_info": {
+    "name": "Три чаши",
+    "description": "Угадайте, под какой чашей находится шарик!",
+    "rules": "Выберите одну из трех чаш. Если шарик находится под выбранной чашей, вы выигрываете ставку, умноженную на 3.",
+    "min_bet": 1,
+    "max_bet": 1000,
+    "multiplier": 3
+  }
 }`}
           />
         </>

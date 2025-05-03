@@ -78,7 +78,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import axios from 'axios';
 
-// Styled components
+
 const PageHeader = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -114,7 +114,7 @@ const AdminPage = () => {
   const [userPosts, setUserPosts] = useState([]);
   const [userTracks, setUserTracks] = useState([]);
   
-  // Dialog states
+  
   const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
   const [badgeDialogOpen, setBadgeDialogOpen] = useState(false);
   const [banDialogOpen, setBanDialogOpen] = useState(false);
@@ -123,14 +123,14 @@ const AdminPage = () => {
   const [viewUserDialogOpen, setViewUserDialogOpen] = useState(false);
   const [moderatorDialogOpen, setModeratorDialogOpen] = useState(false);
   
-  // Form states
+  
   const [verificationLevel, setVerificationLevel] = useState(1);
   const [selectedBadge, setSelectedBadge] = useState('');
   const [selectedPost, setSelectedPost] = useState(null);
   const [selectedTrack, setSelectedTrack] = useState(null);
   const [banReason, setBanReason] = useState('');
   
-  // Moderator permissions states
+  
   const [selectedPermissions, setSelectedPermissions] = useState({
     delete_music: false,
     delete_posts: false,
@@ -144,18 +144,18 @@ const AdminPage = () => {
   const [moderators, setModerators] = useState([]);
   const [bugReports, setBugReports] = useState([]);
   
-  // Pagination
+  
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   
-  // Notification
+  
   const [notification, setNotification] = useState({
     open: false,
     message: '',
     severity: 'success'
   });
   
-  // Add new state variables for keys
+  
   const [openKeyGenerationDialog, setOpenKeyGenerationDialog] = useState(false);
   const [generatedKeys, setGeneratedKeys] = useState([]);
   const [keyGenerationParams, setKeyGenerationParams] = useState({
@@ -177,7 +177,7 @@ const AdminPage = () => {
     pages: 0
   });
   
-  // Authorization check
+  
   if (!user || user.id !== 3) {
     return <Navigate to="/" />;
   }
@@ -190,21 +190,21 @@ const AdminPage = () => {
   }, []);
   
   useEffect(() => {
-    // Загружаем данные в зависимости от выбранной вкладки
+    
     if (tabValue === 1) {
       fetchAllPosts();
     } else if (tabValue === 2) {
       fetchAllTracks();
-    } else if (tabValue === 6) { // Assuming 6 is the tab index for keys management
+    } else if (tabValue === 6) { 
       fetchRedemptionKeys();
     }
   }, [tabValue]);
   
-  // Загрузка всех постов
+  
   const fetchAllPosts = async () => {
     try {
       setLoading(true);
-      // Получаем последние 50 постов со всего сайта
+      
       const response = await axios.get('/api/posts/feed?limit=50');
       if (response.data && response.data.posts) {
         setUserPosts(response.data.posts);
@@ -217,11 +217,11 @@ const AdminPage = () => {
     }
   };
   
-  // Загрузка всех треков
+  
   const fetchAllTracks = async () => {
     try {
       setLoading(true);
-      // Получаем все треки
+      
       const response = await axios.get('/api/music');
       if (response.data && response.data.tracks) {
         setUserTracks(response.data.tracks);
@@ -234,7 +234,7 @@ const AdminPage = () => {
     }
   };
   
-  // Load users based on search query or get all users
+  
   const fetchUsers = async () => {
     try {
       setLoading(true);
@@ -253,7 +253,7 @@ const AdminPage = () => {
     }
   };
   
-  // Load all achievements from database
+  
   const fetchAllAchievements = async () => {
     try {
       const response = await axios.get('/api/admin/badge-types');
@@ -264,7 +264,7 @@ const AdminPage = () => {
     }
   };
   
-  // Load user posts for selected user
+  
   const fetchUserPosts = async (userId) => {
     try {
       const response = await axios.get(`/api/admin/users/${userId}/posts`);
@@ -275,7 +275,7 @@ const AdminPage = () => {
     }
   };
   
-  // Load user tracks for selected user
+  
   const fetchUserTracks = async (userId) => {
     try {
       const response = await axios.get(`/api/admin/users/${userId}/tracks`);
@@ -286,7 +286,7 @@ const AdminPage = () => {
     }
   };
   
-  // Fetch all moderators
+  
   const fetchModerators = async () => {
     try {
       setLoading(true);
@@ -300,7 +300,7 @@ const AdminPage = () => {
     }
   };
   
-  // Fetch bug reports
+  
   const fetchBugReports = async () => {
     try {
       setLoading(true);
@@ -314,7 +314,7 @@ const AdminPage = () => {
     }
   };
   
-  // Show notification
+  
   const showNotification = (severity, message) => {
     setNotification({
       open: true,
@@ -323,17 +323,17 @@ const AdminPage = () => {
     });
   };
   
-  // Tab handling
+  
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
   
-  // Handle search
+  
   const handleSearch = () => {
     fetchUsers();
   };
   
-  // Verify user
+  
   const handleVerifyUser = async () => {
     try {
       setLoading(true);
@@ -343,7 +343,7 @@ const AdminPage = () => {
       
       if (response.data.success) {
         showNotification('success', 'Статус верификации пользователя обновлен');
-        // Update user in list
+        
         setUsers(users.map(u => 
           u.id === selectedUser.id 
             ? { ...u, verification_status: response.data.verification_status, verification_level: verificationLevel } 
@@ -361,7 +361,7 @@ const AdminPage = () => {
     }
   };
   
-  // Give badge to user
+  
   const handleGiveBadge = async () => {
     try {
       setLoading(true);
@@ -371,7 +371,7 @@ const AdminPage = () => {
       
       if (response.data.success) {
         showNotification('success', 'Достижение успешно выдано пользователю');
-        // Update user in list if needed
+        
         fetchUsers();
       } else {
         throw new Error(response.data.error || 'Failed to give achievement');
@@ -385,18 +385,18 @@ const AdminPage = () => {
     }
   };
   
-  // Ban user
+  
   const handleBanUser = async () => {
     try {
       setLoading(true);
       const response = await axios.post(`/api/admin/users/${selectedUser.id}/ban`, {
         reason: banReason,
-        is_banned: !selectedUser.is_banned // Toggle ban status
+        is_banned: !selectedUser.is_banned 
       });
       
       if (response.data.success) {
         showNotification('success', selectedUser.is_banned ? 'Пользователь разблокирован' : 'Пользователь заблокирован');
-        // Update user in list
+        
         setUsers(users.map(u => 
           u.id === selectedUser.id 
             ? { ...u, is_banned: !u.is_banned } 
@@ -414,7 +414,7 @@ const AdminPage = () => {
     }
   };
   
-  // Delete post
+  
   const handleDeletePost = async () => {
     try {
       setLoading(true);
@@ -422,7 +422,7 @@ const AdminPage = () => {
       
       if (response.data.success) {
         showNotification('success', 'Пост успешно удален');
-        // Update posts list
+        
         setUserPosts(userPosts.filter(p => p.id !== selectedPost.id));
       } else {
         throw new Error(response.data.error || 'Failed to delete post');
@@ -443,34 +443,34 @@ const AdminPage = () => {
     setViewUserDialogOpen(true);
   };
   
-  // Open verify dialog
+  
   const openVerifyDialog = (user) => {
     setSelectedUser(user);
     setVerificationLevel(user.verification_level || 1);
     setVerifyDialogOpen(true);
   };
   
-  // Open badge dialog
+  
   const openBadgeDialog = (user) => {
     setSelectedUser(user);
     setSelectedBadge('');
     setBadgeDialogOpen(true);
   };
   
-  // Open ban dialog
+  
   const openBanDialog = (user) => {
     setSelectedUser(user);
     setBanReason('');
     setBanDialogOpen(true);
   };
   
-  // Open delete post dialog
+  
   const openDeletePostDialog = (post) => {
     setSelectedPost(post);
     setDeletePostDialogOpen(true);
   };
   
-  // Удаление трека
+  
   const handleDeleteTrack = async (trackId) => {
     try {
       setLoading(true);
@@ -478,7 +478,7 @@ const AdminPage = () => {
       
       if (response.data.success) {
         showNotification('success', 'Трек успешно удален');
-        // Обновляем список треков
+        
         setUserTracks(userTracks.filter(track => track.id !== trackId));
       } else {
         throw new Error(response.data.error || 'Не удалось удалить трек');
@@ -491,13 +491,13 @@ const AdminPage = () => {
     }
   };
   
-  // Диалог подтверждения удаления трека
+  
   const openDeleteTrackDialog = (track) => {
     setSelectedTrack(track);
     setDeleteTrackDialogOpen(true);
   };
   
-  // Подтверждение удаления трека
+  
   const confirmDeleteTrack = () => {
     if (selectedTrack) {
       handleDeleteTrack(selectedTrack.id);
@@ -505,7 +505,7 @@ const AdminPage = () => {
     }
   };
   
-  // Toggle moderator status
+  
   const handleToggleModeratorStatus = async () => {
     try {
       setLoading(true);
@@ -513,14 +513,14 @@ const AdminPage = () => {
       
       let response;
       if (isCurrentlyModerator) {
-        // Remove moderator status
+        
         response = await axios.delete(`/api/admin/moderators/${selectedUser.id}`);
         if (response.data.success) {
           showNotification('success', 'Модераторские права отозваны');
           setModerators(moderators.filter(mod => mod.user_id !== selectedUser.id));
         }
       } else {
-        // Add moderator with selected permissions
+        
         response = await axios.post('/api/admin/moderators', {
           user_id: selectedUser.id,
           permissions: selectedPermissions
@@ -528,7 +528,7 @@ const AdminPage = () => {
         
         if (response.data.success) {
           showNotification('success', 'Пользователь назначен модератором');
-          // Add new moderator to the list
+          
           setModerators([...moderators, {
             user_id: selectedUser.id,
             user_name: selectedUser.name,
@@ -546,7 +546,7 @@ const AdminPage = () => {
     }
   };
   
-  // Update moderator permissions
+  
   const handleUpdateModeratorPermissions = async () => {
     try {
       setLoading(true);
@@ -556,7 +556,7 @@ const AdminPage = () => {
       
       if (response.data.success) {
         showNotification('success', 'Права модератора обновлены');
-        // Update moderator in the list
+        
         setModerators(moderators.map(mod => 
           mod.user_id === selectedUser.id 
             ? { ...mod, permissions: selectedPermissions } 
@@ -572,18 +572,18 @@ const AdminPage = () => {
     }
   };
   
-  // Open moderator dialog
+  
   const openModeratorDialog = (user) => {
     setSelectedUser(user);
     
-    // Check if user is already a moderator
+    
     const existingModerator = moderators.find(mod => mod.user_id === user.id);
     
     if (existingModerator) {
-      // Set permissions from existing moderator
+      
       setSelectedPermissions(existingModerator.permissions);
     } else {
-      // Set default permissions (all false)
+      
       setSelectedPermissions({
         delete_music: false,
         delete_posts: false,
@@ -599,12 +599,12 @@ const AdminPage = () => {
     setModeratorDialogOpen(true);
   };
   
-  // Check if user is moderator
+  
   const isModerator = (userId) => {
     return moderators.some(mod => mod.user_id === userId);
   };
   
-  // Update bug report status
+  
   const handleUpdateBugReportStatus = async (reportId, status) => {
     try {
       setLoading(true);
@@ -614,7 +614,7 @@ const AdminPage = () => {
       
       if (response.data.success) {
         showNotification('success', 'Статус баг-репорта обновлен');
-        // Update bug report in list
+        
         setBugReports(bugReports.map(report => 
           report.id === reportId 
             ? { ...report, status } 
@@ -631,7 +631,7 @@ const AdminPage = () => {
     }
   };
   
-  // Delete bug report
+  
   const handleDeleteBugReport = async (reportId) => {
     try {
       setLoading(true);
@@ -639,7 +639,7 @@ const AdminPage = () => {
       
       if (response.data.success) {
         showNotification('success', 'Баг-репорт успешно удален');
-        // Remove bug report from list
+        
         setBugReports(bugReports.filter(report => report.id !== reportId));
       } else {
         throw new Error(response.data.error || 'Failed to delete bug report');
@@ -652,12 +652,12 @@ const AdminPage = () => {
     }
   };
   
-  // Функция для добавления модератора
+  
   const handleAddModerator = async () => {
     setLoading(true);
     
     try {
-      // Используем оригинальный URL, который поддерживается сервером
+      
       const response = await fetch('/api/admin/moderators', {
         method: 'POST',
         headers: {
@@ -684,10 +684,10 @@ const AdminPage = () => {
       if (!response.ok) {
         console.error('Ошибка при добавлении модератора:', data);
         
-        // Формируем подробное сообщение об ошибке
+        
         let errorMessage = data.error || 'Неизвестная ошибка';
         
-        // Если есть дополнительная отладочная информация, отображаем её
+        
         if (data.debug_info) {
           errorMessage += '\n\nДетали ошибки:\n';
           Object.entries(data.debug_info).forEach(([key, value]) => {
@@ -700,13 +700,13 @@ const AdminPage = () => {
         return;
       }
 
-      // Модератор успешно добавлен/обновлен
+      
       showNotification('success', data.message || 'Модератор успешно добавлен');
       
-      // Обновляем список модераторов
+      
       fetchModerators();
       
-      // Закрываем диалог
+      
       handleCloseModeratorDialog();
     } catch (error) {
       console.error('Ошибка при отправке запроса:', error);
@@ -716,7 +716,7 @@ const AdminPage = () => {
     }
   };
   
-  // Render users table
+  
   const renderUsersTable = () => {
     return (
       <TableContainer>
@@ -741,7 +741,7 @@ const AdminPage = () => {
                       sx={{ mr: 1 }}
                       onError={(e) => {
                         console.error(`Failed to load avatar for ${user.username}`);
-                        e.target.onerror = null; // Prevent infinite recursion
+                        e.target.onerror = null; 
                         e.target.src = `/static/uploads/avatar/system/avatar.png`;
                       }}
                     />
@@ -830,7 +830,7 @@ const AdminPage = () => {
     );
   };
   
-  // Render moderators table
+  
   const renderModeratorsTable = () => {
   return (
       <ContentPaper>
@@ -935,7 +935,7 @@ const AdminPage = () => {
     );
   };
   
-  // Render bug reports table
+  
   const renderBugReportsTable = () => {
     return (
       <ContentPaper>
@@ -1045,12 +1045,12 @@ const AdminPage = () => {
     );
   };
   
-  // Add this new function to handle key generation
+  
   const handleGenerateKeys = async () => {
     try {
       setIsGeneratingKeys(true);
       
-      // Validate input values
+      
       if (keyGenerationParams.points_value <= 0 || keyGenerationParams.max_uses <= 0 || keyGenerationParams.count <= 0) {
         showNotification('error', 'Все числовые значения должны быть больше нуля');
         return;
@@ -1061,7 +1061,7 @@ const AdminPage = () => {
       if (response.data.success) {
         setGeneratedKeys(response.data.keys);
         showNotification('success', `Успешно сгенерировано ${response.data.keys.length} ключей`);
-        fetchRedemptionKeys(); // Refresh the keys list
+        fetchRedemptionKeys(); 
       } else {
         showNotification('error', response.data.error || 'Ошибка при генерации ключей');
       }
@@ -1073,7 +1073,7 @@ const AdminPage = () => {
     }
   };
   
-  // Add function to copy keys to clipboard
+  
   const copyKeysToClipboard = () => {
     if (generatedKeys.length > 0) {
       const keyText = generatedKeys.join('\n');
@@ -1088,11 +1088,11 @@ const AdminPage = () => {
     }
   };
   
-  // Add function to fetch redemption keys
+  
   const fetchRedemptionKeys = async (page = 1) => {
     try {
       setKeysLoading(true);
-      // Add cache busting parameter and ensure Authorization header is set
+      
       const response = await axios.get(`/api/admin/users/${user.id}/keys?page=${page}&per_page=10&_nocache=${Date.now()}`);
       
       setRedemptionKeys(response.data.keys || []);
@@ -1110,7 +1110,7 @@ const AdminPage = () => {
     }
   };
   
-  // Add new function to render keys management tab
+  
   const renderKeysTab = () => {
   return (
       <Box sx={{ mt: 2 }}>
@@ -1242,7 +1242,7 @@ const AdminPage = () => {
     );
   };
   
-  // Add key generation dialog in the render section of the component
+  
   const keyGenerationDialog = (
     <Dialog
       open={openKeyGenerationDialog}

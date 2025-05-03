@@ -30,7 +30,7 @@ const AccountSwitcher = () => {
   const open = Boolean(anchorEl);
   
   useEffect(() => {
-    // Загружаем список аккаунтов пользователя
+    
     const fetchAccounts = async () => {
       try {
         const response = await fetch('/api/users/my-channels', {
@@ -76,13 +76,13 @@ const AccountSwitcher = () => {
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          // Обновляем текущего пользователя
+          
           setUser({
             ...data.account,
             id: data.account.id
           });
           
-          // Перезагрузим страницу для применения изменений
+          
           window.location.reload();
         }
       }
@@ -99,7 +99,7 @@ const AccountSwitcher = () => {
     handleClose();
   };
   
-  // Если пользователь не авторизован, не отображаем компонент
+  
   if (!user) return null;
   
   return (

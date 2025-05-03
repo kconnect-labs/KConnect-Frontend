@@ -51,14 +51,14 @@ import 'react-medium-image-zoom/dist/styles.css';
 import { ThemeSettingsContext } from '../../App';
 import ImageGrid from '../../components/ImageGrid';
 import { formatTimeAgo, getRussianWordForm, formatDate } from '../../utils/dateUtils';
-import Post from '../../components/Post/Post'; // Import Post component
+import Post from '../../components/Post/Post'; 
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RepostItem from '../../components/RepostItem';
 import PostSkeleton from '../../components/Post/PostSkeleton';
 import ContentLoader from '../../components/UI/ContentLoader';
 import TabContentLoader from '../../components/UI/TabContentLoader';
 
-// Material UI Icons
+
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import FeedIcon from '@mui/icons-material/Feed';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
@@ -96,7 +96,7 @@ import CollectionsIcon from '@mui/icons-material/Collections';
 import DiamondIcon from '@mui/icons-material/Diamond';
 import ChatIcon from '@mui/icons-material/Chat';
 
-// Styled components for profile
+
 const ProfileHeader = styled(Box)(({ theme }) => ({
   position: 'relative',
   overflow: 'hidden',
@@ -246,7 +246,7 @@ const PostCard = styled(Card)(({ theme }) => ({
   cursor: 'pointer'
 }));
 
-// UpdateCreatePostCard style
+
 const CreatePostCard = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
   background: theme.palette.mode === 'dark' 
@@ -270,7 +270,7 @@ const CreatePostCard = styled(Paper)(({ theme }) => ({
   }
 }));
 
-// Update PostInput style
+
 const PostInput = styled(TextField)(({ theme }) => ({
   '& .MuiInputBase-root': {
     background: theme.palette.mode === 'dark' 
@@ -302,7 +302,7 @@ const PostInput = styled(TextField)(({ theme }) => ({
   width: '100%'
 }));
 
-// Update PostActions style
+
 const PostActions = styled(Box)(({ theme }) => ({
   display: 'flex',
   justifyContent: 'space-between',
@@ -372,7 +372,7 @@ const MarkdownContent = styled(Box)(({ theme }) => ({
   },
 }));
 
-// Update PublishButton style
+
 const PublishButton = styled(Button)(({ theme }) => ({
   borderRadius: '18px',
   textTransform: 'none',
@@ -397,17 +397,17 @@ const PublishButton = styled(Button)(({ theme }) => ({
   }
 }));
 
-// Определение компонента значка верификации
+
 const VerificationBadge = ({ status, size }) => {
   if (!status) return null;
   
   const getColorAndTitle = (status) => {
-    // Проверяем, является ли status числом или строкой 'verified'
+    
     if (status === 'verified') {
       return { color: '#D0BCFF', title: 'Верифицирован' };
     }
     
-    // Обработка числовых статусов
+    
     switch(Number(status)) {
       case 1:
         return { color: '#9e9e9e', title: 'Верифицирован' };
@@ -439,32 +439,29 @@ const VerificationBadge = ({ status, size }) => {
   );
 };
 
-// Create Post Component
-const CreatePost = ({ onPostCreated }) => {
-  const { user } = useContext(AuthContext);
-  const { themeSettings } = useContext(ThemeSettingsContext);
-  const [content, setContent] = useState('');
-  const [mediaFile, setMediaFile] = useState(null);
-  const [mediaType, setMediaType] = useState('');
-  const [mediaPreview, setMediaPreview] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState([]);
-  const [previewUrls, setPreviewUrls] = useState([]);
-  const fileInputRef = useRef(null);
-  const [isFocused, setIsFocused] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [error, setError] = useState('');
-  
-  // Music selection state
-  const [musicSelectOpen, setMusicSelectOpen] = useState(false);
-  const [selectedTracks, setSelectedTracks] = useState([]);
 
-  // Clear error when user makes changes to the post
+const CreatePost = ({ onPostCreated, postType = 'post', recipientId = null }) => {
+  const [content, setContent] = useState('');
+  const [media, setMedia] = useState(null);
+  const [mediaFiles, setMediaFiles] = useState([]);
+  const [mediaPreview, setMediaPreview] = useState([]);
+  const [mediaType, setMediaType] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef(null);
+  const [musicTracks, setMusicTracks] = useState([]);
+  const [showMusicPicker, setShowMusicPicker] = useState(false);
+  
+  const { user } = useContext(AuthContext);
+  const placeholderText = postType === 'stena' ? 'Че напишем?' : 'Что у вас нового?';
+  
+  
   useEffect(() => {
     if (error) setError('');
-  }, [content, selectedFiles, selectedTracks, error]);
-
-  // Обработчики для drag-and-drop
+  }, [content, media, mediaPreview, musicTracks, error]);
+  
+  
   const dragCounter = useRef(0);
   
   const handleDragEnter = (e) => {
@@ -479,7 +476,7 @@ const CreatePost = ({ onPostCreated }) => {
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    // Не обновляем состояние здесь, чтобы избежать повторного рендеринга
+    
   };
   
   const handleDragLeave = (e) => {
@@ -503,7 +500,7 @@ const CreatePost = ({ onPostCreated }) => {
     }
   };
   
-  // Общая функция для обработки файлов
+  
   const processFiles = (files) => {
     if (!files || files.length === 0) {
       console.error('No files to process');
@@ -512,44 +509,58 @@ const CreatePost = ({ onPostCreated }) => {
     
     console.log(`processFiles: Processing ${files.length} files`);
     
-    if (files.length > 0) {
-      // Reset previous files and previews
-      setSelectedFiles([]);
-      setPreviewUrls([]);
-      setMediaFile(null);
-      setMediaPreview('');
+    
+    setMediaFiles([]);
+    setMediaPreview([]);
+    setMediaType('');
+    setMusicTracks([]);
+    
+    
+    if (files.length > 1) {
       
-      // Store all selected files
-      setSelectedFiles(files);
+      const allImages = files.every(file => file.type.startsWith('image/'));
       
-      // Check if it's a single file - keep compatibility with old code
-      if (files.length === 1) {
-        setMediaFile(files[0]);
-        setMediaType(files[0].type.startsWith('image/') ? 'image' : 'video');
+      if (allImages) {
+        setMediaFiles(files);
+        setMediaType('images');
         
-        // Create a preview
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setMediaPreview(reader.result);
-        };
-        reader.readAsDataURL(files[0]);
+        
+        files.forEach(file => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setMediaPreview(prevPreviews => [...prevPreviews, reader.result]);
+          };
+          reader.readAsDataURL(file);
+        });
+        return;
       }
+    }
+    
+    
+    const file = files[0];
+    
+    
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+    
+    if (isImage || isVideo) {
+      setMediaFiles([file]);
+      setMedia(file);
+      setMediaType(isImage ? 'image' : 'video');
       
-      // Create previews for all files
-      files.forEach(file => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setPreviewUrls(prev => [...prev, reader.result]);
-        };
-        reader.readAsDataURL(file);
-      });
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setMediaPreview([reader.result]);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   const handleMediaChange = (e) => {
-    e.preventDefault(); // Prevent default behavior
+    e.preventDefault(); 
     
-    // Check if files exist and are valid
+    
     if (!e.target.files || e.target.files.length === 0) {
       console.error('No files selected or invalid files');
       return;
@@ -561,27 +572,29 @@ const CreatePost = ({ onPostCreated }) => {
   };
   
   const handleRemoveMedia = () => {
-    setMediaFile(null);
-    setMediaPreview('');
+    setMedia(null);
+    setMediaFiles([]);
+    setMediaPreview([]);
     setMediaType('');
+    setMusicTracks([]);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
   
-  // Handle music selection from dialog
+  
   const handleMusicSelect = (tracks) => {
-    setSelectedTracks(tracks);
+    setMusicTracks(tracks);
   };
   
-  // Handle removing a music track
+  
   const handleRemoveTrack = (trackId) => {
-    setSelectedTracks(prev => prev.filter(track => track.id !== trackId));
+    setMusicTracks(prev => prev.filter(track => track.id !== trackId));
   };
   
   const handleSubmit = async () => {
-    // Check if we have either content or files or music
-    if (!content.trim() && selectedFiles.length === 0 && selectedTracks.length === 0) return;
+    
+    if (!content.trim() && mediaFiles.length === 0 && musicTracks.length === 0) return;
     
     setIsSubmitting(true);
     
@@ -589,30 +602,38 @@ const CreatePost = ({ onPostCreated }) => {
       const formData = new FormData();
       formData.append('content', content.trim());
       
-      // Handle multiple images if available
-      if (selectedFiles.length > 1) {
-        console.log(`Adding ${selectedFiles.length} images to form data`);
-        selectedFiles.forEach((file, index) => {
-          formData.append(`images[${index}]`, file);
-        });
-      } 
-      // Otherwise fall back to single file method
-      else if (selectedFiles.length === 1) {
-        console.log('Adding single file to form data');
-        if (mediaType) {
-          formData.append(mediaType, selectedFiles[0]);
-        } else {
-          // Auto-detect type
-          const fileType = selectedFiles[0].type.startsWith('image/') ? 'image' : 'video';
-          formData.append(fileType, selectedFiles[0]);
-        }
+      
+      if (postType && postType !== 'post') {
+        formData.append('type', postType);
       }
       
-      // Add music tracks if selected
-      if (selectedTracks.length > 0) {
-        console.log(`Adding ${selectedTracks.length} music tracks to post`);
-        // Convert tracks to JSON string and append to form data
-        const trackData = selectedTracks.map(track => ({
+      if (recipientId) {
+        formData.append('recipient_id', recipientId);
+      }
+      
+      
+      if (mediaType === 'images') {
+        
+        console.log(`Adding ${mediaFiles.length} images to FormData`);
+        mediaFiles.forEach((file, index) => {
+          console.log(`Adding image[${index}]:`, file.name, file.size);
+          formData.append(`images[${index}]`, file);
+        });
+      } else if (mediaType === 'image') {
+        
+        console.log("Adding single image to FormData:", mediaFiles[0].name, mediaFiles[0].size);
+        formData.append('image', mediaFiles[0]);
+      } else if (mediaType === 'video') {
+        
+        console.log("Adding video to FormData:", mediaFiles[0].name, mediaFiles[0].size);
+        formData.append('video', mediaFiles[0]);
+      }
+      
+      
+      if (musicTracks.length > 0) {
+        console.log(`Adding ${musicTracks.length} music tracks to form data`);
+        
+        const trackData = musicTracks.map(track => ({
           id: track.id,
           title: track.title,
           artist: track.artist,
@@ -623,7 +644,7 @@ const CreatePost = ({ onPostCreated }) => {
         formData.append('music', JSON.stringify(trackData));
       }
       
-      // Debug form data
+      
       console.log('Creating post with form data:');
       for (const pair of Array.from(formData.entries())) {
         if (pair[1] instanceof File) {
@@ -637,36 +658,35 @@ const CreatePost = ({ onPostCreated }) => {
       console.log('Post created:', response);
       
       if (response && response.success) {
-        // Reset form
+        
         setContent('');
-        setMediaFile(null);
-        setMediaPreview('');
+        setMedia(null);
+        setMediaFiles([]);
+        setMediaPreview([]);
         setMediaType('');
-        setSelectedFiles([]);
-        setPreviewUrls([]);
-        setSelectedTracks([]);
+        setMusicTracks([]);
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
         
-        // Update the feed with the new post
+        
         if (onPostCreated && response.post) {
           onPostCreated(response.post);
         }
         
-        // Show success message
+        
         console.log('Post created successfully');
       }
     } catch (error) {
       console.error('Error creating post:', error);
       
-      // Обработка ошибки превышения лимита создания постов
+      
       if (error.response && error.response.status === 429) {
         const rateLimit = error.response.data.rate_limit;
         let errorMessage = "Превышен лимит публикации постов. ";
         
         if (rateLimit && rateLimit.reset) {
-          // Calculate time remaining until reset
+          
           const resetTime = new Date(rateLimit.reset * 1000);
           const now = new Date();
           const diffSeconds = Math.round((resetTime - now) / 1000);
@@ -682,13 +702,13 @@ const CreatePost = ({ onPostCreated }) => {
           errorMessage += "Пожалуйста, повторите попытку позже.";
         }
         
-        // Устанавливаем ошибку в состояние
+        
         setError(errorMessage);
       } else if (error.response && error.response.data && error.response.data.error) {
-        // Обработка других ошибок с сервера
+        
         setError(error.response.data.error);
       } else {
-        // Общая ошибка
+        
         setError("Произошла ошибка при создании поста. Пожалуйста, попробуйте еще раз.");
       }
     } finally {
@@ -704,14 +724,11 @@ const CreatePost = ({ onPostCreated }) => {
       sx={{
         p: 2,
         mb: 0,
-        borderRadius: '10px',
+        borderRadius: '24px',
         backgroundColor: theme => theme.palette.mode === 'dark' ? '#1E1E1E' : theme.palette.background.paper,
-        position: 'relative'
+        position: 'relative',
+        border: '1px solid rgba(255, 255, 255, 0.1)'
       }}
-      onDragEnter={handleDragEnter}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
     >
       {error && (
         <Alert 
@@ -723,320 +740,313 @@ const CreatePost = ({ onPostCreated }) => {
         </Alert>
       )}
       
-      {isDragging && (
+      <Box 
+        component="form" 
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
+        sx={{ 
+          position: 'relative',
+          zIndex: 1 
+        }}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <Box 
-          sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+          sx={{ 
+            display: 'flex', 
             flexDirection: 'column',
-            backgroundColor: theme => theme.palette.mode === 'dark'
-              ? 'rgba(26, 26, 26, 0.8)'
-              : 'rgba(245, 245, 245, 0.8)',
-            borderRadius: '10px',
-            zIndex: 10,
-            opacity: isDragging ? 1 : 0,
-            transition: 'opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'
+            position: 'relative',
+            borderRadius: '12px',
+            border: isDragging ? '2px dashed #D0BCFF' : 'none',
+            backgroundColor: isDragging ? 'rgba(208, 188, 255, 0.05)' : 'transparent',
+            padding: isDragging ? 1 : 0,
+            transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'
           }}
         >
-          <ImageOutlinedIcon sx={{ fontSize: 40, color: '#D0BCFF', mb: 1, filter: 'drop-shadow(0 0 8px rgba(208, 188, 255, 0.6))' }} />
-          <Typography variant="body1" color="primary" sx={{ fontWeight: 'medium', textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-            Перетащите файлы сюда
-          </Typography>
-        </Box>
-      )}
-
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
-        <Avatar 
-          src={user.photo ? `/static/uploads/avatar/${user.id}/${user.photo}` : undefined}
-          alt={user.name}
-          sx={{ 
-            mr: 1.5, 
-            width: 40, 
-            height: 40, 
-            border: '2px solid rgba(208, 188, 255)',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
-            transition: 'all 0.2s ease',
-            '&:hover': {
-              transform: 'scale(1.05)',
-              boxShadow: '0 3px 10px rgba(0, 0, 0, 0.3)'
-            }
-          }}
-        />
-        <PostInput 
-          placeholder="Что у вас нового?"
-          multiline
-          minRows={1}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => {
-
-          }}
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          sx={{
-            width: '100%',
-            '& .MuiInputBase-root': {
-              transition: 'all 0.3s ease',
-              minHeight: '40px !important',
-              fontSize: '0.95rem'
-            },
-            '& textarea': {
-              lineHeight: '1.4 !important',
-
-            }
-          }}
-        />
-      </Box>
-      
-      
-      {mediaPreview ? (
-        <Box sx={{ position: 'relative', mt: 1 }}>
-          <img
-            src={mediaPreview}
-            alt="Preview"
-            style={{
-              width: '100%',
-              maxHeight: '300px',
-              objectFit: 'contain',
-              borderRadius: '8px'
-            }}
-          />
-          <IconButton
-            size="small"
-            sx={{
-              position: 'absolute',
-              top: 5,
-              right: 5,
-              bgcolor: 'rgba(0,0,0,0.5)',
-              padding: '4px',
-              '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' }
-            }}
-            onClick={() => {
-              setMediaPreview('');
-              setMediaFile(null);
-              setMediaType('');
-              setSelectedFiles([]);
-              setPreviewUrls([]);
-              if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-              }
-            }}
-          >
-            <CloseIcon sx={{ fontSize: 16 }} />
-          </IconButton>
-        </Box>
-      ) : previewUrls.length > 1 ? (
-        <Box sx={{ position: 'relative', mt: 2 }}>
-          <ImageList 
-            sx={{ width: '100%', maxHeight: 300, borderRadius: '8px', overflow: 'hidden' }}
-            cols={previewUrls.length > 3 ? 3 : previewUrls.length}
-            rowHeight={previewUrls.length > 3 ? 120 : 200}
-          >
-            {previewUrls.map((preview, index) => (
-              <ImageListItem key={index}>
-                <img
-                  src={preview}
-                  alt={`Preview ${index + 1}`}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                  }}
-                />
-              </ImageListItem>
-            ))}
-          </ImageList>
-          <IconButton
-            size="small"
-            sx={{
-              position: 'absolute',
-              top: 5,
-              right: 5,
-              bgcolor: 'rgba(0,0,0,0.5)',
-              padding: '4px',
-              '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' }
-            }}
-            onClick={() => {
-              setPreviewUrls([]);
-              setSelectedFiles([]);
-              setMediaPreview('');
-              setMediaFile(null);
-              if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-              }
-            }}
-          >
-            <CloseIcon sx={{ fontSize: 16 }} />
-          </IconButton>
-        </Box>
-      ) : null}
-      
-      
-      {selectedTracks.length > 0 && (
-        <Box sx={{ mt: 2, mb: 1 }}>
-          {selectedTracks.map(track => (
+          {isDragging && (
             <Box 
-              key={track.id}
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                py: 1, 
-                px: 2, 
-                mb: 1, 
-                borderRadius: '8px',
-                bgcolor: theme => theme.palette.mode === 'dark'
-                  ? 'rgba(255, 255, 255, 0.05)'
-                  : 'rgba(0, 0, 0, 0.03)',
-                border: theme => theme.palette.mode === 'dark'
-                  ? '1px solid rgba(255, 255, 255, 0.08)'
-                  : '1px solid rgba(0, 0, 0, 0.05)'
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'column',
+                backgroundColor: 'rgba(26, 26, 26, 0.7)',
+                borderRadius: '12px',
+                zIndex: 10,
+                opacity: isDragging ? 1 : 0,
+                transition: 'opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'
               }}
             >
-              <Box 
-                sx={{ 
-                  width: 36, 
-                  height: 36, 
-                  borderRadius: '4px', 
-                  overflow: 'hidden',
-                  mr: 1.5,
-                  position: 'relative',
-                  bgcolor: theme => theme.palette.mode === 'dark' 
-                    ? 'rgba(0, 0, 0, 0.3)'
-                    : 'rgba(0, 0, 0, 0.1)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <img 
-                  src={track.cover_path.startsWith('/static/') ? track.cover_path : `/static/uploads/music/covers/${track.cover_path}`} 
-                  alt={track.title}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  onError={(e) => {
-                    e.target.src = '/uploads/system/album_placeholder.jpg';
-                  }}
-                />
-                <MusicNoteIcon 
-                  sx={{ 
-                    position: 'absolute', 
-                    fontSize: 16, 
-                    color: 'rgba(255, 255, 255, 0.7)'
-                  }} 
-                />
-              </Box>
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography variant="body2" noWrap>
-                  {track.title}
-                </Typography>
-                <Typography variant="caption" color="text.secondary" noWrap>
-                  {track.artist}
-                </Typography>
-              </Box>
-              <IconButton 
-                size="small" 
-                onClick={() => handleRemoveTrack(track.id)}
-                sx={{ ml: 1 }}
-              >
-                <CloseIcon fontSize="small" />
-              </IconButton>
+              <ImageOutlinedIcon sx={{ fontSize: 40, color: '#D0BCFF', mb: 1, filter: 'drop-shadow(0 0 8px rgba(208, 188, 255, 0.6))' }} />
+              <Typography variant="body1" color="primary" sx={{ fontWeight: 'medium', textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+                Перетащите файлы сюда
+              </Typography>
             </Box>
-          ))}
-        </Box>
-      )}
-      
-      <PostActions>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*,video/*"
-            onChange={handleMediaChange}
-            multiple
-            style={{ display: 'none' }}
-            id="media-upload-profile"
-          />
-          <label htmlFor="media-upload-profile">
-            <Button
-              component="span"
-              startIcon={<ImageOutlinedIcon sx={{ fontSize: 18 }} />}
-              sx={{
-                color: selectedFiles.length > 0 ? 'primary.main' : 'text.secondary',
-                borderRadius: '10px',
-                textTransform: 'none',
-                fontSize: '0.8rem',
-                fontWeight: 500,
-                border: selectedFiles.length > 0 
-                  ? '1px solid rgba(208, 188, 255, 0.5)'
-                  : theme => theme.palette.mode === 'dark'
-                    ? '1px solid rgba(255, 255, 255, 0.12)'
-                    : '1px solid rgba(0, 0, 0, 0.12)',
-                padding: '4px 10px',
+          )}
+          
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
+            <Avatar 
+              src={user.photo ? `/static/uploads/avatar/${user.id}/${user.photo}` : undefined}
+              alt={user.name}
+              sx={{ 
+                mr: 1.5, 
+                width: 40, 
+                height: 40, 
+                border: '2px solid rgba(208, 188, 255)',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                transition: 'all 0.2s ease',
                 '&:hover': {
-                  backgroundColor: 'rgba(208, 188, 255, 0.08)',
-                  borderColor: 'rgba(208, 188, 255, 0.4)'
+                  transform: 'scale(1.05)',
+                  boxShadow: '0 3px 10px rgba(0, 0, 0, 0.3)'
                 }
               }}
+            />
+            <PostInput 
+              placeholder={placeholderText}
+              multiline
+              minRows={1}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              sx={{
+                width: '100%',
+                '& .MuiInputBase-root': {
+                  transition: 'all 0.3s ease',
+                  minHeight: '40px !important',
+                  fontSize: '0.95rem'
+                },
+                '& textarea': {
+                  lineHeight: '1.4 !important',
+                }
+              }}
+            />
+          </Box>
+          
+          
+          {mediaPreview.length > 0 && (
+            <Box sx={{ position: 'relative', mt: 1 }}>
+              {mediaType === 'images' && mediaPreview.length > 1 ? (
+                <ImageList 
+                  sx={{ 
+                    width: '100%', 
+                    height: 'auto', 
+                    maxHeight: 500,
+                    borderRadius: '8px',
+                    overflow: 'hidden'
+                  }} 
+                  cols={mediaPreview.length > 3 ? 3 : 2} 
+                  rowHeight={mediaPreview.length > 6 ? 120 : 164}
+                >
+                  {mediaPreview.map((preview, index) => (
+                    <ImageListItem key={index}>
+                      <img
+                        src={preview}
+                        alt={`Preview ${index + 1}`}
+                        style={{ objectFit: 'cover', height: '100%', width: '100%' }}
+                      />
+                    </ImageListItem>
+                  ))}
+                </ImageList>
+              ) : (
+                <img
+                  src={mediaPreview[0]}
+                  alt="Preview"
+                  style={{ 
+                    width: '100%', 
+                    borderRadius: '8px',
+                    maxHeight: '300px',
+                    objectFit: mediaType === 'image' ? 'contain' : 'cover'
+                  }}
+                />
+              )}
+              <IconButton
+                size="small"
+                sx={{
+                  position: 'absolute',
+                  top: 5,
+                  right: 5,
+                  bgcolor: 'rgba(0,0,0,0.5)',
+                  padding: '4px',
+                  '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' }
+                }}
+                onClick={handleRemoveMedia}
+              >
+                <CloseIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Box>
+          )}
+          
+          
+          {musicTracks.length > 0 && (
+            <Box sx={{ mt: 2, mb: 1 }}>
+              {musicTracks.map(track => (
+                <Box 
+                  key={track.id}
+                  sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    py: 1, 
+                    px: 2, 
+                    mb: 1, 
+                    borderRadius: '8px',
+                    bgcolor: theme => theme.palette.mode === 'dark'
+                      ? 'rgba(255, 255, 255, 0.05)'
+                      : 'rgba(0, 0, 0, 0.03)',
+                    border: theme => theme.palette.mode === 'dark'
+                      ? '1px solid rgba(255, 255, 255, 0.08)'
+                      : '1px solid rgba(0, 0, 0, 0.05)'
+                  }}
+                >
+                  <Box 
+                    sx={{ 
+                      width: 36, 
+                      height: 36, 
+                      borderRadius: '4px', 
+                      overflow: 'hidden',
+                      mr: 1.5,
+                      position: 'relative',
+                      bgcolor: theme => theme.palette.mode === 'dark' 
+                        ? 'rgba(0, 0, 0, 0.3)'
+                        : 'rgba(0, 0, 0, 0.1)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <img 
+                      src={track.cover_path.startsWith('/static/') ? track.cover_path : `/static/uploads/music/covers/${track.cover_path}`} 
+                      alt={track.title}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => {
+                        e.target.src = '/uploads/system/album_placeholder.jpg';
+                      }}
+                    />
+                    <MusicNoteIcon 
+                      sx={{ 
+                        position: 'absolute', 
+                        fontSize: 16, 
+                        color: 'rgba(255, 255, 255, 0.7)'
+                      }} 
+                    />
+                  </Box>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography variant="body2" noWrap>
+                      {track.title}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" noWrap>
+                      {track.artist}
+                    </Typography>
+                  </Box>
+                  <IconButton 
+                    size="small" 
+                    onClick={() => handleRemoveTrack(track.id)}
+                    sx={{ ml: 1 }}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+              ))}
+            </Box>
+          )}
+          
+          <PostActions>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                onChange={handleMediaChange}
+                multiple
+                style={{ display: 'none' }}
+                id="media-upload-profile"
+              />
+              <label htmlFor="media-upload-profile">
+                <Button
+                  component="span"
+                  startIcon={<ImageOutlinedIcon sx={{ fontSize: 18 }} />}
+                  sx={{
+                    color: mediaFiles.length > 0 || musicTracks.length > 0 ? 'primary.main' : 'text.secondary',
+                    borderRadius: '10px',
+                    textTransform: 'none',
+                    fontSize: '0.8rem',
+                    fontWeight: 500,
+                    border: mediaFiles.length > 0 || musicTracks.length > 0 
+                      ? '1px solid rgba(208, 188, 255, 0.5)'
+                      : theme => theme.palette.mode === 'dark'
+                        ? '1px solid rgba(255, 255, 255, 0.12)'
+                        : '1px solid rgba(0, 0, 0, 0.12)',
+                    padding: '4px 10px',
+                    '&:hover': {
+                      backgroundColor: 'rgba(208, 188, 255, 0.08)',
+                      borderColor: 'rgba(208, 188, 255, 0.4)'
+                    }
+                  }}
+                  size="small"
+                >
+                  {mediaFiles.length > 0 ? `Файлы (${mediaFiles.length})` : 'Фото/видео'}
+                </Button>
+              </label>
+              
+              
+              <Button
+                onClick={() => setShowMusicPicker(true)}
+                startIcon={<MusicNoteIcon sx={{ fontSize: 18 }} />}
+                sx={{
+                  color: musicTracks.length > 0 ? 'primary.main' : 'text.secondary',
+                  borderRadius: '10px',
+                  textTransform: 'none',
+                  fontSize: '0.8rem',
+                  fontWeight: 500,
+                  padding: '4px 10px',
+                  border: musicTracks.length > 0 
+                    ? '1px solid rgba(208, 188, 255, 0.5)' 
+                    : theme => theme.palette.mode === 'dark'
+                      ? '1px solid rgba(255, 255, 255, 0.12)'
+                      : '1px solid rgba(0, 0, 0, 0.12)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(208, 188, 255, 0.08)',
+                    borderColor: 'rgba(208, 188, 255, 0.4)'
+                  }
+                }}
+                size="small"
+              >
+                {musicTracks.length > 0 ? `Музыка (${musicTracks.length})` : 'Музыка'}
+              </Button>
+            </Box>
+            
+            <PublishButton 
+              variant="contained" 
+              onClick={handleSubmit}
+              disabled={isSubmitting || (!content.trim() && mediaFiles.length === 0 && musicTracks.length === 0)}
+              endIcon={isSubmitting ? <CircularProgress size={14} color="inherit" /> : null}
               size="small"
             >
-              {selectedFiles.length ? `Файлы (${selectedFiles.length})` : 'Фото/видео'}
-            </Button>
-          </label>
+              Опубликовать
+            </PublishButton>
+          </PostActions>
           
           
-          <Button
-            onClick={() => setMusicSelectOpen(true)}
-            startIcon={<MusicNoteIcon sx={{ fontSize: 18 }} />}
-            sx={{
-              color: selectedTracks.length > 0 ? 'primary.main' : 'text.secondary',
-              borderRadius: '10px',
-              textTransform: 'none',
-              fontSize: '0.8rem',
-              fontWeight: 500,
-              padding: '4px 10px',
-              border: selectedTracks.length > 0 
-                ? '1px solid rgba(208, 188, 255, 0.5)' 
-                : theme => theme.palette.mode === 'dark'
-                  ? '1px solid rgba(255, 255, 255, 0.12)'
-                  : '1px solid rgba(0, 0, 0, 0.12)',
-              '&:hover': {
-                backgroundColor: 'rgba(208, 188, 255, 0.08)',
-                borderColor: 'rgba(208, 188, 255, 0.4)'
-              }
-            }}
-            size="small"
-          >
-            {selectedTracks.length ? `Музыка (${selectedTracks.length})` : 'Музыка'}
-          </Button>
+          <MusicSelectDialog
+            open={showMusicPicker}
+            onClose={() => setShowMusicPicker(false)}
+            onSelectTracks={handleMusicSelect}
+            maxTracks={3}
+          />
         </Box>
-        
-        <PublishButton 
-          variant="contained" 
-          onClick={handleSubmit}
-          disabled={isSubmitting || (!content.trim() && !mediaFile && selectedFiles.length === 0 && selectedTracks.length === 0)}
-          endIcon={isSubmitting ? <CircularProgress size={14} color="inherit" /> : null}
-          size="small"
-        >
-          Опубликовать
-        </PublishButton>
-      </PostActions>
-      
-      
-      <MusicSelectDialog
-        open={musicSelectOpen}
-        onClose={() => setMusicSelectOpen(false)}
-        onSelectTracks={handleMusicSelect}
-        maxTracks={3}
-      />
+      </Box>
     </Paper>
   );
 };
 
-// Определение TabPanel
+
 const TabPanel = ({ children, value, index, ...other }) => {
   return (
     <div
@@ -1057,81 +1067,81 @@ const TabPanel = ({ children, value, index, ...other }) => {
   );
 };
 
-// Компонент для отображения статуса пользователя
+
 const UserStatus = ({ statusText, statusColor }) => {
   if (!statusText) return null;
   
-  // Функция для определения цвета текста в зависимости от цвета фона
+  
   const getContrastTextColor = (hexColor) => {
-    // Преобразуем HEX в RGB
+    
     const r = parseInt(hexColor.substr(1, 2), 16);
     const g = parseInt(hexColor.substr(3, 2), 16);
     const b = parseInt(hexColor.substr(5, 2), 16);
     
-    // Вычисляем яркость
+    
     const brightness = (r * 299 + g * 587 + b * 114) / 1000;
     
-    // Возвращаем белый или черный цвет в зависимости от яркости фона
+    
     return brightness > 128 ? '#000000' : '#FFFFFF';
   };
 
-  // Функция для создания чуть более светлого/темного оттенка цвета для градиента
+  
   const createGradientColor = (hexColor) => {
-    // Преобразуем HEX в RGB
+    
     let r = parseInt(hexColor.substr(1, 2), 16);
     let g = parseInt(hexColor.substr(3, 2), 16);
     let b = parseInt(hexColor.substr(5, 2), 16);
     
-    // Определяем, светлый или темный цвет
+    
     const brightness = (r * 299 + g * 587 + b * 114) / 1000;
     
-    // Для темных цветов делаем светлее, для светлых - темнее
+    
     if (brightness < 128) {
-      // Для темного цвета - делаем светлее
+      
       r = Math.min(255, r + 30);
       g = Math.min(255, g + 30);
       b = Math.min(255, b + 30);
     } else {
-      // Для светлого цвета - делаем темнее
+      
       r = Math.max(0, r - 30);
       g = Math.max(0, g - 30);
       b = Math.max(0, b - 30);
     }
     
-    // Возвращаем цвет в формате HEX
+    
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
   };
 
-  // Определяем второй цвет для градиента
+  
   const gradientColor = createGradientColor(statusColor || '#D0BCFF');
   const textColor = getContrastTextColor(statusColor || '#D0BCFF');
 
-  // Функция для парсинга текста статуса и извлечения иконки
+  
   const parseStatusText = (text) => {
-    // Регулярное выражение для поиска тегов иконок в формате {имя_иконки}
+    
     const iconTagRegex = /\{(\w+)\}/;
     const match = text.match(iconTagRegex);
     
-    // Объект с текстом статуса и иконкой
+    
     const result = {
       text: text,
       iconName: null
     };
     
     if (match) {
-      // Извлекаем имя иконки из тега
+      
       result.iconName = match[1].toLowerCase();
-      // Удаляем тег иконки из текста
+      
       result.text = text.replace(iconTagRegex, '').trim();
     }
     
     return result;
   };
   
-  // Получаем иконку и очищенный текст
+  
   const parsedStatus = parseStatusText(statusText);
   
-  // Функция для получения SVG иконки по имени
+  
   const getIconByName = (iconName) => {
     switch (iconName) {
       case 'minion':
@@ -1174,7 +1184,7 @@ const UserStatus = ({ statusText, statusColor }) => {
       case 'chat':
         return <ChatIcon sx={{ fontSize: 18, opacity: 0.8 }} />;
       default:
-        // Облачная иконка по умолчанию
+        
         return (
           <SvgIcon sx={{ fontSize: 18, opacity: 0.8 }}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -1185,7 +1195,7 @@ const UserStatus = ({ statusText, statusColor }) => {
     }
   };
 
-  // Получаем иконку на основе имени или используем облако по умолчанию
+  
   const StatusIcon = getIconByName(parsedStatus.iconName);
 
   return (
@@ -1283,10 +1293,10 @@ const UserStatus = ({ statusText, statusColor }) => {
   );
 };
 
-// Helper function to check authentication
+
 const requireAuth = (user, isAuthenticated, navigate) => {
   if (!isAuthenticated || !user) {
-    // Redirect to login if not authenticated
+    
     navigate('/login', { 
       state: { 
         from: window.location.pathname,
@@ -1298,7 +1308,7 @@ const requireAuth = (user, isAuthenticated, navigate) => {
   return true;
 };
 
-// ProfilePage Component
+
 const ProfilePage = () => {
   const { username } = useParams();
   const { user: currentUser, isAuthenticated } = useContext(AuthContext);
@@ -1346,13 +1356,13 @@ const ProfilePage = () => {
   const [previewUrls, setPreviewUrls] = useState([]);
   const [statsExpanded, setStatsExpanded] = useState(false);
   const [totalLikes, setTotalLikes] = useState(0);
-  // Добавляем состояния для онлайн-статуса
+  
   const [isOnline, setIsOnline] = useState(false);
   const [lastActive, setLastActive] = useState(null);
-  // Add a state for fallback avatar URL
+  
   const [fallbackAvatarUrl, setFallbackAvatarUrl] = useState('');
   
-  // Функция для открытия лайтбокса
+  
   const openLightbox = (imageUrl) => {
     console.log("Opening lightbox for image:", imageUrl);
     if (typeof imageUrl === 'string') {
@@ -1363,12 +1373,12 @@ const ProfilePage = () => {
     }
   };
   
-  // Функция для закрытия лайтбокса
+  
   const closeLightbox = () => {
     setLightboxIsOpen(false);
   };
   
-  // Функция отображения уведомлений
+  
   const showNotification = (severity, message) => {
     setSnackbar({
       open: true,
@@ -1385,13 +1395,13 @@ const ProfilePage = () => {
     setTabValue(newValue);
   };
   
-  // Обновлено для работы с новым переключателем
+  
   const handleTabClick = (index) => {
     setTabValue(index);
   };
   
   const handleFollow = async () => {
-    // Проверка авторизации перед подпиской
+    
     if (!requireAuth(currentUser, isAuthenticated, navigate)) {
       return;
     }
@@ -1411,49 +1421,44 @@ const ProfilePage = () => {
   };
   
   const handlePostCreated = (newPost) => {
-    if (newPost && newPost.id) {
-      // Проверяем, принадлежит ли пост текущему пользователю
-      if (newPost.user_id === user.id || 
-          (newPost.user && newPost.user.id === user.id)) {
-        
-        // Проверяем, есть ли уже этот пост в списке (избегаем дублирования)
-        const existingPostIndex = posts.findIndex(p => p && p.id === newPost.id);
-        
-        if (existingPostIndex !== -1) {
-          // Если пост уже существует, обновляем его
-          setPosts(current => {
-            const newPosts = [...current];
-            newPosts[existingPostIndex] = newPost;
-            return newPosts;
-          });
-        } else {
-          // Иначе добавляем новый пост в начало списка
-          setPosts(current => [newPost, ...current.filter(p => p && p.id)]);
-          
-          // Обновляем счетчик постов
-          setPostsCount(prev => prev + 1);
-        }
+    if (newPost) {
+      
+      if (tabValue === 0 && (!newPost.type || newPost.type === 'post')) {
+        setPosts((prevPosts) => [newPost, ...prevPosts]);
       }
+      
+      
+      if (newPost.type === 'stena') {
+        const event = new CustomEvent('post_created', { detail: newPost });
+        window.dispatchEvent(event);
+      }
+
+      
+      setSnackbar({
+        open: true,
+        message: "Пост успешно создан",
+        severity: "success"
+      });
     }
   };
 
   const handleDeletePost = async (postId, updatedPost) => {
-    // Проверка авторизации перед удалением/редактированием поста
+    
     if (!requireAuth(currentUser, isAuthenticated, navigate)) {
       return;
     }
     
     try {
-      // If updatedPost is provided, this is actually an edit operation, not a delete
+      
       if (updatedPost) {
         console.log('Updating post with ID:', postId, 'New data:', updatedPost);
         
-        // Update the post in the posts state
+        
         setPosts(prevPosts => prevPosts.map(post => 
           post.id.toString() === postId.toString() ? updatedPost : post
         ));
         
-        // Show success notification
+        
         showNotification('success', 'Пост успешно обновлен');
         return;
       }
@@ -1461,11 +1466,11 @@ const ProfilePage = () => {
       console.log('Deleting post/repost with ID:', postId);
       let response;
       
-      // Проверяем, является ли это репостом (ID с префиксом repost-)
+      
       const isRepost = postId.toString().startsWith('repost-');
       
       if (isRepost) {
-        // Удаляем префикс repost- для получения фактического ID репоста
+        
         const repostId = postId.substring(7);
         console.log('Deleting repost with ID:', repostId);
         response = await axios.delete(`/api/reposts/${repostId}`);
@@ -1475,17 +1480,17 @@ const ProfilePage = () => {
       }
       
       if (response.data && response.data.success) {
-        // Обновляем состояние после успешного удаления поста или репоста
+        
         setPosts(prevPosts => prevPosts.filter(post => {
           if (isRepost) {
-            // Для репостов проверяем id с префиксом repost-
+            
             return `repost-${post.id}` !== postId;
           }
-          // Для обычных постов просто сравниваем id
+          
           return post.id.toString() !== postId.toString();
         }));
         
-        // Показываем уведомление об успехе
+        
         showNotification('success', isRepost ? 'Репост успешно удален' : 'Пост успешно удален');
       }
     } catch (error) {
@@ -1494,14 +1499,14 @@ const ProfilePage = () => {
     }
   };
   
-  // Функция загрузки постов по скроллу - определяем до использования в useEffect
+  
   const loadMorePosts = async () => {
     if (loadingPosts || !hasMorePosts) return;
     
     try {
       setLoadingPosts(true);
       
-      // Increment page for the next request
+      
       const nextPage = page + 1;
       setPage(nextPage);
       
@@ -1515,7 +1520,7 @@ const ProfilePage = () => {
       if (response.data.posts && Array.isArray(response.data.posts)) {
         const newPosts = response.data.posts;
         setPosts(prev => {
-          // Make sure prev is an array
+          
           const prevArray = Array.isArray(prev) ? prev : [];
           return [...prevArray, ...newPosts];
         });
@@ -1536,7 +1541,7 @@ const ProfilePage = () => {
     try {
       setLoadingPhotos(true);
       
-      // Increment page for the next request
+      
       const nextPage = photoPage + 1;
       setPhotoPage(nextPage);
       
@@ -1550,7 +1555,7 @@ const ProfilePage = () => {
       if (response.data.media && Array.isArray(response.data.media)) {
         const newPhotos = response.data.media;
         setPhotos(prev => {
-          // Make sure prev is an array
+          
           const prevArray = Array.isArray(prev) ? prev : [];
           return [...prevArray, ...newPhotos];
         });
@@ -1571,7 +1576,7 @@ const ProfilePage = () => {
     try {
       setLoadingVideos(true);
       
-      // Increment page for the next request
+      
       const nextPage = videoPage + 1;
       setVideoPage(nextPage);
       
@@ -1585,7 +1590,7 @@ const ProfilePage = () => {
       if (response.data.media && Array.isArray(response.data.media)) {
         const newVideos = response.data.media;
         setVideos(prev => {
-          // Make sure prev is an array
+          
           const prevArray = Array.isArray(prev) ? prev : [];
           return [...prevArray, ...newVideos];
         });
@@ -1600,7 +1605,7 @@ const ProfilePage = () => {
     }
   };
   
-  // Load user profile
+  
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
@@ -1610,21 +1615,21 @@ const ProfilePage = () => {
         const response = await axios.get(`/api/profile/${username}`);
         console.log("Profile API response:", response.data);
         
-        // Debug achievement data
+        
         console.log("Profile achievement data:", {
           rootAchievement: response.data.achievement_data,
           userAchievement: response.data.user?.achievement
         });
         
-        // Check if we received a user object directly
+        
         if (response.data.user) {
-          // Copy verification from the root to the user object if not present
+          
           if (response.data.user.verification_status === undefined && response.data.verification) {
             response.data.user.verification_status = response.data.verification.status || null;
           }
           
-          // Copy achievement data from the root to the user object
-          // The API returns achievement data at the root level, not in the user object
+          
+          
           if (response.data.achievement) {
             response.data.user.achievement = response.data.achievement;
             console.log('Copied achievement data from root to user object:', response.data.achievement);
@@ -1632,12 +1637,12 @@ const ProfilePage = () => {
           
           setUser(response.data.user);
           
-          // Set total likes directly from API
+          
           if (response.data.user.total_likes !== undefined) {
             setTotalLikes(response.data.user.total_likes);
           }
           
-          // Handle subscription data if available
+          
           if (response.data.subscription) {
             response.data.user.subscription = response.data.subscription;
             console.log('Subscription data found:', response.data.subscription);
@@ -1649,7 +1654,7 @@ const ProfilePage = () => {
           }
           
           if (response.data.user.posts) {
-            // Ensure posts is an array
+            
             const postsData = Array.isArray(response.data.user.posts) ? response.data.user.posts : [];
             setPosts(postsData);
             setHasMorePosts(postsData.length >= 10);
@@ -1658,7 +1663,7 @@ const ProfilePage = () => {
           }
           
           if (response.data.user.photos) {
-            // Ensure photos is an array
+            
             const photosData = Array.isArray(response.data.user.photos) ? response.data.user.photos : [];
             setPhotos(photosData);
             setHasMorePhotos(photosData.length >= 12);
@@ -1667,7 +1672,7 @@ const ProfilePage = () => {
           }
           
           if (response.data.user.videos) {
-            // Ensure videos is an array
+            
             const videosData = Array.isArray(response.data.user.videos) ? response.data.user.videos : [];
             setVideos(videosData);
             setHasMoreVideos(videosData.length >= 8);
@@ -1675,7 +1680,7 @@ const ProfilePage = () => {
             setVideos([]);
           }
           
-          // Set followers and following counts
+          
           if (response.data.user.followers_count !== undefined) {
             setFollowersCount(response.data.user.followers_count);
           }
@@ -1684,7 +1689,7 @@ const ProfilePage = () => {
             setFollowingCount(response.data.user.following_count);
           }
           
-          // Handle is_following from different places in the API response
+          
           if (response.data.user.is_following !== undefined) {
             setFollowing(response.data.user.is_following);
           } else if (response.data.is_following !== undefined) {
@@ -1697,12 +1702,12 @@ const ProfilePage = () => {
             setPostsCount(response.data.posts_count);
           }
           
-          // Set socials if available
+          
           if (response.data.socials) {
             setSocials(response.data.socials);
           }
           
-          // Fetch owned usernames for any user
+          
           try {
             const usernamesResponse = await axios.get(`/api/username/purchased/${response.data.user.id}`);
             if (usernamesResponse.data.success) {
@@ -1718,12 +1723,12 @@ const ProfilePage = () => {
           }
         } else {
           console.error('User data not found in response', response.data);
-          setUser(null); // Explicitly set user to null if not found
+          setUser(null); 
         }
       } catch (error) {
         console.error('Error fetching profile', error);
         if (error.response && error.response.status === 404) {
-          // User not found - set user to null
+          
           setUser(null);
         }
       } finally {
@@ -1731,11 +1736,11 @@ const ProfilePage = () => {
       }
     };
     
-    // Запускаем загрузку профиля
+    
     fetchUserProfile();
   }, [username, setLoading, setUser, setPosts, setHasMorePosts, setPhotos, setHasMorePhotos, setVideos, setHasMoreVideos, setFollowersCount, setFollowingCount, setFollowing, setPostsCount, setSocials, setTotalLikes]);
   
-  // Load user posts
+  
   useEffect(() => {
     const fetchUserPosts = async () => {
       if (!user) return;
@@ -1745,7 +1750,7 @@ const ProfilePage = () => {
         const profileUsername = username || (user && user.username);
         if (!profileUsername) return;
         
-        // Сбрасываем состояние пагинации при первой загрузке
+        
         setPage(1);
         
         const response = await axios.get(`/api/profile/${profileUsername}/posts?page=1`);
@@ -1763,7 +1768,7 @@ const ProfilePage = () => {
     }
   }, [username, user, tabValue]);
   
-  // Загрузка фото пользователя
+  
   useEffect(() => {
     const fetchUserPhotos = async () => {
       if (!user) return;
@@ -1773,7 +1778,7 @@ const ProfilePage = () => {
         const profileUsername = username || (user && user.username);
         if (!profileUsername) return;
         
-        // Сбрасываем состояние пагинации
+        
         setPhotoPage(1);
         
         const response = await axios.get(`/api/profile/${profileUsername}/photos?page=1`);
@@ -1794,7 +1799,7 @@ const ProfilePage = () => {
     }
   }, [username, user, tabValue]);
   
-  // Загрузка видео пользователя
+  
   useEffect(() => {
     const fetchUserVideos = async () => {
       if (!user) return;
@@ -1804,7 +1809,7 @@ const ProfilePage = () => {
         const profileUsername = username || (user && user.username);
         if (!profileUsername) return;
         
-        // Сбрасываем состояние пагинации
+        
         setVideoPage(1);
         
         const response = await axios.get(`/api/profile/${profileUsername}/videos?page=1`);
@@ -1825,60 +1830,60 @@ const ProfilePage = () => {
     }
   }, [username, user, tabValue]);
 
-  // Obtain follower and following lists
+  
   useEffect(() => {
-    // Always fetch followers and following when user is loaded
+    
     if (user && user.id) {
       setLoadingFollowers(true);
       setLoadingFollowing(true);
       
       console.log(`Загрузка подписчиков для пользователя ${user.id}`);
-      // Загрузка подписчиков
+      
       axios.get(`/api/profile/${user.id}/followers`)
         .then(response => {
           console.log('Ответ API подписчиков:', response.data);
           if (response.data && response.data.followers) {
-            // Ensure we only set valid data
+            
             const followersData = Array.isArray(response.data.followers) 
               ? response.data.followers.filter(f => f && typeof f === 'object') 
               : [];
             console.log(`Получено ${followersData.length} подписчиков`);
             setFollowers(followersData);
           } else {
-            // If no valid data, set empty array
+            
             console.warn('Нет данных о подписчиках в ответе API');
             setFollowers([]);
           }
         })
         .catch(error => {
           console.error('Ошибка загрузки подписчиков:', error);
-          setFollowers([]); // Set empty array on error
+          setFollowers([]); 
         })
         .finally(() => {
           setLoadingFollowers(false);
         });
       
       console.log(`Загрузка подписок для пользователя ${user.id}`);
-      // Загрузка подписок
+      
       axios.get(`/api/profile/${user.id}/following`)
         .then(response => {
           console.log('Ответ API подписок:', response.data);
           if (response.data && response.data.following) {
-            // Ensure we only set valid data
+            
             const followingData = Array.isArray(response.data.following) 
               ? response.data.following.filter(f => f && typeof f === 'object') 
               : [];
             console.log(`Получено ${followingData.length} подписок`);
             setFollowingList(followingData);
           } else {
-            // If no valid data, set empty array
+            
             console.warn('Нет данных о подписках в ответе API');
             setFollowingList([]);
           }
         })
         .catch(error => {
           console.error('Ошибка загрузки подписок:', error);
-          setFollowingList([]); // Set empty array on error
+          setFollowingList([]); 
         })
         .finally(() => {
           setLoadingFollowing(false);
@@ -1886,13 +1891,13 @@ const ProfilePage = () => {
     }
   }, [user]);
 
-  // Добавляем обработчик скролла для бесконечной загрузки
+  
   useEffect(() => {
     const handleScroll = () => {
-      // Проверяем, что мы на вкладке постов
+      
       if (tabValue !== 0) return;
       
-      // Проверяем, находимся ли мы близко к концу страницы
+      
       if (
         window.innerHeight + document.documentElement.scrollTop + 200 >= 
         document.documentElement.offsetHeight
@@ -1905,18 +1910,18 @@ const ProfilePage = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [tabValue, loadMorePosts]);
 
-  // Добавляем обработчик скролла для бесконечной загрузки фото и видео
+  
   useEffect(() => {
     const handleScroll = () => {
-      // Проверяем, что мы на соответствующей вкладке
-      if (tabValue === 1) { // Фото
+      
+      if (tabValue === 1) { 
         if (
           window.innerHeight + document.documentElement.scrollTop + 200 >= 
           document.documentElement.offsetHeight
         ) {
           loadMorePhotos();
         }
-      } else if (tabValue === 2) { // Видео
+      } else if (tabValue === 2) { 
         if (
           window.innerHeight + document.documentElement.scrollTop + 200 >= 
           document.documentElement.offsetHeight
@@ -1941,8 +1946,8 @@ const ProfilePage = () => {
     };
 
     fetchNotifications();
-    // Set up polling for new notifications
-    const interval = setInterval(fetchNotifications, 30000); // Check every 30 seconds
+    
+    const interval = setInterval(fetchNotifications, 30000); 
     return () => clearInterval(interval);
   }, []);
 
@@ -1960,10 +1965,10 @@ const ProfilePage = () => {
     }
   };
 
-  // Добавляем эффект для подсчета общего количества лайков
+  
   useEffect(() => {
     if (posts && posts.length > 0) {
-      // Count all likes on user's posts
+      
       let likesCount = 0;
       posts.forEach(post => {
         if (post && post.likes_count) {
@@ -1971,7 +1976,7 @@ const ProfilePage = () => {
         }
       });
       
-      // Query the backend for more accurate likes count
+      
       const fetchTotalLikes = async () => {
         try {
           if (user && user.id) {
@@ -1992,7 +1997,7 @@ const ProfilePage = () => {
     }
   }, [posts, user]);
 
-  // Функция для получения онлайн-статуса пользователя
+  
   const fetchOnlineStatus = async () => {
     try {
       if (!username) return;
@@ -2008,19 +2013,19 @@ const ProfilePage = () => {
     }
   };
   
-  // useEffect для получения и обновления онлайн-статуса
+  
   useEffect(() => {
     if (username) {
       fetchOnlineStatus();
       
-      // Обновляем статус каждые 30 секунд
+      
       const interval = setInterval(fetchOnlineStatus, 30000);
       
       return () => clearInterval(interval);
     }
   }, [username]);
 
-  // Debug user state after it's set
+  
   useEffect(() => {
     if (user) {
       console.log('User state after setting:', {
@@ -2060,7 +2065,7 @@ const ProfilePage = () => {
   
   const isCurrentUser = currentUser && currentUser.username === user.username;
 
-  // Компонент для отображения фотографий
+  
   const PhotosGrid = () => {
     return (
       <ContentLoader loading={loadingPhotos} skeletonCount={1} height="300px">
@@ -2068,15 +2073,15 @@ const ProfilePage = () => {
           <Box sx={{ mt: 0.5 }}>
             <Grid container spacing={0.5}>
               {photos.map((photo, index) => {
-                // Skip invalid photos
+                
                 if (!photo || typeof photo !== 'object' || !photo.url) {
                   return null;
                 }
                 
-                // Get safe URL
+                
                 const imageUrl = photo.url || '';
                 
-                // Render photo card
+                
                 return (
                   <Grid item xs={12} sm={6} md={4} key={`photo-${index}`}>
                     <Box
@@ -2085,7 +2090,7 @@ const ProfilePage = () => {
                         width: '100%',
                         borderRadius: '10px',
                         overflow: 'hidden',
-                        paddingTop: '100%', // 1:1 Aspect ratio
+                        paddingTop: '100%', 
                         backgroundColor: 'rgba(0,0,0,0.05)',
                         '&:hover': {
                           transform: 'translateY(-4px)',
@@ -2101,7 +2106,7 @@ const ProfilePage = () => {
                         src={imageUrl}
                         alt={photo.content || `Фото ${index + 1}`}
                         onError={(e) => {
-                          // If image fails to load, show placeholder
+                          
                           console.error(`Failed to load image: ${imageUrl}`);
                           e.currentTarget.src = '/static/uploads/system/image_placeholder.jpg';
                         }}
@@ -2140,7 +2145,7 @@ const ProfilePage = () => {
     );
   };
   
-  // Компонент для отображения видео
+  
   const VideosGrid = () => {
     return (
       <ContentLoader loading={loadingVideos} skeletonCount={1} height="300px">
@@ -2206,13 +2211,212 @@ const ProfilePage = () => {
     );
   };
 
-  // PostsTab component - отвечает за отображение постов в профиле
+  
+  const WallPostsTab = ({ userId }) => {
+    const [wallPosts, setWallPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [hasMorePosts, setHasMorePosts] = useState(true);
+    const [page, setPage] = useState(1);
+    const [loadingMorePosts, setLoadingMorePosts] = useState(false);
+    const observerRef = useRef(null);
+    const loaderRef = useRef(null); 
+    const isMounted = useRef(true);
+    const loadLock = useRef(false);
+
+    useEffect(() => {
+      
+      isMounted.current = true;
+      return () => {
+        isMounted.current = false;
+      };
+    }, []);
+
+    
+    const fetchWallPosts = useCallback(async (pageNum = 1, initialLoad = false) => {
+      
+      if (loadLock.current && !initialLoad) return;
+      
+      try {
+        initialLoad ? setLoading(true) : setLoadingMorePosts(true);
+        loadLock.current = true;
+        
+        const response = await axios.get(`/api/profile/${userId}/wall`, {
+          params: {
+            page: pageNum,
+            per_page: 10
+          }
+        });
+        
+        if (!isMounted.current) return;
+        
+        if (response.data.posts && Array.isArray(response.data.posts)) {
+          if (initialLoad) {
+            setWallPosts(response.data.posts);
+          } else {
+            setWallPosts(prev => [...prev, ...response.data.posts]);
+          }
+          setHasMorePosts(response.data.has_next);
+        } else {
+          if (initialLoad) setWallPosts([]);
+          setHasMorePosts(false);
+        }
+      } catch (error) {
+        console.error('Error fetching wall posts:', error);
+        if (initialLoad) setWallPosts([]);
+      } finally {
+        if (isMounted.current) {
+          initialLoad ? setLoading(false) : setLoadingMorePosts(false);
+          
+          
+          setTimeout(() => {
+            loadLock.current = false;
+          }, 300);
+        }
+      }
+    }, [userId]);
+    
+    
+    useEffect(() => {
+      if (userId) {
+        setPage(1);
+        fetchWallPosts(1, true);
+      }
+      
+      return () => {
+        
+        if (observerRef.current) {
+          observerRef.current.disconnect();
+        }
+      };
+    }, [userId, fetchWallPosts]);
+    
+    
+    useEffect(() => {
+      const handleObserver = (entries) => {
+        const [entry] = entries;
+        
+        
+        if (entry.isIntersecting && hasMorePosts && !loadingMorePosts && !loadLock.current) {
+          const nextPage = page + 1;
+          setPage(nextPage);
+          fetchWallPosts(nextPage, false);
+        }
+      };
+      
+      
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+      
+      
+      observerRef.current = new IntersectionObserver(handleObserver, {
+        root: null,
+        rootMargin: '0px', 
+        threshold: 0.5     
+      });
+      
+      
+      if (loaderRef.current && hasMorePosts) {
+        observerRef.current.observe(loaderRef.current);
+      }
+      
+    }, [hasMorePosts, page, loadingMorePosts, fetchWallPosts]);
+
+    
+    const handleDeletePost = (postId, updatedPost) => {
+      if (updatedPost) {
+        
+        setWallPosts(prevPosts => prevPosts.map(post => 
+          post.id.toString() === postId.toString() ? updatedPost : post
+        ));
+      } else {
+        
+        setWallPosts(prevPosts => prevPosts.filter(post => 
+          post.id.toString() !== postId.toString()
+        ));
+      }
+    };
+    
+    
+    useEffect(() => {
+      const handleGlobalPostCreated = (event) => {
+        const newPost = event.detail;
+        
+        if (newPost.type === 'stena' && newPost.recipient_id === parseInt(userId)) {
+          setWallPosts(prevPosts => [newPost, ...prevPosts]);
+        }
+      };
+      
+      
+      window.addEventListener('post_created', handleGlobalPostCreated);
+      
+      
+      return () => {
+        window.removeEventListener('post_created', handleGlobalPostCreated);
+      };
+    }, [userId]);
+
+    return (
+      <ContentLoader loading={loading} skeletonCount={3} height="120px">
+        {wallPosts.length > 0 ? (
+          <Box sx={{ mt: 0.5 }}>
+            {/* Отображаем все посты на стене */}
+            {wallPosts.map((post, index) => (
+              <Box key={post.id}>
+                <Post post={post} onDelete={handleDeletePost} showActions />
+              </Box>
+            ))}
+            
+            {/* Элемент-сентинель для бесконечной прокрутки */}
+            {hasMorePosts && (
+              <Box 
+                ref={loaderRef} 
+                sx={{ 
+                  width: '100%', 
+                  height: '50px', 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  alignItems: 'center',
+                  my: 1
+                }}
+              >
+                {loadingMorePosts && <CircularProgress size={24} />}
+              </Box>
+            )}
+            
+            {/* Сообщение, когда постов больше нет */}
+            {!hasMorePosts && wallPosts.length > 5 && (
+              <Box sx={{ textAlign: 'center', py: 2 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Больше записей нет
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        ) : (
+          <Box sx={{ 
+            textAlign: 'center', 
+            py: 0.5
+          }}>
+            <Typography color="text.secondary">
+              На стене нет записей
+            </Typography>
+          </Box>
+        )}
+      </ContentLoader>
+    );
+  };
+
+  
   const PostsTab = () => {
+    
+    const filteredPosts = posts.filter(post => !post.type || post.type !== 'stena');
+    
     return (
       <ContentLoader loading={loadingPosts} skeletonCount={3} height="120px">
-        {posts.length > 0 ? (
+        {filteredPosts.length > 0 ? (
           <Box sx={{ mt: 0.5 }}>
-            {posts.map(post => (
+            {filteredPosts.map(post => (
               post.is_repost ? (
                 <RepostItem key={post.id} post={post} onDelete={handleDeletePost} />
               ) : (
@@ -2319,12 +2523,26 @@ const ProfilePage = () => {
           <Paper sx={{ 
             p: 0, 
             borderRadius: '16px', 
-            background: theme => theme.palette.mode === 'dark'
-              ? 'linear-gradient(135deg, #232526 0%, #121212 100%)'
-              : 'linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%)',
-            boxShadow: theme => theme.palette.mode === 'dark'
-              ? '0 10px 30px rgba(0, 0, 0, 0.25)'
-              : '0 10px 30px rgba(0, 0, 0, 0.1)',
+            background: theme => {
+              
+              const currentTheme = localStorage.getItem('theme');
+              if (currentTheme === 'amoled') {
+                return 'linear-gradient(135deg, #000000 0%, #000000 100%)';
+              }
+              return theme.palette.mode === 'dark'
+                ? 'linear-gradient(135deg, #232526 0%, #121212 100%)'
+                : 'linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%)';
+            },
+            boxShadow: theme => {
+              
+              const currentTheme = localStorage.getItem('theme');
+              if (currentTheme === 'amoled') {
+                return '0 10px 30px rgba(0, 0, 0, 0.5)';
+              }
+              return theme.palette.mode === 'dark'
+                ? '0 10px 30px rgba(0, 0, 0, 0.25)'
+                : '0 10px 30px rgba(0, 0, 0, 0.1)';
+            },
             mb: { xs: 1, md: 0 },
             overflow: 'hidden',
             position: { xs: 'relative', md: 'sticky' },
@@ -2337,7 +2555,7 @@ const ProfilePage = () => {
                 : '0 14px 35px rgba(0, 0, 0, 0.15)',
               transform: 'translateY(-2px)'
             },
-            // Add glowing border for subscription users
+            
             ...(user?.subscription && {
               border: (user.status_color && user.status_text && user.subscription) 
                 ? `4px solid ${user.status_color}` 
@@ -2347,7 +2565,7 @@ const ProfilePage = () => {
                     ? '4px solid #121212'
                     : '4px solid #ffffff',
               boxShadow: (user.status_color && user.status_text && user.subscription)
-                ? `0 0 15px ${user.status_color}33`  // 33 is hex for 0.2 opacity
+                ? `0 0 15px ${user.status_color}33`  
                 : user.subscription.type === 'premium' 
                   ? '0 0 15px rgba(186, 104, 200, 0.2)' 
                   : user.subscription.type === 'pick-me'
@@ -2357,7 +2575,7 @@ const ProfilePage = () => {
                       : '0 0 15px rgba(66, 165, 245, 0.2)',
               '&:hover': {
                 boxShadow: (user.status_color && user.status_text && user.subscription)
-                  ? `0 0 20px ${user.status_color}4D`  // 4D is hex for 0.3 opacity
+                  ? `0 0 20px ${user.status_color}4D`  
                   : user.subscription.type === 'premium' 
                     ? '0 0 20px rgba(186, 104, 200, 0.3)' 
                     : user.subscription.type === 'pick-me'
@@ -2667,22 +2885,22 @@ const ProfilePage = () => {
                           '& .MuiChip-icon': {
                             color: 'inherit'
                           },
-                          // Add pulsing animation effect
+                          
                           animation: 'pulse-light 2s infinite',
                           '@keyframes pulse-light': {
                             '0%': {
                               boxShadow: (user.status_color) ? 
-                                `0 0 0 0 ${user.status_color}66` : // 66 is hex for 0.4 opacity
+                                `0 0 0 0 ${user.status_color}66` : 
                                 '0 0 0 0 rgba(124, 77, 255, 0.4)'
                             },
                             '70%': {
                               boxShadow: (user.status_color) ? 
-                                `0 0 0 6px ${user.status_color}00` : // 00 is hex for 0 opacity
+                                `0 0 0 6px ${user.status_color}00` : 
                                 '0 0 0 6px rgba(124, 77, 255, 0)'
                             },
                             '100%': {
                               boxShadow: (user.status_color) ? 
-                                `0 0 0 0 ${user.status_color}00` : // 00 is hex for 0 opacity
+                                `0 0 0 0 ${user.status_color}00` : 
                                 '0 0 0 0 rgba(124, 77, 255, 0)'
                             }
                           }
@@ -2713,22 +2931,22 @@ const ProfilePage = () => {
                             '& .MuiChip-icon': {
                               color: 'inherit'
                             },
-                            // Add pulsing animation effect
+                            
                             animation: 'pulse-light 2s infinite',
                             '@keyframes pulse-light': {
                               '0%': {
                                 boxShadow: (user.status_color && user.status_text) ? 
-                                  `0 0 0 0 ${user.status_color}66` : // 66 is hex for 0.4 opacity
+                                  `0 0 0 0 ${user.status_color}66` : 
                                   '0 0 0 0 rgba(124, 77, 255, 0.4)'
                               },
                               '70%': {
                                 boxShadow: (user.status_color && user.status_text) ? 
-                                  `0 0 0 6px ${user.status_color}00` : // 00 is hex for 0 opacity
+                                  `0 0 0 6px ${user.status_color}00` : 
                                   '0 0 0 6px rgba(124, 77, 255, 0)'
                               },
                               '100%': {
                                 boxShadow: (user.status_color && user.status_text) ? 
-                                  `0 0 0 0 ${user.status_color}00` : // 00 is hex for 0 opacity
+                                  `0 0 0 0 ${user.status_color}00` : 
                                   '0 0 0 0 rgba(124, 77, 255, 0)'
                               }
                             }
@@ -2750,13 +2968,13 @@ const ProfilePage = () => {
                       sx={{ 
                         color: theme => theme.palette.text.secondary,
                         backgroundColor: (user.status_color && user.status_text && user.subscription) ? 
-                          `${user.status_color}1A` : // 1A is hex for 0.1 opacity
+                          `${user.status_color}1A` : 
                           theme => theme.palette.mode === 'dark' ? 'rgba(208, 188, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
                         px: 1.2,
                         py: 0.4,
                         borderRadius: 4,
                         border: (user.status_color && user.status_text && user.subscription) ? 
-                          `1px solid ${user.status_color}33` : // 33 is hex for 0.2 opacity
+                          `1px solid ${user.status_color}33` : 
                           theme => theme.palette.mode === 'dark' ? '1px solid rgba(208, 188, 255, 0.2)' : '1px solid rgba(0, 0, 0, 0.1)',
                         fontSize: '0.75rem',
                         display: 'inline-flex',
@@ -2826,8 +3044,8 @@ const ProfilePage = () => {
                 <Box sx={{ 
                   display: 'grid', 
                   gridTemplateColumns: user?.subscription?.type === 'channel' ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', 
-                  gap: 1, // Уменьшено с 1.5 до 1
-                  mt: 1 // Уменьшено с 2.5 до 1
+                  gap: 1, 
+                  mt: 1 
                 }}>
                   
                   <Paper sx={{ 
@@ -2870,7 +3088,7 @@ const ProfilePage = () => {
                       background: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
                       backdropFilter: 'blur(5px)',
                       border: (user.status_color && user.status_text && user.subscription) ? 
-                        `1px solid ${user.status_color}33` : // 33 is hex for 0.2 opacity
+                        `1px solid ${user.status_color}33` : 
                         theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)',
                       textDecoration: 'none',
                       transition: 'all 0.2s ease',
@@ -2878,7 +3096,7 @@ const ProfilePage = () => {
                         background: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)',
                         transform: 'translateY(-2px)',
                         boxShadow: (user.status_color && user.status_text && user.subscription) ? 
-                          `0 4px 15px ${user.status_color}33` : // 33 is hex for 0.2 opacity
+                          `0 4px 15px ${user.status_color}33` : 
                           '0 4px 15px rgba(0,0,0,0.1)'
                       }
                     }}
@@ -2911,7 +3129,7 @@ const ProfilePage = () => {
                         background: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
                         backdropFilter: 'blur(5px)',
                         border: (user.status_color && user.status_text && user.subscription) ? 
-                          `1px solid ${user.status_color}33` : // 33 is hex for 0.2 opacity
+                          `1px solid ${user.status_color}33` : 
                           theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)',
                         textDecoration: 'none',
                         transition: 'all 0.2s ease',
@@ -2919,7 +3137,7 @@ const ProfilePage = () => {
                           background: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)',
                           transform: 'translateY(-2px)',
                           boxShadow: (user.status_color && user.status_text && user.subscription) ? 
-                            `0 4px 15px ${user.status_color}33` : // 33 is hex for 0.2 opacity
+                            `0 4px 15px ${user.status_color}33` : 
                             '0 4px 15px rgba(0,0,0,0.1)'
                         }
                       }}
@@ -2992,7 +3210,7 @@ const ProfilePage = () => {
                                       width: 32, 
                                       height: 32, 
                                       bgcolor: (user.status_color && user.status_text && user.subscription) ? 
-                                        `${user.status_color}26` : // 26 is hex for 0.15 opacity
+                                        `${user.status_color}26` : 
                                         'rgba(208, 188, 255, 0.15)', 
                                       fontSize: '0.75rem',
                                       color: (user.status_color && user.status_text && user.subscription) ? 
@@ -3014,7 +3232,7 @@ const ProfilePage = () => {
                         </Box>
                       </Grid>
                     ) : (
-                      // For channel subscription, show simple counter for followers
+                      
                       <Grid item xs={6}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                           <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
@@ -3077,7 +3295,7 @@ const ProfilePage = () => {
                                       width: 32, 
                                       height: 32, 
                                       bgcolor: (user.status_color && user.status_text && user.subscription) ? 
-                                        `${user.status_color}26` : // 26 is hex for 0.15 opacity
+                                        `${user.status_color}26` : 
                                         'rgba(208, 188, 255, 0.15)', 
                                       fontSize: '0.75rem',
                                       color: (user.status_color && user.status_text && user.subscription) ? 
@@ -3128,7 +3346,7 @@ const ProfilePage = () => {
                             bgcolor: 'rgba(255, 255, 255, 0.07)',
                             '&:hover': {
                               bgcolor: (user.status_color && user.status_text && user.subscription) ? 
-                                `${user.status_color}15` : // 15 is hex for 0.08 opacity
+                                `${user.status_color}15` : 
                                 'rgba(255, 255, 255, 0.12)',
                               transform: 'translateY(-2px)',
                               transition: 'transform 0.2s'
@@ -3187,7 +3405,7 @@ const ProfilePage = () => {
                         fontWeight: 'bold',
                         textTransform: 'none',
                         boxShadow: (user.status_color && user.status_text && user.subscription) ?
-                          `0 2px 8px ${user.status_color}40` : // 40 is hex for 0.25 opacity
+                          `0 2px 8px ${user.status_color}40` : 
                           '0 2px 8px rgba(208, 188, 255, 0.25)',
                         backgroundColor: following ? 
                           'rgba(255, 255, 255, 0.1)' : 
@@ -3200,11 +3418,11 @@ const ProfilePage = () => {
                           backgroundColor: following ? 
                             'rgba(255, 255, 255, 0.15)' : 
                             (user.status_color && user.status_text && user.subscription) ?
-                              `${user.status_color}E6` : // E6 is hex for 0.9 opacity (darker)
+                              `${user.status_color}E6` : 
                               'primary.dark',
                           transform: 'translateY(-2px)',
                           boxShadow: (user.status_color && user.status_text && user.subscription) ?
-                            `0 4px 12px ${user.status_color}66` : // 66 is hex for 0.4 opacity
+                            `0 4px 12px ${user.status_color}66` : 
                             '0 4px 12px rgba(208, 188, 255, 0.4)'
                         },
                         '&:active': {
@@ -3228,12 +3446,13 @@ const ProfilePage = () => {
         
           <Paper sx={{ 
             borderRadius: '16px', 
-            background: theme => theme.palette.mode === 'dark' 
-              ? 'linear-gradient(135deg, #232526 0%, #121212 100%)' 
-              : theme.palette.background.paper,
+            backgroundColor: theme => theme.palette.mode === 'dark' ? '#1E1E1E' : theme.palette.background.paper,
+            backgroundImage: 'unset',
             boxShadow: '0 5px 15px rgba(0, 0, 0, 0.2)',
             overflow: 'hidden',
-            mb: 1
+            mb: '5px',
+            border: '1px solid rgba(255, 255, 255, 0.1)'
+
           }}>
             <Tabs 
               value={tabValue} 
@@ -3257,8 +3476,9 @@ const ProfilePage = () => {
                 }
               }}
             >
-              <Tab label="Публикации" />
-              <Tab label="Информация" />
+              <Tab label="Посты" />
+              <Tab label="Стена" />
+              <Tab label="Профиль" />
             </Tabs>
           </Paper>
           
@@ -3272,6 +3492,18 @@ const ProfilePage = () => {
           </TabPanel>
           
           <TabPanel value={tabValue} index={1} sx={{ p: 0, mt: 1 }}>
+            {currentUser && (!currentUser.subscription || currentUser.subscription.type !== 'channel') && (
+              <CreatePost 
+                onPostCreated={handlePostCreated} 
+                postType="stena" 
+                recipientId={user.id} 
+              />
+            )}
+            
+            <WallPostsTab userId={user.id} />
+          </TabPanel>
+          
+          <TabPanel value={tabValue} index={2} sx={{ p: 0, mt: 1 }}>
             <Paper sx={{ 
               p: 3, 
               borderRadius: '16px',
@@ -3281,7 +3513,7 @@ const ProfilePage = () => {
               boxShadow: '0 5px 15px rgba(0, 0, 0, 0.2)'
             }}>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                Информация о пользователе
+                Информация о профиле
               </Typography>
               
               <Grid container spacing={3}>
@@ -3369,7 +3601,11 @@ const ProfilePage = () => {
                         Дата регистрации
                       </Typography>
                       <Typography variant="body2">
-                        {user?.created_at ? formatDate(user.created_at) : 'Недоступно'}
+                        {user?.registration_date ? new Date(user.registration_date).toLocaleDateString('ru-RU', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        }) : 'Недоступно'}
                       </Typography>
                     </Box>
                   </Box>

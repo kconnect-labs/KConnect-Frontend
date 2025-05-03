@@ -31,7 +31,7 @@ import SentimentVeryDissatisfiedIcon from '@mui/icons-material/SentimentVeryDiss
 import SEO from '../../components/SEO';
 import axios from 'axios';
 
-// Cup Images Component 
+
 const CupImage = ({ lifted, winner }) => {
   return (
     <Box sx={{ 
@@ -82,7 +82,7 @@ const CupsGamePage = () => {
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
-  // Состояния игры
+  
   const [balance, setBalance] = useState(0);
   const [betAmount, setBetAmount] = useState('10');
   const [selectedCup, setSelectedCup] = useState(null);
@@ -94,7 +94,7 @@ const CupsGamePage = () => {
   const [gameAnimation, setGameAnimation] = useState(false);
   const [revealResult, setRevealResult] = useState(false);
   
-  // Получение баланса пользователя
+  
   const fetchBalance = useCallback(async () => {
     try {
       setLoading(true);
@@ -114,27 +114,27 @@ const CupsGamePage = () => {
     fetchBalance();
   }, [fetchBalance]);
   
-  // Обработка изменения ставки
+  
   const handleBetChange = (e) => {
     const value = e.target.value.replace(/[^0-9]/g, '');
     setBetAmount(value);
   };
   
-  // Выбор чаши
+  
   const handleCupSelect = (cupIndex) => {
     if (!isPlaying) {
       setSelectedCup(cupIndex);
     }
   };
   
-  // Форматирование чисел
+  
   const formatNumber = (num) => {
     return parseInt(num).toLocaleString();
   };
   
-  // Начало игры
+  
   const startGame = async () => {
-    // Проверка ставки
+    
     const bet = parseInt(betAmount, 10);
     if (isNaN(bet) || bet <= 0) {
       setError('Пожалуйста, введите корректную ставку.');
@@ -162,24 +162,24 @@ const CupsGamePage = () => {
         selected_cup: selectedCup
       });
       
-      console.log('Game response:', response.data); // Debugging
+      console.log('Game response:', response.data); 
 
       if (response?.data?.success) {
-        // Задержка для анимации игры
+        
         setTimeout(() => {
           setGameAnimation(false);
           
-          // Адаптируем результат к формату ожидаемому в интерфейсе
+          
           const processedResult = {
             ...response.data,
-            is_win: response.data.won,  // Преобразуем won в is_win для обратной совместимости
-            new_balance: response.data.balance // Используем правильное поле баланса
+            is_win: response.data.won,  
+            new_balance: response.data.balance 
           };
           
           setGameResult(processedResult);
           setRevealResult(true);
           
-          // Обновляем баланс с парсингом в целое число
+          
           if (response.data.balance !== undefined) {
             setBalance(parseInt(response.data.balance));
           } else {
@@ -201,7 +201,7 @@ const CupsGamePage = () => {
     }
   };
   
-  // Сброс игры
+  
   const resetGame = () => {
     setIsPlaying(false);
     setSelectedCup(null);
@@ -209,12 +209,12 @@ const CupsGamePage = () => {
     setRevealResult(false);
   };
   
-  // Переход к максимальной ставке
+  
   const setMaxBet = () => {
     setBetAmount(Math.floor(balance).toString());
   };
   
-  // Предопределенные значения ставок
+  
   const predefinedBets = [10, 50, 100, 500];
   
   return (
@@ -222,8 +222,8 @@ const CupsGamePage = () => {
       maxWidth="md" 
       sx={{ 
         mt: { xs: 2, sm: 3 }, 
-        mb: { xs: 10, sm: 10 }, // Added extra bottom margin for mobile nav
-        pb: { xs: '80px', sm: 0 }, // Added specific padding for mobile nav
+        mb: { xs: 10, sm: 10 }, 
+        pb: { xs: '80px', sm: 0 }, 
         px: { xs: 1, sm: 2 }
       }}
     >

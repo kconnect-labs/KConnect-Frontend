@@ -1,10 +1,8 @@
 import axios from './axiosConfig';
 import AuthService from './AuthService';
 
-// Сервис для работы с постами
 const PostService = {
-  // Получить ленту постов
-  getFeed: async (page = 1, limit = 10) => {
+    getFeed: async (page = 1, limit = 10) => {
     try {
       const response = await axios.get(`/api/posts/feed?page=${page}&limit=${limit}`);
       return response.data;
@@ -14,8 +12,7 @@ const PostService = {
     }
   },
 
-  // Получить конкретный пост по ID
-  getPost: async (postId) => {
+    getPost: async (postId) => {
     try {
       const response = await axios.get(`/api/posts/${postId}`);
       return response.data;
@@ -25,45 +22,37 @@ const PostService = {
     }
   },
 
-  // Создать новый пост
-  createPost: async (postData) => {
+    createPost: async (postData) => {
     try {
-      // If postData is already FormData, use it directly
-      const formData = postData instanceof FormData 
+            const formData = postData instanceof FormData 
         ? postData 
         : new FormData();
       
-      // If postData is not FormData, add its properties to formData
-      if (!(postData instanceof FormData) && typeof postData === 'object') {
+            if (!(postData instanceof FormData) && typeof postData === 'object') {
         if (postData.content) {
           formData.append('content', postData.content);
         }
         
-        // Handle multiple images
-        if (Array.isArray(postData.images)) {
+                if (Array.isArray(postData.images)) {
           postData.images.forEach((image, index) => {
             formData.append(`images[${index}]`, image);
           });
         }
         
-        // Handle single image
-        if (postData.image && postData.image instanceof File) {
+                if (postData.image && postData.image instanceof File) {
           formData.append('image', postData.image);
         }
         
-        // Handle video
-        if (postData.video && postData.video instanceof File) {
+                if (postData.video && postData.video instanceof File) {
           formData.append('video', postData.video);
         }
         
-        // Handle music tracks
-        if (postData.music && Array.isArray(postData.music) && postData.music.length > 0) {
+                if (postData.music && Array.isArray(postData.music) && postData.music.length > 0) {
           formData.append('music', JSON.stringify(postData.music));
         }
       }
       
-      // Log the form data for debugging
-      console.log('Creating post with form data:');
+            console.log('Creating post with form data:');
       for (let [key, value] of formData.entries()) {
         if (value instanceof File) {
           console.log(`${key}: File ${value.name} (${value.size} bytes)`);
@@ -72,8 +61,7 @@ const PostService = {
         }
       }
       
-      // First try POST method
-      try {
+            try {
         console.log('Attempting to create post with POST method');
         const response = await axios.post('/api/posts/create', formData, {
           headers: {
@@ -85,8 +73,7 @@ const PostService = {
       } catch (postError) {
         console.error('POST method failed:', postError);
         
-        // Try alternative endpoint if POST fails
-        try {
+                try {
           console.log('Attempting fallback: PUT method to /api/posts');
           const putResponse = await axios.put('/api/posts', formData, {
             headers: {
@@ -98,8 +85,7 @@ const PostService = {
         } catch (putError) {
           console.error('PUT method failed:', putError);
           
-          // Final attempt with different endpoint
-          console.log('Attempting final fallback: POST to /api/post/new');
+                    console.log('Attempting final fallback: POST to /api/post/new');
           const finalResponse = await axios.post('/api/post/new', formData, {
             headers: {
               'Content-Type': 'multipart/form-data'
@@ -115,8 +101,7 @@ const PostService = {
     }
   },
 
-  // Поставить/убрать лайк посту
-  likePost: async (postId) => {
+    likePost: async (postId) => {
     try {
       const response = await axios.post(`/api/posts/${postId}/like`);
       return response.data;
@@ -126,13 +111,11 @@ const PostService = {
     }
   },
 
-  // Удалить пост
-  deletePost: async (postId) => {
+    deletePost: async (postId) => {
     try {
       console.log(`Attempting to delete post ${postId} with DELETE method and cascade`);
       
-      // Попытка использовать метод DELETE с параметром cascade=true
-      const response = await axios.delete(`/api/posts/${postId}`, {
+            const response = await axios.delete(`/api/posts/${postId}`, {
         params: {
           cascade: true,
           full_delete: true
@@ -143,13 +126,11 @@ const PostService = {
     } catch (error) {
       console.error(`Error deleting post ${postId} with DELETE method:`, error);
       
-      // Проверяем, связана ли ошибка с неподдерживаемым методом или не найденным ресурсом
-      if (error.response?.status === 404 || error.response?.status === 405 || error.response?.status === 500) {
+            if (error.response?.status === 404 || error.response?.status === 405 || error.response?.status === 500) {
         try {
           console.log(`Falling back to POST method with cascade for deletion of post ${postId}`);
           
-          // Пробуем альтернативный метод POST для удаления с параметром cascade
-          const response = await axios.post(`/api/posts/${postId}/delete`, {
+                    const response = await axios.post(`/api/posts/${postId}/delete`, {
             cascade: true,
             full_delete: true
           });
@@ -158,8 +139,7 @@ const PostService = {
         } catch (fallbackError) {
           console.error(`Fallback deletion also failed for post ${postId}:`, fallbackError);
           
-          // Попытка третьего варианта
-          try {
+                    try {
             console.log(`Trying second fallback: POST to /api/posts/delete/${postId} with cascade`);
             const response = await axios.post(`/api/posts/delete/${postId}`, {
               cascade: true,
@@ -168,8 +148,7 @@ const PostService = {
             console.log('Second fallback with cascade succeeded:', response.data);
             return response.data;
           } catch (secondFallbackError) {
-            // Последняя попытка с явным указанием удаления связанных сущностей
-            try {
+                        try {
               console.log(`Final attempt: GET /api/posts/delete/${postId}/cascade`);
               const response = await axios.get(`/api/posts/delete/${postId}/cascade`);
               console.log('Final cascade deletion attempt succeeded:', response.data);

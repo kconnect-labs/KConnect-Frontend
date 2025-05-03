@@ -8,7 +8,7 @@ import { ThemeSettingsContext } from '../../App';
 import { MobilePlayer, DesktopPlayer } from '../Music';
 import { useMusic } from '../../context/MusicContext';
 
-// Main container - занимает всю доступную ширину и устанавливает общий фон
+
 const MainContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
@@ -20,23 +20,23 @@ const MainContainer = styled(Box)(({ theme }) => ({
   color: theme.palette.text.primary
 }));
 
-// Content wrapper - содержит в себе сайдбар и content
+
 const ContentWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexGrow: 1,
-  paddingTop: 64, // фиксированная высота хедера для создания отступа
+  paddingTop: 64, 
 }));
 
-// Sidebar container - фиксированной ширины на десктопе, на мобильном устройстве, как правило, скрыт
+
 const SidebarContainer = styled(Box)(({ theme, open }) => ({
   flexShrink: 0,
-  marginLeft: 'auto', // Выравнивание по правому краю
+  marginLeft: 'auto', 
   [theme.breakpoints.down('md')]: {
     position: 'fixed',
     zIndex: theme.zIndex.drawer,
-    right: open ? 0 : -280, // Сайдбар выдвигается справа, используем значение по умолчанию
-    left: 'auto', // Отменяем левое позиционирование
-    transition: theme.transitions.create('right', { // Изменяем анимацию на right
+    right: open ? 0 : -280, 
+    left: 'auto', 
+    transition: theme.transitions.create('right', { 
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,
     }),
@@ -64,7 +64,7 @@ const ContentContainer = styled(Box)(({ theme }) => ({
   },
 }));
 
-// Overlay for mobile sidebar
+
 const Overlay = styled(Box)(({ theme }) => ({
   position: 'fixed',
   width: '100%',
@@ -80,12 +80,12 @@ const Overlay = styled(Box)(({ theme }) => ({
   },
 }));
 
-// Мемоизированный хедер для предотвращения лишних ре-рендеров
+
 const MemoizedHeader = memo(({ toggleSidebar, isMobile }) => (
   <Header toggleSidebar={toggleSidebar} isMobile={isMobile} />
 ));
 
-// Мемоизированный сайдбар для предотвращения лишних ре-рендеров
+
 const MemoizedSidebar = memo(({ open, onClose }) => (
   <Sidebar open={open} onClose={onClose} />
 ));
@@ -99,10 +99,10 @@ const MainLayout = ({ children }) => {
   const location = useLocation();
   const { currentTrack } = useMusic();
   
-  // Фиксированная ширина сайдбара
+  
   const sidebarWidth = 280;
   
-  // Закрываем сайдбар при изменении маршрута (только на мобильных устройствах)
+  
   useEffect(() => {
     if (isMobile) {
       setSidebarOpen(false);
@@ -117,23 +117,23 @@ const MainLayout = ({ children }) => {
     setSidebarOpen(false);
   };
 
-  // Проверяем, если это страница авторизации, не показываем шапку и сайдбар
+  
   const authPages = ['/login', '/register', '/register/profile', '/confirm-email'];
   const isAuthPage = authPages.some(path => location.pathname.startsWith(path));
   
-  // Показываем плееры только на странице музыки
+  
   const isMusicPage = location.pathname.startsWith('/music');
   const hasBottomPlayer = isMobile && currentTrack && isMusicPage;
   const hasDesktopPlayer = !isMobile && currentTrack && isMusicPage;
 
-  // Check if user is banned and on the ban page
+  
   const isBanned = user && user.ban === 0;
   const isOnBanPage = location.pathname === '/ban';
   
-  // Hide header and show simplified layout for banned users on ban page
+  
   const shouldShowFullLayout = !isBanned || !isOnBanPage;
 
-  // Для страниц авторизации возвращаем только контент без шапки и сайдбара
+  
   if (isAuthPage) {
     return (
       <Box sx={{ 

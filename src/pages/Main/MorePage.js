@@ -21,7 +21,7 @@ import { AuthContext } from '../../context/AuthContext';
 import axios from 'axios';
 import { Icon } from '@iconify/react';
 
-// Стилизованные компоненты
+
 const ProfileBanner = styled(Box)(({ theme }) => ({
   position: 'relative',
   height: 160,
@@ -102,15 +102,15 @@ const MorePage = () => {
   const theme = useTheme();
   const [userPoints, setUserPoints] = useState(0);
   
-  // Проверяем является ли пользователь админом
-  const isAdmin = user?.id === 3; // Такое же условие как в Sidebar.js
   
-  // Проверка является ли пользователь каналом
+  const isAdmin = user?.id === 3; 
+  
+  
   const isChannel = user?.account_type === 'channel';
   
-  // Проверяем, является ли пользователь модератором
+  
   const [isModeratorUser, setIsModeratorUser] = useState(false);
-  // Кэш и время последней проверки модератора
+  
   const [lastModeratorCheck, setLastModeratorCheck] = useState(0);
   
   useEffect(() => {
@@ -122,20 +122,20 @@ const MorePage = () => {
 
   const checkModeratorStatus = async () => {
     try {
-      // Проверяем, не выполняется ли уже проверка
+      
       if (window._moderatorCheckInProgress) {
         console.log('MorePage: Moderator check already in progress, skipping...');
         return;
       }
       
-      // Используем кэш, если проверка была недавно (в течение 15 минут)
+      
       const now = Date.now();
       if (now - lastModeratorCheck < 15 * 60 * 1000) {
         console.log('MorePage: Using cached moderator status');
         return;
       }
       
-      // Устанавливаем флаг, что проверка выполняется
+      
       window._moderatorCheckInProgress = true;
       
       const response = await axios.get('/api/moderator/status');
@@ -145,18 +145,18 @@ const MorePage = () => {
         setIsModeratorUser(false);
       }
       
-      // Обновляем время последней проверки
+      
       setLastModeratorCheck(now);
     } catch (error) {
       console.error('Error checking moderator status:', error);
       setIsModeratorUser(false);
     } finally {
-      // Сбрасываем флаг
+      
       window._moderatorCheckInProgress = false;
     }
   };
   
-  // Функция для получения баланса пользователя
+  
   const fetchUserPoints = async () => {
     try {
       const response = await axios.get('/api/user/points');
@@ -167,13 +167,13 @@ const MorePage = () => {
     }
   };
   
-  // Функция для выхода из аккаунта
+  
   const handleLogout = async () => {
     try {
       await logout();
-      // Logout and redirect handled in AuthContext
+      
     } catch (error) {
-      // Fallback if logout from AuthContext fails
+      
       navigate('/login');
     }
   };
@@ -404,6 +404,13 @@ const MorePage = () => {
             </MenuListItem>
           )}
           
+          {/* Добавляем кнопку для перехода на каналы */}
+          <MenuListItem button component={Link} to="/channels">
+            <MenuItemIcon>
+              <Icon icon="solar:play-stream-bold" width="24" height="24" />
+            </MenuItemIcon>
+            <ListItemText primary="Каналы" />
+          </MenuListItem>
           
           {!isChannel && (
             <MenuListItem button component={Link} to="/bugs">
@@ -415,7 +422,7 @@ const MorePage = () => {
           )}
           
           
-          <MenuListItem button component={Link} to="/about">
+          <MenuListItem button component={Link} to="/about" target="_blank" rel="noopener noreferrer">
             <MenuItemIcon>
               <Icon icon="solar:info-circle-bold" width="24" height="24" />
             </MenuItemIcon>
@@ -423,20 +430,20 @@ const MorePage = () => {
           </MenuListItem>
           
           
-          <MenuListItem button component={Link} to="/rules">
+          <MenuListItem button component={Link} to="/rules" target="_blank" rel="noopener noreferrer">
             <MenuItemIcon>
               <Icon icon="solar:document-text-bold" width="24" height="24" />
             </MenuItemIcon>
             <ListItemText primary="Правила" />
           </MenuListItem>
           
-          
+{/*           
           <MenuListItem button component={Link} to="/api-docs">
             <MenuItemIcon>
               <Icon icon="solar:code-bold" width="24" height="24" />
             </MenuItemIcon>
             <ListItemText primary="API Документация" />
-          </MenuListItem>
+          </MenuListItem> */}
           
           
           {(isAdmin || isModeratorUser) && (
@@ -510,7 +517,7 @@ const MorePage = () => {
       
       <FooterSection>
         <Typography variant="caption" display="block" gutterBottom sx={{ fontWeight: 500, color: alpha(theme.palette.primary.main, 0.85) }}>
-          К-Коннект v2.3 React
+          К-Коннект v2.5 React
         </Typography>
         <Typography variant="caption" display="block" sx={{ opacity: 0.7 }}>
           Правообладателям

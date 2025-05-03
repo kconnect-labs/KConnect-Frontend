@@ -41,7 +41,7 @@ import SortIcon from '@mui/icons-material/Sort';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import EmptyChannelsPlaceholder from './EmptyChannelsPlaceholder';
 
-// Стилизованные компоненты
+
 const PageContainer = styled(Container)(({ theme }) => ({
   paddingTop: theme.spacing(2),
   paddingBottom: theme.spacing(10),
@@ -252,7 +252,7 @@ const LoadMoreButton = styled(Button)(({ theme, themecolor }) => ({
   }
 }));
 
-// Loaders
+
 const ChannelCardLoader = () => {
   const theme = useTheme();
   return (
@@ -290,7 +290,7 @@ const ChannelCardLoader = () => {
   );
 };
 
-// Add a new utility function to format numbers with K, M, etc.
+
 const formatNumber = (num) => {
   if (num >= 1000000) {
     return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
@@ -309,12 +309,12 @@ const ChannelsPage = () => {
   const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
-  // Получаем параметры из URL
+  
   const searchParams = new URLSearchParams(location.search);
   const initialQuery = searchParams.get('q') || '';
   const initialTab = searchParams.get('tab') || 'recent';
   
-  // State
+  
   const [activeTab, setActiveTab] = useState(initialTab);
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [isSearching, setIsSearching] = useState(false);
@@ -332,7 +332,7 @@ const ChannelsPage = () => {
   
   const primaryColor = themeSettings?.primaryColor || theme.palette.primary.main;
   
-  // Получение форматированного URL с параметрами
+  
   const getFormattedUrl = (tab, q = searchQuery) => {
     const params = new URLSearchParams();
     if (tab) params.set('tab', tab);
@@ -340,7 +340,7 @@ const ChannelsPage = () => {
     return `/channels?${params.toString()}`;
   };
   
-  // Обработчик смены вкладки
+  
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
     setPage(1);
@@ -349,7 +349,7 @@ const ChannelsPage = () => {
     navigate(getFormattedUrl(newValue), { replace: true });
   };
   
-  // Обработчик поиска
+  
   const handleSearch = (e) => {
     e.preventDefault();
     setPage(1);
@@ -359,7 +359,7 @@ const ChannelsPage = () => {
     navigate(getFormattedUrl(activeTab, searchQuery), { replace: true });
   };
   
-  // Загрузка популярных каналов
+  
   useEffect(() => {
     const fetchPopularChannels = async () => {
       try {
@@ -382,7 +382,7 @@ const ChannelsPage = () => {
     fetchPopularChannels();
   }, []);
   
-  // Загрузка каналов с описанием для рекомендаций (featured)
+  
   useEffect(() => {
     const fetchFeaturedChannels = async () => {
       try {
@@ -404,7 +404,7 @@ const ChannelsPage = () => {
     fetchFeaturedChannels();
   }, []);
   
-  // Загрузка основных каналов (по вкладке)
+  
   useEffect(() => {
     const fetchChannels = async () => {
       setLoading(true);
@@ -434,10 +434,10 @@ const ChannelsPage = () => {
     };
     
     fetchChannels();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [activeTab, searchQuery, withDescription]);
   
-  // Загрузка дополнительных каналов при нажатии "Загрузить еще"
+  
   const loadMoreChannels = async () => {
     if (loadingMore || !hasMore) return;
     
@@ -467,7 +467,7 @@ const ChannelsPage = () => {
     }
   };
   
-  // Обработчик подписки/отписки
+  
   const handleFollowToggle = async (channelId, isFollowing) => {
     if (!user) {
       navigate('/login');
@@ -475,7 +475,7 @@ const ChannelsPage = () => {
     }
     
     try {
-      // Оптимистичное обновление UI
+      
       const updatedChannels = channels.map(channel => 
         channel.id === channelId
           ? { ...channel, is_following: !isFollowing }
@@ -483,7 +483,7 @@ const ChannelsPage = () => {
       );
       setChannels(updatedChannels);
       
-      // Обновление populaChannels
+      
       const updatedPopular = popularChannels.map(channel => 
         channel.id === channelId
           ? { ...channel, is_following: !isFollowing }
@@ -491,7 +491,7 @@ const ChannelsPage = () => {
       );
       setPopularChannels(updatedPopular);
       
-      // Обновление featuredChannels
+      
       const updatedFeatured = featuredChannels.map(channel => 
         channel.id === channelId
           ? { ...channel, is_following: !isFollowing }
@@ -499,7 +499,7 @@ const ChannelsPage = () => {
       );
       setFeaturedChannels(updatedFeatured);
       
-      // Выполняем запрос
+      
       if (isFollowing) {
         await axios.post(`/api/profile/unfollow`, { followed_id: channelId });
       } else {
@@ -508,7 +508,7 @@ const ChannelsPage = () => {
     } catch (err) {
       console.error('Error toggling follow:', err);
       
-      // Откатываем изменения в случае ошибки
+      
       const revertChannels = channels.map(channel => 
         channel.id === channelId
           ? { ...channel, is_following: isFollowing }
@@ -532,12 +532,12 @@ const ChannelsPage = () => {
     }
   };
   
-  // Обработчик навигации на страницу канала
+  
   const handleChannelClick = (username) => {
     navigate(`/profile/${username}`);
   };
   
-  // Отображение канала
+  
   const renderChannelCard = (channel) => (
     <ChannelCard key={channel.id}>
       <CardActionArea onClick={() => handleChannelClick(channel.username)}>
@@ -609,7 +609,7 @@ const ChannelsPage = () => {
     </ChannelCard>
   );
   
-  // Add a function to fetch channels the user is following
+  
   useEffect(() => {
     const fetchFollowedChannels = async () => {
       if (!user) {
@@ -782,7 +782,7 @@ const ChannelsPage = () => {
         
         <Grid container spacing={2}>
           {loading ? (
-            // Loading placeholders
+            
             Array.from(new Array(12)).map((_, index) => (
               <Grid item xs={6} sm={4} md={3} key={index}>
                 <ChannelCardLoader />

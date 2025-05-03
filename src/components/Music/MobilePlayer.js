@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react';
 import {
   Box,
   Typography,
@@ -27,19 +27,19 @@ import { useContext } from 'react';
 import FullScreenPlayer from './FullScreenPlayer';
 import { extractDominantColor, getCoverWithFallback } from '../../utils/imageUtils';
 
-// Function to extract color from album cover
+
 const getColorFromImage = extractDominantColor;
 
 const PlayerContainer = styled(Paper)(({ theme, covercolor }) => ({
   position: 'fixed',
-  bottom:65, // Уменьшаем с 76 до 56 для соответствия новой высоте нижней навигации
+  bottom:65, 
   left: 0,
   right: 0,
   zIndex: theme.zIndex.appBar - 1,
-  backgroundColor: covercolor ? `rgba(${covercolor}, 0.35)` : 'rgba(10, 10, 10, 0.6)', // Фон с цветом обложки
-  backdropFilter: 'blur(30px)', // Усиленный блюр
+  backgroundColor: covercolor ? `rgba(${covercolor}, 0.35)` : 'rgba(10, 10, 10, 0.6)', 
+  backdropFilter: 'blur(30px)', 
   boxShadow: '0 -2px 15px rgba(0, 0, 0, 0.25)',
-  padding: theme.spacing(0.5, 1, 0.5, 1), // Уменьшаем отступы
+  padding: theme.spacing(0.5, 1, 0.5, 1), 
   display: 'flex',
   flexDirection: 'column',
   borderTopLeftRadius: 12,
@@ -64,9 +64,9 @@ const PlayerContainer = styled(Paper)(({ theme, covercolor }) => ({
   }
 }));
 
-// Custom styled progress bar
+
 const ProgressBar = styled(LinearProgress)(({ theme, covercolor }) => ({
-  height: 2, // Уменьшаем высоту
+  height: 2, 
   borderRadius: 0,
   backgroundColor: 'rgba(255, 255, 255, 0.2)',
   '& .MuiLinearProgress-bar': {
@@ -75,7 +75,56 @@ const ProgressBar = styled(LinearProgress)(({ theme, covercolor }) => ({
   },
 }));
 
-const MobilePlayer = () => {
+
+const ControlButton = memo(({ icon, onClick, ariaLabel, disabled = false }) => (
+  <IconButton
+    onClick={onClick}
+    size="small"
+    aria-label={ariaLabel}
+    disabled={disabled}
+    sx={{
+      color: 'white',
+      '&:hover': {
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      }
+    }}
+  >
+    {icon}
+  </IconButton>
+));
+
+
+const TrackInfo = memo(({ title, artist, onClick }) => (
+  <Box sx={{ 
+    flexGrow: 1, 
+    display: 'flex', 
+    flexDirection: 'column', 
+    overflow: 'hidden',
+    cursor: 'pointer'
+  }} onClick={onClick}>
+    <Typography 
+      variant="body2" 
+      noWrap 
+      sx={{ 
+        fontWeight: 'medium',
+        color: 'white'
+      }}
+    >
+      {title || 'Unknown Title'}
+    </Typography>
+    <Typography 
+      variant="caption" 
+      noWrap 
+      sx={{ 
+        color: 'rgba(255, 255, 255, 0.7)' 
+      }}
+    >
+      {artist || 'Unknown Artist'}
+    </Typography>
+  </Box>
+));
+
+const MobilePlayer = memo(() => {
   const theme = useTheme();
   const { themeSettings } = useContext(ThemeSettingsContext);
   const { 
@@ -87,20 +136,85 @@ const MobilePlayer = () => {
     likeTrack,
     currentTime,
     duration,
-    seekTo
+    seekTo,
+    getCurrentTimeRaw,
+    getDurationRaw,
+    audioRef
   } = useMusic();
 
-  const [progressValue, setProgressValue] = useState(0);
+  
+  const progressRef = useRef(0);
   const [fullScreenOpen, setFullScreenOpen] = useState(false);
   const [dominantColor, setDominantColor] = useState(null);
-  // Add state for share notification
+  
   const [shareSnackbar, setShareSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success'
   });
   
-  // Extract color from album cover when track changes
+  
+  const formattedCurrentTime = useMemo(() => {
+    
+    const globalTimeElement = document.getElementById('global-player-current-time');
+    if (globalTimeElement && globalTimeElement.textContent) {
+      return globalTimeElement.textContent;
+    }
+    
+    return formatDuration(typeof getCurrentTimeRaw === 'function' ? getCurrentTimeRaw() : 0);
+  }, [getCurrentTimeRaw]);
+  
+  const formattedDuration = useMemo(() => {
+    
+    const globalDurationElement = document.getElementById('global-player-duration');
+    if (globalDurationElement && globalDurationElement.textContent) {
+      return globalDurationElement.textContent;
+    }
+    
+    return formatDuration(typeof getDurationRaw === 'function' ? getDurationRaw() : 0);
+  }, [getDurationRaw]);
+  
+  
+  useEffect(() => {
+    
+    const updateDisplays = () => {
+      
+      const currentTimeEl = document.getElementById('mobile-current-time');
+      const durationEl = document.getElementById('mobile-duration');
+      const progressBar = document.getElementById('mobile-player-progress');
+      
+      
+      if (currentTimeEl && window.audioTiming) {
+        currentTimeEl.textContent = window.audioTiming.formattedCurrentTime;
+      }
+      
+      if (durationEl && window.audioTiming) {
+        durationEl.textContent = window.audioTiming.formattedDuration;
+      }
+      
+      
+      if (progressBar && window.audioTiming) {
+        progressBar.style.width = `${window.audioTiming.progress}%`;
+        progressRef.current = window.audioTiming.progress;
+      }
+      
+      
+      requestAnimationFrame(updateDisplays);
+    };
+    
+    
+    const animationId = requestAnimationFrame(updateDisplays);
+    
+    
+    return () => cancelAnimationFrame(animationId);
+  }, []);
+
+  
+  useEffect(() => {
+    
+  }, []);
+  
+  
   useEffect(() => {
     if (currentTrack?.cover_path) {
       getColorFromImage(
@@ -112,9 +226,29 @@ const MobilePlayer = () => {
     }
   }, [currentTrack]);
   
+  
+  useEffect(() => {
+    
+    
+    if (audioRef?.current) {
+      const currentTimeValue = audioRef.current.currentTime || 0;
+      const durationValue = audioRef.current.duration || 0;
+      
+      if (durationValue > 0) {
+        progressRef.current = (currentTimeValue / durationValue) * 100;
+        const progressBar = document.getElementById('mobile-player-progress');
+        if (progressBar) {
+          progressBar.style.width = `${progressRef.current}%`;
+        }
+      }
+    }
+  }, [audioRef]);
+  
+  
+  
   useEffect(() => {
     if (duration > 0) {
-      setProgressValue((currentTime / duration) * 100);
+      progressRef.current = (currentTime / duration) * 100;
     }
   }, [currentTime, duration]);
   
@@ -122,15 +256,15 @@ const MobilePlayer = () => {
     return null;
   }
 
-  const toggleLikeTrack = (e) => {
-    // Stop event propagation to prevent other handlers
+  const toggleLikeTrack = useCallback((e) => {
+    
     if (e) {
       e.stopPropagation();
     }
     
     if (currentTrack?.id) {
       try {
-        // Create animation effect on the button
+        
         const likeButton = e.currentTarget;
         likeButton.style.transform = 'scale(1.3)';
         setTimeout(() => {
@@ -140,7 +274,7 @@ const MobilePlayer = () => {
         likeTrack(currentTrack.id)
           .then(result => {
             console.log("Like result:", result);
-            // Success animation could be added here if needed
+            
           })
           .catch(error => {
             console.error("Error liking track:", error);
@@ -149,20 +283,20 @@ const MobilePlayer = () => {
         console.error("Error liking track:", error);
       }
     }
-  };
+  }, [currentTrack, likeTrack]);
   
-  // Add share function
-  const handleShare = (e) => {
+  
+  const handleShare = useCallback((e) => {
     e.stopPropagation();
     if (!currentTrack) return;
     
     const trackLink = `${window.location.origin}/music?track=${currentTrack.id}`;
     
-    // Просто копируем ссылку в буфер обмена вместо использования Web Share API
+    
     copyToClipboard(trackLink);
-  };
+  }, [currentTrack]);
   
-  const copyToClipboard = (text) => {
+  const copyToClipboard = useCallback((text) => {
     navigator.clipboard.writeText(text)
       .then(() => {
         setShareSnackbar({
@@ -179,46 +313,63 @@ const MobilePlayer = () => {
           severity: 'error'
         });
       });
-  };
+  }, []);
   
-  // Handle closing the snackbar
-  const handleCloseSnackbar = (event, reason) => {
+  
+  const handleCloseSnackbar = useCallback((event, reason) => {
     if (reason === 'clickaway') {
       return;
     }
-    setShareSnackbar({...shareSnackbar, open: false});
-  };
+    setShareSnackbar(prev => ({...prev, open: false}));
+  }, []);
 
-  const openFullScreen = () => {
+  const openFullScreen = useCallback(() => {
     setFullScreenOpen(true);
-  };
+  }, []);
 
-  const closeFullScreen = () => {
+  const closeFullScreen = useCallback(() => {
     setFullScreenOpen(false);
-  };
+  }, []);
   
-  const handleControlClick = (e, callback) => {
+  const handleControlClick = useCallback((e, callback) => {
     e.stopPropagation();
     try {
       callback();
     } catch (error) {
       console.error("Error in control click:", error);
     }
-  };
+  }, []);
+  
+  const handlePrevClick = useCallback((e) => handleControlClick(e, prevTrack), [handleControlClick, prevTrack]);
+  const handlePlayClick = useCallback((e) => handleControlClick(e, togglePlay), [handleControlClick, togglePlay]);
+  const handleNextClick = useCallback((e) => handleControlClick(e, nextTrack), [handleControlClick, nextTrack]);
   
   return (
     <React.Fragment>
       <PlayerContainer elevation={0} covercolor={dominantColor}>
         
-        <ProgressBar 
-          variant="determinate" 
-          value={progressValue} 
-          sx={{ 
-            marginTop: '-4px', 
-            marginBottom: '6px', // Уменьшаем отступ снизу
-          }}
-          covercolor={dominantColor}
-        />
+        {/* Custom progress bar instead of Material UI component */}
+        <div style={{ 
+          height: 2,
+          width: '100%',
+          backgroundColor: 'rgba(255, 255, 255, 0.2)',
+          marginTop: '-4px', 
+          marginBottom: '6px',
+          position: 'relative'
+        }}>
+          <div 
+            id="mobile-player-progress"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              height: '100%',
+              width: `${progressRef.current}%`,
+              backgroundColor: dominantColor ? `rgba(${dominantColor}, 1)` : theme.palette.primary.main,
+              transition: 'none'
+            }}
+          />
+        </div>
 
         <Box 
           onClick={openFullScreen}
@@ -227,9 +378,14 @@ const MobilePlayer = () => {
             alignItems: 'center',
             cursor: 'pointer',
             position: 'relative',
-            padding: '2px 0' // Уменьшаем отступы
+            padding: '2px 0'
           }}
         >
+          {/* Добавляем скрытые элементы для времени */}
+          <div style={{ display: 'none' }}>
+            <span id="mobile-current-time">0:00</span>
+            <span id="mobile-duration">0:00</span>
+          </div>
           
           <Box sx={{ 
             display: 'flex', 
@@ -242,8 +398,8 @@ const MobilePlayer = () => {
               src={getCoverWithFallback(currentTrack?.cover_path || '', "album")}
               alt={currentTrack?.title || ''}
               sx={{ 
-                width: 40, // Делаем меньше
-                height: 40, // Делаем меньше
+                width: 40, 
+                height: 40, 
                 borderRadius: 1,
                 objectFit: 'cover',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -251,147 +407,76 @@ const MobilePlayer = () => {
               }}
             />
             
-            <Box sx={{ 
-              flexGrow: 1, 
-              overflow: 'hidden',
-              minWidth: 0
-            }}>
-              <Typography 
-                variant="body2" // Уменьшаем размер шрифта
-                fontWeight="500"
-                noWrap
-              >
-                {currentTrack?.title || 'Без названия'}
-              </Typography>
-              
-              <Typography 
-                variant="caption" // Уменьшаем размер шрифта
-                color="text.secondary"
-                noWrap
-              >
-                {currentTrack?.artist || 'Неизвестный исполнитель'}
-              </Typography>
-            </Box>
+            <TrackInfo 
+              title={currentTrack?.title}
+              artist={currentTrack?.artist}
+              onClick={openFullScreen}
+            />
             
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center',
-              marginLeft: 'auto',
-              '& > button': { padding: 1 } // Уменьшаем размер кнопок
-            }}>
-              <IconButton 
-                onClick={(e) => handleControlClick(e, prevTrack)}
-                size="small" // Уменьшаем размер
-                sx={{ 
-                  color: 'text.primary'
-                }}
-              >
-                <SkipPrevious fontSize="small" />
-              </IconButton>
+            <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
+              <ControlButton
+                icon={<SkipPrevious />}
+                onClick={handlePrevClick}
+                ariaLabel="Previous track"
+              />
+
+              <ControlButton
+                icon={isPlaying ? <Pause /> : <PlayArrow />}
+                onClick={handlePlayClick}
+                ariaLabel={isPlaying ? "Pause" : "Play"}
+              />
+
+              <ControlButton
+                icon={<SkipNext />}
+                onClick={handleNextClick}
+                ariaLabel="Next track"
+              />
               
-              <IconButton 
-                onClick={(e) => handleControlClick(e, togglePlay)}
-                size="small" // Уменьшаем размер
-                sx={{ 
-                  color: 'white',
-                  backgroundColor: dominantColor 
-                    ? `rgba(${dominantColor}, 0.9)` 
-                    : theme.palette.primary.main,
-                  mx: 0.5,
-                  width: 32, // Уменьшаем размер
-                  height: 32, // Уменьшаем размер
-                  '&:hover': {
-                    backgroundColor: dominantColor 
-                      ? `rgba(${dominantColor}, 1)` 
-                      : theme.palette.primary.dark,
-                  }
-                }}
-              >
-                {isPlaying ? <Pause fontSize="small" /> : <PlayArrow fontSize="small" />}
-              </IconButton>
+              <ControlButton
+                icon={currentTrack?.is_liked ? <Favorite color="primary" /> : <FavoriteBorder />}
+                onClick={toggleLikeTrack}
+                ariaLabel="Toggle like"
+              />
               
-              <IconButton 
-                onClick={(e) => handleControlClick(e, nextTrack)}
-                size="small" // Уменьшаем размер
-                sx={{ 
-                  color: 'text.primary',
-                  marginRight: 0.5
-                }}
-              >
-                <SkipNext fontSize="small" />
-              </IconButton>
+              <ControlButton
+                icon={<Share fontSize="small" />}
+                onClick={handleShare}
+                ariaLabel="Share"
+              />
               
-              <IconButton 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleLikeTrack(e);
-                }}
-                size="small" // Уменьшаем размер
-                sx={{ 
-                  color: currentTrack?.is_liked ? 'error.main' : 'text.secondary',
-                  width: 30,
-                  height: 30,
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    color: currentTrack?.is_liked ? 'error.light' : '#ff6b6b',
-                    transform: 'scale(1.1)',
-                  },
-                }}
-              >
-                {currentTrack?.is_liked ? (
-                  <Favorite fontSize="small" 
-                    sx={{ 
-                      animation: 'heartBeat 0.5s',
-                      '@keyframes heartBeat': {
-                        '0%': { transform: 'scale(1)' },
-                        '14%': { transform: 'scale(1.2)' },
-                        '28%': { transform: 'scale(1)' },
-                        '42%': { transform: 'scale(1.2)' },
-                        '70%': { transform: 'scale(1)' },
-                      }
-                    }} 
-                  />
-                ) : (
-                  <FavoriteBorder fontSize="small" />
-                )}
-              </IconButton>
+              <ControlButton
+                icon={<KeyboardArrowUp />}
+                onClick={openFullScreen}
+                ariaLabel="Open fullscreen player"
+              />
             </Box>
           </Box>
+          
         </Box>
       </PlayerContainer>
       
-      
-      <FullScreenPlayer 
+      <FullScreenPlayer
         open={fullScreenOpen}
         onClose={closeFullScreen}
       />
       
-      
-      <Snackbar
-        open={shareSnackbar.open}
-        autoHideDuration={4000}
+      <Snackbar 
+        open={shareSnackbar.open} 
+        autoHideDuration={3000} 
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        sx={{ bottom: 70 }} // Adjust position to avoid overlap with player
+        sx={{ bottom: 70 }} 
       >
         <Alert 
           onClose={handleCloseSnackbar} 
-          severity={shareSnackbar.severity}
-          sx={{ 
-            width: '100%', 
-            backgroundColor: 'rgba(10, 10, 10, 0.8)',
-            backdropFilter: 'blur(10px)',
-            color: 'white',
-            '& .MuiAlert-icon': {
-              color: shareSnackbar.severity === 'success' ? '#4caf50' : '#f44336'
-            }
-          }}
+          severity={shareSnackbar.severity} 
+          sx={{ width: '100%' }}
         >
           {shareSnackbar.message}
         </Alert>
       </Snackbar>
     </React.Fragment>
   );
-};
+});
 
 export default MobilePlayer; 

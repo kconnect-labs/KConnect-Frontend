@@ -3,7 +3,7 @@ import { Card, Typography, Box, Container } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { motion } from 'framer-motion';
 
-// Стилизованная карточка с анимацией
+
 const StyledCard = styled(motion(Card))(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   borderRadius: theme.shape.borderRadius * 2,
@@ -29,7 +29,7 @@ const StyledCard = styled(motion(Card))(({ theme }) => ({
   }
 }));
 
-// Логотип K-Connect
+
 const Logo = () => (
   <svg width="40" height="40" viewBox="0 0 269 275" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path fillRule="evenodd" clipRule="evenodd"

@@ -30,10 +30,10 @@ const VideoPlayer = ({ videoUrl, poster, options = {} }) => {
   useEffect(() => {
     if (!videoRef.current) return;
     
-    // Акцентный цвет из настроек темы или по умолчанию
+    
     const accentColor = themeSettings?.button_primary_border_color || '#D0BCFF';
     
-    // Настройки плеера
+    
     const defaultOptions = {
       controls: [
         'play-large',
@@ -59,13 +59,13 @@ const VideoPlayer = ({ videoUrl, poster, options = {} }) => {
       quality: { default: 720, options: [4320, 2880, 2160, 1440, 1080, 720, 576, 480, 360, 240] },
     };
     
-    // Инициализация Plyr
+    
     playerRef.current = new Plyr(videoRef.current, {
       ...defaultOptions,
       ...options
     });
     
-    // Применяем акцентный цвет к плееру
+    
     const applyCustomColors = () => {
       const root = document.documentElement;
       root.style.setProperty('--plyr-color-main', accentColor);
@@ -78,7 +78,7 @@ const VideoPlayer = ({ videoUrl, poster, options = {} }) => {
     
     applyCustomColors();
     
-    // Очистка при размонтировании
+    
     return () => {
       if (playerRef.current) {
         playerRef.current.destroy();
@@ -86,7 +86,7 @@ const VideoPlayer = ({ videoUrl, poster, options = {} }) => {
     };
   }, [videoRef, themeSettings]);
   
-  // Обрабатываем разные форматы видео-URL
+  
   const getSourceType = (url) => {
     if (!url) return 'video/mp4';
     
@@ -101,13 +101,13 @@ const VideoPlayer = ({ videoUrl, poster, options = {} }) => {
     } else if (url.endsWith('.ogg') || url.endsWith('.ogv')) {
       return 'video/ogg';
     } else {
-      return 'video/mp4'; // Предполагаем MP4 по умолчанию
+      return 'video/mp4'; 
     }
   };
   
   const sourceType = getSourceType(videoUrl);
   
-  // Если YouTube или Vimeo
+  
   if (sourceType === 'youtube' || sourceType === 'vimeo') {
     return (
       <VideoContainer>
@@ -124,7 +124,7 @@ const VideoPlayer = ({ videoUrl, poster, options = {} }) => {
     );
   }
   
-  // Для обычных видео-файлов
+  
   return (
     <VideoContainer>
       <video 

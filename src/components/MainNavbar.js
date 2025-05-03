@@ -11,6 +11,6 @@ import AccountSwitcher from './AccountSwitcher';
                       
                     </>
                   ) : (
-                    // ... код для неавторизованного пользователя ...
+                    
                   )}
                 </Box> 

@@ -379,6 +379,42 @@ const RulesPage = () => {
         </Box>
       </Paper>
       
+      <Paper
+        elevation={0}
+        sx={{
+          p: 2,
+          mb: 4,
+          borderRadius: 2,
+          background: 'linear-gradient(to right, rgba(156, 39, 176, 0.15), rgba(103, 58, 183, 0.1))',
+          border: '1px solid rgba(156, 39, 176, 0.3)',
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+      >
+        <Box 
+          sx={{ 
+            position: 'absolute', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            height: '4px', 
+            background: 'linear-gradient(to right, #9c27b0, #673ab7)' 
+          }} 
+        />
+        
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+          <UpdateIcon color="secondary" sx={{ mt: 0.5 }} />
+          <Box>
+            <Typography variant="subtitle1" fontWeight="medium" gutterBottom>
+              Временное ограничение контента
+            </Typography>
+            <Typography variant="body2">
+              В настоящее время правила в отношении публикуемого контента могут быть строже, так как умная лента отключена и работает общая лента для всех пользователей. После включения умной ленты и достижения достаточного количества пользователей, правила будут смягчены, поскольку у каждого будет формироваться персонализированная лента по интересам.
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
+      
       <motion.div
         initial="hidden"
         animate="visible"

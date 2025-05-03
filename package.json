@@ -1,6 +1,6 @@
 {
   "name": "k-connect",
-  "version": "2.2",
+  "version": "2.4",
   "private": true,
   "dependencies": {
     "@emoji-mart/data": "^1.2.1",
@@ -49,14 +49,14 @@
     "use-click-away": "^0.0.1",
     "uuid": "^11.1.0"
   },
-  "scripts": {
-    "start": "vite --host 0.0.0.0",
-    "build": "vite build",
-    "build:fast": "vite build",
-    "build:ultra": "vite build",
-    "preview": "vite preview",
-    "clean": "rm -rf node_modules/.vite build"
-  },
+"scripts": {
+  "start": "vite --host 0.0.0.0",
+  "build": "npm run clean && vite build",
+  "build:fast": "npm run clean && vite build",
+  "build:ultra": "npm run clean && vite build",
+  "preview": "vite preview",
+  "clean": "rm -rf node_modules/.vite dist && npm cache clean --force"
+  },  
   "browserslist": {
     "production": [
       ">0.2%",

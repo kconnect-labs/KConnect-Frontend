@@ -65,7 +65,7 @@ import SettingsBottomNavigation from '../../components/SettingsBottomNavigation'
 import LoginSettingsTab from '../../components/LoginSettingsTab';
 import { useSnackbar } from 'notistack';
 
-// Иконки
+
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import SaveIcon from '@mui/icons-material/Save';
 import EditIcon from '@mui/icons-material/Edit';
@@ -120,12 +120,18 @@ import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import CakeIcon from '@mui/icons-material/Cake';
 import InfoIcon from '@mui/icons-material/Info';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import StorefrontIcon from '@mui/icons-material/Storefront';
+import ShieldIcon from '@mui/icons-material/Shield';
 
-// Стилизованные компоненты
+
 const SettingsContainer = styled(Container)(({ theme }) => ({
   marginTop: theme.spacing(3),
   marginBottom: theme.spacing(3),
-  padding: 0
+  padding: 0,
+  [theme.breakpoints.down('sm')]: {
+    paddingBottom: '100px'
+  }
 }));
 
 const SettingsHeader = styled(Box)(({ theme }) => ({
@@ -262,7 +268,7 @@ const FileInput = styled('input')({
   display: 'none',
 });
 
-// Element SVG Icon component
+
 const ElementIcon = (props) => (
   <SvgIcon {...props}>
     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.17 14.93l-4.11-4.11 1.41-1.41 2.7 2.7 5.88-5.88 1.41 1.41-7.29 7.29z" />
@@ -313,7 +319,7 @@ const getSocialIcon = (name, url) => {
     case 'tiktok':
       return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.59-1.16-2.59-2.5 0-1.4 1.16-2.5 2.59-2.5.27 0 .53.04.77.13v-3.13c-.25-.02-.5-.04-.77-.04-3.09 0-5.59 2.57-5.59 5.67 0 3.1 2.5 5.67 5.59 5.67 3.09 0 5.59-2.57 5.59-5.67V9.14c.85.63 1.91 1.05 3.09 1.05V7.15c-1.32 0-2.59-.7-3.09-1.33z"/></svg>;
     default:
-      // Check if name contains known platform names
+      
       if (lowerName.includes('facebook')) return <FacebookIcon />;
       if (lowerName.includes('twitter')) return <TwitterIcon />;
       if (lowerName.includes('instagram')) return <InstagramIcon />;
@@ -328,19 +334,19 @@ const getSocialIcon = (name, url) => {
   }
 };
 
-// Компонент для загрузки файлов с предпросмотром
+
 const FileUploader = ({ id, currentImage, onFileSelect, icon, label, borderRadius }) => {
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Проверяем размер файла (максимум 5MB)
+    
     if (file.size > 5 * 1024 * 1024) {
       alert('Файл слишком большой. Максимальный размер: 5MB');
       return;
     }
 
-    // Проверяем тип файла
+    
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
     if (!allowedTypes.includes(file.type)) {
       alert('Неподдерживаемый формат файла. Разрешены только JPEG, PNG и GIF');
@@ -431,7 +437,7 @@ const FileUploader = ({ id, currentImage, onFileSelect, icon, label, borderRadiu
   );
 };
 
-// Компонент для изменения цвета
+
 const ColorPicker = ({ label, color, onChange }) => {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
@@ -440,19 +446,19 @@ const ColorPicker = ({ label, color, onChange }) => {
   const [green, setGreen] = useState(parseInt(color.slice(3, 5), 16));
   const [blue, setBlue] = useState(parseInt(color.slice(5, 7), 16));
   
-  // Преобразуем компоненты RGB в цвет в формате hex
+  
   const rgbToHex = (r, g, b) => {
     return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
   };
   
-  // Обновление цвета при изменении слайдеров
+  
   const updateColor = (r, g, b) => {
     const hexColor = rgbToHex(r, g, b);
     setCurrentColor(hexColor);
-    onChange(hexColor); // Сразу применяем изменения
+    onChange(hexColor); 
   };
   
-  // Обработчики изменения компонентов RGB
+  
   const handleRedChange = (event, value) => {
     setRed(value);
     updateColor(value, green, blue);
@@ -468,7 +474,7 @@ const ColorPicker = ({ label, color, onChange }) => {
     updateColor(red, green, value);
   };
   
-  // Обработчик выбора предустановленного цвета
+  
   const handlePresetColorClick = (presetColor) => {
     const r = parseInt(presetColor.slice(1, 3), 16);
     const g = parseInt(presetColor.slice(3, 5), 16);
@@ -478,15 +484,15 @@ const ColorPicker = ({ label, color, onChange }) => {
     setRed(r);
     setGreen(g);
     setBlue(b);
-    onChange(presetColor); // Сразу применяем изменения
+    onChange(presetColor); 
   };
   
-  // Обработчик изменения HEX-кода
+  
   const handleHexChange = (value) => {
     if (value.match(/^#([0-9A-F]{3}){1,2}$/i)) {
       setCurrentColor(value);
       
-      // Обновляем значения RGB
+      
       const r = parseInt(value.slice(1, 3), 16);
       const g = parseInt(value.slice(3, 5), 16);
       const b = parseInt(value.slice(5, 7), 16);
@@ -495,7 +501,7 @@ const ColorPicker = ({ label, color, onChange }) => {
       setGreen(g);
       setBlue(b);
       
-      onChange(value); // Сразу применяем изменения
+      onChange(value); 
     }
   };
   
@@ -682,7 +688,7 @@ const ColorPicker = ({ label, color, onChange }) => {
   );
 };
 
-// After the imports at the top, add this styled component for a blurred dialog
+
 const BlurredDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
     borderRadius: 16,
@@ -700,7 +706,7 @@ const BlurredDialog = styled(Dialog)(({ theme }) => ({
   }
 }));
 
-// 1. Создадим стилизованные компоненты с правильным градиентом
+
 const PurchaseDialogHeader = styled(Box)(({ theme }) => ({
   position: 'relative',
   padding: theme.spacing(3),
@@ -738,7 +744,7 @@ const PurchaseButton = styled(Button)(({ theme }) => ({
   }
 }));
 
-// Компонент для магазина юзернеймов
+
 const UsernameShopTab = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -760,25 +766,45 @@ const UsernameShopTab = () => {
   const [purchaseComplete, setPurchaseComplete] = useState(false);
   const [limitReached, setLimitReached] = useState(false);
   const [userSubscription, setUserSubscription] = useState(null);
-  const [usernameLimit, setUsernameLimit] = useState(3); // Default limit without subscription
+  const [usernameLimit, setUsernameLimit] = useState(3); 
   
-  // Add back snackbar state
+  
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success'
   });
   
-  // Remove snackbar state
   
-  // Update showNotification function to use notistack
+  
+  
   const showNotification = (severity, message) => {
-    // Use both approaches
+    if (!message) {
+      message = severity === 'error' 
+        ? 'Произошла ошибка при выполнении операции' 
+        : 'Операция выполнена';
+    }
+    
+    
+    if (typeof message === 'object' && message !== null) {
+      if (message.message) {
+        message = message.message;
+      } else {
+        try {
+          message = JSON.stringify(message);
+        } catch (e) {
+          message = 'Неизвестная ошибка';
+        }
+      }
+    }
+    
+    
     setSnackbar({
       open: true,
       message,
       severity
     });
+    
     
     enqueueSnackbar(message, { 
       variant: severity,
@@ -786,22 +812,22 @@ const UsernameShopTab = () => {
     });
   };
   
-  // Add back handleCloseSnackbar function
+  
   const handleCloseSnackbar = (event, reason) => {
     if (reason === 'clickaway') return;
     setSnackbar(prev => ({ ...prev, open: false }));
   };
   
-  // Calculate username limit based on subscription
+  
   const calculateUsernameLimit = (subscriptionType) => {
-    if (!subscriptionType) return 3; // No subscription
+    if (!subscriptionType) return 3; 
     if (subscriptionType === 'basic') return 5;
     if (subscriptionType === 'premium') return 8;
-    if (subscriptionType === 'ultimate') return Infinity; // No limit
-    return 3; // Default fallback
+    if (subscriptionType === 'ultimate') return Infinity; 
+    return 3; 
   };
   
-  // Fetch subscription status
+  
   const fetchSubscriptionStatus = async () => {
     try {
       const response = await axios.get('/api/user/subscription/status');
@@ -820,7 +846,7 @@ const UsernameShopTab = () => {
     }
   };
   
-  // Fetch purchased usernames on mount
+  
   useEffect(() => {
     fetchPurchasedUsernames();
     fetchUserPoints();
@@ -858,13 +884,37 @@ const UsernameShopTab = () => {
     const value = e.target.value.trim();
     setUsername(value);
     
-    // Clear previous data
+    
     if (!value) {
+      setUsernameData(null);
+      setError('');
+      return;
+    }
+    
+    
+    if (value.length < 3) {
+      setError('Юзернейм должен содержать не менее 3 символов');
       setUsernameData(null);
       return;
     }
     
-    // Debounce the API call
+    if (value.length > 16) {
+      setError('Юзернейм не должен превышать 16 символов');
+      setUsernameData(null);
+      return;
+    }
+    
+    
+    if (!/[a-zA-Z]/.test(value)) {
+      setError('Юзернейм должен содержать хотя бы одну букву');
+      setUsernameData(null);
+      return;
+    }
+    
+    
+    setError('');
+    
+    
     const delayDebounceFn = setTimeout(() => {
       calculateUsernamePrice(value);
     }, 500);
@@ -911,7 +961,7 @@ const UsernameShopTab = () => {
       setPurchaseAnimation(true);
       setError('');
       
-      // Display animation for 1.5 seconds before actual API call
+      
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       const response = await axios.post('/api/username/purchase', { 
@@ -920,7 +970,7 @@ const UsernameShopTab = () => {
       });
       
       if (response.data.success) {
-        // Update points in localStorage to keep it in sync
+        
         const userDataStr = localStorage.getItem('userData');
         if (userDataStr) {
           try {
@@ -932,26 +982,26 @@ const UsernameShopTab = () => {
           }
         }
         
-        // Update points state directly from API response
+        
         setUserPoints(response.data.new_balance);
         
-        // Show success animation
+        
         setPurchaseComplete(true);
         
-        // Wait 1 second before closing dialog
+        
         setTimeout(() => {
           setOpenPurchaseDialog(false);
           setPurchaseAnimation(false);
           setPurchaseComplete(false);
           
-          // Show success message
+          
           showNotification('success', response.data.message || 'Username purchased successfully!');
           
-          // Clear form
+          
           setUsername('');
           setUsernameData(null);
           
-          // Refresh purchased usernames
+          
           fetchPurchasedUsernames();
         }, 1000);
       } else {
@@ -965,16 +1015,16 @@ const UsernameShopTab = () => {
       const errorData = e.response?.data || {};
       const errorMessage = errorData.message || e.message;
       
-      // Check if this is a limit reached error
+      
       if (errorData.limit_reached) {
         setLimitReached(true);
         showNotification('warning', errorMessage);
-        // Automatically open links in new tabs if provided in the error
+        
         if (errorData.donation_url) {
           window.open(errorData.donation_url, '_blank');
         }
       } else {
-        // Generic error handling for other errors
+        
         const message = errorMessage.includes('PurchasedUsername') ? 
           'Server error: Problem creating purchased username entry. Please try again later.' : 
           'Error purchasing username: ' + errorMessage;
@@ -987,7 +1037,7 @@ const UsernameShopTab = () => {
       setPurchaseAnimation(false);
     } finally {
       setPurchasing(false);
-      // Refresh user points to ensure accurate balance
+      
       fetchUserPoints();
     }
   };
@@ -1006,7 +1056,7 @@ const UsernameShopTab = () => {
       const response = await axios.post('/api/username/set-active', { username_id: selectedUsername.id });
       
       if (response.data.success) {
-        // Update username in localStorage
+        
         const userDataStr = localStorage.getItem('userData');
         if (userDataStr) {
           try {
@@ -1018,10 +1068,10 @@ const UsernameShopTab = () => {
           }
         }
         
-        // Show success message
+        
         showNotification('success', response.data.message || 'Username changed successfully!');
         
-        // Refresh purchased usernames
+        
         fetchPurchasedUsernames();
       } else {
         setError(response.data.message || 'Failed to change username');
@@ -1037,7 +1087,7 @@ const UsernameShopTab = () => {
     }
   };
   
-  // Calculate length factor
+  
   const getLengthFactor = (length) => {
     if (length <= 3) return 3.0;
     if (length <= 6) return 2.0;
@@ -1058,10 +1108,10 @@ const UsernameShopTab = () => {
     }).format(date);
   };
   
-  // Re-check limit whenever usernameLimit changes
+  
   useEffect(() => {
     if (purchased.length > 0) {
-      // Для Ultimate подписки не должно быть лимита
+      
       if (userSubscription?.subscription_type === 'ultimate') {
         setLimitReached(false);
       } else {
@@ -1267,7 +1317,7 @@ const UsernameShopTab = () => {
         
         <Typography variant="body2" sx={{ mb: 2, color: 'rgba(255,255,255,0.7)' }}>
           Юзернейм должен содержать хотя бы одну букву и не может состоять только из цифр или специальных символов. 
-          Длина от 1 до 16 символов. Более короткие юзернеймы стоят дороже.
+          Длина от 3 до 16 символов. Более короткие юзернеймы стоят дороже.
         </Typography>
         
         <TextField
@@ -1290,7 +1340,7 @@ const UsernameShopTab = () => {
               },
             },
           }}
-          helperText="Должен содержать хотя бы одну букву. Допустимы только латинские буквы, цифры, точки, подчеркивания и дефисы."
+          helperText="Должен содержать хотя бы одну букву. От 3 до 16 символов. Допустимы только латинские буквы, цифры, точки, подчеркивания и дефисы."
           error={!!error}
         />
         
@@ -1700,7 +1750,7 @@ const UsernameShopTab = () => {
   );
 };
 
-// Основной компонент страницы настроек
+
 const SettingsPage = () => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -1709,7 +1759,7 @@ const SettingsPage = () => {
   const { themeSettings, updateThemeSettings } = useContext(ThemeSettingsContext);
   const { enqueueSnackbar } = useSnackbar();
   
-  // Check if user is a channel
+  
   const isChannel = user?.account_type === 'channel';
   
   const [activeTab, setActiveTab] = useState(0);
@@ -1718,14 +1768,14 @@ const SettingsPage = () => {
   const [success, setSuccess] = useState(false);
   const [autoSaveTimeout, setAutoSaveTimeout] = useState(null);
   
-  // Account status states
-  const [accountStatus, setAccountStatus] = useState('good'); // 'good', 'warning', 'banned'
+  
+  const [accountStatus, setAccountStatus] = useState('good'); 
   const [userWarnings, setUserWarnings] = useState([]);
   const [warningsDialogOpen, setWarningsDialogOpen] = useState(false);
   const [loadingWarnings, setLoadingWarnings] = useState(false);
   const [banInfo, setBanInfo] = useState(null);
   
-  // Состояния для данных профиля
+  
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [about, setAbout] = useState('');
@@ -1735,23 +1785,23 @@ const SettingsPage = () => {
   const [bannerPreview, setBannerPreview] = useState('');
   const [socials, setSocials] = useState([]);
   
-  // Состояния для бейджей
+  
   const [userAchievements, setUserAchievements] = useState([]);
   const [loadingAchievements, setLoadingAchievements] = useState(false);
   const [updatingActiveBadge, setUpdatingActiveBadge] = useState(false);
   
-  // Состояние для Element аккаунта
+  
   const [elementConnected, setElementConnected] = useState(false);
   const [elementLinking, setElementLinking] = useState(false);
   const [elementToken, setElementToken] = useState('');
   const [loadingElementStatus, setLoadingElementStatus] = useState(false);
   
-  // Состояния для диалога добавления социальной сети
+  
   const [socialDialogOpen, setSocialDialogOpen] = useState(false);
   const [newSocialName, setNewSocialName] = useState('');
   const [newSocialLink, setNewSocialLink] = useState('');
   
-  // Состояния для настроек цветов
+  
   const [settings, setSettings] = useState({
     background_color: '#131313',
     container_color: '#1c1c1c',
@@ -1769,14 +1819,14 @@ const SettingsPage = () => {
     content_color: '#1c1c1c',
   });
   
-  // Add snackbar state back
+  
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success'
   });
   
-  // Add notification preferences state
+  
   const [notificationPrefs, setNotificationPrefs] = useState({
     pushNotificationsEnabled: true,
     telegramNotificationsEnabled: false,
@@ -1787,36 +1837,36 @@ const SettingsPage = () => {
   const [pushNotificationSupported, setPushNotificationSupported] = useState(false);
   const [pushSubscriptionStatus, setPushSubscriptionStatus] = useState(false);
   
-  // Add new state variables for push notifications
+  
   const [pushSupported, setPushSupported] = useState(false);
   const [pushPermission, setPushPermission] = useState('default');
   const [pushSubscribed, setPushSubscribed] = useState(false);
   const [pushLoading, setPushLoading] = useState(false);
   
-  // Состояния для работы с Telegram ID
+  
   const [telegramDialogOpen, setTelegramDialogOpen] = useState(false);
   const [telegramIdInput, setTelegramIdInput] = useState('');
   const [telegramIdError, setTelegramIdError] = useState('');
   const [savingTelegramId, setSavingTelegramId] = useState(false);
   
-  // Add a state for the full profile data
+  
   const [profileData, setProfileData] = useState(null);
   
-  // UseEffect для загрузки данных профиля
+  
   useEffect(() => {
     fetchProfileData();
-    // Также загружаем бейджи при загрузке страницы
-    fetchUserAchievements();
-    // Загружаем предупреждения и статус аккаунта
-    fetchUserWarnings();
-    // Не нужно проверять статус Element, так как это теперь делается в fetchProfileData
     
-    // Добавляем слушатель события storage для обновления статуса Element
-    // когда пользователь возвращается после авторизации Element
+    fetchUserAchievements();
+    
+    fetchUserWarnings();
+    
+    
+    
+    
     const handleStorageChange = (e) => {
       if (e.key === 'elem_connected' && e.newValue === 'true') {
         checkElementStatus();
-        localStorage.removeItem('elem_connected'); // Очищаем флаг
+        localStorage.removeItem('elem_connected'); 
       }
     };
     
@@ -1827,7 +1877,7 @@ const SettingsPage = () => {
     };
   }, []);
   
-  // Дополнительный эффект для проверки статуса Element при возвращении на страницу
+  
   useEffect(() => {
     const checkElementOnFocus = () => {
       checkElementStatus();
@@ -1840,12 +1890,12 @@ const SettingsPage = () => {
     };
   }, []);
   
-  // Загрузка данных пользователя
+  
   const fetchProfileData = async () => {
     try {
       setLoading(true);
       
-      // Загружаем профиль
+      
       const profileData = await ProfileService.getProfile(user.username);
       if (profileData && profileData.user) {
         setName(profileData.user.name || '');
@@ -1855,19 +1905,19 @@ const SettingsPage = () => {
         setBannerPreview(profileData.user.banner_url || '');
         setSocials(profileData.socials || []);
         
-        // Save the complete profile data
+        
         setProfileData(profileData);
         
-        // Проверяем подключен ли Element аккаунт через новые поля API
+        
         if (profileData.user.element_connected !== undefined) {
           setElementConnected(profileData.user.element_connected);
         } else {
-          // Для обратной совместимости
+          
           setElementConnected(!!profileData.user.elem_id);
         }
       }
       
-      // Загружаем настройки
+      
       const settingsData = await ProfileService.getSettings();
       if (settingsData && settingsData.success && settingsData.settings) {
         setSettings(settingsData.settings);
@@ -1881,7 +1931,7 @@ const SettingsPage = () => {
     }
   };
   
-  // Загрузка достижений пользователя
+  
   const fetchUserAchievements = async () => {
     try {
       setLoadingAchievements(true);
@@ -1898,7 +1948,35 @@ const SettingsPage = () => {
     }
   };
   
-  // Установка активного бейджа
+  
+  const [purchasedBadges, setPurchasedBadges] = useState([]);
+  const [loadingPurchasedBadges, setLoadingPurchasedBadges] = useState(false);
+  
+  const fetchPurchasedBadges = async () => {
+    try {
+      setLoadingPurchasedBadges(true);
+      const response = await axios.get('/api/badges/purchases');
+      
+      if (response.data && response.data.purchases) {
+        setPurchasedBadges(response.data.purchases);
+      }
+      
+      setLoadingPurchasedBadges(false);
+    } catch (error) {
+      console.error('Ошибка загрузки приобретенных бейджей:', error);
+      setLoadingPurchasedBadges(false);
+    }
+  };
+  
+  
+  useEffect(() => {
+    if (user) {
+      fetchUserAchievements();
+      fetchPurchasedBadges();
+    }
+  }, [user]);
+  
+  
   const handleSetActiveBadge = async (achievementId) => {
     try {
       setUpdatingActiveBadge(true);
@@ -1907,8 +1985,9 @@ const SettingsPage = () => {
       });
       
       if (response.data && response.data.success) {
-        // Обновляем список достижений
+        
         fetchUserAchievements();
+        fetchPurchasedBadges();
         showNotification('success', 'Активный бейдж обновлен');
       }
       
@@ -1920,11 +1999,11 @@ const SettingsPage = () => {
     }
   };
   
-  // Проверка поддержки push-уведомлений и загрузка настроек уведомлений
+  
   useEffect(() => {
     if (!user) return;
     
-    // Проверяем поддержку push-уведомлений в браузере
+    
     const checkPushSupport = () => {
       const isSupported = 
         'serviceWorker' in navigator && 
@@ -1933,10 +2012,10 @@ const SettingsPage = () => {
       
       setPushNotificationSupported(isSupported);
       
-      // По умолчанию считаем, что подписка не активирована
+      
       setPushSubscriptionStatus(false);
       
-      // Только если поддерживается и скрипт загружен, проверяем статус
+      
       if (isSupported && window.PushNotifications) {
         window.PushNotifications.checkSubscription()
           .then(isSubscribed => {
@@ -1950,7 +2029,7 @@ const SettingsPage = () => {
       }
     };
     
-    // Загружаем настройки уведомлений
+    
     const loadNotificationPreferences = async () => {
       try {
         setLoadingNotificationPrefs(true);
@@ -1985,10 +2064,10 @@ const SettingsPage = () => {
     loadNotificationPreferences();
   }, [user]);
   
-  // Fix for the checkPushSupport useEffect
+  
   useEffect(() => {
     if (user) {
-      // Update the checkPushSupport function here instead of the separate one
+      
       const checkNotificationSupport = async () => {
         try {
           const isSupported = await NotificationService.isPushNotificationSupported();
@@ -1998,7 +2077,7 @@ const SettingsPage = () => {
             const permission = await NotificationService.getNotificationPermissionStatus();
             setPushPermission(permission);
             
-            // Check if service worker is being disabled by anti-caching code
+            
             const antiCachingActive = window.setupCaching && 
                                       typeof window.setupCaching === 'function';
             
@@ -2006,7 +2085,7 @@ const SettingsPage = () => {
               console.warn('Anti-caching system may interfere with push notifications');
             }
             
-            // Try to get service worker registrations
+            
             let swRegistered = false;
             if ('serviceWorker' in navigator) {
               try {
@@ -2042,13 +2121,13 @@ const SettingsPage = () => {
     }
   }, [user]);
   
-  // Add a function to handle enabling push notifications
+  
   const handleEnablePushNotifications = async () => {
     try {
       setPushLoading(true);
       console.log('Starting push notification setup...');
       
-      // Check if push notifications are supported
+      
       const isSupported = await NotificationService.isPushNotificationSupported();
       console.log('Push notifications supported:', isSupported);
       
@@ -2058,7 +2137,7 @@ const SettingsPage = () => {
         return;
       }
       
-      // Check if permission is already granted
+      
       const permission = await NotificationService.getNotificationPermissionStatus();
       console.log('Current permission status:', permission);
       
@@ -2069,12 +2148,12 @@ const SettingsPage = () => {
       }
       
       try {
-        // Subscribe to push notifications
+        
         console.log('Subscribing to push notifications...');
         await NotificationService.subscribeToPushNotifications();
         setPushSubscribed(true);
         
-        // Also update user preferences on server
+        
         console.log('Updating notification preferences on server...');
         try {
           await axios.post('/api/notifications/preferences', {
@@ -2088,7 +2167,7 @@ const SettingsPage = () => {
           }
         }
         
-        // Send a test notification
+        
         try {
           console.log('Sending test notification...');
           const testResult = await NotificationService.sendTestNotification();
@@ -2117,14 +2196,14 @@ const SettingsPage = () => {
     }
   };
   
-  // Add a function to handle disabling push notifications
+  
   const handleDisablePushNotifications = async () => {
     try {
       setPushLoading(true);
       
       const success = await NotificationService.unsubscribeFromPushNotifications();
       
-      // Update server preferences regardless of unsubscribe result
+      
       try {
         await axios.post('/api/notifications/preferences', {
           push_notifications_enabled: false
@@ -2144,34 +2223,34 @@ const SettingsPage = () => {
     }
   };
   
-  // Обработчик смены вкладки
+  
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
   
-  // Function to map tab index for channel accounts (skipping hidden tabs)
+  
   const getTabContent = (tabIndex) => {
     if (!isChannel) {
       return tabIndex;
     }
     
-    // For channels, we only show Profile (0), Design (1), and Badges (3)
-    // Map the visible tab index to the actual content index
+    
+    
     switch(tabIndex) {
-      case 0: return 0; // Profile
-      case 1: return 1; // Design
-      case 2: return 3; // Badges (index 3 in regular view)
+      case 0: return 0; 
+      case 1: return 1; 
+      case 2: return 3; 
       default: return tabIndex;
     }
   };
   
-  // Обработчик изменения аватара
+  
   const handleAvatarChange = (file) => {
     if (!file) return;
     
     setAvatarFile(file);
     
-    // Создаем превью
+    
     const reader = new FileReader();
     reader.onloadend = () => {
       setAvatarPreview(reader.result);
@@ -2179,13 +2258,13 @@ const SettingsPage = () => {
     reader.readAsDataURL(file);
   };
   
-  // Обработчик изменения баннера
+  
   const handleBannerChange = (file) => {
     if (!file) return;
     
     setBannerFile(file);
     
-    // Создаем превью
+    
     const reader = new FileReader();
     reader.onloadend = () => {
       setBannerPreview(reader.result);
@@ -2193,7 +2272,7 @@ const SettingsPage = () => {
     reader.readAsDataURL(file);
   };
   
-  // Обработчик сохранения профиля
+  
   const handleSaveProfile = async () => {
     try {
       setSaving(true);
@@ -2202,7 +2281,7 @@ const SettingsPage = () => {
       let hasErrors = false;
       let responses = [];
       
-      // Сохраняем имя пользователя
+      
       if (name !== user.name) {
         try {
           console.log('Updating name...');
@@ -2217,7 +2296,7 @@ const SettingsPage = () => {
         }
       }
       
-      // Сохраняем username
+      
       if (username !== user.username) {
         try {
           console.log('Updating username...');
@@ -2232,7 +2311,7 @@ const SettingsPage = () => {
         }
       }
       
-      // Сохраняем описание
+      
       if (about !== user.about) {
         try {
           console.log('Updating about...');
@@ -2247,7 +2326,7 @@ const SettingsPage = () => {
         }
       }
       
-      // Загружаем баннер
+      
       if (bannerFile) {
         try {
           console.log('Uploading banner...');
@@ -2270,7 +2349,7 @@ const SettingsPage = () => {
         }
       }
       
-      // Загружаем аватар
+      
       if (avatarFile) {
         try {
           console.log('Uploading avatar...');
@@ -2293,7 +2372,7 @@ const SettingsPage = () => {
         }
       }
       
-      // Обновляем данные пользователя в контексте, если есть
+      
       if (updateUserData) {
         updateUserData({
           ...user,
@@ -2303,19 +2382,30 @@ const SettingsPage = () => {
         });
       }
       
-      // Отображаем общий результат
+      
       if (hasErrors) {
-        // Если были ошибки, показываем ошибку с деталями
-        let errorMessage = 'Некоторые изменения не удалось сохранить: ';
-        const failedOperations = responses.filter(r => !r.success).map(r => r.type);
-        errorMessage += failedOperations.join(', ');
-        console.error('Save errors:', failedOperations);
+        
+        let errorMessage = '';
+        const failedResponses = responses.filter(r => !r.success);
+        
+        if (failedResponses.length === 1) {
+          
+          errorMessage = failedResponses[0].message;
+        } else {
+          
+          errorMessage = 'Не удалось сохранить следующие данные:\n';
+          failedResponses.forEach(resp => {
+            errorMessage += `• ${resp.type}: ${resp.message}\n`;
+          });
+        }
+        
+        console.error('Save errors:', failedResponses);
         showNotification('error', errorMessage);
       } else {
-        // Если не было ошибок, показываем успех
+        
         console.log('All operations successful');
         showNotification('success', 'Профиль успешно сохранен');
-        // Редиректим на страницу профиля
+        
         navigate(`/profile/${username}`);
       }
       
@@ -2327,13 +2417,13 @@ const SettingsPage = () => {
     }
   };
   
-  // Обработчик сохранения настроек цветов
+  
   const handleSaveSettings = async () => {
     setSaving(true);
     setSuccess(false);
     
     try {
-      // Получаем текущие настройки для отправки
+      
       const settingsToSave = {
         background_color: settings.background_color,
         container_color: settings.container_color,
@@ -2341,20 +2431,21 @@ const SettingsPage = () => {
         avatar_border_color: settings.avatar_border_color,
         info_bubble_color: settings.info_bubble_color,
         info_bubble_border_color: settings.info_bubble_border_color,
-        // Добавляем новые настройки для сохранения
+        
         header_color: settings.header_color || settings.container_color,
         bottom_nav_color: settings.bottom_nav_color || settings.container_color,
         content_color: settings.content_color || settings.container_color,
-        // Другие настройки...
+        
       };
       
-      // Отправляем обновленные настройки на сервер
+      
       const response = await ProfileService.updateSettings(settingsToSave);
       
       if (response && response.success) {
         setSuccess(true);
+        showNotification('success', 'Настройки успешно сохранены');
         
-        // Применяем новые настройки к глобальному контексту темы
+        
         themeSettings.updateThemeSettings({
           backgroundColor: response.settings.background_color,
           paperColor: response.settings.container_color,
@@ -2363,46 +2454,50 @@ const SettingsPage = () => {
           contentColor: response.settings.content_color || response.settings.container_color,
           primaryColor: response.settings.avatar_border_color
         });
+      } else {
+        throw new Error(response?.error || 'Не удалось сохранить настройки');
       }
     } catch (error) {
       console.error('Ошибка при сохранении настроек:', error);
+      
+      showNotification('error', error.message || 'Ошибка при сохранении настроек');
     } finally {
       setSaving(false);
       
-      // Таймер для сброса статуса успеха
+      
       setTimeout(() => {
         setSuccess(false);
       }, 3000);
     }
   };
   
-  // Обработчик изменения цвета в настройках
+  
   const handleColorChange = (colorType, color) => {
-    // Обновляем настройки
+    
     const updatedSettings = {
       ...settings,
       [colorType]: color
     };
     setSettings(updatedSettings);
 
-    // Применяем цвет к CSS переменным для мгновенного эффекта
+    
     document.documentElement.style.setProperty(`--${colorType.replace(/_/g, '-')}`, color);
 
-    // Обновляем настройки в глобальном контексте темы
+    
     if (colorType === 'background_color') {
       updateThemeSettings({ backgroundColor: color });
     } else if (colorType === 'container_color') {
       updateThemeSettings({ paperColor: color });
     } else if (colorType === 'header_color') {
       updateThemeSettings({ headerColor: color });
-      // Принудительно обновляем стиль заголовка для мгновенного эффекта
+      
       document.querySelectorAll('.MuiAppBar-root').forEach(el => {
         el.style.backgroundColor = color;
         el.style.color = getContrastTextColor(color);
       });
     } else if (colorType === 'bottom_nav_color') {
       updateThemeSettings({ bottomNavColor: color });
-      // Принудительно обновляем стиль нижней навигации для мгновенного эффекта
+      
       document.querySelectorAll('.MuiBottomNavigation-root').forEach(el => {
         el.style.backgroundColor = color;
       });
@@ -2411,7 +2506,7 @@ const SettingsPage = () => {
       });
     } else if (colorType === 'content_color') {
       updateThemeSettings({ contentColor: color });
-      // Принудительно обновляем стиль контентных блоков для мгновенного эффекта
+      
       document.querySelectorAll('.MuiCard-root').forEach(el => {
         el.style.backgroundColor = color;
         el.style.color = getContrastTextColor(color);
@@ -2420,12 +2515,12 @@ const SettingsPage = () => {
       updateThemeSettings({ welcomeBubbleColor: color });
     } else if (colorType === 'avatar_border_color') {
       updateThemeSettings({ primaryColor: color });
-      // Обновляем primary цвета
+      
       document.documentElement.style.setProperty('--primary', color);
       document.documentElement.style.setProperty('--primary-light', color);
       document.documentElement.style.setProperty('--primary-dark', color);
       
-      // Обновляем рамки аватаров
+      
       document.querySelectorAll('.MuiAvatar-root').forEach(el => {
         el.style.borderColor = color;
       });
@@ -2445,58 +2540,80 @@ const SettingsPage = () => {
       updateThemeSettings({ popupAlertColor: color });
     }
     
-    // Автоматически сохраняем изменения с небольшой задержкой для предотвращения частых запросов
+    
     if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
     setAutoSaveTimeout(setTimeout(() => {
       handleSaveSettings();
     }, 500));
   };
 
-  // Функция для получения контрастного цвета текста
+  
   const getContrastTextColor = (hexColor) => {
-    // Remove the # if present
+    
     const color = hexColor.charAt(0) === '#' ? hexColor.substring(1) : hexColor;
     
-    // Convert to RGB
+    
     const r = parseInt(color.substr(0, 2), 16);
     const g = parseInt(color.substr(2, 2), 16);
     const b = parseInt(color.substr(4, 2), 16);
     
-    // Calculate relative luminance (per WCAG 2.0)
+    
     const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
     
-    // Return black for light colors, white for dark ones
+    
     return luminance > 0.5 ? '#000000' : '#FFFFFF';
   };
   
-  // Обработчик добавления социальной сети
+  
   const handleAddSocial = async () => {
-    if (!newSocialName || !newSocialLink) return;
-    
     try {
       setSaving(true);
       
-      const response = await ProfileService.updateSocial(newSocialName, newSocialLink);
+      
+      if (!newSocialName || !newSocialLink) {
+        showNotification('error', 'Пожалуйста, заполните все поля');
+        setSaving(false);
+        return;
+      }
+      
+      
+      let url = newSocialLink;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+      }
+      
+      
+      if (socials.some(social => social.name.toLowerCase() === newSocialName.toLowerCase())) {
+        showNotification('error', `Социальная сеть ${newSocialName} уже добавлена`);
+        setSaving(false);
+        return;
+      }
+      
+      const response = await ProfileService.addSocial(newSocialName, url);
       
       if (response.success) {
-        setSocials([...socials, { name: newSocialName, link: newSocialLink }]);
+        
+        setSocials([...socials, { name: newSocialName, link: url }]);
+        showNotification('success', 'Социальная сеть добавлена');
+        
+        
+        setSocialDialogOpen(false);
         setNewSocialName('');
         setNewSocialLink('');
-        setSocialDialogOpen(false);
-        showNotification('success', 'Социальная сеть добавлена');
       } else {
-        throw new Error(response.error || 'Failed to add social network');
+        
+        showNotification('error', response.error || 'Ошибка добавления социальной сети');
       }
       
       setSaving(false);
     } catch (error) {
       console.error('Ошибка добавления социальной сети:', error);
-      showNotification('error', 'Ошибка добавления социальной сети');
+      showNotification('error', error.response?.data?.error || error.message || 'Не удалось добавить социальную сеть');
       setSaving(false);
     }
   };
   
-  // Обработчик удаления социальной сети
+  
   const handleDeleteSocial = async (name) => {
     try {
       setSaving(true);
@@ -2518,29 +2635,48 @@ const SettingsPage = () => {
     }
   };
   
-  // Обработчик для отображения уведомлений
+  
   const showNotification = (severity, message) => {
-    // Use both approaches for compatibility
+    if (!message) {
+      message = severity === 'error' 
+        ? 'Произошла ошибка при выполнении операции' 
+        : 'Операция выполнена';
+    }
+    
+    
+    if (typeof message === 'object' && message !== null) {
+      if (message.message) {
+        message = message.message;
+      } else {
+        try {
+          message = JSON.stringify(message);
+        } catch (e) {
+          message = 'Неизвестная ошибка';
+        }
+      }
+    }
+    
+    
     setSnackbar({
       open: true,
       message,
       severity
     });
     
-    // Also use notistack
+    
     enqueueSnackbar(message, { 
       variant: severity,
       anchorOrigin: { vertical: 'bottom', horizontal: 'center' }
     });
   };
   
-  // Add back handleCloseSnackbar function
+  
   const handleCloseSnackbar = (event, reason) => {
     if (reason === 'clickaway') return;
     setSnackbar(prev => ({ ...prev, open: false }));
   };
   
-  // Функция для применения предустановленной темы
+  
   const applyTheme = async (theme) => {
     try {
       setSaving(true);
@@ -2559,7 +2695,7 @@ const SettingsPage = () => {
           content_color: '#1c1c1c',
         };
 
-        // Save to localStorage
+        
         localStorage.setItem('theme', 'dark');
         localStorage.setItem('backgroundColor', '#131313');
         localStorage.setItem('paperColor', '#1c1c1c');
@@ -2581,7 +2717,7 @@ const SettingsPage = () => {
           content_color: '#ffffff',
         };
 
-        // Save to localStorage
+        
         localStorage.setItem('theme', 'light');
         localStorage.setItem('backgroundColor', '#f5f5f5');
         localStorage.setItem('paperColor', '#ffffff');
@@ -2593,17 +2729,17 @@ const SettingsPage = () => {
       } else if (theme === 'contrast') {
         newSettings = {
           ...newSettings,
-          background_color: '#080808', // Darker background
-          container_color: '#101010', // Darker container
+          background_color: '#080808', 
+          container_color: '#101010', 
           welcome_bubble_color: '#0A0A0A',
-          avatar_border_color: '#7B46E3', // Darker purple
+          avatar_border_color: '#7B46E3', 
           info_bubble_color: '#151515',
           header_color: '#101010',
           bottom_nav_color: '#101010',
           content_color: '#101010',
         };
 
-        // Save to localStorage
+        
         localStorage.setItem('theme', 'contrast');
         localStorage.setItem('backgroundColor', '#080808');
         localStorage.setItem('paperColor', '#101010');
@@ -2614,12 +2750,12 @@ const SettingsPage = () => {
         localStorage.setItem('textColor', '#FFFFFF');
       }
       
-      // Обновляем состояние
+      
       setSettings(newSettings);
       
-      // Update theme context with mode and text color based on theme
+      
       updateThemeSettings({
-        mode: theme, // Add the mode explicitly
+        mode: theme, 
         backgroundColor: newSettings.background_color,
         paperColor: newSettings.container_color,
         headerColor: newSettings.header_color || newSettings.container_color,
@@ -2629,7 +2765,7 @@ const SettingsPage = () => {
         textColor: theme === 'light' ? '#121212' : '#FFFFFF'
       });
       
-      // Сохраняем настройки на сервере
+      
       const response = await ProfileService.updateSettings(newSettings);
       
       if (response.success) {
@@ -2647,12 +2783,12 @@ const SettingsPage = () => {
     }
   };
   
-  // Обработчик переключения push-уведомлений
+  
   const handleTogglePushNotifications = async () => {
     try {
       setSavingNotificationPrefs(true);
       
-      // Если push уведомления не поддерживаются, просто возвращаемся
+      
       if (!pushNotificationSupported) {
         console.error('Push-уведомления не поддерживаются в этом браузере');
         showNotification('error', 'Ваш браузер не поддерживает push-уведомления');
@@ -2665,7 +2801,7 @@ const SettingsPage = () => {
       
       try {
         if (newPushEnabled) {
-          // Если включаем уведомления, подписываемся
+          
           if (window.PushNotifications) {
             console.log('Инициализация push-уведомлений...');
             const success = await window.PushNotifications.initialize();
@@ -2684,7 +2820,7 @@ const SettingsPage = () => {
             return;
           }
         } else {
-          // Если выключаем уведомления, отписываемся
+          
           if (window.PushNotifications && pushSubscriptionStatus) {
             console.log('Отписка от push-уведомлений...');
             const registration = await navigator.serviceWorker.ready;
@@ -2698,7 +2834,7 @@ const SettingsPage = () => {
           }
         }
         
-        // Сохраняем настройки на сервере
+        
         console.log('Отправка настроек на сервер...');
         const response = await axios.post('/api/notifications/preferences', {
           push_notifications_enabled: newPushEnabled,
@@ -2732,12 +2868,12 @@ const SettingsPage = () => {
     }
   };
   
-  // Обработчик переключения Telegram-уведомлений
+  
   const handleToggleTelegramNotifications = async () => {
     try {
       setSavingNotificationPrefs(true);
       
-      // Проверяем, есть ли telegram_id
+      
       if (!notificationPrefs.telegramConnected) {
         console.error('Telegram не подключен, невозможно включить Telegram-уведомления');
         showNotification('warning', 'Для получения уведомлений сначала подключите Telegram в профиле');
@@ -2749,7 +2885,7 @@ const SettingsPage = () => {
       console.log('Переключение Telegram уведомлений на:', newTelegramEnabled);
       
       try {
-        // Сохраняем настройки на сервере
+        
         const response = await axios.post('/api/notifications/preferences', {
           push_notifications_enabled: notificationPrefs.pushNotificationsEnabled,
           telegram_notifications_enabled: newTelegramEnabled
@@ -2782,43 +2918,43 @@ const SettingsPage = () => {
     }
   };
   
-  // Обработчик сохранения Telegram ID
+  
   const handleSaveTelegramId = async () => {
     try {
-      // Сброс ошибок
+      
       setTelegramIdError('');
       setSavingTelegramId(true);
       
-      // Валидация
+      
       if (!telegramIdInput.trim()) {
         setTelegramIdError('Telegram ID не может быть пустым');
         setSavingTelegramId(false);
         return;
       }
       
-      // Проверяем, что введено число
+      
       if (!/^\d+$/.test(telegramIdInput.trim())) {
         setTelegramIdError('Telegram ID должен быть числом');
         setSavingTelegramId(false);
         return;
       }
       
-      // Отправляем запрос на сервер
+      
       const response = await axios.post('/api/profile/telegram-connect', {
         telegram_id: telegramIdInput.trim()
       });
       
       if (response.data && response.data.success) {
-        // Обновляем состояние приложения
+        
         setNotificationPrefs({
           ...notificationPrefs,
           telegramConnected: true
         });
         
-        // Показываем уведомление об успехе
+        
         showNotification('success', 'Telegram аккаунт успешно привязан');
         
-        // Закрываем диалог
+        
         setTelegramDialogOpen(false);
         setTelegramIdInput('');
       } else {
@@ -2833,10 +2969,10 @@ const SettingsPage = () => {
     }
   };
   
-  // Загрузка статуса подключения Element
+  
   const checkElementStatus = async () => {
     try {
-      // Если у нас уже есть данные из fetchProfileData, не делаем запрос
+      
       if (!loadingElementStatus && elementConnected !== null) {
         return elementConnected;
       }
@@ -2860,12 +2996,12 @@ const SettingsPage = () => {
     }
   };
   
-  // Генерация временного токена для привязки Element
+  
   const generateElementToken = async () => {
     try {
       setElementLinking(true);
       
-      // Генерируем случайный токен для идентификации сессии
+      
       const randomToken = Math.random().toString(36).substring(2, 15) + 
                           Math.random().toString(36).substring(2, 15);
       
@@ -2879,62 +3015,65 @@ const SettingsPage = () => {
     }
   };
   
-  // Обработчик для привязки Element
+  
   const handleLinkElement = () => {
     generateElementToken();
     
-    // Устанавливаем слушатель для проверки статуса при возвращении с Auth Element страницы
+    
     const checkInterval = setInterval(() => {
       checkElementStatus().then(isConnected => {
         if (isConnected) {
-          // Если успешно подключили Element, очищаем интервал и состояние привязки
+          
           clearInterval(checkInterval);
           setElementLinking(false);
           setElementToken('');
           showNotification('success', 'Element аккаунт успешно подключен!');
         }
       });
-    }, 2000); // Проверяем каждые 2 секунды
+    }, 2000); 
     
-    // Устанавливаем локальное хранилище, чтобы другие вкладки могли узнать о подключении
+    
     localStorage.setItem('element_auth_pending', 'true');
     
-    // Очищаем интервал через 2 минуты, если пользователь не завершил процесс
+    
     setTimeout(() => {
       clearInterval(checkInterval);
       localStorage.removeItem('element_auth_pending');
     }, 120000);
   };
   
-  // Отмена привязки Element
+  
   const handleCancelElementLinking = () => {
     setElementToken('');
     setElementLinking(false);
-    // Очищаем признак ожидания авторизации
+    
     localStorage.removeItem('element_auth_pending');
   };
   
-  // Add a function to handle removing the active badge
+  
   const handleClearActiveBadge = async () => {
     try {
       setUpdatingActiveBadge(true);
-      const response = await axios.post('/api/profile/achievements/clear-active');
+      const response = await axios.post('/api/profile/achievements/deactivate');
       
-      if (response.data.success) {
-        // Обновляем список бейджей
+      if (response.data && response.data.success) {
+        
         fetchUserAchievements();
+        fetchPurchasedBadges();
         showNotification('success', 'Активный бейдж удален');
       }
+      
       setUpdatingActiveBadge(false);
     } catch (error) {
+      console.error('Ошибка удаления активного бейджа:', error);
       showNotification('error', 'Не удалось удалить активный бейдж');
       setUpdatingActiveBadge(false);
     }
   };
   
-  // Функция для обновления данных профиля после изменения статуса
+  
   const handleStatusUpdate = (statusData) => {
-    // Обновляем локальную копию данных профиля
+    
     setProfileData(prevData => ({
       ...prevData,
       status_text: statusData.status_text,
@@ -2942,7 +3081,7 @@ const SettingsPage = () => {
     }));
   };
   
-  // Получение предупреждений пользователя и статуса аккаунта
+  
   const fetchUserWarnings = async () => {
     try {
       setLoadingWarnings(true);
@@ -2962,7 +3101,7 @@ const SettingsPage = () => {
     }
   };
   
-  // Format date for warnings display
+  
   const formatWarningDate = (dateString) => {
     if (!dateString) return 'Неизвестно';
     try {
@@ -2984,7 +3123,7 @@ const SettingsPage = () => {
     setWarningsDialogOpen(true);
   };
   
-  // Компонент для настройки статуса пользователя
+  
   const StatusSettings = ({ profileData, subscription, onStatusUpdate }) => {
     const theme = useTheme();
     const [statusText, setStatusText] = useState('');
@@ -2997,21 +3136,21 @@ const SettingsPage = () => {
     const [selectedIcon, setSelectedIcon] = useState(null);
     const maxLength = 50;
   
-    // Предустановленные цвета
+    
     const presetColors = [
-      '#D0BCFF', // Default (фиолетовый)
-      '#90CAF9', // Голубой
-      '#A5D6A7', // Зеленый
-      '#FFCC80', // Оранжевый
-      '#EF9A9A', // Красный
-      '#CE93D8', // Сиреневый
-      '#FFF59D', // Желтый
-      '#B0BEC5', // Серый
-      '#F48FB1', // Розовый
-      '#81D4FA'  // Светло-голубой
+      '#D0BCFF', 
+      '#90CAF9', 
+      '#A5D6A7', 
+      '#FFCC80', 
+      '#EF9A9A', 
+      '#CE93D8', 
+      '#FFF59D', 
+      '#B0BEC5', 
+      '#F48FB1', 
+      '#81D4FA'  
     ];
     
-    // Доступные иконки
+    
     const availableIcons = [
       { name: 'cloud', component: <CloudIcon sx={{ fontSize: 24 }} /> },
       { name: 'minion', component: (
@@ -3046,19 +3185,19 @@ const SettingsPage = () => {
       { name: 'info', component: <InfoIcon sx={{ fontSize: 24 }} /> },
     ];
   
-    // Получаем данные статуса из переданного профиля
+    
     useEffect(() => {
       if (profileData) {
-        // Проверка на премиум подписку (также разрешаем ultimate и pick-me)
+        
         setIsPremium(subscription && 
           (subscription.type === 'premium' || 
            subscription.type === 'ultimate' || 
            subscription.type === 'pick-me') && 
           subscription.active);
         
-        // Устанавливаем начальные значения статуса если они есть
+        
         if (profileData.status_text) {
-          // Парсим текст статуса для извлечения иконки
+          
           const parsedStatus = parseStatusText(profileData.status_text);
           setStatusText(parsedStatus.text);
           setSelectedIcon(parsedStatus.iconName);
@@ -3072,22 +3211,22 @@ const SettingsPage = () => {
       }
     }, [profileData, subscription]);
     
-    // Функция для парсинга текста статуса и извлечения иконки
+    
     const parseStatusText = (text) => {
-      // Регулярное выражение для поиска тегов иконок в формате {имя_иконки}
+      
       const iconTagRegex = /\{(\w+)\}/;
       const match = text.match(iconTagRegex);
       
-      // Объект с текстом статуса и иконкой
+      
       const result = {
         text: text,
         iconName: null
       };
       
       if (match) {
-        // Извлекаем имя иконки из тега
+        
         result.iconName = match[1].toLowerCase();
-        // Удаляем тег иконки из текста
+        
         result.text = text.replace(iconTagRegex, '').trim();
       }
       
@@ -3096,7 +3235,7 @@ const SettingsPage = () => {
 
     const handleStatusTextChange = (e) => {
       const value = e.target.value;
-      // Ограничиваем длину текста
+      
       if (value.length <= maxLength) {
         setStatusText(value);
         setHasError(false);
@@ -3112,21 +3251,21 @@ const SettingsPage = () => {
       setSelectedIcon(iconName === selectedIcon ? null : iconName);
     };
     
-    // Формируем полный текст статуса с иконкой для сохранения
+    
     const getFullStatusText = () => {
       return selectedIcon ? `{${selectedIcon}} ${statusText}` : statusText;
     };
 
     const getContrastTextColor = (hexColor) => {
-      // Преобразуем HEX в RGB
+      
       const r = parseInt(hexColor.substr(1, 2), 16);
       const g = parseInt(hexColor.substr(3, 2), 16);
       const b = parseInt(hexColor.substr(5, 2), 16);
       
-      // Вычисляем яркость
+      
       const brightness = (r * 299 + g * 587 + b * 114) / 1000;
       
-      // Возвращаем белый или черный цвет в зависимости от яркости фона
+      
       return brightness > 128 ? '#000000' : '#FFFFFF';
     };
 
@@ -3157,10 +3296,10 @@ const SettingsPage = () => {
           setHasError(false);
           setErrorMessage('');
           
-          // Используем функцию showNotification вместо enqueueSnackbar
+          
           showNotification('success', 'Статус успешно обновлен');
           
-          // Вызываем функцию обновления данных профиля в родительском компоненте
+          
           if (onStatusUpdate) {
             onStatusUpdate({
               status_text: getFullStatusText(),
@@ -3182,43 +3321,43 @@ const SettingsPage = () => {
       }
     };
   
-    // Предпросмотр статуса
+    
     const StatusPreview = () => {
-      // Функция для создания чуть более светлого/темного оттенка цвета для градиента
+      
       const createGradientColor = (hexColor) => {
-        // Преобразуем HEX в RGB
+        
         let r = parseInt(hexColor.substr(1, 2), 16);
         let g = parseInt(hexColor.substr(3, 2), 16);
         let b = parseInt(hexColor.substr(5, 2), 16);
         
-        // Определяем, светлый или темный цвет
+        
         const brightness = (r * 299 + g * 587 + b * 114) / 1000;
         
-        // Для темных цветов делаем светлее, для светлых - темнее
+        
         if (brightness < 128) {
-          // Для темного цвета - делаем светлее
+          
           r = Math.min(255, r + 30);
           g = Math.min(255, g + 30);
           b = Math.min(255, b + 30);
         } else {
-          // Для светлого цвета - делаем темнее
+          
           r = Math.max(0, r - 30);
           g = Math.max(0, g - 30);
           b = Math.max(0, b - 30);
         }
         
-        // Конвертируем обратно в HEX
+        
         return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
       };
 
-      // Определяем второй цвет для градиента
+      
       const gradientColor = createGradientColor(statusColor || '#D0BCFF');
       const textColor = getContrastTextColor(statusColor || '#D0BCFF');
       
-      // Функция для получения иконки по имени
+      
       const getIconByName = (iconName) => {
         const icon = availableIcons.find(icon => icon.name === iconName);
-        return icon ? icon.component : availableIcons[0].component; // Используем облако по умолчанию
+        return icon ? icon.component : availableIcons[0].component; 
       };
 
       return (
@@ -4322,9 +4461,9 @@ const SettingsPage = () => {
                       startIcon={notificationPrefs.telegramConnected ? <LinkOffIcon /> : <LinkIcon />}
                       sx={{ borderRadius: '10px', textTransform: 'none' }}
                       onClick={() => {
-                        // Если Telegram уже подключен, предлагаем отключить
+                        
                         if (notificationPrefs.telegramConnected) {
-                          // Здесь можно добавить диалог подтверждения отключения
+                          
                           axios.post('/api/profile/telegram-disconnect')
                             .then(response => {
                               if (response.data && response.data.success) {
@@ -4341,7 +4480,7 @@ const SettingsPage = () => {
                               showNotification('error', 'Не удалось отключить Telegram аккаунт');
                             });
                         } else {
-                          // Если не подключен, открываем диалог для ввода ID
+                          
                           setTelegramDialogOpen(true);
                         }
                       }}
@@ -4373,17 +4512,14 @@ const SettingsPage = () => {
                   Выберите бейдж, который будет отображаться рядом с вашим именем в профиле и публикациях
                 </Typography>
                 
-                {loadingAchievements ? (
+                {loadingAchievements || loadingPurchasedBadges ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
                     <CircularProgress />
                   </Box>
-                ) : userAchievements.length > 0 ? (
+                ) : (
                   <Box sx={{ width: '100%' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                      <Typography variant="h6" color="primary" sx={{ fontWeight: 600 }}>
-                        Ваши достижения
-                      </Typography>
                       {userAchievements.some(achievement => achievement.is_active) && (
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
                         <Button
                           variant="outlined"
                           color="error"
@@ -4401,11 +4537,22 @@ const SettingsPage = () => {
                         >
                           Убрать бейдж
                         </Button>
-                      )}
+                      </Box>
+                    )}
+                    
+                    {userAchievements.length > 0 && (
+                      <>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, mt: 2 }}>
+                          <ShieldIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
+                          <Typography variant="h6" color="primary" sx={{ fontWeight: 600 }}>
+                            Заработанные достижения
+                          </Typography>
                     </Box>
                     
                     <Grid container spacing={2}>
-                      {userAchievements.map((achievement) => (
+                          {userAchievements
+                            .filter(achievement => !achievement.image_path.includes('shop/'))
+                            .map((achievement) => (
                         <Grid item xs={6} sm={4} md={3} key={achievement.id}>
                           <Card 
                             elevation={achievement.is_active ? 4 : 1}
@@ -4524,24 +4671,191 @@ const SettingsPage = () => {
                                 {achievement.description || 'Заслуженное достижение'}
                               </Typography>
 
-                              {achievement.max_copies === 1 && achievement.purchases?.length >= 1 ? (
                                 <Button 
-                                  variant="outlined"
-                                  color="error"
+                                      variant={achievement.is_active ? "outlined" : "contained"}
+                                      color={achievement.is_active ? "success" : "primary"}
+                                      onClick={() => handleSetActiveBadge(achievement.id)}
                                   size={isMobile ? "small" : "medium"}
+                                      startIcon={achievement.is_active ? <CheckIcon /> : null}
                                   sx={{ 
                                     width: '100%',
                                     borderRadius: '10px',
                                     textTransform: 'none',
+                                        boxShadow: achievement.is_active ? 'none' : theme.shadows[1]
                                   }}
-                                  disabled
+                                      disabled={updatingActiveBadge}
                                 >
-                                  Распродано
+                                      {achievement.is_active ? "Активен" : "Установить"}
                                 </Button>
-                              ) : (
+                                  </CardContent>
+                                </Card>
+                              </Grid>
+                          ))}
+                        </Grid>
+                        
+                        <Box sx={{ mt: 2, mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            Собирайте новые достижения, участвуя в сообществе
+                          </Typography>
+                        </Box>
+                      </>
+                    )}
+                    
+                    {/* Purchased Badges Section */}
+                    {purchasedBadges.length > 0 && (
+                      <>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, mt: 4 }}>
+                          <ShoppingBagIcon sx={{ mr: 1, color: theme.palette.secondary.main }} />
+                          <Typography variant="h6" color="secondary" sx={{ fontWeight: 600 }}>
+                            Приобретенные бейджи
+                          </Typography>
+                        </Box>
+                        
+                        <Grid container spacing={2}>
+                          {userAchievements
+                            .filter(achievement => achievement.image_path.includes('shop/'))
+                            .map((achievement) => (
+                              <Grid item xs={6} sm={4} md={3} key={achievement.id}>
+                                <Card 
+                                  elevation={achievement.is_active ? 4 : 1}
+                                  sx={{ 
+                                    position: 'relative',
+                                    height: '100%',
+                                    borderRadius: 2,
+                                    background: achievement.is_active 
+                                      ? `linear-gradient(145deg, ${alpha(theme.palette.background.paper, 0.8)}, ${alpha(theme.palette.background.paper, 0.9)})`
+                                      : theme.palette.background.paper,
+                                    border: achievement.is_active 
+                                      ? `2px solid ${theme.palette.secondary.main}` 
+                                      : `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                                    transition: 'all 0.3s ease',
+                                    overflow: 'visible',
+                                    animation: achievement.is_active ? 'badge-glow 2.5s infinite' : 'none',
+                                    '&:hover': { 
+                                      transform: 'translateY(-5px)',
+                                      boxShadow: theme.shadows[achievement.is_active ? 6 : 3]
+                                    }
+                                  }}
+                                >
+                                  {achievement.is_active && (
+                                    <Box 
+                                      sx={{
+                                        position: 'absolute',
+                                        top: -10,
+                                        right: -10,
+                                        backgroundColor: theme.palette.success.main,
+                                        color: theme.palette.success.contrastText,
+                                        borderRadius: '50%',
+                                        width: 28,
+                                        height: 28,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        boxShadow: theme.shadows[3],
+                                        zIndex: 2
+                                      }}
+                                    >
+                                      <CheckIcon fontSize="small" />
+                                    </Box>
+                                  )}
+                                  
+                                  <Box
+                                    sx={{
+                                      position: 'absolute',
+                                      top: -6,
+                                      left: -6,
+                                      backgroundColor: theme.palette.secondary.main,
+                                      color: theme.palette.secondary.contrastText,
+                                      borderRadius: '50%',
+                                      width: 24,
+                                      height: 24,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      boxShadow: theme.shadows[3],
+                                      zIndex: 2
+                                    }}
+                                  >
+                                    <ShoppingBagIcon fontSize="small" sx={{ fontSize: '14px' }} />
+                                  </Box>
+                                  
+                                  <CardContent sx={{ 
+                                    display: 'flex', 
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    textAlign: 'center',
+                                    p: 2,
+                                    '&:last-child': { pb: 2 }
+                                  }}>
+                                    <Box sx={{
+                                      width: 80,
+                                      height: 80,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      mb: 1.5,
+                                      position: 'relative',
+                                      '&::after': achievement.is_active ? {
+                                        content: '""',
+                                        position: 'absolute',
+                                        top: -5,
+                                        left: -5,
+                                        right: -5,
+                                        bottom: -5,
+                                        borderRadius: '50%',
+                                        border: `2px solid ${theme.palette.secondary.main}`,
+                                        animation: 'pulse 1.5s infinite'
+                                      } : {}
+                                    }}>
+                                      <Box 
+                                        component="img" 
+                                        src={`/static/images/bages/${achievement.image_path}`}
+                                        alt={achievement.name || achievement.bage}
+                                        sx={{ 
+                                          width: 70, 
+                                          height: 70,
+                                          objectFit: 'contain',
+                                          filter: achievement.is_active ? 'none' : 'grayscale(30%)',
+                                          transition: 'all 0.3s ease',
+                                        }}
+                                        onError={(e) => {
+                                          e.target.onerror = null;
+                                          e.target.src = '/static/images/bages/default-badge.png';
+                                        }}
+                                      />
+                                    </Box>
+                                    
+                                    <Typography 
+                                      variant={isMobile ? "body1" : "subtitle1"} 
+                                      sx={{ 
+                                        mb: 1, 
+                                        fontWeight: 600,
+                                        fontSize: isMobile ? '0.9rem' : 'inherit'
+                                      }}
+                                    >
+                                      {achievement.name || achievement.bage}
+                                    </Typography>
+                                    
+                                    <Typography 
+                                      variant="body2" 
+                                      color="text.secondary" 
+                                      sx={{ 
+                                        mb: 2, 
+                                        flexGrow: 1,
+                                        fontSize: isMobile ? '0.75rem' : 'inherit',
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: 'vertical',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis'
+                                      }}
+                                    >
+                                      {achievement.description || 'Приобретенный бейдж'}
+                                    </Typography>
+
                                 <Button 
                                   variant={achievement.is_active ? "outlined" : "contained"}
-                                  color={achievement.is_active ? "success" : "primary"}
+                                      color={achievement.is_active ? "success" : "secondary"}
                                   onClick={() => handleSetActiveBadge(achievement.id)}
                                   size={isMobile ? "small" : "medium"}
                                   startIcon={achievement.is_active ? <CheckIcon /> : null}
@@ -4555,23 +4869,31 @@ const SettingsPage = () => {
                                 >
                                   {achievement.is_active ? "Активен" : "Установить"}
                                 </Button>
-                              )}
                             </CardContent>
                           </Card>
                         </Grid>
                       ))}
                     </Grid>
                     
-                    <Box sx={{ mt: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                        <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                       <Typography variant="body2" color="text.secondary">
-                        Собирайте новые достижения, участвуя в сообществе
+                            Покупайте новые бейджи в магазине бейджей
                       </Typography>
-                      <Typography variant="caption" color="text.disabled">
-                        Бейджи отображаются рядом с вашим именем в профиле и комментариях
-                      </Typography>
+                          <Link href="/badge-shop" sx={{ textDecoration: 'none' }}>
+                            <Button 
+                              variant="outlined" 
+                              color="secondary" 
+                              startIcon={<StorefrontIcon />}
+                              sx={{ mt: 1, borderRadius: '10px', textTransform: 'none', marginBottom: '60px' }}
+                            >
+                              Перейти в магазин
+                            </Button>
+                          </Link>
                     </Box>
-                  </Box>
-                ) : (
+                      </>
+                    )}
+                    
+                    {userAchievements.length === 0 && purchasedBadges.length === 0 && (
                   <Box sx={{ 
                     textAlign: 'center', 
                     py: 4, 
@@ -4585,8 +4907,20 @@ const SettingsPage = () => {
                       У вас пока нет бейджей
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                      Участвуйте в сообществе, чтобы получать награды и достижения
+                          Участвуйте в сообществе, чтобы получать награды и достижения, или посетите магазин, чтобы приобрести бейджи
                     </Typography>
+                        <Link href="/badge-shop" sx={{ textDecoration: 'none' }}>
+                          <Button 
+                            variant="outlined" 
+                            color="secondary" 
+                            startIcon={<StorefrontIcon />}
+                            sx={{ mt: 3, borderRadius: '10px', textTransform: 'none', marginBottom: '60px' }}
+                          >
+                            Перейти в магазин
+                          </Button>
+                        </Link>
+                      </Box>
+                    )}
                   </Box>
                 )}
                 
@@ -4642,7 +4976,7 @@ const SettingsPage = () => {
             
             <SettingsCard>
               <SettingsCardContent sx={{ 
-                p: { xs: 1, sm: 2, md: 3 } // Адаптивные отступы
+                p: { xs: 1, sm: 2, md: 3 } 
               }}>
                 <UsernameShopTab 
                   activeTab={activeTab}
@@ -4777,7 +5111,7 @@ const SettingsPage = () => {
           fullWidth
           sx={{
             '& .MuiDialog-paper': {
-              borderRadius: 1, // Less rounded corners
+              borderRadius: 1, 
               background: 'rgba(18, 18, 18, 0.8)',
               backdropFilter: 'blur(10px)',
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
@@ -4906,7 +5240,7 @@ const SettingsPage = () => {
   );
 };
 
-// Add this new component for theme selection near the other components
+
 const ThemeSelector = ({ onThemeSelect }) => {
   const theme = useTheme();
   const currentTheme = localStorage.getItem('theme') || 'dark';

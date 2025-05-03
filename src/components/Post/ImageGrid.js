@@ -30,12 +30,12 @@ const BackgroundImage = styled('div')({
   backgroundPosition: 'center',
   filter: 'blur(10px)',
   opacity: 0.5,
-  transform: 'scale(1.1)', // Увеличиваем для избежания краев при размытии
+  transform: 'scale(1.1)', 
 });
 
 const Image = styled('img')({
   maxWidth: '100%',
-  maxHeight: '300px', // Устанавливаем максимальную высоту 300px
+  maxHeight: '300px', 
   width: 'auto',
   height: 'auto',
   objectFit: 'contain',
@@ -60,72 +60,72 @@ const ImageOverlay = styled(Box)({
 });
 
 const ImageGrid = ({ images, onImageClick }) => {
-  // Ensure images is an array and filter out empty items
+  
   const imageArray = Array.isArray(images) 
     ? images.filter(Boolean) 
     : (typeof images === 'string' && images ? [images] : []);
   
-  // Limit to 6 images maximum
+  
   const limitedImages = imageArray.slice(0, 6);
   const remainingCount = imageArray.length - 6;
   
-  // If no images, don't render the component
+  
   if (limitedImages.length === 0) {
     return null;
   }
   
-  // State for optimized images
+  
   const [optimizedImages, setOptimizedImages] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Get grid layout based on number of images
+  
   const getGridLayout = (count) => {
     switch (count) {
       case 1:
         return {
           gridTemplateColumns: '1fr',
-          gridTemplateRows: 'minmax(auto, 300px)', // Изменяем на 300px максимум
+          gridTemplateRows: 'minmax(auto, 300px)', 
         };
       case 2:
         return {
           gridTemplateColumns: '1fr 1fr',
-          gridTemplateRows: 'minmax(auto, 300px)', // Изменяем на 300px максимум
+          gridTemplateRows: 'minmax(auto, 300px)', 
         };
       case 3:
         return {
           gridTemplateColumns: '1fr 1fr',
-          gridTemplateRows: 'minmax(auto, 300px) minmax(auto, 300px)', // Изменяем на 300px максимум
+          gridTemplateRows: 'minmax(auto, 300px) minmax(auto, 300px)', 
           gridTemplateAreas: '"img1 img2" "img1 img3"',
         };
       case 4:
         return {
           gridTemplateColumns: '1fr 1fr',
-          gridTemplateRows: 'minmax(auto, 300px) minmax(auto, 300px)', // Изменяем на 300px максимум
+          gridTemplateRows: 'minmax(auto, 300px) minmax(auto, 300px)', 
         };
       case 5:
       case 6:
         return {
           gridTemplateColumns: '1fr 1fr 1fr',
-          gridTemplateRows: 'minmax(auto, 300px) minmax(auto, 300px)', // Изменяем на 300px максимум
+          gridTemplateRows: 'minmax(auto, 300px) minmax(auto, 300px)', 
         };
       default:
         return {
           gridTemplateColumns: '1fr',
-          gridTemplateRows: 'minmax(auto, 300px)', // Изменяем на 300px максимум
+          gridTemplateRows: 'minmax(auto, 300px)', 
         };
     }
   };
 
-  // Helper to format image URLs
+  
   const formatImageUrl = (url) => {
     if (!url) return '';
     
-    // If the URL is already absolute or begins with a slash, return it as is
+    
     if (url.startsWith('http') || url.startsWith('/')) {
       return url;
     }
     
-    // For relative paths, add the proper base path
+    
     if (url.includes('post/')) {
       return `/static/uploads/${url}`;
     }
@@ -133,7 +133,7 @@ const ImageGrid = ({ images, onImageClick }) => {
     return url;
   };
   
-  // Проверка поддержки WebP в браузере
+  
   const supportsWebP = () => {
     try {
       return (
@@ -149,13 +149,13 @@ const ImageGrid = ({ images, onImageClick }) => {
     }
   };
   
-  // Добавляем параметр формата к URL
+  
   const addFormatParam = (url, format = 'webp') => {
     if (!url || !url.startsWith('/')) return url;
     return `${url}${url.includes('?') ? '&' : '?'}format=${format}`;
   };
 
-  // Load and optimize images
+  
   useEffect(() => {
     const loadOptimizedImages = async () => {
       if (!images || images.length === 0) {
@@ -167,21 +167,21 @@ const ImageGrid = ({ images, onImageClick }) => {
       setLoading(true);
       
       try {
-        // Проверяем поддержку WebP
+        
         const webpSupported = supportsWebP();
         console.log('WebP support detected:', webpSupported);
         
         const optimizedResults = await Promise.all(
           limitedImages.map(async (imageUrl) => {
-            // Форматируем URL и добавляем параметр WebP если поддерживается
+            
             let formattedUrl = formatImageUrl(imageUrl);
             
-            // Применяем WebP для изображений с нашего сервера
+            
             if (webpSupported && formattedUrl.startsWith('/static/')) {
               formattedUrl = addFormatParam(formattedUrl, 'webp');
             }
             
-            // Оптимизируем изображение
+            
             const optimized = await optimizeImage(formattedUrl, {
               quality: 0.85,
               maxWidth: 1200,
@@ -189,7 +189,7 @@ const ImageGrid = ({ images, onImageClick }) => {
               preferWebP: webpSupported
             });
             
-            // Сохраняем оригинальный URL для fallback
+            
             return {
               ...optimized,
               originalSrc: formatImageUrl(imageUrl)
@@ -200,7 +200,7 @@ const ImageGrid = ({ images, onImageClick }) => {
         setOptimizedImages(optimizedResults);
       } catch (error) {
         console.error('Error optimizing images:', error);
-        // Fallback to original images
+        
         setOptimizedImages(limitedImages.map(url => ({
           src: formatImageUrl(url),
           originalSrc: formatImageUrl(url)
@@ -213,7 +213,7 @@ const ImageGrid = ({ images, onImageClick }) => {
     loadOptimizedImages();
   }, [images]);
 
-  // Handle image click and prevent propagation
+  
   const handleImageClick = (e, index) => {
     e.stopPropagation();
     if (onImageClick) {
@@ -221,7 +221,7 @@ const ImageGrid = ({ images, onImageClick }) => {
     }
   };
 
-  // Display loading placeholder while optimizing
+  
   if (loading) {
     return (
       <Box

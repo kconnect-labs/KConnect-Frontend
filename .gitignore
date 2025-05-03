@@ -1,0 +1,12 @@
+/.babelrc
+/.env
+/build
+/clean-comments.sh
+/jsconfig.json
+/node_modules
+/package-lock.json
+/tsconfig.json
+/utils
+/vapid_keys.json
+/vite
+/vite.config.js
