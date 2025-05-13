@@ -57,7 +57,7 @@ const SidebarFooter = ({ primaryColor }) => {
           }
         }}
       >
-        К-Коннект v2.5
+        К-Коннект v2.6
       </Typography>
       <FooterTypography variant="caption" display="block">
         Правообладателям

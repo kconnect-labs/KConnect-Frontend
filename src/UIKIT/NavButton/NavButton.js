@@ -122,7 +122,7 @@ const areEqual = (prevProps, nextProps) => {
   );
 };
 
-// Основной компонент
+
 const NavButton = ({ 
   text, 
   icon, 
@@ -139,7 +139,7 @@ const NavButton = ({
   rel,
   ...rest 
 }) => {
-  // Определяем компонент для рендеринга (RouterLink или div для onClick)
+
   const componentProps = path ? {
     component: RouterLink,
     to: path,
@@ -149,7 +149,7 @@ const NavButton = ({
     onClick
   };
 
-  // Дополнительные стили для вложенных элементов
+
   const nestedStyles = nested ? {
     pl: 2,
     borderRadius: (theme) => theme.spacing(1.2),
@@ -213,6 +213,6 @@ const NavButton = ({
   );
 };
 
-// Экспортируем также стилизованные компоненты, чтобы их можно было переиспользовать
+
 export { NavItemStyled, NavIconStyled, NavTextStyled };
 export default memo(NavButton, areEqual); 

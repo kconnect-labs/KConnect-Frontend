@@ -220,6 +220,65 @@ const SimpleApiDocsPage = () => {
           }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <SecurityIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
+              <Typography variant="h6">API доступ и безопасность</Typography>
+            </Box>
+            <Typography variant="body2" paragraph>
+              API К-Коннект защищено от несанкционированного доступа с помощью CORS и механизма проверки API-ключей. Для использования API из внешних приложений или скриптов необходимо получить API-ключ.
+            </Typography>
+            
+            <SectionTitle variant="subtitle2">Ограничения CORS</SectionTitle>
+            <Typography variant="body2" paragraph>
+              По умолчанию API доступно только для запросов с домена k-connect.ru и локальных разработочных сред. Для доступа из внешних приложений используйте API-ключ.
+            </Typography>
+            
+            <SectionTitle variant="subtitle2">Использование API-ключа</SectionTitle>
+            <Typography variant="body2" paragraph>
+              Для обхода ограничений CORS и получения доступа к API из любого приложения, необходимо добавить специальный заголовок <code>X-API-Key</code> ко всем запросам.
+            </Typography>
+            
+            <CodeBlock>
+{`// Пример запроса с API-ключом
+fetch('https://k-connect.ru/api/posts', {
+  method: 'GET',
+  headers: {
+    'X-API-Key': 'ваш-api-ключ-здесь'
+  }
+})
+.then(response => response.json())
+.then(data => console.log(data))
+.catch(error => console.error('Ошибка:', error));`}
+            </CodeBlock>
+            
+            <SectionTitle variant="subtitle2">Получение API-ключа</SectionTitle>
+            <Typography variant="body2" paragraph>
+              API-ключ можно получить у администрации К-Коннект. Для получения ключа необходимо:
+            </Typography>
+            <ol>
+              <li>Быть зарегистрированным пользователем К-Коннект</li>
+              <li>Отправить запрос администрации с описанием цели использования API</li>
+              <li>После одобрения запроса вам будет выдан персональный API-ключ</li>
+            </ol>
+            <Typography variant="body2" sx={{ 
+              mt: 2, 
+              p: 2, 
+              borderRadius: 1,
+              backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.warning.main, 0.1) : alpha(theme.palette.warning.main, 0.05),
+              color: theme.palette.warning.main,
+              border: `1px solid ${alpha(theme.palette.warning.main, 0.3)}`,
+            }}>
+              <b>Важно:</b> Храните ваш API-ключ в безопасности и не передавайте его третьим лицам. Ключ может быть отозван в случае нарушения правил использования API.
+            </Typography>
+          </Box>
+          
+          <Box sx={{ 
+            mb: 4, 
+            p: 3, 
+            borderRadius: 2,
+            backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.primary.main, 0.05) : alpha(theme.palette.primary.main, 0.03),
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <SecurityIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
               <Typography variant="h6">Общая информация об авторизации</Typography>
             </Box>
             <Typography variant="body2" paragraph>
@@ -1089,6 +1148,55 @@ Content-Type: application/json
             <QueueMusicIcon fontSize="large" />
             Музыка
           </ApiTitle>
+          
+          <Box sx={{ 
+            mb: 4, 
+            p: 3, 
+            borderRadius: 2,
+            backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.warning.main, 0.05) : alpha(theme.palette.warning.main, 0.03),
+            border: `1px solid ${alpha(theme.palette.warning.main, 0.1)}`,
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <SecurityIcon sx={{ mr: 1, color: theme.palette.warning.main }} />
+              <Typography variant="h6">Специальный ключ для загрузки музыки</Typography>
+            </Box>
+            <Typography variant="body2" paragraph>
+              Для загрузки треков и текстов песен используется отдельный ключ доступа. В отличие от общего API-ключа, 
+              музыкальный ключ работает только с эндпоинтами загрузки музыки.
+            </Typography>
+            
+            <SectionTitle variant="subtitle2">Использование X-Key для загрузки треков</SectionTitle>
+            <Typography variant="body2" paragraph>
+              При загрузке треков (/api/music/upload) или текстов песен (/api/music/&lt;track_id&gt;/lyrics/upload), 
+              необходимо добавить заголовок <code>X-Key</code> с соответствующим ключом, полученным у администрации.
+            </Typography>
+            
+            <CodeBlock>
+{`// Пример запроса для загрузки трека с X-Key
+fetch('https://k-connect.ru/api/music/upload', {
+  method: 'POST',
+  headers: {
+    'X-Key': 'ваш-ключ-для-музыки'
+  },
+  body: formData // FormData с файлами и метаданными трека
+})
+.then(response => response.json())
+.then(data => console.log(data))
+.catch(error => console.error('Ошибка:', error));`}
+            </CodeBlock>
+            
+            <Typography variant="body2" sx={{ 
+              mt: 2, 
+              p: 2, 
+              borderRadius: 1,
+              backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.info.main, 0.1) : alpha(theme.palette.info.main, 0.05),
+              color: theme.palette.info.main,
+              border: `1px solid ${alpha(theme.palette.info.main, 0.3)}`,
+            }}>
+              <b>Примечание:</b> Музыкальный ключ (X-Key) работает <i>только</i> с эндпоинтами загрузки. Для других операций с музыкой используйте стандартный API-ключ (X-API-Key).
+            </Typography>
+          </Box>
+          
           <ApiEndpoint
             method="GET"
             path="/api/music"
@@ -1201,6 +1309,67 @@ Content-Type: application/json
   "total": 3,
   "pages": 1,
   "current_page": 1
+}`}
+          />
+          
+          <ApiEndpoint
+            method="POST"
+            path="/api/music/upload"
+            description="Загрузка нового трека. Требует специальный ключ доступа в заголовке X-Key."
+            authRequired={true}
+            request={`POST /api/music/upload
+Content-Type: multipart/form-data
+X-Key: ваш-ключ-для-загрузки-музыки
+
+{
+  "title": "Название трека",
+  "artist": "Исполнитель",
+  "album": "Название альбома",
+  "genre": "Жанр",
+  "description": "Описание трека",
+  "duration": 180,
+  "file": [аудио-файл],
+  "cover": [изображение обложки]
+}`}
+            response={`{
+  "success": true,
+  "message": "Трек успешно загружен",
+  "track": {
+    "id": 123,
+    "title": "Название трека",
+    "artist": "Исполнитель",
+    "file_path": "/static/music/456/123/1620000000_track.mp3",
+    "cover_path": "/static/music/456/123/1620000000_cover.jpg"
+  }
+}`}
+          />
+          
+          <ApiEndpoint
+            method="POST"
+            path="/api/music/:track_id/lyrics/upload"
+            description="Загрузка текста песни для существующего трека. Требует специальный ключ доступа в заголовке X-Key."
+            authRequired={true}
+            request={`POST /api/music/123/lyrics/upload
+Content-Type: application/json
+X-Key: ваш-ключ-для-загрузки-музыки
+
+{
+  "synced_lyrics": [
+    {
+      "startTimeMs": 0,
+      "text": "Первая строка песни"
+    },
+    {
+      "startTimeMs": 3000,
+      "text": "Вторая строка песни"
+    }
+  ]
+}`}
+            response={`{
+  "success": true,
+  "message": "Synchronized lyrics uploaded successfully",
+  "path": "/static/uploads/lyrics/track_123.json",
+  "copyright_notice": "Убедитесь, что вы не нарушаете авторские права при добавлении текстов песен"
 }`}
           />
         </>

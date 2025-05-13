@@ -91,4 +91,8 @@ input, textarea, select {
   opacity: 0 !important;
   position: absolute !important;
   pointer-events: none !important;
+}
+
+.fullscreen-player-active #app-bottom-navigation {
+  display: none !important;
 } 

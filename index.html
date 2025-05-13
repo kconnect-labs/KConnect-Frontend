@@ -12,17 +12,19 @@
     <meta http-equiv="Expires" content="0" />
 
     <meta name="theme-color" content="#1E1E1E" />
-    <meta name="description" content="К-Коннект - социальная сеть от независимого разработчика" />
+    <meta name="description" content="К-Коннект - социальная сеть для молодежи и творческих людей" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="application-name" content="К-Коннект" lang="ru" />
     
-    <meta name="robots" content="all" />
-    <meta name="yandex" content="all" />
-    <meta name="googlebot" content="all" />
-    <meta name="yandex-verification" content="verify" />
-    <meta name="google-site-verification" content="verify" />
+    <!-- Essential OG Tags for social media previews -->
+    <meta property="og:title" content="К-Коннект" />
+    <meta property="og:description" content="К-Коннект - социальная сеть для молодежи и творческих людей" />
+    <meta property="og:image" content="/icon-512.png" />
+    <meta property="og:url" content="https://k-connect.ru" />
+    <meta property="og:type" content="website" />
     
+    <!-- Apple specific tags -->
     <link rel="apple-touch-icon" href="/icon-180.png" />
     <link rel="apple-touch-icon" sizes="152x152" href="/icon-152.png" />
     <link rel="apple-touch-icon" sizes="167x167" href="/icon-167.png" />
@@ -40,25 +42,6 @@
     <link rel="apple-touch-startup-image" href="/splash/splash-1241x2208.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)" />
     <link rel="apple-touch-startup-image" href="/splash/splash-1536x2048.png" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" />
     
-    <meta name="keywords" content="к-коннект, социальная сеть, общение, профили, медиа, мессенджер, сообщения" />
-    
-    <meta property="og:title" content="К-Коннект" />
-    <meta property="og:description" content="К-Коннект - социальная сеть от независимого разработчика" />
-    <meta property="og:image" content="/icon-512.png" />
-    <meta property="og:image:width" content="512" />
-    <meta property="og:image:height" content="512" />
-    <meta property="og:url" content="https://k-connect.ru" />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="К-Коннект" />
-    <meta property="og:locale" content="ru_RU" />
-    
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="К-Коннект" />
-    <meta name="twitter:description" content="К-Коннект - социальная сеть от независимого разработчика" />
-    <meta name="twitter:image" content="/icon-512.png" />
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
-    
     <title>К-Коннект</title>
     <link rel="stylesheet" href="/fonts.css">
     
@@ -66,20 +49,12 @@
     <script src="/createSvgIcon.js"></script>
     
     <style>
-      /* Disable all touch actions that can cause zoom */
       body {
         touch-action: pan-x pan-y;
         -webkit-touch-callout: none;
-        /* Убираем запрет на выделение текста */
-        /*
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-        */
+
       }
       
-      /* Добавляем возможность выделения текста */
       p, h1, h2, h3, h4, h5, h6, span, div, article, section {
         -webkit-user-select: text;
         -moz-user-select: text;
@@ -87,7 +62,6 @@
         user-select: text;
       }
       
-      /* Но запрещаем выделение текста для интерактивных элементов интерфейса */
       button, a, input[type="button"], .no-select {
         -webkit-user-select: none;
         -moz-user-select: none;
@@ -97,14 +71,12 @@
     </style>
     
     <script>
-      // Disable pinch zoom
       document.addEventListener('touchmove', function(event) {
         if (event.touches.length > 1) {
           event.preventDefault();
         }
       }, { passive: false });
       
-      // Prevent double-tap to zoom
       let lastTap = 0;
       document.addEventListener('touchend', function(event) {
         const currentTime = new Date().getTime();
@@ -115,10 +87,12 @@
         lastTap = currentTime;
       });
     </script>
+
   </head>
   <body>
     <noscript>Для работы К-Коннект необходим JavaScript</noscript>
     <div id="root"></div>
     <script type="module" src="/src/index.js"></script>
+
   </body>
 </html>

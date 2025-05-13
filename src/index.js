@@ -11,6 +11,9 @@ import './index.css';
 
 import './services/axiosConfig';
 
+import ErrorBoundary from './components/ErrorBoundary';
+import LoadingIndicator from './components/LoadingIndicator';
+
 async function setupCaching() {
   console.debug('[Cache] Настройка кэширования...');
   
@@ -120,9 +123,12 @@ setupCaching().then(() => {
   
   root.render(
     <React.StrictMode>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <ErrorBoundary>
+        <LoadingIndicator />
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </ErrorBoundary>
     </React.StrictMode>
   );
 }); 

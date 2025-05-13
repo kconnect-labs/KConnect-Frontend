@@ -1,0 +1,202 @@
+@use 'sass:color';
+
+$apple-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+$apple-progress-height: 5px;
+$apple-button-size: 64px;
+$apple-secondary-button-size: 44px;
+
+.container {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 10px;
+  display: flex;
+  flex-direction: column;
+  margin-top: auto;
+  margin-bottom: 20px;
+  animation: scaleIn 0.4s ease-out forwards;
+  
+  @media (min-width: 600px) {
+    margin-bottom: 30px;
+    max-width: 680px;
+  }
+  
+  @media (min-width: 960px) {
+    margin-bottom: 40px;
+    max-width: 700px;
+  }
+}
+
+/* Progress bar container */
+.progressContainer {
+  width: 100%;
+  padding: 0 16px;
+  margin-bottom: 8px;
+}
+
+/* Apple Music styled slider */
+.progressSlider {
+  color: #a02dff;
+  height: 4px;
+  padding: 12px 0;
+
+  &:hover {
+    .sliderThumb {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
+.sliderTrack {
+  height: 4px;
+  border-radius: 2px;
+}
+
+.sliderRail {
+  height: 4px;
+  border-radius: 2px;
+  opacity: 0.3;
+  background-color: #aaa;
+}
+
+.sliderThumb {
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+  margin-left: -6px;
+  transition: all 0.2s ease;
+  opacity: 0;
+  transform: scale(0);
+}
+
+/* Time display */
+.timeDisplay {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.currentTime, .duration {
+  min-width: 40px;
+}
+
+.currentTime {
+  text-align: left;
+}
+
+.duration {
+  text-align: right;
+}
+
+/* Playback controls */
+.controlsContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 16px 0;
+}
+
+.controlButton {
+  transition: all 0.2s ease;
+}
+
+.secondaryButton {
+  margin: 0 8px;
+}
+
+.primaryButton {
+  margin: 0 12px;
+  padding: 12px;
+  font-size: 32px;
+  svg {
+    font-size: 32px;
+  }
+}
+
+.active {
+  opacity: 1;
+}
+
+/* Volume control and additional controls */
+.additionalControls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 10px;
+}
+
+.volumeControl {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 200px;
+}
+
+.volumeButton {
+  color: rgba(255, 255, 255, 0.8) !important;
+  padding: 8px !important;
+}
+
+.volumeSlider {
+  width: 100% !important;
+  margin-left: 8px !important;
+  height: 4px !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  
+  .sliderTrack {
+    height: 4px !important;
+  }
+  
+  .sliderRail {
+    height: 4px !important;
+    opacity: 0.3 !important;
+  }
+  
+  .sliderThumb {
+    width: 0 !important;
+    height: 0 !important;
+    
+    &:hover, &.Mui-active {
+      width: 10px !important;
+      height: 10px !important;
+    }
+  }
+  
+  &:hover {
+    .sliderThumb {
+      transform: scale(1) !important;
+      opacity: 1 !important;
+      width: 10px !important;
+      height: 10px !important;
+    }
+  }
+}
+
+.likeContainer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.likeButton {
+  color: rgba(255, 255, 255, 0.8) !important;
+  transition: all 0.2s ease !important;
+  
+  &:hover {
+    transform: scale(1.15) !important;
+  }
+}
+
+.likedIcon {
+  animation: likeAnimation 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.49) forwards !important;
+}
+
+@keyframes likeAnimation {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+} 

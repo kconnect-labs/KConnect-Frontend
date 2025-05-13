@@ -5,7 +5,7 @@ class NotificationService {
     let retryCount = 0;
     const maxRetries = 2;
     
-    // NOTE: We're using a hardcoded VAPID key for compatibility
+
     
     const hardcodedVapidKey = 'BHHDcCL7H0Aze-qL17sSPR-x4PcDrvConfsgy-BaRmEkSBq8QyacSjt-EDocdQbxvEwplO0GbBVFe0UWmM0HKp0=';
     console.log(`Using hardcoded VAPID key: ${hardcodedVapidKey.substring(0, 10)}...`);
@@ -175,7 +175,7 @@ class NotificationService {
         ...subscriptionJSON,
         send_test: true,  
         platform: this.getBrowserInfo(), 
-        url: 'https://k-connect.ru'  // Всегда включаем параметр url вместо link
+        url: 'https://k-connect.ru'
       };
       
       console.log('Saving subscription to server:', payload);
@@ -191,7 +191,7 @@ class NotificationService {
     }
   }
   
-  // Получение информации о браузере для аналитики
+
   getBrowserInfo() {
     const userAgent = navigator.userAgent;
     let browserName = 'other';
@@ -231,7 +231,7 @@ class NotificationService {
     return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   }
   
-  // Helper to parse notification links and content
+
   parseNotificationLink(link) {
     if (!link) return { type: 'unknown' };
     if (link.startsWith('/profile/')) {

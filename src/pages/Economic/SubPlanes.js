@@ -295,21 +295,29 @@ const SubPlanes = () => {
       
       if (error.response) {
         
-        switch (error.response.status) {
-          case 404:
-            errorMessage = '404 - Неверный ключ';
-            break;
-          case 400:
-            errorMessage = '400 - Данный ключ уже не действителен!';
-            break;
-          case 403:
-            errorMessage = '403 - Доступ запрещен';
-            break;
-          case 500:
-            errorMessage = '500 - Ошибка сервера';
-            break;
-          default:
-            errorMessage = error.response.data?.message || `Ошибка ${error.response.status}`;
+
+        if (error.response.data && 
+            error.response.data.error && 
+            error.response.data.error.includes('Невозможно активировать подписку') && 
+            error.response.data.error.includes('так как у вас уже есть подписка более высокого уровня')) {
+          errorMessage = error.response.data.error;
+        } else {
+          switch (error.response.status) {
+            case 404:
+              errorMessage = '404 - Неверный ключ';
+              break;
+            case 400:
+              errorMessage = error.response.data?.error || '400 - Данный ключ уже не действителен!';
+              break;
+            case 403:
+              errorMessage = '403 - Доступ запрещен';
+              break;
+            case 500:
+              errorMessage = '500 - Ошибка сервера';
+              break;
+            default:
+              errorMessage = error.response.data?.message || `Ошибка ${error.response.status}`;
+          }
         }
       } else if (error.request) {
         
@@ -389,16 +397,19 @@ const SubPlanes = () => {
       'Приоритетная поддержка',
       'Установка статуса',
       'Изменение цвета профиля',
-      'Ежемесячное пополнение на 5.000 баллов'
+      'Ежемесячное пополнение на 5.000 баллов',
+      "Установка статуса для каналов",
+      "Изменение цвета канала",
     ],
     ultimate: [
       'Все преимущества Premium',
       'Неограниченное количество никнеймов',
       'Неограниченное количество бейджиков',
       'Создание анимированных бейджиков',
+      'Любой цвет профиля/канала',
       'Ежемесячное пополнение на 10.000 баллов',
-      'Ультима чат - голосование на обновление'
-
+      'Ультима чат - голосование на обновление',
+      "Лудка вместе с владельцем сайта"
     ]
   };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useContext, lazy, Suspense, useTransition } from 'react';
+import React, { useState, useEffect, useMemo, useContext, lazy, Suspense, useTransition, useRef } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -6,7 +6,7 @@ import ProfileService from './services/ProfileService';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import AppBottomNavigation from './components/BottomNavigation';
 import { MusicProvider } from './context/MusicContext';
-import { Box, CircularProgress, Typography, Button } from '@mui/material';
+import { Box, CircularProgress, Typography, Button, Alert } from '@mui/material';
 import { HelmetProvider } from 'react-helmet-async';
 import SEO from './components/SEO';
 import { PostDetailProvider } from './context/PostDetailContext';
@@ -14,7 +14,17 @@ import RegisterChannel from './pages/Auth/RegisterChannel';
 import { ErrorBoundary } from 'react-error-boundary';
 import ChannelsPage from './pages/Main/ChannelsPage';
 import MusicPlayerCore from './components/MusicPlayerCore';
+import { setSessionContext } from './services/ProfileService';
 
+// Create a new context for session management
+export const SessionContext = React.createContext({
+  sessionActive: true,
+  sessionExpired: false,
+  lastFetchTime: null,
+  broadcastUpdate: () => {},
+  checkSessionStatus: () => true,
+  refreshSession: () => {}
+});
 
 const RequireAuth = ({ children }) => {
   const { isAuthenticated, loading } = useContext(AuthContext);
@@ -56,6 +66,8 @@ const SettingsPage = lazy(() => import('./pages/User/SettingsPage'));
 const NotificationsPage = lazy(() => import('./pages/Info/NotificationsPage'));
 const SearchPage = lazy(() => import('./pages/Main/SearchPage'));
 const MusicPage = lazy(() => import('./pages/Main/MusicPage'));
+const ArtistPage = lazy(() => import('./pages/Main/ArtistPage'));
+// const MessengerPage = lazy(() => import('./pages/Messenger/MessengerPage'));
 const SubscriptionsPage = lazy(() => import('./pages/Economic/SubscriptionsPage'));
 const BugReportPage = lazy(() => import('./pages/BugPages/BugReportPage'));
 const LeaderboardPage = lazy(() => import('./pages/Main/LeaderboardPage'));
@@ -66,16 +78,21 @@ const MorePage = lazy(() => import('./pages/Main/MorePage'));
 const NotFound = lazy(() => import('./pages/Info/NotFound'));
 const AdminPage = lazy(() => import('./pages/Admin/AdminPage'));
 const ModeratorPage = lazy(() => import('./pages/Admin/ModeratorPage'));
+const UpdatesPage = lazy(() => import('./pages/Main/UpdatesPage'));
 
 const SharePreviewTest = lazy(() => import('./components/SharePreviewTest'));
 const BadgeShopPage = lazy(() => import('./pages/Economic/BadgeShopPage'));
 const BalancePage = lazy(() => import('./pages/Economic/BalancePage'));
+const UsernameAuctionPage = lazy(() => import('./pages/Economic/UsernameAuctionPage'));
+const EconomicsPage = lazy(() => import('./pages/Economic/EconomicsPage'));
 const SimpleApiDocsPage = lazy(() => import('./pages/Info/SimpleApiDocsPage'));
 const SubPlanes = lazy(() => import('./pages/Economic/SubPlanes'));
 
 const MiniGamesPage = lazy(() => import('./pages/MiniGames/MiniGamesPage'));
 const CupsGamePage = lazy(() => import('./pages/MiniGames/CupsGamePage'));
 const LuckyNumberGame = lazy(() => import('./pages/MiniGames/LuckyNumberGame'));
+const ClickerPage = lazy(() => import('./pages/MiniGames/ClickerPage'));
+const BlackjackPage = lazy(() => import('./pages/MiniGames/BlackjackPage'));
 const AboutPage = lazy(() => import('./pages/Info/AboutPage'));
 
 
@@ -168,6 +185,12 @@ const LoadingIndicator = () => {
 const isAboutSubdomain = () => {
   const hostname = window.location.hostname;
   return hostname === 'about.k-connect.ru';
+};
+
+// Функция для проверки поддомена share
+const isShareSubdomain = () => {
+  const hostname = window.location.hostname;
+  return hostname === 'share.k-connect.ru';
 };
 
 
@@ -315,9 +338,9 @@ const AppRoutes = () => {
           <Route path="/main" element={<Navigate to="/" replace />} />
           
           
-          <Route path="/post/:postId" element={isAuthenticated ? <PostDetailPage /> : <Navigate to="/login" replace />} />
-          <Route path="/profile" element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" replace />} />
-          <Route path="/profile/:username" element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" replace />} />
+          <Route path="/post/:postId" element={<PostDetailPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/:username" element={<ProfilePage />} />
           <Route path="/profile/:username/followers" element={isAuthenticated ? <SubscriptionsPage tabIndex={0} /> : <Navigate to="/login" replace />} />
           <Route path="/profile/:username/following" element={isAuthenticated ? <SubscriptionsPage tabIndex={1} /> : <Navigate to="/login" replace />} />
           <Route path="/subscriptions" element={isAuthenticated ? <SubscriptionsPage /> : <Navigate to="/login" replace />} />
@@ -325,9 +348,9 @@ const AppRoutes = () => {
           <Route path="/notifications" element={isAuthenticated ? <NotificationsPage /> : <Navigate to="/login" replace />} />
           <Route path="/search" element={isAuthenticated ? <SearchPage /> : <Navigate to="/login" replace />} />
           <Route path="/music" element={isAuthenticated ? <MusicPage /> : <Navigate to="/login" replace />} />
-          <Route path="/bugs" element={<RequireAuth><BugReportPage /></RequireAuth>} />
+          <Route path="/artist/:artistParam" element={isAuthenticated ? <ArtistPage /> : <Navigate to="/login" replace />} />
+          <Route path="/bugs" element={<BugReportPage />} />
           <Route path="/leaderboard" element={<RequireAuth><LeaderboardPage /></RequireAuth>} />
-
 
           
           <Route path="/share-preview-test" element={isAuthenticated ? <SharePreviewTest /> : <Navigate to="/login" replace />} />
@@ -335,14 +358,19 @@ const AppRoutes = () => {
           <Route path="/admin" element={isAuthenticated ? <AdminPage /> : <Navigate to="/login" replace />} />
           <Route path="/moderator" element={isAuthenticated ? <ModeratorPage /> : <Navigate to="/login" replace />} />
           <Route path="/badge-shop" element={isAuthenticated ? <BadgeShopPage /> : <Navigate to="/login" replace />} />
+          <Route path="/username-auction" element={isAuthenticated ? <UsernameAuctionPage /> : <Navigate to="/login" replace />} />
           
           <Route path="/minigames" element={isAuthenticated ? <MiniGamesPage /> : <Navigate to="/login" replace />} />
           <Route path="/minigames/cups" element={isAuthenticated ? <CupsGamePage /> : <Navigate to="/login" replace />} />
           <Route path="/minigames/lucky-number" element={isAuthenticated ? <LuckyNumberGame /> : <Navigate to="/login" replace />} />
+          <Route path="/minigames/clicker" element={isAuthenticated ? <ClickerPage /> : <Navigate to="/login" replace />} />
+          <Route path="/minigames/blackjack" element={isAuthenticated ? <BlackjackPage /> : <Navigate to="/login" replace />} />
           <Route path="/balance" element={isAuthenticated ? <BalancePage /> : <Navigate to="/login" replace />} />
-          {/* <Route path="/api-docs" element={isAuthenticated ? <SimpleApiDocsPage /> : <Navigate to="/login" replace />} /> */}
+          <Route path="/api-docs" element={isAuthenticated ? <SimpleApiDocsPage /> : <Navigate to="/login" replace />} />
           <Route path="/sub-planes" element={isAuthenticated ? <SubPlanes /> : <Navigate to="/login" replace />} />
           <Route path="/channels" element={<RequireAuth><ChannelsPage /></RequireAuth>} />
+          <Route path="/economics" element={isAuthenticated ? <EconomicsPage /> : <Navigate to="/login" replace />} />
+          <Route path="/updates" element={<UpdatesPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         
@@ -351,9 +379,7 @@ const AppRoutes = () => {
           <Routes>
             <Route 
               path="/post/:postId" 
-              element={
-                isAuthenticated ? <PostDetailPage isOverlay={true} /> : <Navigate to="/login" replace />
-              } 
+              element={<PostDetailPage isOverlay={true} />} 
             />
           </Routes>
         )}
@@ -411,6 +437,205 @@ const DefaultSEO = () => {
   );
 };
 
+// Add SessionProvider component
+const SessionProvider = ({ children }) => {
+  const [sessionActive, setSessionActive] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const sessionStartTime = useRef(Date.now());
+  const lastFetchTime = useRef(null);
+  const broadcastChannel = useRef(null);
+  const SESSION_TIMEOUT = 60 * 60 * 1000; // 1 hour in milliseconds
+  const MIN_UPDATE_INTERVAL = 15000; // Minimum 15 seconds between updates across tabs
+
+  // Initialize broadcast channel for cross-tab communication
+  useEffect(() => {
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        broadcastChannel.current = new BroadcastChannel('k_connect_app_channel');
+        
+        // Listen for messages from other tabs
+        broadcastChannel.current.onmessage = (event) => {
+          const { type, data, timestamp } = event.data;
+          
+          if (type === 'session_refresh') {
+            sessionStartTime.current = timestamp;
+            setSessionActive(true);
+            setSessionExpired(false);
+          } else if (type === 'last_fetch_update' && timestamp > (lastFetchTime.current || 0)) {
+            lastFetchTime.current = timestamp;
+          }
+        };
+      } catch (error) {
+        console.error('BroadcastChannel initialization error:', error);
+      }
+    }
+    
+    return () => {
+      if (broadcastChannel.current) {
+        try {
+          broadcastChannel.current.close();
+        } catch (error) {
+          console.error('Error closing BroadcastChannel:', error);
+        }
+      }
+    };
+  }, []);
+
+  // Check session status periodically
+  useEffect(() => {
+    const checkSessionExpiration = () => {
+      const currentTime = Date.now();
+      const sessionDuration = currentTime - sessionStartTime.current;
+      
+      if (sessionDuration >= SESSION_TIMEOUT && !sessionExpired) {
+        setSessionExpired(true);
+        setSessionActive(false);
+      }
+    };
+    
+    // Check every minute
+    const expirationInterval = setInterval(checkSessionExpiration, 60000);
+    
+    return () => clearInterval(expirationInterval);
+  }, [sessionExpired]);
+
+  // Function to broadcast updates to other tabs
+  const broadcastUpdate = (type, data) => {
+    if (broadcastChannel.current) {
+      try {
+        broadcastChannel.current.postMessage({
+          type,
+          data,
+          timestamp: Date.now()
+        });
+      } catch (error) {
+        console.error('Error broadcasting update:', error);
+      }
+    }
+  };
+
+  // Function to check if fetching is allowed
+  const checkSessionStatus = () => {
+    // Don't fetch if session is expired
+    if (sessionExpired) return false;
+    
+    // Check if another tab fetched recently
+    const currentTime = Date.now();
+    if (lastFetchTime.current && (currentTime - lastFetchTime.current) < MIN_UPDATE_INTERVAL) {
+      return false;
+    }
+    
+    // Update last fetch time
+    lastFetchTime.current = currentTime;
+    broadcastUpdate('last_fetch_update', null);
+    
+    return true;
+  };
+
+  // Function to refresh the session
+  const refreshSession = () => {
+    const currentTime = Date.now();
+    sessionStartTime.current = currentTime;
+    setSessionActive(true);
+    setSessionExpired(false);
+    broadcastUpdate('session_refresh', { newStartTime: currentTime });
+  };
+
+  const contextValue = {
+    sessionActive,
+    sessionExpired,
+    lastFetchTime: lastFetchTime.current,
+    broadcastUpdate,
+    checkSessionStatus,
+    refreshSession
+  };
+
+  // In the SessionProvider component, add this effect to set the context for services
+  useEffect(() => {
+    // Make the session context available to services
+    setSessionContext({
+      checkSessionStatus,
+      sessionActive,
+      sessionExpired,
+      lastFetchTime: lastFetchTime.current,
+      refreshSession
+    });
+  }, [sessionActive, sessionExpired]);
+
+  // Add an effect to handle visibility changes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Update the last fetch time when tab becomes visible to avoid immediate refetching
+        const currentTime = Date.now();
+        lastFetchTime.current = currentTime;
+        broadcastUpdate('last_fetch_update', null);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  return (
+    <SessionContext.Provider value={contextValue}>
+      {children}
+    </SessionContext.Provider>
+  );
+};
+
+// Create a session expiration alert component
+const SessionExpirationAlert = () => {
+  const { sessionExpired, refreshSession } = useContext(SessionContext);
+  const theme = useTheme();
+  
+  if (!sessionExpired) return null;
+  
+  return (
+    <Box 
+      sx={{ 
+        position: 'fixed', 
+        bottom: { xs: 70, sm: 20 }, 
+        left: '50%', 
+        transform: 'translateX(-50%)',
+        width: { xs: 'calc(100% - 32px)', sm: 'auto' },
+        maxWidth: '600px',
+        zIndex: 1100
+      }}
+    >
+      <Alert 
+        severity="warning" 
+        variant="filled"
+        sx={{ 
+          borderRadius: 2,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+          backdropFilter: 'blur(10px)',
+          '& .MuiAlert-message': { width: '100%' }
+        }}
+        action={
+          <Button 
+            color="inherit" 
+            size="small"
+            onClick={() => {
+              refreshSession();
+              window.location.reload();
+            }}
+          >
+            Обновить
+          </Button>
+        }
+      >
+        <Typography variant="body1" fontWeight="medium">
+          Требуется обновление страницы для получения актуальных данных
+        </Typography>
+      </Alert>
+    </Box>
+  );
+};
+
 function App() {
   const [isPending, startTransition] = useTransition();
   const [themeSettings, setThemeSettings] = useState(() => {
@@ -438,7 +663,16 @@ function App() {
   
   
   const onAboutSubdomain = useMemo(() => isAboutSubdomain(), []);
+  const onShareSubdomain = useMemo(() => isShareSubdomain(), []);
   
+  // Перенаправление для поддомена share (только для реальных пользователей, не ботов)
+  useEffect(() => {
+    if (onShareSubdomain) {
+      // Боты получат статический HTML из share.html,
+      // а настоящие пользователи будут перенаправлены через JS в share.html
+      console.log('Share subdomain detected, user will be redirected via share.html');
+    }
+  }, [onShareSubdomain]);
   
   useEffect(() => {
     preloadMusicImages();
@@ -812,6 +1046,11 @@ function App() {
   }
   
   
+  if (onShareSubdomain) {
+    return null;
+  }
+  
+  
   if (onAboutSubdomain) {
     return (
       <ErrorBoundary FallbackComponent={ErrorFallback}>
@@ -860,24 +1099,27 @@ function App() {
         <ThemeSettingsContext.Provider value={themeContextValue}>
           <ThemeProvider theme={theme}>
             <CssBaseline />
-            <MusicProvider>
-              <PostDetailProvider>
-                <ErrorBoundary FallbackComponent={ErrorFallback}>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    minHeight: '100vh',
-                    bgcolor: 'background.default'
-                  }}>
-                    <Suspense fallback={<LoadingIndicator />}>
-                      <DefaultSEO />
-                      <AppRoutes />
-                      <MusicPlayerCore />
-                    </Suspense>
-                  </Box>
-                </ErrorBoundary>
-              </PostDetailProvider>
-            </MusicProvider>
+            <SessionProvider>
+              <MusicProvider>
+                <PostDetailProvider>
+                  <ErrorBoundary FallbackComponent={ErrorFallback}>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      minHeight: '100vh',
+                      bgcolor: 'background.default'
+                    }}>
+                      <Suspense fallback={<LoadingIndicator />}>
+                        <DefaultSEO />
+                        <AppRoutes />
+                        <MusicPlayerCore />
+                        <SessionExpirationAlert />
+                      </Suspense>
+                    </Box>
+                  </ErrorBoundary>
+                </PostDetailProvider>
+              </MusicProvider>
+            </SessionProvider>
           </ThemeProvider>
         </ThemeSettingsContext.Provider>
       </AuthProvider>
@@ -886,3 +1128,12 @@ function App() {
 }
 
 export default App;
+
+// Create a custom hook for easy access to session context
+export const useSession = () => {
+  const context = useContext(SessionContext);
+  if (!context) {
+    throw new Error('useSession must be used within a SessionProvider');
+  }
+  return context;
+};

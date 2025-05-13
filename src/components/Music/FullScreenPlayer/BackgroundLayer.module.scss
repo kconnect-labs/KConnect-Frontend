@@ -1,0 +1,50 @@
+// Background styles inspired by Apple Music
+.backgroundContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.albumBackground {
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  width: 120%;
+  height: 120%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(70px) saturate(180%);
+  opacity: 0.7;
+  transform: scale(1.1);
+  transition: background-image 0.5s ease-out;
+  will-change: transform;
+}
+
+.gradientOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  transition: background 0.5s ease;
+}
+
+.noiseTexture {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.015;
+  background-image: url(/static/images/noise.png);
+  background-repeat: repeat;
+  mix-blend-mode: overlay;
+  z-index: 2;
+} 

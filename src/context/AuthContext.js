@@ -139,6 +139,7 @@ export const AuthProvider = ({ children }) => {
             '/privacy-policy',
             '/terms-of-service',
             '/about',
+            '/bugs',
             '/post',
             '/profile'
           ];
@@ -368,7 +369,7 @@ export const AuthProvider = ({ children }) => {
             
             
             const currentPath = window.location.pathname;
-            const publicPages = ['/login', '/register', '/rules', '/about', '/privacy-policy', '/terms-of-service'];
+            const publicPages = ['/login', '/register', '/rules', '/about', '/privacy-policy', '/terms-of-service', '/bugs'];
             const isPublicPage = publicPages.some(page => currentPath.includes(page));
             
             if (!isPublicPage) {

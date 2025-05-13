@@ -11,20 +11,17 @@ import {
   Alert
 } from '@mui/material';
 import {
-  PlayArrow,
-  Pause,
-  SkipNext,
-  SkipPrevious,
-  Favorite,
-  FavoriteBorder,
-  KeyboardArrowUp,
-  Share
-} from '@mui/icons-material';
+  IoPlayCircle,
+  IoPauseCircle,
+  IoHeart,
+  IoHeartOutline,
+  IoChevronUp
+} from 'react-icons/io5';
 import { useMusic } from '../../context/MusicContext';
 import { formatDuration } from '../../utils/formatters';
 import { ThemeSettingsContext } from '../../App';
 import { useContext } from 'react';
-import FullScreenPlayer from './FullScreenPlayer';
+import FullScreenPlayer from './FullScreenPlayer/index.js';
 import { extractDominantColor, getCoverWithFallback } from '../../utils/imageUtils';
 
 
@@ -47,6 +44,12 @@ const PlayerContainer = styled(Paper)(({ theme, covercolor }) => ({
   borderTop: '1px solid rgba(255, 255, 255, 0.07)',
   borderLeft: '1px solid rgba(255, 255, 255, 0.07)',
   borderRight: '1px solid rgba(255, 255, 255, 0.07)',
+  '&.hidden': {
+    display: 'none !important',
+    opacity: 0,
+    pointerEvents: 'none',
+    visibility: 'hidden'
+  },
   '&::before': {
     content: '""',
     position: 'absolute',
@@ -155,58 +158,100 @@ const MobilePlayer = memo(() => {
   
   
   const formattedCurrentTime = useMemo(() => {
-    
-    const globalTimeElement = document.getElementById('global-player-current-time');
-    if (globalTimeElement && globalTimeElement.textContent) {
-      return globalTimeElement.textContent;
+    try {
+
+      const globalTimeElement = document.getElementById('global-player-current-time');
+      if (globalTimeElement && globalTimeElement.textContent) {
+        return globalTimeElement.textContent;
+      }
+      
+
+      if (typeof getCurrentTimeRaw === 'function') {
+        const time = getCurrentTimeRaw();
+        return formatDuration(typeof time === 'number' ? time : 0);
+      }
+      
+
+      return '0:00';
+    } catch (error) {
+      console.error("Error getting current time:", error);
+      return '0:00';
     }
-    
-    return formatDuration(typeof getCurrentTimeRaw === 'function' ? getCurrentTimeRaw() : 0);
   }, [getCurrentTimeRaw]);
   
   const formattedDuration = useMemo(() => {
-    
-    const globalDurationElement = document.getElementById('global-player-duration');
-    if (globalDurationElement && globalDurationElement.textContent) {
-      return globalDurationElement.textContent;
+    try {
+
+      const globalDurationElement = document.getElementById('global-player-duration');
+      if (globalDurationElement && globalDurationElement.textContent) {
+        return globalDurationElement.textContent;
+      }
+      
+
+      if (typeof getDurationRaw === 'function') {
+        const duration = getDurationRaw();
+        return formatDuration(typeof duration === 'number' ? duration : 0);
+      }
+      
+
+      return '0:00';
+    } catch (error) {
+      console.error("Error getting duration:", error);
+      return '0:00';
     }
-    
-    return formatDuration(typeof getDurationRaw === 'function' ? getDurationRaw() : 0);
   }, [getDurationRaw]);
   
   
   useEffect(() => {
+
+    let isMounted = true;
     
     const updateDisplays = () => {
-      
-      const currentTimeEl = document.getElementById('mobile-current-time');
-      const durationEl = document.getElementById('mobile-duration');
-      const progressBar = document.getElementById('mobile-player-progress');
-      
-      
-      if (currentTimeEl && window.audioTiming) {
-        currentTimeEl.textContent = window.audioTiming.formattedCurrentTime;
+      try {
+
+        if (!isMounted) return;
+        
+        const currentTimeEl = document.getElementById('mobile-current-time');
+        const durationEl = document.getElementById('mobile-duration');
+        const progressBar = document.getElementById('mobile-player-progress');
+        
+
+        if (currentTimeEl && window.audioTiming && window.audioTiming.formattedCurrentTime) {
+          currentTimeEl.textContent = window.audioTiming.formattedCurrentTime;
+        }
+        
+
+        if (durationEl && window.audioTiming && window.audioTiming.formattedDuration) {
+          durationEl.textContent = window.audioTiming.formattedDuration;
+        }
+        
+
+        if (progressBar && window.audioTiming && typeof window.audioTiming.progress === 'number') {
+          progressBar.style.width = `${window.audioTiming.progress}%`;
+          progressRef.current = window.audioTiming.progress;
+        }
+        
+
+        if (isMounted) {
+          requestAnimationFrame(updateDisplays);
+        }
+      } catch (error) {
+        console.error("Error updating mobile player displays:", error);
+
+        if (isMounted) {
+          requestAnimationFrame(updateDisplays);
+        }
       }
-      
-      if (durationEl && window.audioTiming) {
-        durationEl.textContent = window.audioTiming.formattedDuration;
-      }
-      
-      
-      if (progressBar && window.audioTiming) {
-        progressBar.style.width = `${window.audioTiming.progress}%`;
-        progressRef.current = window.audioTiming.progress;
-      }
-      
-      
-      requestAnimationFrame(updateDisplays);
     };
     
-    
+
     const animationId = requestAnimationFrame(updateDisplays);
     
-    
-    return () => cancelAnimationFrame(animationId);
+
+    return () => {
+      isMounted = false;
+      cancelAnimationFrame(animationId);
+    };
   }, []);
 
   
@@ -346,7 +391,12 @@ const MobilePlayer = memo(() => {
   
   return (
     <React.Fragment>
-      <PlayerContainer elevation={0} covercolor={dominantColor}>
+      <PlayerContainer 
+        elevation={0} 
+        covercolor={dominantColor} 
+        sx={{ display: fullScreenOpen ? 'none' : 'flex' }}
+        className={fullScreenOpen ? 'hidden' : ''}
+      >
         
         {/* Custom progress bar instead of Material UI component */}
         <div style={{ 
@@ -415,37 +465,19 @@ const MobilePlayer = memo(() => {
             
             <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
               <ControlButton
-                icon={<SkipPrevious />}
-                onClick={handlePrevClick}
-                ariaLabel="Previous track"
-              />
-
-              <ControlButton
-                icon={isPlaying ? <Pause /> : <PlayArrow />}
+                icon={isPlaying ? <IoPauseCircle size={30} /> : <IoPlayCircle size={30} />}
                 onClick={handlePlayClick}
                 ariaLabel={isPlaying ? "Pause" : "Play"}
               />
-
-              <ControlButton
-                icon={<SkipNext />}
-                onClick={handleNextClick}
-                ariaLabel="Next track"
-              />
               
               <ControlButton
-                icon={currentTrack?.is_liked ? <Favorite color="primary" /> : <FavoriteBorder />}
+                icon={currentTrack?.is_liked ? <IoHeart size={20} color={dominantColor ? `rgba(${dominantColor}, 1)` : "#ff2d55"} /> : <IoHeartOutline size={20} />}
                 onClick={toggleLikeTrack}
                 ariaLabel="Toggle like"
               />
               
               <ControlButton
-                icon={<Share fontSize="small" />}
-                onClick={handleShare}
-                ariaLabel="Share"
-              />
-              
-              <ControlButton
-                icon={<KeyboardArrowUp />}
+                icon={<IoChevronUp size={20} />}
                 onClick={openFullScreen}
                 ariaLabel="Open fullscreen player"
               />
@@ -461,7 +493,7 @@ const MobilePlayer = memo(() => {
       />
       
       <Snackbar 
-        open={shareSnackbar.open} 
+        open={shareSnackbar.open && !fullScreenOpen}
         autoHideDuration={3000} 
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}

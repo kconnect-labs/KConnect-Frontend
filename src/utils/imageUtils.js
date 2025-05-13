@@ -356,73 +356,192 @@ export const convertToWebP = async (url, options = {}) => {
 };
 
 /**
- * Оптимизирует изображение для отображения, приоритезируя WebP где возможно
- * @param {string} url - URL исходного изображения
- * @param {Object} options - Опции оптимизации
- * @param {number} options.quality - Качество (0-1)
- * @param {number} options.maxWidth - Максимальная ширина
- * @param {boolean} options.cacheResults - Кэшировать ли результаты
- * @param {boolean} options.preferWebP - Предпочитать ли WebP
- * @returns {Promise<Object>} - Объект с оптимизированным URL и типом
+ * Utils for image optimization and handling
  */
-export const optimizeImage = async (url, options = {}) => {
-  // Значения по умолчанию
+
+// Cache for optimized images to avoid re-processing
+const optimizedImageCache = new Map();
+
+/**
+ * Optimize an image by loading it and potentially applying transformations
+ * @param {string} imageSrc - Source URL of the image
+ * @param {Object} options - Optimization options
+ * @param {number} options.quality - JPEG quality (0-1)
+ * @param {number} options.maxWidth - Maximum width of the image
+ * @param {boolean} options.cacheResults - Whether to cache results
+ * @returns {Promise<{src: string, width: number, height: number}>}
+ */
+export const optimizeImage = async (imageSrc, options = {}) => {
   const {
-    quality = 0.8,
-    maxWidth = 1000,
-    cacheResults = true,
-    preferWebP = true
+    quality = 0.85,
+    maxWidth = 1920,
+    cacheResults = true
   } = options;
-  
-  // Проверяем кэш
-  const cacheKey = `img_${url}_${quality}_${maxWidth}_${preferWebP}`;
-  if (cacheResults && window._imageCache && window._imageCache[cacheKey]) {
-    return window._imageCache[cacheKey];
+
+  // Return from cache if available
+  const cacheKey = `${imageSrc}-${maxWidth}-${quality}`;
+  if (cacheResults && optimizedImageCache.has(cacheKey)) {
+    return optimizedImageCache.get(cacheKey);
   }
-  
-  // Проверка поддержки WebP
-  let webpSupported = false;
+
+  // For external URLs or non-image files, just return original
+  if (
+    !imageSrc ||
+    (imageSrc.startsWith('http') && !imageSrc.includes(window.location.host)) ||
+    !isImageUrl(imageSrc)
+  ) {
+    const result = { src: imageSrc, width: 0, height: 0 };
+    if (cacheResults) optimizedImageCache.set(cacheKey, result);
+    return result;
+  }
+
   try {
-    webpSupported = preferWebP && await isWebPSupported();
-  } catch (e) {
-    console.warn('Error checking WebP support:', e);
-  }
-  
-  // Если у нас URL с сервера, используем параметры API для оптимизации
-  if (url && (url.startsWith('/static/') || url.startsWith('/uploads/'))) {
-    // Создаем новый URL с параметрами оптимизации
-    const separator = url.includes('?') ? '&' : '?';
-    let optimizedUrl = `${url}${separator}width=${maxWidth}&quality=${Math.round(quality * 100)}`;
-    
-    // Добавляем WebP если поддерживается
-    if (webpSupported) {
-      optimizedUrl += '&format=webp';
+    // Load the image
+    const img = await loadImage(imageSrc);
+    const { naturalWidth: width, naturalHeight: height } = img;
+
+    // If image is already smaller than maxWidth, return original
+    if (width <= maxWidth) {
+      const result = { src: imageSrc, width, height };
+      if (cacheResults) optimizedImageCache.set(cacheKey, result);
+      return result;
     }
+
+    // Create canvas to resize the image
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
     
-    // Создаем результат
+    // Calculate new dimensions
+    const aspectRatio = width / height;
+    const newWidth = maxWidth;
+    const newHeight = Math.round(newWidth / aspectRatio);
+    
+    // Set canvas dimensions
+    canvas.width = newWidth;
+    canvas.height = newHeight;
+    
+    // Draw image on canvas
+    ctx.drawImage(img, 0, 0, newWidth, newHeight);
+    
+    // Convert to optimized format
+    const webpSupported = supportsWebP();
+    const format = webpSupported ? 'image/webp' : 'image/jpeg';
+    const optimizedSrc = canvas.toDataURL(format, quality);
+    
     const result = {
-      src: optimizedUrl,
-      originalSrc: url,
-      type: webpSupported ? 'image/webp' : 'image/jpeg',
-      optimized: true
+      src: optimizedSrc,
+      width: newWidth,
+      height: newHeight
     };
-    
-    // Кэшируем результат если нужно
+
+    // Cache the result
     if (cacheResults) {
-      if (!window._imageCache) window._imageCache = {};
-      window._imageCache[cacheKey] = result;
+      optimizedImageCache.set(cacheKey, result);
     }
     
     return result;
+  } catch (error) {
+    console.error('Error optimizing image:', error);
+    // Fall back to original image on error
+    return { src: imageSrc, width: 0, height: 0 };
+  }
+};
+
+/**
+ * Preloads an image and returns a promise
+ * @param {string} src - Image source URL
+ * @returns {Promise<HTMLImageElement>}
+ */
+export const loadImage = (src) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    
+    img.onload = () => resolve(img);
+    img.onerror = (err) => reject(err);
+    
+    img.src = src;
+  });
+};
+
+/**
+ * Check if a URL points to an image based on extension
+ * @param {string} url - URL to check
+ * @returns {boolean}
+ */
+export const isImageUrl = (url) => {
+  if (!url) return false;
+  
+  const imageExtensions = [
+    '.jpg', '.jpeg', '.png', '.gif', '.bmp', 
+    '.webp', '.svg', '.tiff', '.avif'
+  ];
+  
+  const urlLower = url.toLowerCase();
+  return imageExtensions.some(ext => urlLower.endsWith(ext)) || 
+         urlLower.includes('/image/') ||
+         urlLower.includes('image_url=');
+};
+
+/**
+ * Detects whether the browser supports WebP
+ * @returns {boolean}
+ */
+export const supportsWebP = () => {
+  // Use cached result if already tested
+  if (typeof supportsWebP.cached !== 'undefined') {
+    return supportsWebP.cached;
   }
   
-  // Для внешних URL или если формат не поддерживается, возвращаем исходный URL
-  return {
-    src: url,
-    originalSrc: url,
-    type: 'image/jpeg', // Предполагаем что JPEG
-    optimized: false
-  };
+  const elem = document.createElement('canvas');
+  
+  if (elem.getContext && elem.getContext('2d')) {
+    // Was able to get WebP representation
+    supportsWebP.cached = elem.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+  } else {
+    // No canvas support, assume no WebP support
+    supportsWebP.cached = false;
+  }
+  
+  return supportsWebP.cached;
+};
+
+/**
+ * Formats an image URL for optimal loading
+ * @param {string} url - Original image URL
+ * @param {Object} options - Formatting options
+ * @returns {string}
+ */
+export const formatImageUrl = (url, options = {}) => {
+  if (!url) return '';
+  
+  const {
+    width,
+    height,
+    quality = 90,
+    format
+  } = options;
+  
+  // If URL includes query parameters for CDN or is external, return as is
+  if (url.includes('?') || (url.startsWith('http') && !url.includes(window.location.host))) {
+    return url;
+  }
+  
+  // Handle local images
+  let formattedUrl = url;
+  
+  // Add query parameters for size if specified
+  const params = [];
+  if (width) params.push(`w=${width}`);
+  if (height) params.push(`h=${height}`);
+  if (quality) params.push(`q=${quality}`);
+  if (format) params.push(`fm=${format}`);
+  
+  if (params.length > 0) {
+    formattedUrl += `${url.includes('?') ? '&' : '?'}${params.join('&')}`;
+  }
+  
+  return formattedUrl;
 };
 
 /**

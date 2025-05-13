@@ -22,9 +22,38 @@ const SEO = ({
   meta = {},
 }) => {
   
-  const imageUrl = !image ? '/icon-512.png' : 
-                  typeof image === 'string' && image.startsWith('http') ? image : 
-                  `${window.location.origin}${(typeof image === 'string' && image.startsWith('/')) ? '' : '/'}${image}`;
+  // Normalize image path to remove duplications
+  const normalizeImagePath = (path) => {
+    if (!path) return '/icon-512.png';
+    
+    // Check if it's already a full URL
+    if (path.startsWith('http') || path.startsWith('//')) {
+      return path;
+    }
+    
+    // Fix duplicate paths - look for patterns like /static/uploads/posts//static/uploads/
+    if (path.includes('//')) {
+      // Find the second occurrence of /static/ or /uploads/ after a double slash
+      const doubleSlashPos = path.indexOf('//');
+      if (doubleSlashPos !== -1) {
+        const afterDoubleSlash = path.substring(doubleSlashPos + 2);
+        if (afterDoubleSlash.startsWith('static/') || afterDoubleSlash.startsWith('uploads/')) {
+          // Keep only what's after the double slash
+          return '/' + afterDoubleSlash;
+        }
+      }
+    }
+    
+    // Handle paths that already start with /static/ or /uploads/
+    if (path.startsWith('/static/') || path.startsWith('/uploads/')) {
+      return path;
+    }
+    
+    // Add origin for relative paths
+    return `${window.location.origin}${path.startsWith('/') ? '' : '/'}${path}`;
+  };
+
+  const imageUrl = normalizeImagePath(image);
 
   return (
     <Helmet>

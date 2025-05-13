@@ -17,7 +17,7 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import { ThemeSettingsContext } from '../../App';
 import { AuthContext } from '../../context/AuthContext';
 import { searchService, profileService } from '../../services';
-import LightBox from '../../components/LightBox';
+import SimpleImageViewer from '../../components/SimpleImageViewer';
 
 
 const StyledSearchBox = styled(Box)(({ theme }) => ({
@@ -88,6 +88,9 @@ const SearchPage = () => {
   const [currentImage, setCurrentImage] = useState('');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [lightboxImages, setLightboxImages] = useState([]);
+  
+  
+  const [searchTimeout, setSearchTimeout] = useState(null);
   
   
   const updateSearchParams = (query, type) => {
@@ -352,14 +355,19 @@ const SearchPage = () => {
   };
   
   
-  
+
   useEffect(() => {
-    const debounceTime = 300; 
+    const debounceTime = 1000;
     
     const cleanQuery = searchQuery.trim();
     
     if (cleanQuery) {
+
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
       
+
       const handler = setTimeout(() => {
         if (cleanQuery.length >= 2) { 
           updateSearchParams(cleanQuery, searchType);
@@ -367,8 +375,10 @@ const SearchPage = () => {
         }
       }, debounceTime);
 
+      setSearchTimeout(handler);
+
       return () => {
-        clearTimeout(handler);
+        if (handler) clearTimeout(handler);
       };
     }
   }, [searchQuery, searchType]);
@@ -599,8 +609,6 @@ const SearchPage = () => {
                       {posts.slice(0, 3).map((post) => (
                         <Card 
                           key={post.id} 
-                          component={Link}
-                          to={`/post/${post.id}`}
                           sx={{ 
                             display: 'flex', 
                             flexDirection: 'column',
@@ -616,32 +624,130 @@ const SearchPage = () => {
                             }
                           }}
                         >
-                          {post.image && (
-                            <CardMedia
-                              component="img"
-                              image={post.image}
-                              alt="Post image"
+                          <Box sx={{ display: 'flex', alignItems: 'center', pt: 2, px: 2 }}>
+                            <Avatar 
+                              src={post.user.photo && post.user.photo !== 'avatar.png' 
+                                ? post.user.photo.startsWith('/') ? post.user.photo : `/static/uploads/avatar/${post.user.id}/${post.user.photo}` 
+                                : `/static/uploads/avatar/system/avatar.png`}
+                              alt={post.user.name}
+                              component={Link}
+                              to={`/profile/${post.user.username}`}
                               sx={{ 
-                                height: 200, 
-                                objectFit: 'cover',
-                                backgroundColor: '#111',
-                                cursor: 'pointer'
+                                width: 40, 
+                                height: 40, 
+                                mr: 1.5,
+                                border: '2px solid #D0BCFF'
                               }}
-                              onClick={() => handleOpenPostImage(post.image, [post.image], 0)}
                               onError={(e) => {
-                                console.error("Failed to load post image");
-                                const postId = post.id;
-                                const filename = post.image.split('/').pop();
-                                if (postId && filename) {
-                                  e.target.src = `/static/uploads/avatar/system/avatar.png`;
-                                }
+                                console.error(`Failed to load user avatar for post`);
+                                e.target.onerror = null; 
+                                e.target.src = `/static/uploads/avatar/system/avatar.png`;
                               }}
                             />
+                            <Box>
+                              <Typography 
+                                variant="subtitle1" 
+                                component={Link}
+                                to={`/profile/${post.user.username}`}
+                                sx={{ 
+                                  fontWeight: 'bold',
+                                  textDecoration: 'none',
+                                  color: 'text.primary',
+                                  '&:hover': {
+                                    textDecoration: 'underline',
+                                  }
+                                }}
+                              >
+                                {post.user.name}
+                              </Typography>
+                              <Typography 
+                                variant="caption" 
+                                color="text.secondary"
+                                component={Link}
+                                to={`/profile/${post.user.username}`}
+                                sx={{ textDecoration: 'none' }}
+                              >
+                                @{post.user.username}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ ml: 'auto' }}>
+                              <Typography variant="caption" color="text.secondary">
+                                {new Date(post.timestamp).toLocaleDateString()}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          
+                          <Box sx={{ px: 2, pt: 1.5, pb: post.image || post.video ? 0 : 1 }}>
+                            <Typography 
+                              variant="body2"
+                              component={Link}
+                              to={`/post/${post.id}`} 
+                              sx={{ 
+                                mb: 1.5,
+                                display: 'block', 
+                                textDecoration: 'none',
+                                color: 'text.primary',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                WebkitLineClamp: 3,
+                                WebkitBoxOrient: 'vertical',
+                              }}
+                            >
+                              {post.content}
+                            </Typography>
+                          </Box>
+                          
+                          {post.image && (
+                            <Box 
+                              sx={{ 
+                                position: 'relative',
+                                mt: 1,
+                                cursor: 'pointer'
+                              }}
+                              component={Link}
+                              to={`/post/${post.id}`}
+                            >
+                              <img
+                                src={post.image.startsWith('/') ? post.image : `/static/uploads/post/${post.id}/${post.image}`}
+                                alt="Post image"
+                                style={{ 
+                                  width: '100%',
+                                  height: '250px',
+                                  objectFit: 'cover',
+                                  backgroundColor: '#111',
+                                }}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleOpenPostImage(
+                                    post.image.startsWith('/') ? post.image : `/static/uploads/post/${post.id}/${post.image}`, 
+                                    [post.image.startsWith('/') ? post.image : `/static/uploads/post/${post.id}/${post.image}`], 
+                                    0
+                                  );
+                                }}
+                                onError={(e) => {
+                                  console.error("Failed to load post image");
+                                  e.target.src = `/static/uploads/avatar/system/avatar.png`;
+                                }}
+                              />
+                            </Box>
                           )}
+                          
                           {post.video && (
-                            <Box sx={{ height: 200, backgroundColor: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Box 
+                              sx={{ 
+                                height: 250,
+                                mt: 1,
+                                backgroundColor: '#111', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center',
+                                cursor: 'pointer'
+                              }}
+                              component={Link}
+                              to={`/post/${post.id}`}
+                            >
                               <video 
-                                src={post.video}
+                                src={post.video.startsWith('/') ? post.video : `/static/uploads/post/${post.id}/${post.video}`}
                                 style={{ 
                                   maxHeight: '100%', 
                                   maxWidth: '100%',
@@ -649,65 +755,43 @@ const SearchPage = () => {
                                 }}
                                 onError={(e) => {
                                   console.error("Failed to load post video");
-                                  const postId = post.id;
-                                  const filename = post.video.split('/').pop();
-                                  if (postId && filename) {
-                                    e.target.src = `/static/uploads/avatar/system/avatar.png`;
-                                  }
+                                  e.target.src = `/static/uploads/avatar/system/avatar.png`;
                                 }}
                               />
                             </Box>
                           )}
-                          <CardContent>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                              <Avatar 
-                                src={post.user.photo && post.user.photo !== 'avatar.png' 
-                                  ? post.user.photo.startsWith('/') ? post.user.photo : `/static/uploads/avatar/${post.user.id}/${post.user.photo}` 
-                                  : `/static/uploads/avatar/system/avatar.png`}
-                                alt={post.user.name}
-                                sx={{ 
-                                  width: 36, 
-                                  height: 36, 
-                                  mr: 1.5,
-                                  border: '1px solid #D0BCFF'
-                                }}
-                                onError={(e) => {
-                                  console.error(`Failed to load user avatar for post`);
-                                  e.target.onerror = null; 
-                                  e.target.src = `/static/uploads/avatar/system/avatar.png`;
-                                }}
-                              />
-                              <Box>
-                                <Typography variant="subtitle2" component="div" sx={{ fontWeight: 'bold' }}>
-                                  {post.user.name}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  @{post.user.username}
-                                </Typography>
-                              </Box>
+                          
+                          <Box sx={{ display: 'flex', alignItems: 'center', p: 2, gap: 2 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <IconButton size="small" sx={{ mr: 0.5 }}>
+                                <ThumbUpOutlinedIcon fontSize="small" />
+                              </IconButton>
+                              <Typography variant="body2">
+                                {post.likes || post.likes_count || 0}
+                              </Typography>
                             </Box>
-                            <Typography variant="body2" component="div" sx={{ mb: 1 }}>
-                              {post.content}
-                            </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <IconButton size="small" disabled>
-                                  <ThumbUpOutlinedIcon fontSize="small" />
-                                </IconButton>
-                                <Typography variant="caption" color="text.secondary">
-                                  {post.likes_count || 0}
-                                </Typography>
-                              </Box>
-                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <IconButton size="small" disabled>
-                                  <ChatBubbleOutlineIcon fontSize="small" />
-                                </IconButton>
-                                <Typography variant="caption" color="text.secondary">
-                                  {post.comments_count || 0}
-                                </Typography>
-                              </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <IconButton size="small" sx={{ mr: 0.5 }}>
+                                <ChatBubbleOutlineIcon fontSize="small" />
+                              </IconButton>
+                              <Typography variant="body2">
+                                {post.comments || post.comments_count || post.total_comments || 0}
+                              </Typography>
                             </Box>
-                          </CardContent>
+                            <Button 
+                              variant="text" 
+                              size="small" 
+                              component={Link}
+                              to={`/post/${post.id}`}
+                              sx={{ 
+                                ml: 'auto',
+                                textTransform: 'none',
+                                borderRadius: '20px'
+                              }}
+                            >
+                              Открыть
+                            </Button>
+                          </Box>
                         </Card>
                       ))}
                     </Box>
@@ -875,8 +959,6 @@ const SearchPage = () => {
                 {posts.map((post) => (
                   <Card 
                     key={post.id} 
-                    component={Link}
-                    to={`/post/${post.id}`}
                     sx={{ 
                       display: 'flex', 
                       flexDirection: 'column',
@@ -892,32 +974,130 @@ const SearchPage = () => {
                       }
                     }}
                   >
-                    {post.image && (
-                      <CardMedia
-                        component="img"
-                        image={post.image}
-                        alt="Post image"
+                    <Box sx={{ display: 'flex', alignItems: 'center', pt: 2, px: 2 }}>
+                      <Avatar 
+                        src={post.user.photo && post.user.photo !== 'avatar.png' 
+                          ? post.user.photo.startsWith('/') ? post.user.photo : `/static/uploads/avatar/${post.user.id}/${post.user.photo}` 
+                          : `/static/uploads/avatar/system/avatar.png`}
+                        alt={post.user.name}
+                        component={Link}
+                        to={`/profile/${post.user.username}`}
                         sx={{ 
-                          height: 200, 
-                          objectFit: 'cover',
-                          backgroundColor: '#111',
-                          cursor: 'pointer'
+                          width: 40, 
+                          height: 40, 
+                          mr: 1.5,
+                          border: '2px solid #D0BCFF'
                         }}
-                        onClick={() => handleOpenPostImage(post.image, [post.image], 0)}
                         onError={(e) => {
-                          console.error("Failed to load post image");
-                          const postId = post.id;
-                          const filename = post.image.split('/').pop();
-                          if (postId && filename) {
-                            e.target.src = `/static/uploads/avatar/system/avatar.png`;
-                          }
+                          console.error(`Failed to load user avatar for post`);
+                          e.target.onerror = null; 
+                          e.target.src = `/static/uploads/avatar/system/avatar.png`;
                         }}
                       />
+                      <Box>
+                        <Typography 
+                          variant="subtitle1" 
+                          component={Link}
+                          to={`/profile/${post.user.username}`}
+                          sx={{ 
+                            fontWeight: 'bold',
+                            textDecoration: 'none',
+                            color: 'text.primary',
+                            '&:hover': {
+                              textDecoration: 'underline',
+                            }
+                          }}
+                        >
+                          {post.user.name}
+                        </Typography>
+                        <Typography 
+                          variant="caption" 
+                          color="text.secondary"
+                          component={Link}
+                          to={`/profile/${post.user.username}`}
+                          sx={{ textDecoration: 'none' }}
+                        >
+                          @{post.user.username}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ ml: 'auto' }}>
+                        <Typography variant="caption" color="text.secondary">
+                          {new Date(post.timestamp).toLocaleDateString()}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    
+                    <Box sx={{ px: 2, pt: 1.5, pb: post.image || post.video ? 0 : 1 }}>
+                      <Typography 
+                        variant="body2"
+                        component={Link}
+                        to={`/post/${post.id}`} 
+                        sx={{ 
+                          mb: 1.5,
+                          display: 'block', 
+                          textDecoration: 'none',
+                          color: 'text.primary',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: 'vertical',
+                        }}
+                      >
+                        {post.content}
+                      </Typography>
+                    </Box>
+                    
+                    {post.image && (
+                      <Box 
+                        sx={{ 
+                          position: 'relative',
+                          mt: 1,
+                          cursor: 'pointer'
+                        }}
+                        component={Link}
+                        to={`/post/${post.id}`}
+                      >
+                        <img
+                          src={post.image.startsWith('/') ? post.image : `/static/uploads/post/${post.id}/${post.image}`}
+                          alt="Post image"
+                          style={{ 
+                            width: '100%',
+                            height: '250px',
+                            objectFit: 'cover',
+                            backgroundColor: '#111',
+                          }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleOpenPostImage(
+                              post.image.startsWith('/') ? post.image : `/static/uploads/post/${post.id}/${post.image}`, 
+                              [post.image.startsWith('/') ? post.image : `/static/uploads/post/${post.id}/${post.image}`], 
+                              0
+                            );
+                          }}
+                          onError={(e) => {
+                            console.error("Failed to load post image");
+                            e.target.src = `/static/uploads/avatar/system/avatar.png`;
+                          }}
+                        />
+                      </Box>
                     )}
+                    
                     {post.video && (
-                      <Box sx={{ height: 200, backgroundColor: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Box 
+                        sx={{ 
+                          height: 250,
+                          mt: 1,
+                          backgroundColor: '#111', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center',
+                          cursor: 'pointer'
+                        }}
+                        component={Link}
+                        to={`/post/${post.id}`}
+                      >
                         <video 
-                          src={post.video}
+                          src={post.video.startsWith('/') ? post.video : `/static/uploads/post/${post.id}/${post.video}`}
                           style={{ 
                             maxHeight: '100%', 
                             maxWidth: '100%',
@@ -925,67 +1105,62 @@ const SearchPage = () => {
                           }}
                           onError={(e) => {
                             console.error("Failed to load post video");
-                            const postId = post.id;
-                            const filename = post.video.split('/').pop();
-                            if (postId && filename) {
-                              e.target.src = `/static/uploads/avatar/system/avatar.png`;
-                            }
+                            e.target.src = `/static/uploads/avatar/system/avatar.png`;
                           }}
                         />
                       </Box>
                     )}
-                    <CardContent>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <Avatar 
-                          src={post.user.photo && post.user.photo !== 'avatar.png' 
-                            ? post.user.photo.startsWith('/') ? post.user.photo : `/static/uploads/avatar/${post.user.id}/${post.user.photo}` 
-                            : `/static/uploads/avatar/system/avatar.png`}
-                          alt={post.user.name}
-                          sx={{ 
-                            width: 36, 
-                            height: 36, 
-                            mr: 1.5,
-                            border: '1px solid #D0BCFF'
-                          }}
-                          onError={(e) => {
-                            console.error(`Failed to load user avatar for post`);
-                            e.target.onerror = null; 
-                            e.target.src = `/static/uploads/avatar/system/avatar.png`;
-                          }}
-                        />
-                        <Box>
-                          <Typography variant="subtitle2" component="div" sx={{ fontWeight: 'bold' }}>
-                            {post.user.name}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            @{post.user.username}
-                          </Typography>
-                        </Box>
+                    
+                    <Box sx={{ display: 'flex', alignItems: 'center', p: 2, gap: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <IconButton size="small" sx={{ mr: 0.5 }}>
+                          <ThumbUpOutlinedIcon fontSize="small" />
+                        </IconButton>
+                        <Typography variant="body2">
+                          {post.likes || post.likes_count || 0}
+                        </Typography>
                       </Box>
-                      <Typography variant="body2" component="div" sx={{ mb: 1 }}>
-                        {post.content}
-                      </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <IconButton size="small" disabled>
-                            <ThumbUpOutlinedIcon fontSize="small" />
-                          </IconButton>
-                          <Typography variant="caption" color="text.secondary">
-                            {post.likes_count || 0}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <IconButton size="small" disabled>
-                            <ChatBubbleOutlineIcon fontSize="small" />
-                          </IconButton>
-                          <Typography variant="caption" color="text.secondary">
-                            {post.comments_count || 0}
-                          </Typography>
-                        </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <IconButton size="small" sx={{ mr: 0.5 }}>
+                          <ChatBubbleOutlineIcon fontSize="small" />
+                        </IconButton>
+                        <Typography variant="body2">
+                          {post.comments || post.comments_count || post.total_comments || 0}
+                        </Typography>
                       </Box>
-                    </CardContent>
+                      <Button 
+                        variant="text" 
+                        size="small" 
+                        component={Link}
+                        to={`/post/${post.id}`}
+                        sx={{ 
+                          ml: 'auto',
+                          textTransform: 'none',
+                          borderRadius: '20px'
+                        }}
+                      >
+                        Открыть
+                      </Button>
+                    </Box>
                   </Card>
                 ))}
+                
+                {hasMorePosts && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                    <Button 
+                      variant="outlined"
+                      color="primary"
+                      onClick={loadMoreResults}
+                      disabled={loading}
+                      sx={{
+                        borderRadius: 6,
+                        textTransform: 'none',
+                      }}
+                    >
+                      {loading ? <CircularProgress size={24} /> : 'Загрузить еще'}
+                    </Button>
+                  </Box>
+                )}
               </Box>
             )}
           </TabPanel>
@@ -993,14 +1168,11 @@ const SearchPage = () => {
       )}
       
       
-      <LightBox 
+      <SimpleImageViewer 
         isOpen={lightboxOpen}
         onClose={handleCloseLightbox}
-        imageSrc={currentImage}
-        onNext={lightboxImages.length > 1 ? handleNextImage : undefined}
-        onPrev={lightboxImages.length > 1 ? handlePrevImage : undefined}
-        totalImages={lightboxImages.length}
-        currentIndex={currentImageIndex}
+        images={lightboxImages}
+        initialIndex={currentImageIndex}
       />
     </Container>
   );

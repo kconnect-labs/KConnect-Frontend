@@ -68,6 +68,8 @@ import { downloadPdfReceipt } from '../../utils/pdfGenerator';
 import TouchAppIcon from '@mui/icons-material/TouchApp';
 import CallMadeIcon from '@mui/icons-material/CallMade';
 import CallReceivedIcon from '@mui/icons-material/CallReceived';
+import CasinoIcon from '@mui/icons-material/Casino';
+import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 
 
 const BalanceHeader = styled(Box)(({ theme }) => ({
@@ -824,9 +826,11 @@ const BalancePage = () => {
   const [transferSuccess, setTransferSuccess] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
   const [subscription, setSubscription] = useState(null);
+  const [isTransferring, setIsTransferring] = useState(false);
   
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [gameTransactions, setGameTransactions] = useState([]);
 
   
   const allTransactions = React.useMemo(() => {
@@ -853,16 +857,13 @@ const BalancePage = () => {
     }));
 
     const transfers = transferHistory.map(transfer => {
-      
-      
+
       const senderId = parseInt(transfer.sender_id, 10);
       const userId = parseInt(user.id, 10);
       const is_sender = senderId === userId;
       
-      
       const isClickerWithdrawal = transfer.sender_id === transfer.recipient_id && 
-                                 transfer.message === "Вывод баллов из кликера";
-      
+                               transfer.message === "Вывод баллов из кликера";
       
       let title = isClickerWithdrawal ? 'Вывод из кликера' : 
                  (is_sender ? 'Перевод' : 'Пополнение');
@@ -885,7 +886,6 @@ const BalancePage = () => {
       };
     });
 
-    
     const usernames = usernamePurchases.map(purchase => ({
       ...purchase,
       type: 'username',
@@ -896,9 +896,61 @@ const BalancePage = () => {
       icon: <AccountCircleIcon sx={{ color: 'error.main' }} />
     }));
 
+
+    const weeklyActivities = gameTransactions
+      .filter(transaction => transaction.transaction_type === 'weekly_activity')
+      .map(transaction => {
+        return {
+          ...transaction,
+          type: 'weekly_activity',
+          date: new Date(transaction.date || transaction.created_at),
+          title: 'Еженедельные баллы',
+          description: transaction.description || 'Начисление за активность',
+          icon: <TrendingUpIcon sx={{ color: 'success.main' }} />
+        };
+      });
     
-    return [...purchases, ...royalties, ...transfers, ...usernames].sort((a, b) => b.date - a.date);
-  }, [purchaseHistory, royaltyHistory, transferHistory, usernamePurchases, user?.id]);
+
+    const otherGameTransactions = gameTransactions
+      .filter(transaction => transaction.transaction_type !== 'weekly_activity')
+      .map(transaction => {
+        let icon = null;
+        let title = transaction.description || 'Транзакция';
+        let type = transaction.transaction_type || 'unknown';
+        
+
+        if (type.includes('blackjack') || type.includes('minigame')) {
+
+          if (type === 'blackjack_win' || type === 'blackjack_win_21') {
+            icon = <CasinoIcon sx={{ color: 'success.main' }} />;
+            title = 'Выигрыш в игре "21"';
+          } else if (type === 'blackjack_tie') {
+            icon = <CasinoIcon sx={{ color: 'info.main' }} />;
+            title = 'Ничья в игре "21"';
+          } else if (type === 'blackjack_lose' || type === 'blackjack_lose_bust') {
+            icon = <CasinoIcon sx={{ color: 'error.main' }} />;
+            title = 'Проигрыш в игре "21"';
+          } else if (type === 'minigame_bet') {
+            icon = <SportsEsportsIcon sx={{ color: 'error.main' }} />;
+            title = 'Ставка в мини-игре';
+          } else {
+            icon = <SportsEsportsIcon sx={{ color: transaction.amount > 0 ? 'success.main' : 'error.main' }} />;
+          }
+        }
+        
+        return {
+          ...transaction, 
+          type: 'game',
+          date: new Date(transaction.date),
+          title: title,
+          description: transaction.transaction_type.replace(/_/g, ' '),
+          icon: icon
+        };
+      });
+    
+    return [...purchases, ...royalties, ...transfers, ...usernames, ...weeklyActivities, ...otherGameTransactions]
+      .sort((a, b) => b.date - a.date);
+  }, [purchaseHistory, royaltyHistory, transferHistory, usernamePurchases, gameTransactions, user?.id]);
 
   useEffect(() => {
     if (user) {
@@ -911,6 +963,7 @@ const BalancePage = () => {
       fetchTransferHistory();
       fetchUsernamePurchases();
       fetchSubscriptionStatus();
+      fetchGameTransactions();
     }
   }, [user]);
 
@@ -1119,7 +1172,12 @@ const BalancePage = () => {
       return;
     }
 
+
+    if (isTransferring) return;
+
     setTransferErrors({});
+    setIsTransferring(true);
+    
     try {
       
       const response = await axios.post('/api/user/transfer-points', {
@@ -1179,6 +1237,8 @@ const BalancePage = () => {
         message: error.response?.data?.error || 'Ошибка при переводе баллов',
         severity: 'error'
       });
+    } finally {
+      setIsTransferring(false);
     }
   };
 
@@ -1287,7 +1347,13 @@ const BalancePage = () => {
       const data = await response.json();
       
       if (!response.ok) {
-        setKeyError(data.error || 'Ошибка при активации ключа');
+
+        if (data.error && data.error.includes('Невозможно активировать подписку') && 
+            data.error.includes('так как у вас уже есть подписка более высокого уровня')) {
+          setKeyError(data.error);
+        } else {
+          setKeyError(data.error || 'Ошибка при активации ключа');
+        }
         setIsSubmittingKey(false);
         return;
       }
@@ -1376,6 +1442,17 @@ const BalancePage = () => {
     return `TR-${transaction.id || new Date(transaction.date).getTime().toString().slice(-8)}`;
   };
 
+  const fetchGameTransactions = async () => {
+    try {
+      const response = await axios.get('/api/user/transactions-history');
+      if (response.data && response.data.transactions) {
+        setGameTransactions(response.data.transactions);
+      }
+    } catch (error) {
+      console.error('Ошибка при получении истории игровых транзакций:', error);
+    }
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
@@ -1461,7 +1538,7 @@ const BalancePage = () => {
 
           <Typography variant="body2" color="text.secondary">
             Это прогноз баллов, которые вы получите в конце недели за вашу активность. 
-            Баллы начисляются каждое воскресенье в 23:50.
+            Баллы начисляются каждое воскресенье в 23:50 по UTC+03:00, статистика обновляется в Понедельник 02:50.
           </Typography>
         </CardContent>
       </WeeklyPredictionCard>
@@ -1608,6 +1685,10 @@ const BalancePage = () => {
                     <ShoppingCartIcon sx={{ mr: 1, color: 'error.main' }} />
                   ) : selectedTransaction.type === 'username' ? (
                     <AccountCircleIcon sx={{ mr: 1, color: 'info.main' }} />
+                  ) : selectedTransaction.type === 'weekly_activity' ? (
+                    <TrendingUpIcon sx={{ mr: 1, color: 'success.main' }} />
+                  ) : selectedTransaction.type === 'game' ? (
+                    <CasinoIcon sx={{ mr: 1, color: selectedTransaction.amount > 0 ? 'success.main' : 'error.main' }} />
                   ) : (
                     <DiamondIcon sx={{ mr: 1, color: 'success.main' }} />
                   )}
@@ -1619,7 +1700,10 @@ const BalancePage = () => {
                       (selectedTransaction.is_sender ? 'Исходящий перевод' : 'Входящий перевод')) :
                       selectedTransaction.type === 'purchase' ? 'Покупка бейджика' :
                       selectedTransaction.type === 'royalty' ? 'Роялти от бейджика' :
-                      'Покупка юзернейма'
+                      selectedTransaction.type === 'weekly_activity' ? 'Еженедельное начисление' :
+                      selectedTransaction.type === 'username' ? 'Покупка юзернейма' :
+                      selectedTransaction.type === 'game' ? 'Транзакция в мини-игре' :
+                      'Транзакция'
                     }
                   </Typography>
                 </Box>
@@ -1728,6 +1812,47 @@ const BalancePage = () => {
                 </DetailRow>
               )}
               
+              {selectedTransaction.type === 'weekly_activity' && (
+                <>
+                  <DetailRow>
+                    <DetailLabel>Тип операции</DetailLabel>
+                    <DetailValue>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <TrendingUpIcon sx={{ fontSize: '1rem', mr: 0.5, color: 'success.main' }} />
+                        <span>Еженедельное начисление</span>
+                      </Box>
+                    </DetailValue>
+                  </DetailRow>
+                  
+                  <DetailRow>
+                    <DetailLabel>Описание</DetailLabel>
+                    <DetailValue>{selectedTransaction.description}</DetailValue>
+                  </DetailRow>
+                  
+                  <DetailRow>
+                    <DetailLabel>Дата начисления</DetailLabel>
+                    <DetailValue>{formatDate(selectedTransaction.date)}</DetailValue>
+                  </DetailRow>
+                </>
+              )}
+              
+              {selectedTransaction.type === 'game' && (
+                <>
+                  <DetailRow>
+                    <DetailLabel>Тип операции</DetailLabel>
+                    <DetailValue>
+                      {selectedTransaction.description}
+                    </DetailValue>
+                  </DetailRow>
+                  <DetailRow>
+                    <DetailLabel>Описание</DetailLabel>
+                    <DetailValue>
+                      {selectedTransaction.title}
+                    </DetailValue>
+                  </DetailRow>
+                </>
+              )}
+              
               <DetailRow>
                 <DetailLabel>Сумма</DetailLabel>
                 <DetailValue sx={{ 
@@ -1737,16 +1862,26 @@ const BalancePage = () => {
                   {formatCurrency(selectedTransaction.amount)}
                 </DetailValue>
               </DetailRow>
+              
               {selectedTransaction.type === 'transfer' && (
-                  <Button
-                    startIcon={<PictureAsPdfIcon />}
-                    variant="outlined"
-                    onClick={() => generateReceiptForTransaction(selectedTransaction)}
-                    sx={{ borderRadius: 2 }}
-                  >
-                    Скачать чек
-                  </Button>
-                )}
+                <Button
+                  startIcon={<PictureAsPdfIcon />}
+                  variant="outlined"
+                  onClick={() => generateReceiptForTransaction(selectedTransaction)}
+                  sx={{ borderRadius: 2 }}
+                >
+                  Скачать чек
+                </Button>
+              )}
+              
+              {selectedTransaction.type === 'weekly_activity' && (
+                <Box sx={{ mt: 2, p: 2, bgcolor: 'rgba(76, 175, 80, 0.1)', borderRadius: 2 }}>
+                  <Typography variant="body2" color="success.main">
+                    Баллы начислены за вашу активность на платформе за прошедшую неделю.
+                  </Typography>
+                </Box>
+              )}
+              
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
                 {selectedTransaction.sender_id === selectedTransaction.recipient_id && 
                  selectedTransaction.message === "Вывод баллов из кликера" && (
@@ -1996,11 +2131,11 @@ const BalancePage = () => {
               <Button 
                 variant="contained" 
                 color="primary"
-                onClick={() => navigate('/username-shop')}
+                onClick={() => navigate('/username-auction')}
                 startIcon={<AccountCircleIcon />}
                 sx={{ mr: 2, mb: { xs: 2, sm: 0 } }}
               >
-                Магазин юзернеймов
+                Аукцион юзернеймов
               </Button>
               <Button 
                 variant="outlined" 
@@ -2243,15 +2378,18 @@ const BalancePage = () => {
           justifyContent: 'space-between',
           borderTop: '1px solid rgba(255,255,255,0.07)'
         }}>
-          <CancelButton onClick={() => setTransferDialogOpen(false)}>
+          <CancelButton 
+            onClick={() => setTransferDialogOpen(false)}
+            disabled={isTransferring}
+          >
             Отмена
           </CancelButton>
           <GradientButton 
             onClick={handleTransferPoints} 
-            disabled={!userSearch.exists || !transferData.recipient_id || userSearch.loading || !transferData.amount}
-            startIcon={<SendIcon />}
+            disabled={!userSearch.exists || !transferData.recipient_id || userSearch.loading || !transferData.amount || isTransferring}
+            startIcon={isTransferring ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
           >
-            {userSearch.exists && transferData.recipient_id ? 'Перевести безопасно' : 'Перевести'}
+            {isTransferring ? 'Выполнение перевода...' : (userSearch.exists && transferData.recipient_id ? 'Перевести безопасно' : 'Перевести')}
           </GradientButton>
         </Box>
       </StyledDialog>

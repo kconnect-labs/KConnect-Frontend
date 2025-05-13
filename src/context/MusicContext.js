@@ -224,6 +224,26 @@ export const MusicProvider = ({ children }) => {
         if (response.data && response.data.tracks) {
           const receivedTracks = response.data.tracks;
           
+
+          if (receivedTracks.length > 0) {
+
+            const prefetchCount = Math.min(3, receivedTracks.length);
+            console.log(`Pre-fetching lyrics for first ${prefetchCount} tracks...`);
+            
+
+            Promise.all(
+              receivedTracks.slice(0, prefetchCount).map(async (track) => {
+                try {
+                  const lyricsData = await fetchLyricsForTrack(track.id);
+                  if (lyricsData) {
+                    track.lyricsData = lyricsData;
+                  }
+                } catch (err) {
+                  console.error(`Error pre-fetching lyrics for track ${track.id}:`, err);
+                }
+              })
+            ).catch(err => console.error('Error in lyrics pre-fetch batch:', err));
+          }
           
           if (currentSection === 'all') {
             setTracks(receivedTracks);
@@ -289,11 +309,11 @@ export const MusicProvider = ({ children }) => {
       if (isMounted) {
         const audio = audioRef.current;
         
-        
+
         currentTimeRef.current = audio.currentTime;
         durationRef.current = audio.duration;
         
-        
+
         if ('mediaSession' in navigator && audio.duration) {
           navigator.mediaSession.setPositionState({
             duration: audio.duration,
@@ -302,15 +322,16 @@ export const MusicProvider = ({ children }) => {
           });
         }
         
-        
+
+
         const now = Date.now();
-        if (now - lastTimeUpdateRef.current > 5000) {
+        if (now - lastTimeUpdateRef.current > 1000) {
           setCurrentTime(audio.currentTime);
           setDuration(audio.duration);
           lastTimeUpdateRef.current = now;
         }
         
-        
+
         if (enableCrossfade && isPlaying && audio.duration > 0) {
           const timeRemaining = audio.duration - audio.currentTime;
           
@@ -463,6 +484,22 @@ export const MusicProvider = ({ children }) => {
   ]);
 
   
+  const fetchLyricsForTrack = async (trackId) => {
+    try {
+      const response = await fetch(`/api/music/${trackId}/lyrics`);
+      if (!response.ok) {
+        console.error('Failed to fetch lyrics for track', trackId);
+        return null;
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching lyrics data:', error);
+      return null;
+    }
+  };
+
+  
   const playTrack = (track, section = currentSection) => {
     
     if (isTrackLoading) {
@@ -486,6 +523,20 @@ export const MusicProvider = ({ children }) => {
         return;
       }
       
+
+      if (!track.lyricsData) {
+        fetchLyricsForTrack(track.id)
+          .then(lyricsData => {
+            if (lyricsData) {
+              track.lyricsData = lyricsData;
+
+              if (currentTrack && track.id === currentTrack.id) {
+                setCurrentTrack({...track});
+              }
+            }
+          })
+          .catch(err => console.error('Error fetching lyrics for track:', err));
+      }
       
       console.log(`Начинаем воспроизведение трека: ${track.title} - ${track.artist}`);
       
@@ -918,9 +969,15 @@ export const MusicProvider = ({ children }) => {
 
   
   const seekTo = (time) => {
-    if (audioRef.current && duration) {
+    if (audioRef.current) {
+
       audioRef.current.currentTime = time;
+      
+
       setCurrentTime(time);
+      
+
+      currentTimeRef.current = time;
     }
   };
 
@@ -1285,16 +1342,17 @@ export const MusicProvider = ({ children }) => {
 
   
   const loadMoreTracks = useCallback(async (type = 'all') => {
+    console.log(`[loadMoreTracks] Начало загрузки типа: ${type}`);
     
     if (isLoadingMoreRef.current) {
-      console.log(`Пропускаем загрузку для ${type}: уже идет загрузка`);
+      console.log(`[loadMoreTracks] Пропускаем загрузку для ${type}: уже идет загрузка`);
       return false;
     }
     
     
     const hasMoreForType = hasMoreByType[type] !== false;
     if (!hasMoreForType) {
-      console.log(`Пропускаем загрузку для ${type}: больше нет треков`);
+      console.log(`[loadMoreTracks] Пропускаем загрузку для ${type}: больше нет треков (hasMoreByType = ${hasMoreByType[type]})`);
       return false;
     }
     
@@ -1307,23 +1365,29 @@ export const MusicProvider = ({ children }) => {
       (type === 'popular' && popularTracks.length === 0) ||
       (type === 'new' && newTracks.length === 0)
     )) {
-      console.log(`Пропускаем загрузку для ${type}: ожидается загрузка первой страницы`);
+      console.log(`[loadMoreTracks] Пропускаем загрузку для ${type}: ожидается загрузка первой страницы`);
       return false;
     }
     
+    console.log(`[loadMoreTracks] Устанавливаем флаги загрузки для типа: ${type}`);
     isLoadingMoreRef.current = true;
     setIsLoadingMore(true);
     
     try {
       
       let nextPage = pageByType[type] + 1;
+      console.log(`[loadMoreTracks] Загрузка страницы ${nextPage} для типа: ${type}`);
+      
       let endpoint = '/api/music';
       let params = { page: nextPage, per_page: 20 };
       
+      let response;
       
       if (type === 'liked') {
         endpoint = '/api/music/liked';
-        params = {};
+        params = { page: nextPage, per_page: 20 };
+        
+        console.log(`[loadMoreTracks] Запрос для понравившихся треков: ${endpoint}`, params);
         
         const config = {
           params,
@@ -1335,11 +1399,13 @@ export const MusicProvider = ({ children }) => {
           withCredentials: true
         };
         
-        const response = await axios.get(endpoint, config);
-        
-        
-        
-        
+        response = await axios.get(endpoint, config);
+        console.log(`[loadMoreTracks] Получен ответ для liked треков:`, {
+          status: response.status,
+          hasData: !!response.data,
+          hasTracks: !!(response.data && response.data.tracks),
+          tracksCount: response.data && response.data.tracks ? response.data.tracks.length : 0
+        });
       } else if (type === 'popular') {
         params.sort = 'popular';
       } else if (type === 'new') {
@@ -1350,13 +1416,12 @@ export const MusicProvider = ({ children }) => {
         params.nocache = Math.random();
       }
       
-      console.log(`Загружаем треки для типа "${type}" со страницы ${nextPage}`);
+      console.log(`[loadMoreTracks] Загружаем треки для типа "${type}" со страницы ${nextPage}`);
       
       
       await new Promise(resolve => setTimeout(resolve, 300));
       
       
-      let response;
       if (type !== 'liked') {
         response = await axios.get(endpoint, { params });
       }
@@ -1375,20 +1440,47 @@ export const MusicProvider = ({ children }) => {
         } else if (response.data.pages !== undefined) {
           has_more = nextPage < response.data.pages;
         }
+        
+        console.log(`[loadMoreTracks] Данные получены в формате { tracks: [...] }, количество: ${newTracks.length}, has_more: ${has_more}`);
+        
+
+        if (newTracks.length > 0) {
+
+          const prefetchCount = Math.min(2, newTracks.length);
+          console.log(`[loadMoreTracks] Pre-fetching lyrics for first ${prefetchCount} tracks in this batch...`);
+          
+
+          Promise.all(
+            newTracks.slice(0, prefetchCount).map(async (track) => {
+              if (!track.lyricsData) {
+                try {
+                  const lyricsData = await fetchLyricsForTrack(track.id);
+                  if (lyricsData) {
+                    track.lyricsData = lyricsData;
+                  }
+                } catch (err) {
+                  console.error(`[loadMoreTracks] Error pre-fetching lyrics for track ${track.id}:`, err);
+                }
+              }
+            })
+          ).catch(err => console.error('[loadMoreTracks] Error in lyrics pre-fetch batch:', err));
+        }
       } else if (response && Array.isArray(response.data)) {
         
         newTracks = response.data;
         has_more = newTracks.length >= 20;
+        console.log(`[loadMoreTracks] Данные получены в формате массива, количество: ${newTracks.length}, has_more: ${has_more}`);
       } else if (type !== 'liked') {
-        console.warn(`Странный формат ответа API для типа ${type}:`, response ? response.data : 'Нет ответа');
+        console.warn(`[loadMoreTracks] Странный формат ответа API для типа ${type}:`, response ? response.data : 'Нет ответа');
       }
       
       
       if (newTracks.length === 0) {
         has_more = false;
+        console.log(`[loadMoreTracks] Не получено новых треков, устанавливаем has_more = false`);
       }
       
-      console.log(`Получено ${newTracks.length} треков для типа ${type}, есть еще: ${has_more}`);
+      console.log(`[loadMoreTracks] Получено ${newTracks.length} треков для типа ${type}, есть еще: ${has_more}`);
       
       
       if (type === 'all') {
@@ -1396,8 +1488,10 @@ export const MusicProvider = ({ children }) => {
       } else if (type === 'liked') {
         
         if (response && response.data && response.data.tracks) {
-          setLikedTracks(response.data.tracks);
+          console.log(`[loadMoreTracks] Добавляем ${response.data.tracks.length} понравившихся треков к существующим ${likedTracks.length}`);
+          setLikedTracks(prevTracks => [...prevTracks, ...response.data.tracks]);
         } else {
+          console.log(`[loadMoreTracks] Добавляем ${newTracks.length} понравившихся треков к существующим ${likedTracks.length}`);
           setLikedTracks(prevTracks => [...prevTracks, ...newTracks]);
         }
       } else if (type === 'popular') {
@@ -1408,7 +1502,7 @@ export const MusicProvider = ({ children }) => {
         
         const shuffledNewTracks = [...newTracks].sort(() => Math.random() - 0.5);
         setRandomTracks(prevTracks => [...prevTracks, ...shuffledNewTracks]);
-        console.log('Добавлены и перемешаны случайные треки:', shuffledNewTracks.length);
+        console.log('[loadMoreTracks] Добавлены и перемешаны случайные треки:', shuffledNewTracks.length);
       }
       
       
@@ -1416,16 +1510,19 @@ export const MusicProvider = ({ children }) => {
         ...prev,
         [type]: nextPage
       }));
+      console.log(`[loadMoreTracks] Обновлена страница для типа ${type} на ${nextPage}`);
       
       
       setHasMoreByType(prev => ({
         ...prev,
         [type]: has_more
       }));
+      console.log(`[loadMoreTracks] Обновлен флаг hasMoreByType[${type}] = ${has_more}`);
       
       
       if (currentSection === type) {
         setHasMoreTracks(has_more);
+        console.log(`[loadMoreTracks] Обновлен основной флаг hasMoreTracks = ${has_more}`);
       }
       
       
@@ -1433,11 +1530,13 @@ export const MusicProvider = ({ children }) => {
         setTimeout(() => {
           preloadNextPage(nextPage + 1, type);
         }, 1000);
+        console.log(`[loadMoreTracks] Запланирована предзагрузка следующей страницы ${nextPage + 1} для типа ${type}`);
       }
       
+      console.log(`[loadMoreTracks] Успешно завершена загрузка для типа ${type}`);
       return true;
     } catch (error) {
-      console.error('Error loading more tracks:', error);
+      console.error('[loadMoreTracks] Ошибка при загрузке треков:', error);
       
       
       if (error.response && error.response.status === 404) {
@@ -1445,12 +1544,14 @@ export const MusicProvider = ({ children }) => {
         if (currentSection === type) {
           setHasMoreTracks(false);
         }
+        console.log(`[loadMoreTracks] Получен 404, устанавливаем hasMoreByType[${type}] = false`);
       }
       
       return false;
     } finally {
       isLoadingMoreRef.current = false;
       setIsLoadingMore(false);
+      console.log(`[loadMoreTracks] Сброшены флаги загрузки для типа ${type}`);
     }
   }, [pageByType, hasMoreByType, tracks.length, likedTracks.length, randomTracks.length, popularTracks.length, newTracks.length, currentSection]);
   
@@ -1475,6 +1576,20 @@ export const MusicProvider = ({ children }) => {
       
       
       if (type === 'liked') {
+        let endpoint = '/api/music/liked';
+        let params = { page: nextPage, per_page: 20 };
+        
+        try {
+          const response = await axios.get(endpoint, { 
+            params,
+            headers: {
+              'Cache-Control': 'max-age=300'  
+            }
+          });
+          console.log(`Предзагружено ${response.data.tracks?.length || 0} понравившихся треков для страницы ${nextPage}`);
+        } catch (error) {
+          console.error('Ошибка при предзагрузке понравившихся треков:', error);
+        }
         return;
       }
       
@@ -1567,7 +1682,7 @@ export const MusicProvider = ({ children }) => {
 
   
   const resetPagination = useCallback(async (type, randomize = false) => {
-    console.log(`Сброс пагинации для типа: ${type}, randomize: ${randomize ? 'true' : 'false'}`);
+    console.log(`[resetPagination] Сброс пагинации для типа: ${type}, randomize: ${randomize ? 'true' : 'false'}`);
     
     
     setPageByType(prev => ({
@@ -1584,6 +1699,62 @@ export const MusicProvider = ({ children }) => {
         
         if (type === 'liked') {
           url = '/api/music/liked';
+          
+          
+          try {
+            const config = {
+              params,
+              headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+              },
+              withCredentials: true
+            };
+            
+            console.log('[resetPagination] Запрашиваем понравившиеся треки', config);
+            const response = await axios.get(url, config);
+            
+            if (response.data && response.data.tracks) {
+              const receivedTracks = response.data.tracks;
+              console.log(`[resetPagination] Получено ${receivedTracks.length} понравившихся треков`);
+              
+              
+              const hasMore = receivedTracks.length >= params.per_page;
+              console.log(`[resetPagination] Устанавливаем hasMoreByType[liked] = ${hasMore}`);
+              
+              setLikedTracks(receivedTracks);
+              setHasMoreByType(prev => ({ ...prev, liked: hasMore }));
+              
+              if (currentSection === 'liked') {
+                setHasMoreTracks(hasMore);
+              }
+              
+              resolve(true);
+              return;
+            } else {
+              console.log('[resetPagination] В ответе нет понравившихся треков');
+              setLikedTracks([]);
+              setHasMoreByType(prev => ({ ...prev, liked: false }));
+              
+              if (currentSection === 'liked') {
+                setHasMoreTracks(false);
+              }
+              
+              resolve(false);
+              return;
+            }
+          } catch (error) {
+            console.error('[resetPagination] Ошибка при загрузке понравившихся треков:', error);
+            setHasMoreByType(prev => ({ ...prev, liked: false }));
+            
+            if (currentSection === 'liked') {
+              setHasMoreTracks(false);
+            }
+            
+            reject(error);
+            return;
+          }
         } else if (type === 'popular') {
           params.sort = 'popular';
         } else if (type === 'new') {
@@ -1721,16 +1892,20 @@ export const MusicProvider = ({ children }) => {
 
   
   const getCurrentTimeRaw = useCallback(() => {
-    if (audioRef.current) {
-      return audioRef.current.currentTime || 0;
+    const audio = audioRef.current;
+
+    if (audio && !isNaN(audio.currentTime)) {
+      return audio.currentTime;
     }
     return currentTimeRef.current || 0;
   }, []);
 
   
   const getDurationRaw = useCallback(() => {
-    if (audioRef.current) {
-      return audioRef.current.duration || 0;
+    const audio = audioRef.current;
+
+    if (audio && !isNaN(audio.duration)) {
+      return audio.duration;
     }
     return durationRef.current || 0;
   }, []);

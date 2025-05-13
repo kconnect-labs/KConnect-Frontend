@@ -64,7 +64,63 @@ import { generatePlaceholder } from '../../utils/imageUtils';
 import SettingsBottomNavigation from '../../components/SettingsBottomNavigation';
 import LoginSettingsTab from '../../components/LoginSettingsTab';
 import { useSnackbar } from 'notistack';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import BadgeIcon from '@mui/icons-material/Badge';
+import ClearIcon from '@mui/icons-material/Clear';
+import StraightenIcon from '@mui/icons-material/Straighten';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import SearchIcon from '@mui/icons-material/Search';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 
+
+const IOSSwitch = styled((props) => (
+  <Switch focusVisibleClassName=".Mui-focusVisible" disableRipple {...props} />
+))(({ theme }) => ({
+  width: 42,
+  height: 26,
+  padding: 0,
+  '& .MuiSwitch-switchBase': {
+    padding: 0,
+    margin: 2,
+    transitionDuration: '300ms',
+    '&.Mui-checked': {
+      transform: 'translateX(16px)',
+      color: '#fff',
+      '& + .MuiSwitch-track': {
+        backgroundColor: '#D0BCFF',
+        opacity: 1,
+        border: 0,
+      },
+      '&.Mui-disabled + .MuiSwitch-track': {
+        opacity: 0.5,
+      },
+    },
+    '&.Mui-focusVisible .MuiSwitch-thumb': {
+      color: '#D0BCFF',
+      border: '6px solid #fff',
+    },
+    '&.Mui-disabled .MuiSwitch-thumb': {
+      color: theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.grey[600],
+    },
+    '&.Mui-disabled + .MuiSwitch-track': {
+      opacity: theme.palette.mode === 'light' ? 0.7 : 0.3,
+    },
+  },
+  '& .MuiSwitch-thumb': {
+    boxSizing: 'border-box',
+    width: 22,
+    height: 22,
+  },
+  '& .MuiSwitch-track': {
+    borderRadius: 26 / 2,
+    backgroundColor: theme.palette.mode === 'light' ? '#555' : '#39393D',
+    opacity: 1,
+    transition: theme.transitions.create(['background-color'], {
+      duration: 500,
+    }),
+  },
+}));
 
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import SaveIcon from '@mui/icons-material/Save';
@@ -123,6 +179,9 @@ import InfoIcon from '@mui/icons-material/Info';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import ShieldIcon from '@mui/icons-material/Shield';
+import DevicesIcon from '@mui/icons-material/Devices';
+import { SessionManager } from '../../UIKIT';
+import ColorizeIcon from '@mui/icons-material/Colorize';
 
 
 const SettingsContainer = styled(Container)(({ theme }) => ({
@@ -144,11 +203,13 @@ const SettingsHeader = styled(Box)(({ theme }) => ({
 export const SettingsCard = styled(Card)(({ theme }) => ({
   marginBottom: theme.spacing(3),
   borderRadius: theme.spacing(1),
-  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
   overflow: 'hidden',
   transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+  backgroundColor: 'rgba(18, 18, 18, 0.95)',
+  border: '1px solid rgba(255, 255, 255, 0.05)',
   '&:hover': {
-    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)'
+    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.25)'
   }
 }));
 
@@ -184,7 +245,7 @@ const EditOverlay = styled(Box)(({ theme }) => ({
   left: 0,
   right: 0,
   bottom: 0,
-  backgroundColor: alpha(theme.palette.common.black, 0.5),
+  backgroundColor: alpha(theme.palette.common.black, 0.7),
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
@@ -212,7 +273,7 @@ const BannerOverlay = styled(Box)(({ theme }) => ({
   left: 0,
   right: 0,
   bottom: 0,
-  backgroundColor: alpha(theme.palette.common.black, 0.5),
+  backgroundColor: alpha(theme.palette.common.black, 0.7),
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
@@ -235,6 +296,9 @@ const ColorPreview = styled(Box)(({ bg }) => ({
 
 const StyledTabs = styled(Tabs)(({ theme }) => ({
   marginBottom: theme.spacing(3),
+  backgroundColor: 'rgba(16, 16, 16, 0.6)',
+  borderRadius: 8,
+  padding: '4px',
   '& .MuiTabs-indicator': {
     backgroundColor: '#D0BCFF',
     height: 3,
@@ -692,10 +756,10 @@ const ColorPicker = ({ label, color, onChange }) => {
 const BlurredDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
     borderRadius: 16,
-    backgroundImage: 'linear-gradient(to bottom, rgba(26, 26, 26, 0.8), rgba(36, 36, 36, 0.8))',
+    backgroundImage: 'linear-gradient(to bottom, rgba(18, 18, 18, 0.95), rgba(22, 22, 22, 0.95))',
     backdropFilter: 'blur(10px)',
-    boxShadow: '0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
+    boxShadow: '0 14px 28px rgba(0,0,0,0.4), 0 10px 10px rgba(0,0,0,0.3)',
+    border: '1px solid rgba(255, 255, 255, 0.05)',
     overflow: 'hidden',
     [theme.breakpoints.down('sm')]: {
       width: '100%',
@@ -713,7 +777,7 @@ const PurchaseDialogHeader = styled(Box)(({ theme }) => ({
   paddingBottom: theme.spacing(4),
   textAlign: 'center',
   borderRadius: '8px 8px 0 0',
-  background: 'linear-gradient(135deg, rgba(208, 188, 255, 0.3) 0%, rgba(124, 77, 255, 0.5) 100%)',
+  background: 'linear-gradient(135deg, rgba(208, 188, 255, 0.15) 0%, rgba(124, 77, 255, 0.25) 100%)',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
@@ -724,23 +788,25 @@ const PurchaseDialogHeader = styled(Box)(({ theme }) => ({
 }));
 
 const PurchaseButton = styled(Button)(({ theme }) => ({
-  backgroundImage: 'linear-gradient(135deg, #64B5F6 0%, #1976D2 100%)',
+  backgroundImage: 'linear-gradient(135deg, rgba(100, 181, 246, 0.8) 0%, rgba(25, 118, 210, 0.9) 100%)',
   borderRadius: 12,
   padding: theme.spacing(1.2, 3),
   fontWeight: 600,
   textTransform: 'none',
   transition: 'all 0.3s ease',
-  boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
+  boxShadow: '0 4px 12px rgba(25, 118, 210, 0.2)',
+  border: '1px solid rgba(255, 255, 255, 0.05)',
   '&:hover': {
-    boxShadow: '0 6px 16px rgba(25, 118, 210, 0.4)',
+    boxShadow: '0 6px 16px rgba(25, 118, 210, 0.3)',
     transform: 'translateY(-2px)',
   },
   '&:active': {
-    boxShadow: '0 2px 8px rgba(25, 118, 210, 0.3)',
+    boxShadow: '0 2px 8px rgba(25, 118, 210, 0.2)',
     transform: 'translateY(0)',
   },
   '&.Mui-disabled': {
-    background: 'rgba(255,255,255,0.1)',
+    background: 'rgba(30, 30, 30, 0.5)',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
   }
 }));
 
@@ -1138,21 +1204,26 @@ const UsernameShopTab = () => {
       
       
       <Paper 
-        elevation={3}
+        elevation={0} 
             sx={{ 
           p: { xs: 2, md: 3 }, 
           mb: { xs: 2, md: 3 }, 
-          bgcolor: 'rgba(40, 40, 40, 0.9)', 
+          bgcolor: 'rgba(18, 18, 18, 0.9)', 
           borderRadius: 2,
-          border: '1px solid rgba(208, 188, 255, 0.2)'
+          border: '1px solid rgba(208, 188, 255, 0.1)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+          backdropFilter: 'blur(10px)',
         }}
       >
-        <Typography variant="h6" gutterBottom sx={{ color: '#D0BCFF' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <InfoIcon sx={{ color: '#D0BCFF', mr: 1.5, fontSize: '1.2rem' }} />
+          <Typography variant="h6" sx={{ color: '#D0BCFF', fontWeight: 600, fontSize: '1.1rem' }}>
           Правила покупки юзернеймов
             </Typography>
+        </Box>
         
         <Box sx={{ mt: 1 }}>
-          <Typography variant="body2" paragraph>
+          <Typography variant="body2" paragraph sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
             {userSubscription && userSubscription.subscription_type === 'ultimate' ? (
               <span>С подпиской <strong style={{ color: '#D0BCFF' }}>Ultimate</strong> вы можете приобрести <strong style={{ color: '#4CAF50' }}>неограниченное количество</strong> юзернеймов.</span>
             ) : (
@@ -1172,41 +1243,74 @@ const UsernameShopTab = () => {
           
           <Divider sx={{ my: 1.5, borderColor: 'rgba(208, 188, 255, 0.1)' }} />
           
-          <Typography variant="subtitle2" sx={{ color: '#D0BCFF', mt: 1.5 }}>
-            Факторы, влияющие на цену:
-          </Typography>
-          
-          <Grid container spacing={2} sx={{ mt: 0.5 }}>
+          <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <Typography variant="body2">
-                <strong>Длина юзернейма:</strong>
+              <Box sx={{ 
+                p: 1.5, 
+                borderRadius: 2, 
+                bgcolor: 'rgba(0, 0, 0, 0.2)', 
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                height: '100%'
+              }}>
+                <Typography variant="subtitle2" sx={{ color: '#D0BCFF', mb: 1, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                  <StraightenIcon sx={{ fontSize: '0.9rem', mr: 0.5 }} />
+                  Цена зависит от длины:
               </Typography>
-              <Typography variant="body2" sx={{ ml: 2 }}>
-                • 1-3 символа: x3.0
-              </Typography>
-              <Typography variant="body2" sx={{ ml: 2 }}>
-                • 4-6 символов: x2.0
-              </Typography>
-              <Typography variant="body2" sx={{ ml: 2 }}>
-                • 7-10 символов: x1.5
-              </Typography>
-              <Typography variant="body2" sx={{ ml: 2 }}>
-                • 11+ символов: x1.0
-              </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  <Chip 
+                    label="1-3 символа: x3.0" 
+                    size="small" 
+                    sx={{ bgcolor: 'rgba(208, 188, 255, 0.1)', color: '#fff', border: '1px solid rgba(208, 188, 255, 0.2)' }}
+                  />
+                  <Chip 
+                    label="4-6 символов: x2.0" 
+                    size="small" 
+                    sx={{ bgcolor: 'rgba(208, 188, 255, 0.08)', color: '#fff', border: '1px solid rgba(208, 188, 255, 0.15)' }}
+                  />
+                  <Chip 
+                    label="7-10 символов: x1.5" 
+                    size="small" 
+                    sx={{ bgcolor: 'rgba(208, 188, 255, 0.05)', color: '#fff', border: '1px solid rgba(208, 188, 255, 0.1)' }}
+                  />
+                  <Chip 
+                    label="11+ символов: x1.0" 
+                    size="small" 
+                    sx={{ bgcolor: 'rgba(208, 188, 255, 0.02)', color: '#fff', border: '1px solid rgba(208, 188, 255, 0.07)' }}
+                  />
+                </Box>
+              </Box>
             </Grid>
             
             <Grid item xs={12} md={6}>
-              <Typography variant="body2">
-                <strong>Популярность:</strong>
+              <Box sx={{ 
+                p: 1.5, 
+                borderRadius: 2, 
+                bgcolor: 'rgba(0, 0, 0, 0.2)', 
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                height: '100%' 
+              }}>
+                <Typography variant="subtitle2" sx={{ color: '#D0BCFF', mb: 1, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                  <TrendingUpIcon sx={{ fontSize: '0.9rem', mr: 0.5 }} />
+                  Популярность:
               </Typography>
-              <Typography variant="body2">
+                <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.85rem' }}>
                 Чем популярнее юзернейм, тем выше его стоимость. Популярность зависит от частоты использования подобных юзернеймов.
               </Typography>
+              </Box>
             </Grid>
           </Grid>
           
           {limitReached && (
-            <Alert severity="warning" sx={{ mt: 2 }}>
+            <Alert 
+              severity="warning" 
+              sx={{ 
+                mt: 2, 
+                borderRadius: 2,
+                backgroundColor: 'rgba(237, 108, 2, 0.1)',
+                border: '1px solid rgba(237, 108, 2, 0.2)',
+                '& .MuiAlert-icon': { color: '#FF9800' }
+              }}
+            >
               {!userSubscription ? (
                 <span>Для увеличения лимита приобретите подписку или обратитесь в поддержку t.me/KConnectSUP_bot</span>
               ) : userSubscription.subscription_type !== 'ultimate' ? (
@@ -1218,41 +1322,53 @@ const UsernameShopTab = () => {
           )}
           
           {!userSubscription && (
-            <Alert severity="info" sx={{ mt: 2 }}>
-              <Typography variant="body2">
-                <strong>Увеличьте лимит юзернеймов с подпиской:</strong>
+            <Alert 
+              severity="info" 
+              icon={<AttachMoneyIcon fontSize="inherit" />}
+              sx={{ 
+                mt: 2, 
+                borderRadius: 2,
+                backgroundColor: 'rgba(41, 182, 246, 0.1)',
+                border: '1px solid rgba(41, 182, 246, 0.2)',
+                '& .MuiAlert-icon': { color: '#29B6F6' }
+              }}
+            >
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                  Увеличьте лимит юзернеймов с подпиской:
               </Typography>
-              <Typography variant="body2" sx={{ mt: 1 }}>
-                • Basic: 5 юзернеймов
-              </Typography>
-              <Typography variant="body2">
-                • Premium: 8 юзернеймов
-              </Typography>
-              <Typography variant="body2">
-                • Ultimate: без ограничений
-              </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
+                  <Chip label="Basic: 5 юзернеймов" size="small" color="primary" variant="outlined" />
+                  <Chip label="Premium: 8 юзернеймов" size="small" color="primary" variant="outlined" />
+                  <Chip label="Ultimate: без ограничений" size="small" color="primary" variant="outlined" />
+                </Box>
               <Button 
                 variant="outlined" 
                 size="small" 
                 color="primary"
                 onClick={() => navigate('/balance')}
-                sx={{ mt: 1 }}
+                  startIcon={<ShoppingCartIcon fontSize="small" />}
+                  sx={{ alignSelf: 'flex-start', borderRadius: 2, textTransform: 'none' }}
               >
                 Купить подписку
               </Button>
+              </Box>
             </Alert>
           )}
           </Box>
       </Paper>
       
+      {/* Поиск юзернейма */}
       <Paper 
-        elevation={3} 
+        elevation={0} 
         sx={{ 
           p: { xs: 2, md: 3 }, 
-          mb: { xs: 2, md: 4 }, 
-          bgcolor: 'rgba(40, 40, 40, 0.9)', 
+          mb: { xs: 2, md: 3 }, 
+          bgcolor: 'rgba(18, 18, 18, 0.9)', 
       borderRadius: 2, 
-          border: '1px solid rgba(208, 188, 255, 0.2)',
+          border: '1px solid rgba(208, 188, 255, 0.1)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+          backdropFilter: 'blur(10px)',
           opacity: limitReached ? 0.7 : 1,
           position: 'relative'
         }}
@@ -1267,15 +1383,17 @@ const UsernameShopTab = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(4px)',
             zIndex: 1,
             borderRadius: 2,
           }}>
-            <Box sx={{ textAlign: 'center', p: 3 }}>
-              <Typography variant="h6" sx={{ color: '#FF9800', mb: 1 }}>
+            <Box sx={{ textAlign: 'center', p: 3, maxWidth: '80%' }}>
+              <LockIcon sx={{ fontSize: 48, color: '#FF9800', mb: 2 }} />
+              <Typography variant="h6" sx={{ color: '#FF9800', mb: 1.5, fontWeight: 600 }}>
                 Достигнут лимит юзернеймов
               </Typography>
-          <Typography variant="body2">
+              <Typography variant="body2" sx={{ mb: 2, color: 'rgba(255, 255, 255, 0.8)' }}>
                 {!userSubscription ? (
                   <>
                     Вы уже приобрели максимальное количество юзернеймов ({usernameLimit}).
@@ -1289,12 +1407,14 @@ const UsernameShopTab = () => {
                   Перейдите на Ultimate для получения безлимитного доступа.</>
                 )}
           </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5 }}>
               {(!userSubscription || userSubscription.subscription_type !== 'ultimate') && (
                 <Button 
-                  variant="outlined" 
+                    variant="contained" 
                   color="primary"
                   onClick={() => navigate('/balance')}
-                  sx={{ mt: 2, mr: 1 }}
+                    startIcon={<ShoppingCartIcon />}
+                    sx={{ borderRadius: 2, textTransform: 'none' }}
                 >
                   Купить подписку
                 </Button>
@@ -1304,18 +1424,24 @@ const UsernameShopTab = () => {
                 color="primary"
                 href="https://t.me/KConnectSUP_bot"
                 target="_blank"
-                sx={{ mt: 2 }}
+                  startIcon={<SupportAgentIcon />}
+                  sx={{ borderRadius: 2, textTransform: 'none' }}
               >
                 Поддержка
               </Button>
+              </Box>
         </Box>
           </Box>
         )}
-        <Typography variant="h6" gutterBottom sx={{ color: '#D0BCFF' }}>
+        
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <SearchIcon sx={{ color: '#D0BCFF', mr: 1.5, fontSize: '1.2rem' }} />
+          <Typography variant="h6" sx={{ color: '#D0BCFF', fontWeight: 600, fontSize: '1.1rem' }}>
           Найти и приобрести юзернейм
         </Typography>
+        </Box>
         
-        <Typography variant="body2" sx={{ mb: 2, color: 'rgba(255,255,255,0.7)' }}>
+        <Typography variant="body2" sx={{ mb: 2, color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem' }}>
           Юзернейм должен содержать хотя бы одну букву и не может состоять только из цифр или специальных символов. 
           Длина от 3 до 16 символов. Более короткие юзернеймы стоят дороже.
         </Typography>
@@ -1329,23 +1455,50 @@ const UsernameShopTab = () => {
           sx={{ 
             mb: 2,
             '& .MuiOutlinedInput-root': {
+              borderRadius: 2,
               '& fieldset': {
                 borderColor: 'rgba(208, 188, 255, 0.5)',
+                borderWidth: '1px'
               },
               '&:hover fieldset': {
                 borderColor: '#D0BCFF',
               },
               '&.Mui-focused fieldset': {
                 borderColor: '#D0BCFF',
+                borderWidth: '1px'
               },
             },
+            '& .MuiInputLabel-root': {
+              color: 'rgba(255, 255, 255, 0.7)'
+            },
+            '& .MuiInputLabel-root.Mui-focused': {
+              color: '#D0BCFF'
+            },
+            '& .MuiFormHelperText-root': {
+              fontSize: '0.75rem',
+              marginTop: '4px',
+              marginLeft: '4px'
+            }
           }}
           helperText="Должен содержать хотя бы одну букву. От 3 до 16 символов. Допустимы только латинские буквы, цифры, точки, подчеркивания и дефисы."
           error={!!error}
+          InputProps={{
+            endAdornment: username && (
+              <InputAdornment position="end">
+                <IconButton
+                  edge="end"
+                  onClick={() => setUsername('')}
+                  size="small"
+                >
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
         />
         
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
             {error}
           </Alert>
         )}
@@ -1359,41 +1512,77 @@ const UsernameShopTab = () => {
         {usernameData && usernameData.available && !usernameData.owned && (
           <Box sx={{ 
             mt: 2, 
-            p: { xs: 1.5, md: 2 }, 
-            bgcolor: 'rgba(30, 30, 30, 0.6)', 
+            p: { xs: 2, md: 2.5 }, 
+            bgcolor: 'rgba(30, 30, 30, 0.7)', 
             borderRadius: 2,
-            border: '1px solid rgba(208, 188, 255, 0.1)' 
+            border: '1px solid rgba(208, 188, 255, 0.15)',
+            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.15)'
           }}>
-            <Typography variant="h6" sx={{ color: '#81C784', mb: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+              <CheckCircleIcon sx={{ color: '#81C784', mr: 1, fontSize: '1.2rem' }} />
+              <Typography variant="subtitle1" sx={{ color: '#81C784', fontWeight: 600 }}>
               Юзернейм доступен!
       </Typography>
+            </Box>
             
-            <Grid container spacing={isMobile ? 1 : 2} sx={{ mb: 2 }}>
-              <Grid item xs={6}>
-                <Typography variant="body2" color="textSecondary">Длина:</Typography>
-                <Typography>{usernameData?.length || 0} символов (x{getLengthFactor(usernameData?.length || 0)})</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="body2" color="textSecondary">Фактор популярности:</Typography>
-                <Typography>x{usernameData?.popularity?.toFixed(1) || '1.0'}</Typography>
-              </Grid>
-            </Grid>
+            <Box sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 1.5,
+              mb: 2
+            }}>
+              <Chip 
+                icon={<StraightenIcon />}
+                label={`Длина: ${usernameData?.length || 0} символов (x${getLengthFactor(usernameData?.length || 0)})`}
+                size="small" 
+                sx={{ 
+                  bgcolor: 'rgba(208, 188, 255, 0.1)', 
+                  color: 'white',
+                  border: '1px solid rgba(208, 188, 255, 0.15)',
+                  fontWeight: 500,
+                  '& .MuiChip-icon': { color: 'rgba(255, 255, 255, 0.8)' }
+                }}
+              />
+              <Chip 
+                icon={<TrendingUpIcon />}
+                label={`Популярность: x${usernameData?.popularity?.toFixed(1) || '1.0'}`}
+                size="small" 
+                sx={{ 
+                  bgcolor: 'rgba(208, 188, 255, 0.1)', 
+                  color: 'white',
+                  border: '1px solid rgba(208, 188, 255, 0.15)',
+                  fontWeight: 500,
+                  '& .MuiChip-icon': { color: 'rgba(255, 255, 255, 0.8)' }
+                }}
+              />
+            </Box>
+      
+            <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.05)', my: 1.5 }} />
       
       <Box sx={{ 
         display: 'flex', 
               flexDirection: isMobile ? 'column' : 'row',
-              alignItems: isMobile ? 'flex-start' : 'center', 
+              alignItems: isMobile ? 'stretch' : 'center', 
               justifyContent: 'space-between', 
-              mt: 2,
-              gap: isMobile ? 2 : 0
+              mt: 1.5,
+              gap: isMobile ? 1.5 : 0
             }}>
-              <Typography variant="h5" sx={{ 
+              <Box>
+                <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                  Стоимость:
+                </Typography>
+                <Typography variant="h6" sx={{ 
                 fontWeight: 'bold', 
                 color: '#D0BCFF',
-                fontSize: isMobile ? '1.2rem' : '1.5rem'
+                  fontSize: '1.25rem',
+                  letterSpacing: '0.5px',
+                  display: 'flex',
+                  alignItems: 'center'
               }}>
-                Стоимость: {usernameData?.price || 0} баллов
+                  <AttachMoneyIcon sx={{ fontSize: '1.2rem', mr: 0.5 }} />
+                  {usernameData?.price || 0} баллов
               </Typography>
+              </Box>
               
               <Button 
                 variant="contained"
@@ -1404,9 +1593,16 @@ const UsernameShopTab = () => {
             sx={{ 
                   bgcolor: '#D0BCFF', 
                   color: '#1A1A1A',
+                  fontWeight: 600,
                   width: isMobile ? '100%' : 'auto',
+                  borderRadius: 2,
+                  px: 3,
+                  py: 1,
+                  textTransform: 'none',
+                  boxShadow: '0 4px 10px rgba(208, 188, 255, 0.3)',
                   '&:hover': {
                     bgcolor: '#B39DDB',
+                    boxShadow: '0 6px 15px rgba(208, 188, 255, 0.4)',
                   },
                 }}
               >
@@ -1415,68 +1611,105 @@ const UsernameShopTab = () => {
             </Box>
             
             {userPoints < (usernameData?.price || 0) && (
-              <Typography variant="body2" color="error" sx={{ mt: 1 }}>
-                У вас недостаточно баллов для покупки этого юзернейма
-              </Typography>
+              <Alert 
+                severity="warning" 
+                icon={<AccountBalanceWalletIcon fontSize="inherit" />}
+                sx={{ 
+                  mt: 2, 
+                  borderRadius: 2,
+                  backgroundColor: 'rgba(237, 108, 2, 0.1)',
+                  border: '1px solid rgba(237, 108, 2, 0.2)',
+                  '& .MuiAlert-icon': { color: '#FF9800' }
+                }}
+              >
+                У вас недостаточно баллов для покупки этого юзернейма. 
+                <Button 
+                  size="small" 
+                  sx={{ ml: 1, textTransform: 'none', fontSize: '0.75rem' }} 
+                  onClick={() => navigate('/balance')}
+                >
+                  Пополнить баланс
+                </Button>
+              </Alert>
             )}
           </Box>
         )}
         
         {usernameData && !usernameData.available && (
-          <Alert severity="warning" sx={{ mt: 2 }}>
+          <Alert 
+            severity="warning" 
+            sx={{ 
+              mt: 2, 
+              borderRadius: 2,
+              backgroundColor: 'rgba(237, 108, 2, 0.1)',
+              border: '1px solid rgba(237, 108, 2, 0.2)'
+            }}
+          >
             Юзернейм уже занят
           </Alert>
         )}
         
         {usernameData && usernameData.owned && (
-          <Alert severity="info" sx={{ mt: 2 }}>
+          <Alert 
+            severity="info" 
+            sx={{ 
+              mt: 2, 
+              borderRadius: 2,
+              backgroundColor: 'rgba(41, 182, 246, 0.1)',
+              border: '1px solid rgba(41, 182, 246, 0.2)'
+            }}
+          >
             Вы уже владеете этим юзернеймом
           </Alert>
         )}
       </Paper>
       
+      {/* Мои юзернеймы */}
       <Paper 
-        elevation={3} 
+        elevation={0} 
         sx={{ 
           p: { xs: 2, md: 3 }, 
           mb: { xs: 2, md: 4 }, 
-          bgcolor: 'rgba(40, 40, 40, 0.9)', 
+          bgcolor: 'rgba(18, 18, 18, 0.9)', 
           borderRadius: 2,
-          border: '1px solid rgba(208, 188, 255, 0.2)'
+          border: '1px solid rgba(208, 188, 255, 0.1)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+          backdropFilter: 'blur(10px)'
         }}
       >
-        <Typography variant="h6" gutterBottom sx={{ color: '#D0BCFF' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <BadgeIcon sx={{ color: '#D0BCFF', mr: 1.5, fontSize: '1.2rem' }} />
+          <Typography variant="h6" sx={{ color: '#D0BCFF', fontWeight: 600, fontSize: '1.1rem' }}>
           Мои юзернеймы
         </Typography>
+        </Box>
         
         {purchased && purchased.length > 0 ? (
-          <TableContainer component={Paper} sx={{ 
-            bgcolor: 'rgba(30, 30, 30, 0.6)', 
-            mt: 2, 
+          <>
+            {/* Desktop view */}
+            <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+              <TableContainer sx={{ 
+                mt: 1, 
             borderRadius: 2,
-            border: '1px solid rgba(208, 188, 255, 0.1)',
-            ...(isMobile && {
-              '& .MuiTableCell-root': {
-                padding: '8px 4px',
-                fontSize: '0.8rem'
-              }
-            })
-          }}>
-            <Table size={isMobile ? "small" : "medium"}>
+            border: '1px solid rgba(255, 255, 255, 0.05)',
+                backgroundColor: 'transparent'
+              }}>
+                <Table size="medium">
               <TableHead>
-                <TableRow>
-                  <TableCell sx={{ color: '#D0BCFF', fontWeight: 'bold' }}>Юзернейм</TableCell>
-                  {!isMobile && <TableCell sx={{ color: '#D0BCFF', fontWeight: 'bold' }}>Цена</TableCell>}
-                  {!isMobile && <TableCell sx={{ color: '#D0BCFF', fontWeight: 'bold' }}>Дата покупки</TableCell>}
-                  <TableCell sx={{ color: '#D0BCFF', fontWeight: 'bold' }}>Статус</TableCell>
-                  <TableCell sx={{ color: '#D0BCFF', fontWeight: 'bold' }}>Действия</TableCell>
+                    <TableRow sx={{ backgroundColor: 'rgba(208, 188, 255, 0.05)' }}>
+                      <TableCell sx={{ color: '#D0BCFF', fontWeight: 600, borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>Юзернейм</TableCell>
+                      <TableCell sx={{ color: '#D0BCFF', fontWeight: 600, borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>Цена</TableCell>
+                      <TableCell sx={{ color: '#D0BCFF', fontWeight: 600, borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>Дата покупки</TableCell>
+                      <TableCell sx={{ color: '#D0BCFF', fontWeight: 600, borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>Статус</TableCell>
+                      <TableCell sx={{ color: '#D0BCFF', fontWeight: 600, borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>Действия</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {purchased.map((item) => (
                   <TableRow key={item.id} sx={{ 
-                    bgcolor: item.is_active ? 'rgba(208, 188, 255, 0.1)' : 'transparent',
-                    '&:hover': { bgcolor: 'rgba(208, 188, 255, 0.05)' }
+                        bgcolor: item.is_active ? 'rgba(208, 188, 255, 0.05)' : 'transparent',
+                        '&:hover': { bgcolor: 'rgba(208, 188, 255, 0.03)' },
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.03)'
                   }}>
                     <TableCell 
                       sx={{ 
@@ -1485,21 +1718,41 @@ const UsernameShopTab = () => {
                         maxWidth: '120px',
                         wordBreak: 'break-word',
                         overflowWrap: 'break-word',
-                        whiteSpace: 'normal'
+                            borderBottom: 'none'
                       }}
                     >
                       {item.username}
                     </TableCell>
-                    {!isMobile && <TableCell>{item.price_paid} баллов</TableCell>}
-                    {!isMobile && <TableCell>{formatDate(item.purchase_date)}</TableCell>}
-                    <TableCell>
+                        <TableCell sx={{ borderBottom: 'none' }}>{item.price_paid} баллов</TableCell>
+                        <TableCell sx={{ borderBottom: 'none' }}>{formatDate(item.purchase_date)}</TableCell>
+                        <TableCell sx={{ borderBottom: 'none' }}>
                       {item.is_active ? (
-                        <Chip label="Активен" color="success" size="small" sx={{ bgcolor: '#4CAF50' }} />
+                            <Chip 
+                              label="Активен" 
+                              color="success" 
+                              size="small" 
+                              sx={{ 
+                                bgcolor: 'rgba(76, 175, 80, 0.15)', 
+                                color: '#81C784',
+                                border: '1px solid rgba(76, 175, 80, 0.3)',
+                                fontWeight: 500
+                              }} 
+                            />
                       ) : item.is_current ? (
-                        <Chip label="Текущий" color="warning" size="small" sx={{ bgcolor: '#FF9800' }} />
+                            <Chip 
+                              label="Текущий" 
+                              color="warning" 
+                              size="small" 
+                              sx={{ 
+                                bgcolor: 'rgba(255, 152, 0, 0.15)', 
+                                color: '#FFB74D',
+                                border: '1px solid rgba(255, 152, 0, 0.3)',
+                                fontWeight: 500
+                              }} 
+                            />
                       ) : null}
                     </TableCell>
-                    <TableCell>
+                        <TableCell sx={{ borderBottom: 'none' }}>
                       {!item.is_active && (
           <Button 
             variant="outlined" 
@@ -1508,9 +1761,9 @@ const UsernameShopTab = () => {
             sx={{ 
                             borderColor: '#D0BCFF',
                             color: '#D0BCFF',
-                            padding: isMobile ? '4px 8px' : '6px 16px',
-                            fontSize: isMobile ? '0.7rem' : '0.8125rem',
-                            minWidth: isMobile ? '60px' : '64px',
+                                borderRadius: 2,
+                                textTransform: 'none',
+                                fontSize: '0.8125rem',
                             '&:hover': {
                               borderColor: '#D0BCFF',
                               color: '#D0BCFF',
@@ -1527,13 +1780,119 @@ const UsernameShopTab = () => {
               </TableBody>
             </Table>
           </TableContainer>
+            </Box>
+            
+            {/* Mobile view */}
+            <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 2, mt: 2 }}>
+              {purchased.map((item) => (
+                <Paper
+                  key={item.id}
+                  elevation={0}
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    border: `1px solid ${item.is_active ? 'rgba(208, 188, 255, 0.2)' : 'rgba(255, 255, 255, 0.05)'}`,
+                    backgroundColor: item.is_active ? 'rgba(208, 188, 255, 0.05)' : 'rgba(16, 16, 16, 0.5)'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+                    <Typography 
+                      variant="subtitle1" 
+                      sx={{ 
+                        fontWeight: item.is_active ? 600 : 500, 
+                        color: item.is_active ? '#D0BCFF' : 'white',
+                        wordBreak: 'break-word'
+                      }}
+                    >
+                      {item.username}
+                    </Typography>
+                    
+                    {(item.is_active || item.is_current) && (
+                      <Chip
+                        label={item.is_active ? "Активен" : "Текущий"}
+                        color={item.is_active ? "success" : "warning"}
+                        size="small"
+                        sx={{ 
+                          bgcolor: item.is_active 
+                            ? 'rgba(76, 175, 80, 0.15)'
+                            : 'rgba(255, 152, 0, 0.15)',
+                          color: item.is_active ? '#81C784' : '#FFB74D',
+                          border: item.is_active
+                            ? '1px solid rgba(76, 175, 80, 0.3)'
+                            : '1px solid rgba(255, 152, 0, 0.3)',
+                          fontWeight: 500,
+                          height: 24
+                        }}
+                      />
+                    )}
+                  </Box>
+
+                  <Grid container spacing={1} sx={{ mb: 1.5 }}>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+                        Цена:
+                      </Typography>
+                      <Typography variant="body2">
+                        {item.price_paid} баллов
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+                        Дата покупки:
+                      </Typography>
+                      <Typography variant="body2">
+                        {formatDate(item.purchase_date)}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+
+                  {!item.is_active && (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      fullWidth
+                      onClick={() => handleSetActive(item)}
+                      sx={{
+                        borderColor: '#D0BCFF',
+                        color: '#D0BCFF',
+                        borderRadius: 2,
+                        textTransform: 'none',
+                        mt: 1,
+                        '&:hover': {
+                          borderColor: '#D0BCFF',
+                          color: '#D0BCFF',
+                          bgcolor: 'rgba(208, 188, 255, 0.05)'
+                        }
+                      }}
+                    >
+                      Использовать
+                    </Button>
+                  )}
+                </Paper>
+              ))}
+            </Box>
+          </>
         ) : (
-          <Box sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>
+          <Box sx={{ 
+            p: 4, 
+            textAlign: 'center', 
+            color: 'text.secondary', 
+            bgcolor: 'rgba(0, 0, 0, 0.2)',
+            borderRadius: 2, 
+            border: '1px solid rgba(255, 255, 255, 0.05)'
+          }}>
+            <BadgeIcon sx={{ fontSize: 40, color: 'rgba(208, 188, 255, 0.3)', mb: 1 }} />
+            <Typography variant="subtitle1" sx={{ color: 'rgba(255, 255, 255, 0.7)', mb: 1 }}>
             У вас пока нет приобретенных юзернеймов
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.5)', mb: 2 }}>
+              Используйте форму выше, чтобы найти и приобрести уникальный юзернейм
+            </Typography>
           </Box>
         )}
       </Paper>
       
+      {/* Диалоги оставляем без изменений */}
       <Dialog
         open={openConfirmDialog}
         onClose={() => setOpenConfirmDialog(false)}
@@ -1587,7 +1946,6 @@ const UsernameShopTab = () => {
         </DialogActions>
       </Dialog>
       
-      
       <Dialog 
         open={openPurchaseDialog} 
         onClose={() => !purchaseAnimation && setOpenPurchaseDialog(false)}
@@ -1596,8 +1954,9 @@ const UsernameShopTab = () => {
         PaperProps={{
           sx: { 
             borderRadius: 3,
-            backgroundImage: 'linear-gradient(135deg, rgba(32, 32, 32, 0.9) 0%, rgba(28, 28, 28, 0.8) 100%)',
-            backdropFilter: 'blur(10px)'
+            backgroundImage: 'linear-gradient(135deg, rgba(18, 18, 18, 0.95) 0%, rgba(20, 20, 20, 0.9) 100%)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.05)'
           }
         }}
       >
@@ -1605,11 +1964,11 @@ const UsernameShopTab = () => {
           <Avatar sx={{ 
             width: isMobile ? 60 : 70, 
             height: isMobile ? 60 : 70, 
-            bgcolor: 'rgba(208, 188, 255, 0.2)', 
+            bgcolor: 'rgba(208, 188, 255, 0.15)', 
             mb: 2,
-            border: '2px solid rgba(208, 188, 255, 0.3)'
+            border: '2px solid rgba(208, 188, 255, 0.2)'
           }}>
-            <ShoppingCartIcon sx={{ fontSize: isMobile ? 30 : 40, color: 'white' }} />
+            <ShoppingCartIcon sx={{ fontSize: isMobile ? 30 : 40, color: '#d0bcff' }} />
           </Avatar>
           <Typography variant="h5" sx={{ color: 'white', fontWeight: 700, mb: 1, fontSize: isMobile ? '1.2rem' : '1.5rem' }}>
             Покупка юзернейма
@@ -1741,7 +2100,13 @@ const UsernameShopTab = () => {
           onClose={handleCloseSnackbar} 
           severity={snackbar.severity} 
           variant="filled"
-          sx={{ width: '100%' }}
+          sx={{ 
+            width: '100%',
+            bgcolor: severity => severity === 'success' ? 'rgba(46, 125, 50, 0.9)' : 
+                      severity === 'error' ? 'rgba(211, 47, 47, 0.9)' :
+                      severity === 'warning' ? 'rgba(237, 108, 2, 0.9)' : 'rgba(2, 136, 209, 0.9)',
+            backdropFilter: 'blur(4px)'
+          }}
         >
           {snackbar.message}
         </Alert>
@@ -1759,16 +2124,29 @@ const SettingsPage = () => {
   const { themeSettings, updateThemeSettings } = useContext(ThemeSettingsContext);
   const { enqueueSnackbar } = useSnackbar();
   
-  
+
   const isChannel = user?.account_type === 'channel';
   
+
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [autoSaveTimeout, setAutoSaveTimeout] = useState(null);
   
+
+  const [sessionManagerOpen, setSessionManagerOpen] = useState(false);
   
+
+  const handleOpenSessionManager = () => {
+    setSessionManagerOpen(true);
+  };
+  
+  const handleCloseSessionManager = () => {
+    setSessionManagerOpen(false);
+  };
+  
+
   const [accountStatus, setAccountStatus] = useState('good'); 
   const [userWarnings, setUserWarnings] = useState([]);
   const [warningsDialogOpen, setWarningsDialogOpen] = useState(false);
@@ -1851,7 +2229,6 @@ const SettingsPage = () => {
   
   
   const [profileData, setProfileData] = useState(null);
-  
   
   useEffect(() => {
     fetchProfileData();
@@ -2281,75 +2658,103 @@ const SettingsPage = () => {
       let hasErrors = false;
       let responses = [];
       
-      
+
       if (name !== user.name) {
         try {
           console.log('Updating name...');
-          const response = await ProfileService.updateName(name);
-          console.log('Name update response:', response);
-          responses.push({ type: 'name', success: response.success, message: response.message });
-          if (!response.success) hasErrors = true;
-        } catch (error) {
-          console.error('Error updating name:', error);
-          responses.push({ type: 'name', success: false, message: error.response?.data?.error || 'Ошибка обновления имени' });
-          hasErrors = true;
-        }
-      }
-      
-      
-      if (username !== user.username) {
-        try {
-          console.log('Updating username...');
-          const response = await ProfileService.updateUsername(username);
-          console.log('Username update response:', response);
-          responses.push({ type: 'username', success: response.success, message: response.message });
-          if (!response.success) hasErrors = true;
-        } catch (error) {
-          console.error('Error updating username:', error);
-          responses.push({ type: 'username', success: false, message: error.response?.data?.error || 'Ошибка обновления username' });
-          hasErrors = true;
-        }
-      }
-      
-      
-      if (about !== user.about) {
-        try {
-          console.log('Updating about...');
-          const response = await ProfileService.updateAbout(about);
-          console.log('About update response:', response);
-          responses.push({ type: 'about', success: response.success, message: response.message });
-          if (!response.success) hasErrors = true;
-        } catch (error) {
-          console.error('Error updating about:', error);
-          responses.push({ type: 'about', success: false, message: error.response?.data?.error || 'Ошибка обновления описания' });
-          hasErrors = true;
-        }
-      }
-      
-      
-      if (bannerFile) {
-        try {
-          console.log('Uploading banner...');
           const formData = new FormData();
-          formData.append('banner', bannerFile);
+          formData.append('name', name);
           
-          const response = await axios.post('/api/profile/upload-banner', formData, {
+          const response = await axios.post('/api/profile/update-name', formData, {
             headers: {
               'Content-Type': 'multipart/form-data'
             }
           });
           
-          console.log('Banner upload response:', response);
-          responses.push({ type: 'banner', success: response.data.success, message: response.data.message });
+          console.log('Name update response:', response.data);
+          responses.push({ 
+            type: 'name', 
+            success: response.data.success || false, 
+            message: response.data.message || response.data.error || 'Неизвестная ошибка'
+          });
+          
           if (!response.data.success) hasErrors = true;
         } catch (error) {
-          console.error('Error uploading banner:', error);
-          responses.push({ type: 'banner', success: false, message: error.response?.data?.error || 'Ошибка загрузки баннера' });
+          console.error('Error updating name:', error);
+          responses.push({ 
+            type: 'name', 
+            success: false, 
+            message: error.response?.data?.error || error.response?.data?.message || 'Ошибка обновления имени'
+          });
           hasErrors = true;
         }
       }
       
+
+      if (username !== user.username) {
+        try {
+          console.log('Updating username...');
+          const formData = new FormData();
+          formData.append('username', username);
+          
+          const response = await axios.post('/api/profile/update-username', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+          
+          console.log('Username update response:', response.data);
+          responses.push({ 
+            type: 'username', 
+            success: response.data.success || false, 
+            message: response.data.message || response.data.error || 'Неизвестная ошибка'
+          });
+          
+          if (!response.data.success) hasErrors = true;
+        } catch (error) {
+          console.error('Error updating username:', error);
+          responses.push({ 
+            type: 'username', 
+            success: false, 
+            message: error.response?.data?.error || error.response?.data?.message || 'Ошибка обновления username'
+          });
+          hasErrors = true;
+        }
+      }
       
+
+      if (about !== (user.about || '')) {
+        try {
+          console.log('Updating about...');
+          const formData = new FormData();
+          formData.append('about', about);
+          
+          const response = await axios.post('/api/profile/update-about', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+          
+          console.log('About update response:', response.data);
+          responses.push({ 
+            type: 'about', 
+            success: response.data.success || false, 
+            message: response.data.message || response.data.error || 'Неизвестная ошибка'
+          });
+          
+          if (!response.data.success) hasErrors = true;
+        } catch (error) {
+          console.error('Error updating about:', error);
+          responses.push({ 
+            type: 'about', 
+            success: false, 
+            message: error.response?.data?.error || error.response?.data?.message || 'Ошибка обновления описания'
+          });
+          hasErrors = true;
+        }
+      }
+      
+
       if (avatarFile) {
         try {
           console.log('Uploading avatar...');
@@ -2362,17 +2767,58 @@ const SettingsPage = () => {
             }
           });
           
-          console.log('Avatar upload response:', response);
-          responses.push({ type: 'avatar', success: response.data.success, message: response.data.message });
+          console.log('Avatar upload response:', response.data);
+          responses.push({ 
+            type: 'avatar', 
+            success: response.data.success || false, 
+            message: response.data.message || response.data.error || 'Неизвестная ошибка'
+          });
+          
           if (!response.data.success) hasErrors = true;
         } catch (error) {
           console.error('Error uploading avatar:', error);
-          responses.push({ type: 'avatar', success: false, message: error.response?.data?.error || 'Ошибка загрузки аватара' });
+          responses.push({ 
+            type: 'avatar', 
+            success: false, 
+            message: error.response?.data?.error || error.response?.data?.message || 'Ошибка загрузки аватара'
+          });
           hasErrors = true;
         }
       }
       
+
+      if (bannerFile) {
+        try {
+          console.log('Uploading banner...');
+          const formData = new FormData();
+          formData.append('banner', bannerFile);
+          
+          const response = await axios.post('/api/profile/upload-banner', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+          
+          console.log('Banner upload response:', response.data);
+          responses.push({ 
+            type: 'banner', 
+            success: response.data.success || false, 
+            message: response.data.message || response.data.error || 'Неизвестная ошибка'
+          });
+          
+          if (!response.data.success) hasErrors = true;
+        } catch (error) {
+          console.error('Error uploading banner:', error);
+          responses.push({ 
+            type: 'banner', 
+            success: false, 
+            message: error.response?.data?.error || error.response?.data?.message || 'Ошибка загрузки баннера'
+          });
+          hasErrors = true;
+        }
+      }
       
+
       if (updateUserData) {
         updateUserData({
           ...user,
@@ -2382,17 +2828,14 @@ const SettingsPage = () => {
         });
       }
       
-      
+
       if (hasErrors) {
-        
         let errorMessage = '';
         const failedResponses = responses.filter(r => !r.success);
         
         if (failedResponses.length === 1) {
-          
           errorMessage = failedResponses[0].message;
         } else {
-          
           errorMessage = 'Не удалось сохранить следующие данные:\n';
           failedResponses.forEach(resp => {
             errorMessage += `• ${resp.type}: ${resp.message}\n`;
@@ -2402,17 +2845,16 @@ const SettingsPage = () => {
         console.error('Save errors:', failedResponses);
         showNotification('error', errorMessage);
       } else {
-        
         console.log('All operations successful');
         showNotification('success', 'Профиль успешно сохранен');
         
+
         navigate(`/profile/${username}`);
       }
-      
-      setSaving(false);
     } catch (error) {
       console.error('Error saving profile:', error);
-      showNotification('error', 'Произошла ошибка при сохранении профиля');
+      showNotification('error', 'Произошла ошибка при сохранении профиля: ' + (error.message || 'Неизвестная ошибка'));
+    } finally {
       setSaving(false);
     }
   };
@@ -2423,7 +2865,7 @@ const SettingsPage = () => {
     setSuccess(false);
     
     try {
-      
+
       const settingsToSave = {
         background_color: settings.background_color,
         container_color: settings.container_color,
@@ -2435,27 +2877,30 @@ const SettingsPage = () => {
         header_color: settings.header_color || settings.container_color,
         bottom_nav_color: settings.bottom_nav_color || settings.container_color,
         content_color: settings.content_color || settings.container_color,
-        
       };
       
+
+      const response = await axios.post('/api/profile/settings', settingsToSave, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       
-      const response = await ProfileService.updateSettings(settingsToSave);
-      
-      if (response && response.success) {
+      if (response.data && response.data.success) {
         setSuccess(true);
         showNotification('success', 'Настройки успешно сохранены');
         
-        
+
         themeSettings.updateThemeSettings({
-          backgroundColor: response.settings.background_color,
-          paperColor: response.settings.container_color,
-          headerColor: response.settings.header_color || response.settings.container_color,
-          bottomNavColor: response.settings.bottom_nav_color || response.settings.container_color,
-          contentColor: response.settings.content_color || response.settings.container_color,
-          primaryColor: response.settings.avatar_border_color
+          backgroundColor: response.data.settings.background_color,
+          paperColor: response.data.settings.container_color,
+          headerColor: response.data.settings.header_color || response.data.settings.container_color,
+          bottomNavColor: response.data.settings.bottom_nav_color || response.data.settings.container_color,
+          contentColor: response.data.settings.content_color || response.data.settings.container_color,
+          primaryColor: response.data.settings.avatar_border_color
         });
       } else {
-        throw new Error(response?.error || 'Не удалось сохранить настройки');
+        throw new Error(response.data?.error || 'Не удалось сохранить настройки');
       }
     } catch (error) {
       console.error('Ошибка при сохранении настроек:', error);
@@ -2464,7 +2909,7 @@ const SettingsPage = () => {
     } finally {
       setSaving(false);
       
-      
+
       setTimeout(() => {
         setSuccess(false);
       }, 3000);
@@ -3132,9 +3577,13 @@ const SettingsPage = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [isPremium, setIsPremium] = useState(false);
+    const [isUltimate, setIsUltimate] = useState(false);
     const [initialLoaded, setInitialLoaded] = useState(false);
     const [selectedIcon, setSelectedIcon] = useState(null);
+    const [customColorOpen, setCustomColorOpen] = useState(false);
     const maxLength = 50;
+    const { user } = useContext(AuthContext);
+    const isChannel = user?.account_type === 'channel';
   
     
     const presetColors = [
@@ -3188,12 +3637,46 @@ const SettingsPage = () => {
     
     useEffect(() => {
       if (profileData) {
-        
-        setIsPremium(subscription && 
-          (subscription.type === 'premium' || 
-           subscription.type === 'ultimate' || 
-           subscription.type === 'pick-me') && 
-          subscription.active);
+
+        if (isChannel && profileData.user && profileData.user.main_account_id) {
+
+          const hasValidSubscription = 
+            (subscription && 
+              (subscription.type === 'premium' || 
+              subscription.type === 'ultimate' || 
+              subscription.type === 'pick-me') && 
+              subscription.active) ||
+            (profileData.main_account_subscription && 
+              (profileData.main_account_subscription.type === 'premium' || 
+              profileData.main_account_subscription.type === 'ultimate' || 
+              profileData.main_account_subscription.type === 'pick-me') && 
+              profileData.main_account_subscription.active);
+          
+          setIsPremium(hasValidSubscription);
+          
+
+          const hasUltimateSubscription = 
+            (subscription && 
+              subscription.type === 'ultimate' && 
+              subscription.active) ||
+            (profileData.main_account_subscription && 
+              profileData.main_account_subscription.type === 'ultimate' && 
+              profileData.main_account_subscription.active);
+          
+          setIsUltimate(hasUltimateSubscription);
+        } else {
+
+          setIsPremium(subscription && 
+            (subscription.type === 'premium' || 
+             subscription.type === 'ultimate' || 
+             subscription.type === 'pick-me') && 
+            subscription.active);
+          
+
+          setIsUltimate(subscription && 
+            subscription.type === 'ultimate' && 
+            subscription.active);
+        }
         
         
         if (profileData.status_text) {
@@ -3209,7 +3692,7 @@ const SettingsPage = () => {
         
         setInitialLoaded(true);
       }
-    }, [profileData, subscription]);
+    }, [profileData, subscription, isChannel]);
     
     
     const parseStatusText = (text) => {
@@ -3244,6 +3727,13 @@ const SettingsPage = () => {
     };
 
     const handlePresetColorClick = (color) => {
+
+      if (!color || color.trim() === '') {
+        setStatusColor('#D0BCFF');
+        return;
+      }
+      
+
       setStatusColor(color);
     };
     
@@ -3272,7 +3762,11 @@ const SettingsPage = () => {
     const saveStatus = async () => {
       if (!isPremium) {
         setHasError(true);
-        setErrorMessage('Для установки статуса необходима подписка Premium, Ultimate или Pick-me!');
+        if (isChannel) {
+          setErrorMessage('Для установки статуса необходимо, чтобы основной аккаунт имел подписку Premium, Ultimate или Pick-me!');
+        } else {
+          setErrorMessage('Для установки статуса необходима подписка Premium, Ultimate или Pick-me!');
+        }
         return;
       }
   
@@ -3286,7 +3780,8 @@ const SettingsPage = () => {
           },
           body: JSON.stringify({
             status_text: getFullStatusText(),
-            status_color: statusColor
+            status_color: statusColor,
+            is_channel: isChannel
           }),
         });
         
@@ -3543,11 +4038,12 @@ const SettingsPage = () => {
                     display: 'flex', 
                     flexWrap: 'wrap', 
                     gap: 1, 
-                    mb: 3,
-                    mt: 1 
+                    mb: 2,
+                    mt: 1,
+                    alignItems: 'center' 
                   }}
                 >
-                  {presetColors.map(color => (
+                  {!isUltimate && presetColors.map(color => (
                     <Box
                       key={color}
                       onClick={() => handlePresetColorClick(color)}
@@ -3570,6 +4066,162 @@ const SettingsPage = () => {
                       }}
                     />
                   ))}
+                  
+                  {/* Color input for all users */}
+                  <TextField
+                    label="HEX код цвета"
+                    value={statusColor}
+                    onChange={(e) => {
+
+                      handlePresetColorClick(e.target.value);
+                    }}
+                    size="small"
+                    placeholder="#RRGGBB"
+                    sx={{ ml: 1, width: { xs: '100%', sm: 150 }, mt: { xs: 1, sm: 0 } }}
+                    InputProps={{
+                      startAdornment: (
+                        <Box sx={{ 
+                          width: 16, 
+                          height: 16, 
+                          borderRadius: '50%', 
+                          bgcolor: statusColor || '#D0BCFF',
+                          mr: 1,
+                          border: '1px solid rgba(255,255,255,0.2)'
+                        }} />
+                      ),
+                    }}
+                  />
+                  
+                  {isUltimate && (
+                    <Button 
+                      variant="outlined" 
+                      onClick={() => setCustomColorOpen(true)}
+                      startIcon={<ColorizeIcon />}
+                      sx={{ 
+                        ml: 1,
+                        borderColor: alpha(theme.palette.primary.main, 0.5),
+                        '&:hover': {
+                          borderColor: theme.palette.primary.main,
+                          bgcolor: alpha(theme.palette.primary.main, 0.08)
+                        }
+                      }}
+                    >
+                      Выбрать цвет с палитры
+                    </Button>
+                  )}
+                </Box>
+                
+                {isUltimate && (
+                  <Dialog 
+                    open={customColorOpen} 
+                    onClose={() => setCustomColorOpen(false)}
+                    maxWidth="sm"
+                    PaperProps={{
+                      sx: { 
+                        bgcolor: theme.palette.background.paper, 
+                        color: theme.palette.text.primary,
+                        borderRadius: 2,
+                        boxShadow: theme.shadows[24],
+                        '@media (max-width: 600px)': {
+                          width: '100%',
+                          maxWidth: '100%',
+                          margin: 0,
+                          borderRadius: 0,
+                        }
+                      }
+                    }}
+                  >
+                    <DialogTitle sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'space-between',
+                      borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                      pb: 2
+                    }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <PaletteIcon fontSize="small" color="primary" />
+                        <Typography variant="h6">Выберите любой цвет</Typography>
+                        <Chip 
+                          label="Ultimate" 
+                          size="small" 
+                          color="secondary" 
+                        />
+                      </Box>
+                      <IconButton size="small" onClick={() => setCustomColorOpen(false)} color="inherit">
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    </DialogTitle>
+                    
+                    <DialogContent sx={{ pt: 3 }}>
+                      <Box sx={{ 
+                        height: 100, 
+                        width: '100%', 
+                        backgroundColor: statusColor, 
+                        borderRadius: 2, 
+                        mb: 3,
+                        boxShadow: `0 4px 20px ${alpha(statusColor, 0.5)}`,
+                        border: `1px solid ${alpha(theme.palette.divider, 0.1)}`
+                      }} />
+                      
+                      <input 
+                        type="color" 
+                        value={statusColor}
+                        onChange={(e) => handlePresetColorClick(e.target.value)}
+                        style={{ 
+                          width: '100%', 
+                          height: 60,
+                          border: 'none',
+                          borderRadius: 8,
+                          cursor: 'pointer',
+                          background: 'none'
+                        }}
+                      />
+                      
+                      <TextField
+                        label="HEX код"
+                        value={statusColor}
+                        onChange={(e) => {
+                          if (/^#([0-9A-F]{3}){1,2}$/i.test(e.target.value)) {
+                            handlePresetColorClick(e.target.value);
+                          }
+                        }}
+                        fullWidth
+                        margin="normal"
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Box sx={{ height: 16, width: 16, backgroundColor: statusColor, borderRadius: 1 }} />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </DialogContent>
+                    
+                    <DialogActions sx={{ p: 2, pt: 1 }}>
+                      <Button onClick={() => setCustomColorOpen(false)} color="primary" variant="contained">
+                        Выбрать
+                      </Button>
+                    </DialogActions>
+                  </Dialog>
+                )}
+                
+                <Box 
+                  sx={{ 
+                    mt: 1,
+                    mb: 2,
+                    p: 2,
+                    borderRadius: 2,
+                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                    border: '1px solid',
+                    borderColor: isUltimate ? theme.palette.primary.main : alpha(theme.palette.primary.main, 0.2),
+                  }}
+                >
+                  <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', color: theme.palette.primary.light }}>
+                    <InfoIcon fontSize="small" sx={{ mr: 1 }} />
+                    {isUltimate ? 
+                      'С подпиской Ultimate вы можете выбрать любой цвет для вашего профиля!' : 
+                      'Оформите подписку Ultimate, чтобы выбрать любой цвет для вашего профиля!'}
+                  </Typography>
                 </Box>
                 
                 <Button
@@ -3651,125 +4303,69 @@ const SettingsPage = () => {
             <SettingsCard>
               <SettingsCardContent>
                 <SectionTitle variant="h5">
-                  <SecurityIcon />
-                  Состояние учетной записи
-                </SectionTitle>
-                
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  p: 2, 
-                  borderRadius: 2,
-                  bgcolor: accountStatus === 'good' 
-                    ? alpha(theme.palette.success.main, 0.1)
-                    : accountStatus === 'warning'
-                      ? alpha(theme.palette.warning.main, 0.1)
-                      : alpha(theme.palette.error.main, 0.1),
-                  border: `1px solid ${
-                    accountStatus === 'good' 
-                      ? alpha(theme.palette.success.main, 0.3)
-                      : accountStatus === 'warning'
-                        ? alpha(theme.palette.warning.main, 0.3)
-                        : alpha(theme.palette.error.main, 0.3)
-                  }`,
-                  mb: 2
-                }}>
-                  <Box sx={{ mr: 2 }}>
-                    {accountStatus === 'good' && (
-                      <VerifiedUserIcon color="success" sx={{ fontSize: 36 }} />
-                    )}
-                    {accountStatus === 'warning' && (
-                      <WarningAmberIcon color="warning" sx={{ fontSize: 36 }} />
-                    )}
-                    {accountStatus === 'banned' && (
-                      <BlockIcon color="error" sx={{ fontSize: 36 }} />
-                    )}
-                  </Box>
-                  
-                  <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      {accountStatus === 'good' && 'Всё в порядке'}
-                      {accountStatus === 'warning' && 'Есть предупреждения'}
-                      {accountStatus === 'banned' && 'Аккаунт заблокирован'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {accountStatus === 'good' && 'Ваша учетная запись в хорошем состоянии.'}
-                      {accountStatus === 'warning' && `У вас есть ${userWarnings.length} активных предупреждений от модераторов.`}
-                      {accountStatus === 'banned' && 'Ваша учетная запись временно заблокирована.'}
-                    </Typography>
-                  </Box>
-                </Box>
-                
-                {accountStatus === 'banned' && banInfo && (
-                  <Box 
-                    sx={{ 
-                      mb: 2, 
-                      p: 2, 
-                      borderRadius: 2, 
-                      bgcolor: alpha('#d32f2f', 0.08), 
-                      border: `1px solid ${alpha('#d32f2f', 0.2)}`
-                    }}
-                  >
-                    <Typography variant="body2" sx={{ mb: 0.5 }}>
-                      <strong>Причина блокировки:</strong> {banInfo.reason}
-                    </Typography>
-                    <Typography variant="body2" sx={{ mb: 0.5 }}>
-                      <strong>До:</strong> {formatWarningDate(banInfo.end_date)}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Осталось дней:</strong> {banInfo.remaining_days}
-                    </Typography>
-                    {banInfo.details && (
-                      <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
-                        {banInfo.details}
-                      </Typography>
-                    )}
-                  </Box>
-                )}
-                
-                <Button
-                  variant="outlined"
-                  startIcon={<HistoryIcon />}
-                  onClick={openWarningsDialog}
-                  sx={{
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    borderColor: accountStatus === 'good' ? theme.palette.success.main : 
-                                accountStatus === 'warning' ? theme.palette.warning.main : theme.palette.error.main,
-                    color: accountStatus === 'good' ? theme.palette.success.main : 
-                          accountStatus === 'warning' ? theme.palette.warning.main : theme.palette.error.main,
-                  }}
-                >
-                  Просмотреть историю предупреждений
-                </Button>
-              </SettingsCardContent>
-            </SettingsCard>
-            
-            <SettingsCard>
-              <SettingsCardContent>
-                <SectionTitle variant="h5">
                   <PersonIcon />
                   Основная информация
                 </SectionTitle>
                 
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
-                    
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 4 }}>
-                      <ProfileImageContainer>
+                <Box sx={{ 
+                  position: 'relative', 
+                  mb: 4,
+                  borderRadius: 2,
+                  backgroundColor: 'rgba(18, 18, 18, 0.9)',
+                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  display: 'flex', 
+                  flexDirection: 'column',
+                }}>
+                  {/* New Compact Profile Layout */}
+                  <Grid container sx={{ p: 2 }}>
+                    {/* Left column - Avatar */}
+                    <Grid item xs={12} sm={4} md={3} sx={{ 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                  alignItems: 'center', 
+                      justifyContent: 'center',
+                      p: 2
+                    }}>
+                      <Box sx={{ 
+                        position: 'relative',
+                        width: { xs: 120, sm: 140 },
+                        height: { xs: 120, sm: 140 },
+                        borderRadius: '50%',
+                        border: `4px solid ${settings.avatar_border_color || theme.palette.primary.main}`,
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
+                        backgroundColor: 'rgba(18, 18, 18, 0.7)',
+                      mb: 2, 
+                        '&:hover .avatar-overlay': {
+                          opacity: 1
+                        }
+                      }}>
                         <Avatar
                           src={avatarPreview}
                           alt={name}
                           sx={{ 
-                            width: 120, 
-                            height: 120, 
-                            border: `4px solid ${settings.avatar_border_color || theme.palette.primary.main}`,
-                            boxShadow: '0 4px 10px rgba(0, 0, 0, 0.15)'
+                            width: '100%',
+                            height: '100%',
                           }}
                         />
-                        <EditOverlay className="edit-overlay">
+                        <Box 
+                          className="avatar-overlay"
+                          sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                            transition: 'all 0.2s',
+                            opacity: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: '50%',
+                          }}
+                        >
                           <label htmlFor="avatar-input">
-                            <IconButton component="span" sx={{ bgcolor: 'background.paper', color: 'primary.main' }}>
+                            <IconButton component="span" sx={{ bgcolor: 'rgba(0, 0, 0, 0.6)', color: '#fff', p: 1 }}>
                               <PhotoCameraIcon />
                             </IconButton>
                           </label>
@@ -3779,18 +4375,27 @@ const SettingsPage = () => {
                             accept="image/*"
                             onChange={(e) => handleAvatarChange(e.target.files[0])}
                           />
-                        </EditOverlay>
-                      </ProfileImageContainer>
+                        </Box>
+                      </Box>
                       
-                      <Typography variant="body2" color="text.secondary" mt={1}>
-                        Нажмите на аватар, чтобы изменить
+                      <Typography variant="subtitle2" sx={{ mt: 1, mb: 0.5, textAlign: 'center' }}>
+                        Аватар профиля
                       </Typography>
-                    </Box>
+                      
+                      {/* Removing the Цвет обводки TextField */}
                   </Grid>
                   
-                  <Grid item xs={12} md={6}>
-                    
-                    <BannerContainer>
+                    {/* Right column - Banner */}
+                    <Grid item xs={12} sm={8} md={9} sx={{ p: 2 }}>
+                      <Box sx={{ 
+                        position: 'relative', 
+                        height: { xs: 150, sm: 180 },
+                        width: '100%', 
+                        overflow: 'hidden', 
+                        borderRadius: 2,
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                      }}>
                       <Box 
                         component="img"
                         src={bannerPreview}
@@ -3805,9 +4410,26 @@ const SettingsPage = () => {
                           e.target.src = generatePlaceholder(800, 200, 'Banner', '#424242', '#ffffff');
                         }}
                       />
-                      <BannerOverlay className="edit-overlay">
+                        <Box 
+                          sx={{ 
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                            transition: 'all 0.2s',
+                            opacity: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            '&:hover': {
+                              opacity: 1
+                            }
+                          }}
+                        >
                         <label htmlFor="banner-input">
-                          <IconButton component="span" sx={{ bgcolor: 'background.paper', color: 'primary.main' }}>
+                            <IconButton component="span" sx={{ bgcolor: 'rgba(0, 0, 0, 0.6)', color: '#fff' }}>
                             <PhotoCameraIcon />
                           </IconButton>
                         </label>
@@ -3817,16 +4439,21 @@ const SettingsPage = () => {
                           accept="image/*"
                           onChange={(e) => handleBannerChange(e.target.files[0])}
                         />
-                      </BannerOverlay>
-                    </BannerContainer>
-                    
-                    <Typography variant="body2" color="text.secondary" align="center" mt={1}>
-                      Нажмите на баннер, чтобы изменить
+                        </Box>
+                      </Box>
+                      
+                      <Typography variant="subtitle2" sx={{ mt: 2, mb: 0.5 }}>
+                        Баннер профиля
+                      </Typography>
+                      
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        Рекомендуемый размер: 1200×300 пикселей
                     </Typography>
                   </Grid>
                 </Grid>
+                </Box>
                 
-                <Grid container spacing={3} mt={2}>
+                <Grid container spacing={2} sx={{ mt: 7 }}> {/* Увеличиваем отступ для аватара */}
                   <Grid item xs={12} md={6}>
                     <TextField
                       label="Имя"
@@ -3870,7 +4497,7 @@ const SettingsPage = () => {
                   </Grid>
                 </Grid>
                 
-                
+                {/* Status Settings */}
                 <StatusSettings 
                   profileData={profileData} 
                   subscription={profileData?.subscription} 
@@ -3899,7 +4526,7 @@ const SettingsPage = () => {
                   Социальные сети
                 </SectionTitle>
                 
-                <List sx={{ bgcolor: alpha(theme.palette.background.default, 0.3), borderRadius: 2, mb: 3 }}>
+                <List sx={{ bgcolor: 'rgba(16, 16, 16, 0.8)', borderRadius: 2, mb: 3, border: '1px solid rgba(255, 255, 255, 0.05)' }}>
                   {socials.length === 0 ? (
                     <ListItem>
                       <ListItemText 
@@ -4044,6 +4671,96 @@ const SettingsPage = () => {
                 </Dialog>
               </SettingsCardContent>
             </SettingsCard>
+            
+            {/* Account status moved to the bottom */}
+            <SettingsCard>
+              <SettingsCardContent>
+                <SectionTitle variant="h5">
+                  <SecurityIcon />
+                  Состояние учетной записи
+                </SectionTitle>
+                
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  p: 2, 
+                  borderRadius: 2,
+                  bgcolor: 'rgba(18, 18, 18, 0.9)',
+                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  mb: accountStatus !== 'good' ? 2 : 0,
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)'
+                }}>
+                  <Box sx={{ mr: 2 }}>
+                    {accountStatus === 'good' && (
+                      <VerifiedUserIcon sx={{ color: '#81C784', fontSize: 30 }} />
+                    )}
+                    {accountStatus === 'warning' && (
+                      <WarningAmberIcon sx={{ color: '#FFB74D', fontSize: 30 }} />
+                    )}
+                    {accountStatus === 'banned' && (
+                      <BlockIcon sx={{ color: '#E57373', fontSize: 30 }} />
+                    )}
+          </Box>
+                  
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      {accountStatus === 'good' && 'Всё в порядке'}
+                      {accountStatus === 'warning' && 'Есть предупреждения'}
+                      {accountStatus === 'banned' && 'Аккаунт заблокирован'}
+                    </Typography>
+                    {accountStatus !== 'good' && (
+                      <Typography variant="body2" color="text.secondary">
+                        {accountStatus === 'warning' && `${userWarnings.length} активных предупреждений`}
+                        {accountStatus === 'banned' && 'Временная блокировка'}
+                      </Typography>
+                    )}
+                  </Box>
+                  
+                  <Box sx={{ ml: 'auto' }}>
+                    <Button
+                      variant="text"
+                      size="small"
+                      onClick={openWarningsDialog}
+                      startIcon={<HistoryIcon fontSize="small" />}
+                      sx={{
+                        textTransform: 'none',
+                        fontSize: '0.8rem',
+                        color: accountStatus === 'good' ? '#81C784' : 
+                                accountStatus === 'warning' ? '#FFB74D' : '#E57373',
+                      }}
+                    >
+                      История
+                    </Button>
+                  </Box>
+                </Box>
+                
+                {accountStatus === 'banned' && banInfo && (
+                  <Box 
+                    sx={{ 
+                      p: 2, 
+                      borderRadius: 2, 
+                      bgcolor: 'rgba(18, 18, 18, 0.9)', 
+                      border: `1px solid ${alpha('#d32f2f', 0.3)}`
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ mb: 0.5 }}>
+                      <strong>Причина блокировки:</strong> {banInfo.reason}
+                    </Typography>
+                    <Typography variant="body2" sx={{ mb: 0.5 }}>
+                      <strong>До:</strong> {formatWarningDate(banInfo.end_date)}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Осталось дней:</strong> {banInfo.remaining_days}
+                    </Typography>
+                    {banInfo.details && (
+                      <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
+                        {banInfo.details}
+                      </Typography>
+                    )}
+                  </Box>
+                )}
+              </SettingsCardContent>
+            </SettingsCard>
           </Box>
         )}
         
@@ -4184,14 +4901,10 @@ const SettingsPage = () => {
             
             <SettingsCard sx={{ mt: 3 }}>
               <SettingsCardContent>
-                <SectionTitle variant="h5">
-                  <NotificationsIcon />
+                <SectionTitle variant="h5" sx={{ mb: 2 }}>
+                  <NotificationsIcon sx={{ mr: 1 }} />
                   Уведомления
                 </SectionTitle>
-                
-                <Typography variant="body2" sx={{ mb: 3, color: 'text.secondary' }}>
-                  Настройте способы получения уведомлений о новых событиях
-                </Typography>
                 
                 {!pushSupported ? (
                   <Alert severity="warning" sx={{ mb: 2 }}>
@@ -4201,107 +4914,69 @@ const SettingsPage = () => {
                   <>
                     {pushPermission === 'denied' && (
                       <Alert severity="error" sx={{ mb: 2 }}>
-                        Вы заблокировали разрешение на отправку уведомлений. Пожалуйста, разрешите уведомления в настройках браузера.
+                        Вы заблокировали разрешение на отправку уведомлений.
                       </Alert>
                     )}
                     
-                    
-                    {window.setupCaching && typeof window.setupCaching === 'function' && (
-                      <Alert severity="warning" sx={{ mb: 2 }}>
-                        Система защиты от кэширования может помешать работе push-уведомлений. Если у вас возникли проблемы с получением уведомлений, обратитесь к администратору.
-                      </Alert>
-                    )}
-                    
-                    
-                    <Box sx={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      p: 2,
+                    <List disablePadding sx={{ mb: 1 }}>
+                      {/* Push-уведомления */}
+                      <ListItem 
+                        sx={{ 
+                          py: 1.5, 
+                          px: 2, 
                       borderRadius: 2,
-                      mb: 2,
                       bgcolor: alpha(theme.palette.background.default, 0.4),
-                      border: `1px solid ${alpha(theme.palette.divider, 0.1)}`
-                    }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        {pushSubscribed ? (
-                          <NotificationsActiveIcon color="success" sx={{ mr: 2 }} />
-                        ) : (
-                          <NotificationsOffIcon color="action" sx={{ mr: 2 }} />
-                        )}
-                        <Box>
-                          <Typography variant="subtitle1">
-                            {pushSubscribed ? 'Push-уведомления включены' : 'Push-уведомления отключены'}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {pushSubscribed 
-                              ? 'Вы будете получать уведомления о новых событиях' 
-                              : 'Включите, чтобы получать уведомления в реальном времени'}
-                          </Typography>
-                        </Box>
-                      </Box>
-                      
-                      <Button
-                        variant={pushSubscribed ? "outlined" : "contained"}
-                        color={pushSubscribed ? "error" : "primary"}
-                        onClick={pushSubscribed ? handleDisablePushNotifications : handleEnablePushNotifications}
-                        disabled={pushLoading || pushPermission === 'denied'}
-                        startIcon={pushSubscribed ? <NotificationsOffIcon /> : <NotificationsActiveIcon />}
-                        sx={{ borderRadius: '10px', textTransform: 'none' }}
+                          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                          mb: 1
+                        }}
                       >
+                        <ListItemIcon sx={{ minWidth: 40 }}>
+                          <NotificationsActiveIcon color={pushSubscribed ? "success" : "action"} />
+                        </ListItemIcon>
+                        <ListItemText 
+                          primary="Push-уведомления" 
+                          primaryTypographyProps={{ fontWeight: 500 }}
+                        />
                         {pushLoading ? (
-                          <CircularProgress size={24} />
+                          <CircularProgress size={24} sx={{ color: '#D0BCFF' }} />
                         ) : (
-                          pushSubscribed ? '' : ''
+                          <IOSSwitch
+                            checked={pushSubscribed}
+                            onChange={pushSubscribed ? handleDisablePushNotifications : handleEnablePushNotifications}
+                            disabled={pushPermission === 'denied'}
+                          />
                         )}
-                      </Button>
-                    </Box>
-                    
-                    
-                    <Box sx={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      p: 2,
+                      </ListItem>
+                      
+                      {/* Telegram-уведомления */}
+                      <ListItem 
+                        sx={{ 
+                          py: 1.5, 
+                          px: 2,
                       borderRadius: 2,
                       bgcolor: alpha(theme.palette.background.default, 0.4),
                       border: `1px solid ${alpha(theme.palette.divider, 0.1)}`
-                    }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        {notificationPrefs.telegramNotificationsEnabled ? (
-                          <TelegramIcon color="success" sx={{ mr: 2 }} />
-                        ) : (
-                          <TelegramIcon color="action" sx={{ mr: 2 }} />
-                        )}
-                        <Box>
-                          <Typography variant="subtitle1">
-                            {notificationPrefs.telegramNotificationsEnabled ? 'Telegram-уведомления включены' : 'Telegram-уведомления отключены'}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {notificationPrefs.telegramConnected 
-                              ? (notificationPrefs.telegramNotificationsEnabled 
-                                ? 'Вы будете получать уведомления в Telegram' 
-                                : 'Включите, чтобы получать уведомления в Telegram')
-                              : 'Подключите Telegram в разделе Связанные аккаунты'}
-                          </Typography>
-                        </Box>
-                      </Box>
-                      
-                      <Button
-                        variant={notificationPrefs.telegramNotificationsEnabled ? "outlined" : "contained"}
-                        color={notificationPrefs.telegramNotificationsEnabled ? "error" : "primary"}
-                        onClick={handleToggleTelegramNotifications}
-                        disabled={savingNotificationPrefs || !notificationPrefs.telegramConnected}
-                        startIcon={notificationPrefs.telegramNotificationsEnabled ? <NotificationsOffIcon /> : <NotificationsActiveIcon />}
-                        sx={{ borderRadius: '10px', textTransform: 'none' }}
+                        }}
                       >
+                        <ListItemIcon sx={{ minWidth: 40 }}>
+                          <TelegramIcon color={notificationPrefs.telegramNotificationsEnabled ? "success" : "action"} />
+                        </ListItemIcon>
+                        <ListItemText 
+                          primary="Telegram-уведомления" 
+                          primaryTypographyProps={{ fontWeight: 500 }}
+                          secondary={!notificationPrefs.telegramConnected ? "Подключите Telegram" : undefined}
+                        />
                         {savingNotificationPrefs ? (
-                          <CircularProgress size={24} />
+                          <CircularProgress size={24} sx={{ color: '#D0BCFF' }} />
                         ) : (
-                          notificationPrefs.telegramNotificationsEnabled ? '' : ''
+                          <IOSSwitch
+                            checked={notificationPrefs.telegramNotificationsEnabled}
+                            onChange={handleToggleTelegramNotifications}
+                            disabled={!notificationPrefs.telegramConnected}
+                          />
                         )}
-                      </Button>
-                    </Box>
+                      </ListItem>
+                    </List>
                     
                     <Typography variant="caption" sx={{ display: 'block', mt: 2, color: 'text.disabled', textAlign: 'center' }}>
                       Push-уведомления работают даже когда браузер закрыт
@@ -4314,181 +4989,110 @@ const SettingsPage = () => {
             
             <SettingsCard sx={{ mt: 3 }}>
               <SettingsCardContent>
-                <SectionTitle variant="h5">
-                  <LinkIcon />
+                <SectionTitle variant="h5" sx={{ mb: 2 }}>
+                  <LinkIcon sx={{ mr: 1 }} />
                   Связанные аккаунты
                 </SectionTitle>
                 
-                <Typography variant="body2" sx={{ mb: 3, color: 'text.secondary' }}>
-                  Подключите внешние аккаунты для расширенных возможностей
-                </Typography>
-                
-                
-                <Box sx={{ 
-                  p: 2, 
-                  mb: 2,
+                <List disablePadding>
+                  {/* Element аккаунт */}
+                  <ListItem 
+                    sx={{ 
+                      py: 1.5, 
+                      px: 2, 
                   borderRadius: 2,
                   bgcolor: alpha(theme.palette.background.default, 0.4),
-                  border: `1px solid ${alpha(theme.palette.divider, 0.1)}`
-                }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Avatar 
-                        sx={{ 
-                          width: 40, 
-                          height: 40, 
-                          mr: 2,
-                          bgcolor: elementConnected ? 'success.light' : 'action.disabledBackground'
-                        }}
-                      >
-                        <ElementIcon />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="subtitle1">Element</Typography>
-                        <Typography variant="body2" color="text.secondary">
+                      border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                      mb: 1
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 40 }}>
+                      <ElementIcon sx={{ color: elementConnected ? '#D0BCFF' : '#777' }} />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary="Element"
+                      primaryTypographyProps={{ fontWeight: 500 }}
+                      secondary={loadingElementStatus ? "Проверка статуса..." : (elementConnected ? "Подключен" : "Не подключен")}
+                    />
                           {loadingElementStatus ? (
-                            <>
-                              <CircularProgress size={12} sx={{ mr: 1, verticalAlign: 'middle' }} />
-                              Проверка статуса...
-                            </>
-                          ) : elementConnected ? (
-                            <>
-                              <CheckIcon fontSize="small" sx={{ mr: 0.5, verticalAlign: 'middle', color: 'success.main' }} />
-                              Аккаунт Element подключен
-                            </>
-                          ) : (
-                            "Аккаунт Element не подключен"
-                          )}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    
-                    {!elementLinking ? (
-                      <Button
-                        variant={elementConnected ? "outlined" : "contained"}
-                        color={elementConnected ? "error" : "primary"}
-                        startIcon={elementConnected ? <LinkOffIcon /> : <LinkIcon />}
-                        onClick={handleLinkElement}
-                        disabled={loadingElementStatus}
-                        sx={{ borderRadius: '10px', textTransform: 'none' }}
-                      >
-                        {elementConnected ? "Отключить" : "Подключить"}
-                      </Button>
+                      <CircularProgress size={24} sx={{ color: '#D0BCFF' }} />
+                    ) : (
+                      elementLinking ? (
+                        <IconButton 
+                          edge="end" 
+                          color="error" 
+                          onClick={handleCancelElementLinking}
+                          size="small"
+                        >
+                          <CloseIcon fontSize="small" />
+                        </IconButton>
                     ) : (
                       <Button
-                        variant="outlined"
-                        color="error"
-                        onClick={handleCancelElementLinking}
-                        sx={{ borderRadius: '10px', textTransform: 'none' }}
-                      >
-                        Отменить
-                      </Button>
-                    )}
-                  </Box>
-                  
-                  {elementLinking && elementToken && (
-                    <Box sx={{ mt: 3, p: 3, bgcolor: alpha(theme.palette.info.main, 0.1), borderRadius: 2 }}>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Инструкция для подключения Element:
-                      </Typography>
-                      <ol>
-                        <li>
-                          <Typography variant="body2" paragraph>
-                            Перейдите по ссылке ниже чтобы подключить ваш аккаунт Element.
-                          </Typography>
-                        </li>
-                        <li>
-                          <Typography variant="body2">
-                            После успешной авторизации вы будете перенаправлены обратно.
-                          </Typography>
-                        </li>
-                      </ol>
-                      
-                      <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-                        <Link 
-                          href={`https://elemsocial.com/connect_app/0195a00f-826a-7a34-85f1-45065c8c727d`} 
-                          target="_blank"
-                          rel="noopener noreferrer"
                           variant="contained"
-                          component={Button}
-                          color="primary"
-                          sx={{ borderRadius: '12px', py: 1, px: 3 }}
+                          size="small"
+                          onClick={elementConnected ? null : handleLinkElement}
+                          disabled={elementConnected}
+                          sx={{
+                            bgcolor: elementConnected ? 'transparent' : 'rgba(208, 188, 255, 0.1)',
+                            color: elementConnected ? 'success.main' : '#D0BCFF',
+                            border: elementConnected ? 'none' : '1px solid rgba(208, 188, 255, 0.3)',
+                            boxShadow: 'none',
+                            minWidth: 'auto',
+                            px: 2,
+                            '&:hover': {
+                              bgcolor: 'rgba(208, 188, 255, 0.2)',
+                            }
+                          }}
                         >
-                          Подключить Element
-                        </Link>
-                      </Box>
-                    </Box>
-                  )}
-                </Box>
-                
-                
-                <Box sx={{ 
-                  p: 2,
+                          {elementConnected ? (
+                            <CheckIcon fontSize="small" />
+                          ) : 'Подключить'}
+                      </Button>
+                      )
+                    )}
+                  </ListItem>
+                  
+                  {/* Telegram аккаунт */}
+                  <ListItem 
+                    sx={{ 
+                      py: 1.5, 
+                      px: 2,
                   borderRadius: 2,
                   bgcolor: alpha(theme.palette.background.default, 0.4),
                   border: `1px solid ${alpha(theme.palette.divider, 0.1)}`
-                }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Avatar 
-                        sx={{ 
-                          width: 40, 
-                          height: 40, 
-                          mr: 2,
-                          bgcolor: notificationPrefs.telegramConnected ? 'success.light' : 'action.disabledBackground'
-                        }}
-                      >
-                        <TelegramIcon />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="subtitle1">Telegram</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {notificationPrefs.telegramConnected ? (
-                            <>
-                              <CheckIcon fontSize="small" sx={{ mr: 0.5, verticalAlign: 'middle', color: 'success.main' }} />
-                              Telegram подключен
-                            </>
-                          ) : (
-                            "Telegram не подключен"
-                          )}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 40 }}>
+                      <TelegramIcon sx={{ color: notificationPrefs.telegramConnected ? '#D0BCFF' : '#777' }} />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary="Telegram"
+                      primaryTypographyProps={{ fontWeight: 500 }}
+                      secondary={notificationPrefs.telegramConnected ? "Подключен" : "Не подключен"}
+                    />
                     <Button
-                      variant={notificationPrefs.telegramConnected ? "outlined" : "contained"}
-                      color={notificationPrefs.telegramConnected ? "error" : "primary"}
-                      startIcon={notificationPrefs.telegramConnected ? <LinkOffIcon /> : <LinkIcon />}
-                      sx={{ borderRadius: '10px', textTransform: 'none' }}
-                      onClick={() => {
-                        
-                        if (notificationPrefs.telegramConnected) {
-                          
-                          axios.post('/api/profile/telegram-disconnect')
-                            .then(response => {
-                              if (response.data && response.data.success) {
-                                setNotificationPrefs({
-                                  ...notificationPrefs,
-                                  telegramConnected: false,
-                                  telegramNotificationsEnabled: false
-                                });
-                                showNotification('success', 'Telegram аккаунт отключен');
-                              }
-                            })
-                            .catch(error => {
-                              console.error('Ошибка при отключении Telegram:', error);
-                              showNotification('error', 'Не удалось отключить Telegram аккаунт');
-                            });
-                        } else {
-                          
-                          setTelegramDialogOpen(true);
+                      variant="contained"
+                      size="small"
+                      onClick={() => setTelegramDialogOpen(true)}
+                      disabled={false}
+                      sx={{
+                        bgcolor: notificationPrefs.telegramConnected ? 'transparent' : 'rgba(208, 188, 255, 0.1)',
+                        color: notificationPrefs.telegramConnected ? 'success.main' : '#D0BCFF',
+                        border: notificationPrefs.telegramConnected ? 'none' : '1px solid rgba(208, 188, 255, 0.3)',
+                        boxShadow: 'none',
+                        minWidth: 'auto',
+                        px: 2,
+                        '&:hover': {
+                          bgcolor: 'rgba(208, 188, 255, 0.2)',
                         }
                       }}
                     >
-                      {notificationPrefs.telegramConnected ? "Отключить" : "Подключить"}
+                      {notificationPrefs.telegramConnected ? (
+                        <CheckIcon fontSize="small" />
+                      ) : 'Подключить'}
                     </Button>
-                  </Box>
-                </Box>
+                  </ListItem>
+                </List>
               </SettingsCardContent>
             </SettingsCard>
           </Box>
@@ -4542,36 +5146,33 @@ const SettingsPage = () => {
                     
                     {userAchievements.length > 0 && (
                       <>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, mt: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, mt: 2 }}>
                           <ShieldIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
                           <Typography variant="h6" color="primary" sx={{ fontWeight: 600 }}>
                             Заработанные достижения
                           </Typography>
                     </Box>
                     
-                    <Grid container spacing={2}>
+                        <Grid container spacing={1.5}>
                           {userAchievements
                             .filter(achievement => !achievement.image_path.includes('shop/'))
                             .map((achievement) => (
-                        <Grid item xs={6} sm={4} md={3} key={achievement.id}>
+                              <Grid item xs={4} sm={3} md={2} key={achievement.id}>
                           <Card 
-                            elevation={achievement.is_active ? 4 : 1}
+                                  elevation={0}
                             sx={{ 
                               position: 'relative',
                               height: '100%',
                               borderRadius: 2,
-                              background: achievement.is_active 
-                                ? `linear-gradient(145deg, ${alpha(theme.palette.background.paper, 0.8)}, ${alpha(theme.palette.background.paper, 0.9)})`
-                                : theme.palette.background.paper,
+                                    background: 'transparent',
                               border: achievement.is_active 
                                 ? `2px solid ${theme.palette.primary.main}` 
-                                : `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                              transition: 'all 0.3s ease',
+                                : `1px solid rgba(255, 255, 255, 0.05)`,
+                                    transition: 'all 0.2s ease',
                               overflow: 'visible',
-                              animation: achievement.is_active ? 'badge-glow 2.5s infinite' : 'none',
                               '&:hover': { 
-                                transform: 'translateY(-5px)',
-                                boxShadow: theme.shadows[achievement.is_active ? 6 : 3]
+                                      transform: 'translateY(-3px)',
+                                      boxShadow: achievement.is_active ? theme.shadows[4] : 'none'
                               }
                             }}
                           >
@@ -4579,21 +5180,20 @@ const SettingsPage = () => {
                               <Box 
                                 sx={{
                                   position: 'absolute',
-                                  top: -10,
-                                  right: -10,
+                                        top: -6,
+                                        right: -6,
                                   backgroundColor: theme.palette.success.main,
-                                  color: theme.palette.success.contrastText,
+                                        color: '#fff',
                                   borderRadius: '50%',
-                                  width: 28,
-                                  height: 28,
+                                        width: 16,
+                                        height: 16,
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  boxShadow: theme.shadows[3],
                                   zIndex: 2
                                 }}
                               >
-                                <CheckIcon fontSize="small" />
+                                      <CheckIcon sx={{ fontSize: 12 }} />
                               </Box>
                             )}
                             
@@ -4602,37 +5202,18 @@ const SettingsPage = () => {
                               flexDirection: 'column',
                               alignItems: 'center',
                               textAlign: 'center',
-                              p: 2,
-                              '&:last-child': { pb: 2 }
-                            }}>
-                              <Box sx={{
-                                width: 80,
-                                height: 80,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                mb: 1.5,
-                                position: 'relative',
-                                '&::after': achievement.is_active ? {
-                                  content: '""',
-                                  position: 'absolute',
-                                  top: -5,
-                                  left: -5,
-                                  right: -5,
-                                  bottom: -5,
-                                  borderRadius: '50%',
-                                  border: `2px solid ${theme.palette.primary.main}`,
-                                  animation: 'pulse 1.5s infinite'
-                                } : {}
+                                    p: 1.5,
+                                    '&:last-child': { pb: 1.5 }
                               }}>
                                 <Box 
                                   component="img" 
                                   src={`/static/images/bages/${achievement.image_path}`}
                                   alt={achievement.name || achievement.bage}
                                   sx={{ 
-                                    width: 70, 
-                                    height: 70,
+                                        width: 50, 
+                                        height: 50,
                                     objectFit: 'contain',
+                                        mb: 1,
                                     filter: achievement.is_active ? 'none' : 'grayscale(30%)',
                                     transition: 'all 0.3s ease',
                                   }}
@@ -4641,51 +5222,40 @@ const SettingsPage = () => {
                                     e.target.src = '/static/images/bages/default-badge.png';
                                   }}
                                 />
-                              </Box>
                               
                               <Typography 
-                                variant={isMobile ? "body1" : "subtitle1"} 
+                                      variant="caption" 
                                 sx={{ 
-                                  mb: 1, 
                                   fontWeight: 600,
-                                  fontSize: isMobile ? '0.9rem' : 'inherit'
-                                }}
-                              >
-                                {achievement.name || achievement.bage}
-                              </Typography>
-                              
-                              <Typography 
-                                variant="body2" 
-                                color="text.secondary" 
-                                sx={{ 
-                                  mb: 2, 
-                                  flexGrow: 1,
-                                  fontSize: isMobile ? '0.75rem' : 'inherit',
+                                        mb: 0.5,
                                   display: '-webkit-box',
-                                  WebkitLineClamp: 2,
+                                        WebkitLineClamp: 1,
                                   WebkitBoxOrient: 'vertical',
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis'
                                 }}
                               >
-                                {achievement.description || 'Заслуженное достижение'}
+                                      {achievement.name || achievement.bage}
                               </Typography>
 
                                 <Button 
-                                      variant={achievement.is_active ? "outlined" : "contained"}
+                                      variant={achievement.is_active ? "text" : "contained"}
                                       color={achievement.is_active ? "success" : "primary"}
                                       onClick={() => handleSetActiveBadge(achievement.id)}
-                                  size={isMobile ? "small" : "medium"}
-                                      startIcon={achievement.is_active ? <CheckIcon /> : null}
+                                      size="small"
                                   sx={{ 
+                                        fontSize: '0.7rem',
+                                        minHeight: 0,
+                                        py: 0.5,
                                     width: '100%',
-                                    borderRadius: '10px',
+                                        minWidth: 'auto',
+                                        borderRadius: '8px',
                                     textTransform: 'none',
-                                        boxShadow: achievement.is_active ? 'none' : theme.shadows[1]
+                                        boxShadow: 'none'
                                   }}
                                       disabled={updatingActiveBadge}
                                 >
-                                      {achievement.is_active ? "Активен" : "Установить"}
+                                      {achievement.is_active ? "Активен" : "Выбрать"}
                                 </Button>
                                   </CardContent>
                                 </Card>
@@ -4693,8 +5263,8 @@ const SettingsPage = () => {
                           ))}
                         </Grid>
                         
-                        <Box sx={{ mt: 2, mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                          <Typography variant="body2" color="text.secondary">
+                        <Box sx={{ mt: 1, mb: 3, display: 'flex', justifyContent: 'center' }}>
+                          <Typography variant="caption" color="text.secondary">
                             Собирайте новые достижения, участвуя в сообществе
                           </Typography>
                         </Box>
@@ -4704,36 +5274,33 @@ const SettingsPage = () => {
                     {/* Purchased Badges Section */}
                     {purchasedBadges.length > 0 && (
                       <>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, mt: 4 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, mt: 3 }}>
                           <ShoppingBagIcon sx={{ mr: 1, color: theme.palette.secondary.main }} />
                           <Typography variant="h6" color="secondary" sx={{ fontWeight: 600 }}>
                             Приобретенные бейджи
                           </Typography>
                         </Box>
                         
-                        <Grid container spacing={2}>
+                        <Grid container spacing={1.5}>
                           {userAchievements
                             .filter(achievement => achievement.image_path.includes('shop/'))
                             .map((achievement) => (
-                              <Grid item xs={6} sm={4} md={3} key={achievement.id}>
+                              <Grid item xs={4} sm={3} md={2} key={achievement.id}>
                                 <Card 
-                                  elevation={achievement.is_active ? 4 : 1}
+                                  elevation={0}
                                   sx={{ 
                                     position: 'relative',
                                     height: '100%',
                                     borderRadius: 2,
-                                    background: achievement.is_active 
-                                      ? `linear-gradient(145deg, ${alpha(theme.palette.background.paper, 0.8)}, ${alpha(theme.palette.background.paper, 0.9)})`
-                                      : theme.palette.background.paper,
+                                    background: 'transparent',
                                     border: achievement.is_active 
                                       ? `2px solid ${theme.palette.secondary.main}` 
-                                      : `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                                    transition: 'all 0.3s ease',
+                                      : `1px solid rgba(255, 255, 255, 0.05)`,
+                                    transition: 'all 0.2s ease',
                                     overflow: 'visible',
-                                    animation: achievement.is_active ? 'badge-glow 2.5s infinite' : 'none',
                                     '&:hover': { 
-                                      transform: 'translateY(-5px)',
-                                      boxShadow: theme.shadows[achievement.is_active ? 6 : 3]
+                                      transform: 'translateY(-3px)',
+                                      boxShadow: achievement.is_active ? theme.shadows[4] : 'none'
                                     }
                                   }}
                                 >
@@ -4741,42 +5308,40 @@ const SettingsPage = () => {
                                     <Box 
                                       sx={{
                                         position: 'absolute',
-                                        top: -10,
-                                        right: -10,
+                                        top: -6,
+                                        right: -6,
                                         backgroundColor: theme.palette.success.main,
-                                        color: theme.palette.success.contrastText,
+                                        color: '#fff',
                                         borderRadius: '50%',
-                                        width: 28,
-                                        height: 28,
+                                        width: 16,
+                                        height: 16,
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        boxShadow: theme.shadows[3],
                                         zIndex: 2
                                       }}
                                     >
-                                      <CheckIcon fontSize="small" />
+                                      <CheckIcon sx={{ fontSize: 12 }} />
                                     </Box>
                                   )}
                                   
                                   <Box
                                     sx={{
                                       position: 'absolute',
-                                      top: -6,
-                                      left: -6,
+                                      top: -4,
+                                      left: -4,
                                       backgroundColor: theme.palette.secondary.main,
-                                      color: theme.palette.secondary.contrastText,
+                                      color: '#fff',
                                       borderRadius: '50%',
-                                      width: 24,
-                                      height: 24,
+                                      width: 14,
+                                      height: 14,
                                       display: 'flex',
                                       alignItems: 'center',
                                       justifyContent: 'center',
-                                      boxShadow: theme.shadows[3],
                                       zIndex: 2
                                     }}
                                   >
-                                    <ShoppingBagIcon fontSize="small" sx={{ fontSize: '14px' }} />
+                                    <ShoppingBagIcon sx={{ fontSize: 8 }} />
                                   </Box>
                                   
                                   <CardContent sx={{ 
@@ -4784,37 +5349,18 @@ const SettingsPage = () => {
                                     flexDirection: 'column',
                                     alignItems: 'center',
                                     textAlign: 'center',
-                                    p: 2,
-                                    '&:last-child': { pb: 2 }
-                                  }}>
-                                    <Box sx={{
-                                      width: 80,
-                                      height: 80,
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      mb: 1.5,
-                                      position: 'relative',
-                                      '&::after': achievement.is_active ? {
-                                        content: '""',
-                                        position: 'absolute',
-                                        top: -5,
-                                        left: -5,
-                                        right: -5,
-                                        bottom: -5,
-                                        borderRadius: '50%',
-                                        border: `2px solid ${theme.palette.secondary.main}`,
-                                        animation: 'pulse 1.5s infinite'
-                                      } : {}
+                                    p: 1.5,
+                                    '&:last-child': { pb: 1.5 }
                                     }}>
                                       <Box 
                                         component="img" 
                                         src={`/static/images/bages/${achievement.image_path}`}
                                         alt={achievement.name || achievement.bage}
                                         sx={{ 
-                                          width: 70, 
-                                          height: 70,
+                                        width: 50, 
+                                        height: 50,
                                           objectFit: 'contain',
+                                        mb: 1,
                                           filter: achievement.is_active ? 'none' : 'grayscale(30%)',
                                           transition: 'all 0.3s ease',
                                         }}
@@ -4823,51 +5369,40 @@ const SettingsPage = () => {
                                           e.target.src = '/static/images/bages/default-badge.png';
                                         }}
                                       />
-                                    </Box>
                                     
                                     <Typography 
-                                      variant={isMobile ? "body1" : "subtitle1"} 
+                                      variant="caption" 
                                       sx={{ 
-                                        mb: 1, 
                                         fontWeight: 600,
-                                        fontSize: isMobile ? '0.9rem' : 'inherit'
-                                      }}
-                                    >
-                                      {achievement.name || achievement.bage}
-                                    </Typography>
-                                    
-                                    <Typography 
-                                      variant="body2" 
-                                      color="text.secondary" 
-                                      sx={{ 
-                                        mb: 2, 
-                                        flexGrow: 1,
-                                        fontSize: isMobile ? '0.75rem' : 'inherit',
+                                        mb: 0.5,
                                         display: '-webkit-box',
-                                        WebkitLineClamp: 2,
+                                        WebkitLineClamp: 1,
                                         WebkitBoxOrient: 'vertical',
                                         overflow: 'hidden',
                                         textOverflow: 'ellipsis'
                                       }}
                                     >
-                                      {achievement.description || 'Приобретенный бейдж'}
+                                      {achievement.name || achievement.bage}
                                     </Typography>
 
                                 <Button 
-                                  variant={achievement.is_active ? "outlined" : "contained"}
+                                      variant={achievement.is_active ? "text" : "contained"}
                                       color={achievement.is_active ? "success" : "secondary"}
                                   onClick={() => handleSetActiveBadge(achievement.id)}
-                                  size={isMobile ? "small" : "medium"}
-                                  startIcon={achievement.is_active ? <CheckIcon /> : null}
+                                      size="small"
                                   sx={{ 
+                                        fontSize: '0.7rem',
+                                        minHeight: 0,
+                                        py: 0.5,
                                     width: '100%',
-                                    borderRadius: '10px',
+                                        minWidth: 'auto',
+                                        borderRadius: '8px',
                                     textTransform: 'none',
-                                    boxShadow: achievement.is_active ? 'none' : theme.shadows[1]
+                                        boxShadow: 'none'
                                   }}
                                   disabled={updatingActiveBadge}
                                 >
-                                  {achievement.is_active ? "Активен" : "Установить"}
+                                      {achievement.is_active ? "Активен" : "Выбрать"}
                                 </Button>
                             </CardContent>
                           </Card>
@@ -4875,51 +5410,27 @@ const SettingsPage = () => {
                       ))}
                     </Grid>
                     
-                        <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                      <Typography variant="body2" color="text.secondary">
-                            Покупайте новые бейджи в магазине бейджей
+                        <Box sx={{ mt: 1, mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
+                            Покупайте новые бейджи в магазине 
                       </Typography>
                           <Link href="/badge-shop" sx={{ textDecoration: 'none' }}>
                             <Button 
-                              variant="outlined" 
+                              variant="text" 
                               color="secondary" 
-                              startIcon={<StorefrontIcon />}
-                              sx={{ mt: 1, borderRadius: '10px', textTransform: 'none', marginBottom: '60px' }}
+                              size="small"
+                              startIcon={<StorefrontIcon sx={{ fontSize: 14 }} />}
+                              sx={{ 
+                                textTransform: 'none',
+                                py: 0,
+                                ml: -1
+                              }}
                             >
                               Перейти в магазин
                             </Button>
                           </Link>
                     </Box>
                       </>
-                    )}
-                    
-                    {userAchievements.length === 0 && purchasedBadges.length === 0 && (
-                  <Box sx={{ 
-                    textAlign: 'center', 
-                    py: 4, 
-                    px: 2,
-                    borderRadius: 2,
-                    bgcolor: alpha(theme.palette.background.default, 0.4),
-                    border: `1px dashed ${alpha(theme.palette.divider, 0.3)}`
-                  }}>
-                    <EmojiEventsIcon sx={{ fontSize: 60, color: alpha(theme.palette.text.secondary, 0.3), mb: 2 }} />
-                    <Typography variant="h6" color="text.secondary" gutterBottom>
-                      У вас пока нет бейджей
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                          Участвуйте в сообществе, чтобы получать награды и достижения, или посетите магазин, чтобы приобрести бейджи
-                    </Typography>
-                        <Link href="/badge-shop" sx={{ textDecoration: 'none' }}>
-                          <Button 
-                            variant="outlined" 
-                            color="secondary" 
-                            startIcon={<StorefrontIcon />}
-                            sx={{ mt: 3, borderRadius: '10px', textTransform: 'none', marginBottom: '60px' }}
-                          >
-                            Перейти в магазин
-                          </Button>
-                        </Link>
-                      </Box>
                     )}
                   </Box>
                 )}
@@ -5008,7 +5519,13 @@ const SettingsPage = () => {
             onClose={handleCloseSnackbar} 
             severity={snackbar.severity} 
             variant="filled"
-            sx={{ width: '100%' }}
+            sx={{ 
+              width: '100%',
+              bgcolor: severity => severity === 'success' ? 'rgba(46, 125, 50, 0.9)' : 
+                        severity === 'error' ? 'rgba(211, 47, 47, 0.9)' :
+                        severity === 'warning' ? 'rgba(237, 108, 2, 0.9)' : 'rgba(2, 136, 209, 0.9)',
+              backdropFilter: 'blur(4px)'
+            }}
           >
             {snackbar.message}
           </Alert>
@@ -5025,7 +5542,8 @@ const SettingsPage = () => {
             sx: {
               borderRadius: 3,
               boxShadow: theme.shadows[10],
-              background: theme.palette.background.paper
+              background: 'rgba(18, 18, 18, 0.95)',
+              border: '1px solid rgba(255, 255, 255, 0.05)'
             }
           }}
         >
@@ -5112,10 +5630,10 @@ const SettingsPage = () => {
           sx={{
             '& .MuiDialog-paper': {
               borderRadius: 1, 
-              background: 'rgba(18, 18, 18, 0.8)',
+              background: 'rgba(12, 12, 12, 0.95)',
               backdropFilter: 'blur(10px)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-              border: '1px solid rgba(255, 255, 255, 0.1)'
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+              border: '1px solid rgba(255, 255, 255, 0.05)'
             }
           }}
         >
@@ -5235,6 +5753,64 @@ const SettingsPage = () => {
           onTabChange={handleTabChange}
           user={user}
         />
+        
+        {/* Add at the bottom of the container, before the closing tag */}
+        <Box sx={{ mt: 4, borderTop: '1px solid rgba(255, 255, 255, 0.12)', pt: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Безопасность и устройства
+          </Typography>
+          
+          <Button
+            variant="contained"
+            onClick={handleOpenSessionManager}
+            sx={{ 
+              mt: 2, 
+              borderRadius: 2,
+              py: 1.8,
+              justifyContent: 'flex-start',
+              textTransform: 'none',
+              backgroundColor: 'rgba(16, 16, 16, 0.9)',
+              backgroundImage: 'linear-gradient(45deg, rgba(16, 16, 16, 0.9), rgba(22, 22, 22, 0.9))',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
+              border: '1px solid rgba(208, 188, 255, 0.1)',
+              color: '#fff',
+              '&:hover': {
+                backgroundColor: 'rgba(22, 22, 22, 0.9)',
+                backgroundImage: 'linear-gradient(45deg, rgba(22, 22, 22, 0.9), rgba(30, 30, 30, 0.9))',
+                boxShadow: '0 6px 16px rgba(0, 0, 0, 0.5)',
+                transform: 'translateY(-2px)',
+                transition: 'all 0.3s ease'
+              },
+              width: '100%'
+            }}
+            startIcon={
+              <DevicesIcon sx={{ 
+                color: '#d0bcff',
+                fontSize: '1.5rem'
+              }} />
+            }
+          >
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'flex-start',
+              ml: 1
+            }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 500, color: '#fff' }}>
+                Управление сессиями
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#d0bcff' }}>
+                Устройства, подключенные к аккаунту
+              </Typography>
+            </Box>
+          </Button>
+        </Box>
+        
+        {/* Session Manager Dialog */}
+        <SessionManager 
+          open={sessionManagerOpen} 
+          onClose={handleCloseSessionManager} 
+        />
       </SettingsContainer>
     </motion.div>
   );
@@ -5352,6 +5928,15 @@ const ThemeSelector = ({ onThemeSelect }) => {
       </Grid>
     </Box>
   );
+};
+
+
+const handleOpenSessionManager = () => {
+  setSessionManagerOpen(true);
+};
+
+const handleCloseSessionManager = () => {
+  setSessionManagerOpen(false);
 };
 
 export default SettingsPage;

@@ -140,7 +140,8 @@ const DEFAULT_GAME_IMAGES = {
   cups: '/static/img/minigames/cups.png',
   dice: '/static/img/minigames/dice.png',
   lucky: '/static/img/minigames/lucky-number.png',
-  clicker: '/static/img/minigames/clicker.png'
+  clicker: '/static/img/minigames/clicker.png',
+  blackjack: '/static/img/minigames/blackjack.png'
 };
 
 const generateBackgroundStyles = (gameId, color) => {
@@ -221,7 +222,7 @@ const MiniGamesPage = () => {
     {
       id: 'cups',
       name: 'Три чаши',
-      description: 'Угадай, под какой чашей находится шарик, и удвой свою ставку!',
+      description: 'Угадайте, под какой чашей находится шарик!',
       icon: <LocalCafeIcon sx={{ fontSize: 40 }} />,
       color: '#e91e63',
       path: '/minigames/cups',
@@ -229,8 +230,8 @@ const MiniGamesPage = () => {
     },
     {
       id: 'lucky-number',
-      name: 'Счастливое Число',
-      description: 'Выберите число и множитель, угадайте верно и получите крупный выигрыш!',
+      name: 'Счастливое число',
+      description: 'Ваше счастливое число выиграет!',
       icon: <NumbersIcon sx={{ fontSize: 40 }} />,
       color: '#9c27b0',
       path: '/minigames/lucky-number',
@@ -239,10 +240,10 @@ const MiniGamesPage = () => {
     {
       id: 'clicker',
       name: 'Кликер',
-      description: 'Кликай и зарабатывай баллы! Прокачивай свой клик и становись лучшим в таблице лидеров.',
+      description: 'Кликайте, чтобы зарабатывать баллы!',
       icon: <TouchAppIcon sx={{ fontSize: 40 }} />,
       color: '#3f51b5',
-      path: '/clicker',
+      path: '/minigames/clicker',
       available: false,
       seasonEnded: true
     },
@@ -254,6 +255,15 @@ const MiniGamesPage = () => {
       color: '#ff9800',
       path: '/minigames/dice',
       available: false
+    },
+    {
+      id: 'blackjack',
+      name: '21',
+      description: 'Наберите 21 очко или больше чем у дилера, не перебрав!',
+      icon: <CasinoIcon sx={{ fontSize: 40 }} />,
+      color: '#3f51b5',
+      path: '/minigames/blackjack',
+      available: true
     },
     {
       id: 'coming-soon',
@@ -349,7 +359,7 @@ const MiniGamesPage = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
               }}>
-                {(game.id === 'cups' || game.id === 'dice' || game.id === 'lucky-number' || game.id === 'clicker') && (
+                {(game.id === 'cups' || game.id === 'dice' || game.id === 'lucky-number' || game.id === 'clicker' || game.id === 'blackjack') && (
                   <Box 
                     component="img"
                     src={DEFAULT_GAME_IMAGES[game.id === 'lucky-number' ? 'lucky' : game.id]}

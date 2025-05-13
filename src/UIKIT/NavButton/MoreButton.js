@@ -2,7 +2,7 @@ import React, { memo } from 'react';
 import { NavItemStyled, NavIconStyled, NavTextStyled } from './NavButton';
 import { Box, styled } from '@mui/material';
 
-// Стилизованный компонент для кнопки "Еще"
+
 const MoreButtonStyled = styled(NavItemStyled)(({ theme, active, themecolor }) => ({
   justifyContent: 'space-between',
   paddingRight: theme.spacing(1.5),
@@ -15,7 +15,7 @@ const MoreButtonStyled = styled(NavItemStyled)(({ theme, active, themecolor }) =
   }
 }));
 
-// Функция для проверки равенства пропсов для мемоизации
+
 const areEqual = (prevProps, nextProps) => {
   return (
     prevProps.active === nextProps.active &&
@@ -35,7 +35,7 @@ const MoreButton = ({
   arrowDownIcon,
   ...rest 
 }) => {
-  // Определяем, какую иконку стрелки показывать
+
   const ArrowIcon = active ? 
     (arrowUpIcon || arrowIcon) : 
     (arrowDownIcon || arrowIcon);

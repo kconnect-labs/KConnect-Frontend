@@ -40,7 +40,7 @@ import GroupIcon from '@mui/icons-material/Group';
 import GroupsIcon from '@mui/icons-material/Groups';
 import { motion } from 'framer-motion';
 
-// Styled components
+
 const PageContainer = styled(Container)(({ theme }) => ({
   paddingTop: theme.spacing(4),
   paddingBottom: theme.spacing(8),
@@ -202,7 +202,7 @@ const RulesPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
-  // Animation variants for motion components
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {

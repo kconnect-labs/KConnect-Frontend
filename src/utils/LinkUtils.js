@@ -25,6 +25,9 @@ export const URL_REGEX = /\b((?:https?:\/\/)?(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,2
 // Регулярка для @упоминаний пользователей
 export const USERNAME_MENTION_REGEX = /(?<!\w)@(\w+)/g;
 
+// Регулярка для #хештегов (поддерживает латиницу и кириллицу)
+export const HASHTAG_REGEX = /(?<![а-яА-Яa-zA-Z0-9_])#([а-яА-Яa-zA-Z0-9_]+)/g;
+
 // Компонент предпросмотра ссылки, который можно использовать везде
 export const LinkPreview = ({ url }) => {
   const [preview, setPreview] = useState(null);
@@ -250,84 +253,104 @@ export const processTextWithLinks = (text) => {
     });
   }
   
-  // Sort matches by their position in the text
+  // Find all #hashtag matches
+  HASHTAG_REGEX.lastIndex = 0;
+  while ((match = HASHTAG_REGEX.exec(text)) !== null) {
+    combinedMatches.push({
+      type: 'hashtag',
+      match: match[0],
+      hashtag: match[1],
+      index: match.index,
+      length: match[0].length
+    });
+  }
+  
+  // Sort all matches by their position in the text
   combinedMatches.sort((a, b) => a.index - b.index);
   
-  // Process all matches in order
-  for (const matchInfo of combinedMatches) {
-    // Add text before the current match
-    if (matchInfo.index > lastIndex) {
-      parts.push(text.substring(lastIndex, matchInfo.index));
+  // Convert the matches into React elements
+  combinedMatches.forEach((item, i) => {
+    // Add any text before this match
+    if (item.index > lastIndex) {
+      parts.push(text.substring(lastIndex, item.index));
     }
     
-    if (matchInfo.type === 'url') {
-      const urlMatch = matchInfo.match;
-      // Add protocol if missing
-      const url = urlMatch.startsWith('http') ? urlMatch : `https://${urlMatch}`;
+    if (item.type === 'url') {
+      const url = item.match;
       
-      // Add clickable URL
+      // Add URL to the set of URLs for preview
+      urls.add(url);
+      
+      // Create a clickable link
       parts.push(
         <a 
-          href={url} 
-          key={`link-${matchInfo.index}`}
-          target="_blank" 
+          key={`url-${i}`}
+          href={url.startsWith('http') ? url : `https://${url}`}
+          target="_blank"
           rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          style={{ 
+            color: '#9E77ED', 
+            textDecoration: 'none', 
+            fontWeight: 'medium',
+            wordBreak: 'break-word'
+          }}
+        >
+          {url}
+        </a>
+      );
+    } else if (item.type === 'mention') {
+      // Create a clickable mention
+      parts.push(
+        <a 
+          key={`mention-${i}`}
+          href={`/profile/${item.username}`}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            window.open(url, '_blank');
+            window.location.href = `/profile/${item.username}`;
           }}
           style={{ 
             color: '#9E77ED', 
-            fontWeight: 'bold',
-            textDecoration: 'underline', 
-            wordBreak: 'break-all'
+            textDecoration: 'none',
+            fontWeight: 'medium'
           }}
         >
-          {urlMatch}
+          {item.match}
         </a>
       );
-      
-      // Save URL for preview
-      urls.add(url);
-    } else if (matchInfo.type === 'mention') {
-      // Add clickable username mention
+    } else if (item.type === 'hashtag') {
+      // Create a clickable hashtag with full domain
       parts.push(
         <a 
-          href={`/profile/${matchInfo.username}`} 
-          key={`mention-${matchInfo.index}`}
+          key={`hashtag-${i}`}
+          href={`https://k-connect.ru/search?q=${encodeURIComponent(item.hashtag)}&type=posts`}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            // Navigate to user profile
-            if (window.location) {
-              window.location.href = `/profile/${matchInfo.username}`;
-            }
+            window.location.href = `https://k-connect.ru/search?q=${encodeURIComponent(item.hashtag)}&type=posts`;
           }}
           style={{ 
-            color: '#7B68EE', 
-            fontWeight: 'bold',
+            color: '#9E77ED', 
             textDecoration: 'none',
-            background: 'rgba(123, 104, 238, 0.08)',
-            padding: '0 4px',
-            borderRadius: '4px'
+            fontWeight: 'medium'
           }}
         >
-          {matchInfo.match}
+          {item.match}
         </a>
       );
     }
     
-    lastIndex = matchInfo.index + matchInfo.length;
-  }
+    lastIndex = item.index + item.length;
+  });
   
-  // Add remaining text after the last match
+  // Add any remaining text
   if (lastIndex < text.length) {
     parts.push(text.substring(lastIndex));
   }
   
-  return { 
-    content: parts.length > 0 ? parts : text,
+  return {
+    parts,
     urls: Array.from(urls)
   };
 };
@@ -337,12 +360,12 @@ export const linkRenderers = {
   p: ({ children }) => {
     if (typeof children === 'string') {
       // Process text content to detect and convert URLs and @mentions
-      const { content, urls } = processTextWithLinks(children);
+      const { parts, urls } = processTextWithLinks(children);
       
       return (
         <>
           <Typography component="p" variant="body1" sx={{ mb: 1 }}>
-            {content}
+            {parts}
           </Typography>
           
           
@@ -383,8 +406,32 @@ export const linkRenderers = {
       );
     }
     
-    // For regular links (not username mentions)
-    // Ensure href has protocol
+    // Check if this is a hashtag search link (contains search?q=)
+    if (href.includes('search?q=') && href.includes('type=posts')) {
+      // Handle hashtag links
+      return (
+        <a 
+          href={href}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            // Use the full URL for navigation
+            window.location.href = href;
+          }}
+          style={{ 
+            color: '#7B68EE', 
+            fontWeight: 'bold',
+            textDecoration: 'none',
+            background: 'rgba(123, 104, 238, 0.08)',
+            padding: '0 4px',
+            borderRadius: '4px'
+          }}
+        >
+          {children}
+        </a>
+      );
+    }
+
     const enhancedHref = href.startsWith('http') ? href : `https://${href}`;
     
     return (
@@ -416,16 +463,15 @@ export const linkRenderers = {
 
 // Компонент для отображения текста с ссылками - для использования везде, где не используется ReactMarkdown
 export const TextWithLinks = ({ text }) => {
-  const { content, urls } = processTextWithLinks(text);
+  const { parts, urls } = processTextWithLinks(text);
   
   return (
     <>
       <Typography component="p" variant="body1" sx={{ mb: 1 }}>
-        {content}
+        {parts}
       </Typography>
       
-      
-      {urls.length > 0 && urls.map((url, index) => (
+      {!DISABLE_LINK_PREVIEWS && urls.length > 0 && urls.slice(0, 1).map((url, index) => (
         <LinkPreview key={`preview-${index}`} url={url} />
       ))}
     </>

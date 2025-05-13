@@ -11,27 +11,27 @@ import {
   Alert
 } from '@mui/material';
 import {
-  PlayArrow,
-  Pause,
-  SkipNext,
-  SkipPrevious,
-  Favorite,
-  FavoriteBorder,
-  VolumeUp,
-  VolumeOff,
-  VolumeDown,
-  QueueMusic,
-  RepeatOne,
-  Repeat,
-  Shuffle,
-  ExpandMore,
-  Share
-} from '@mui/icons-material';
+  IoPlayCircle,
+  IoPauseCircle,
+  IoPlaySkipForward,
+  IoPlaySkipBack,
+  IoHeart,
+  IoHeartOutline,
+  IoVolumeHigh,
+  IoVolumeMedium,
+  IoVolumeMute,
+  IoList,
+  IoRepeat,
+  IoRepeatOutline,
+  IoShuffle,
+  IoChevronDown,
+  IoShareSocial
+} from 'react-icons/io5';
 import { useMusic } from '../../context/MusicContext';
 import { formatDuration } from '../../utils/formatters';
 import { ThemeSettingsContext } from '../../App';
 import { useContext } from 'react';
-import FullScreenPlayer from './FullScreenPlayer';
+import FullScreenPlayer from './FullScreenPlayer/index.js';
 import { extractDominantColor } from '../../utils/imageUtils';
 
 
@@ -53,6 +53,12 @@ const PlayerContainer = styled(Paper)(({ theme, covercolor }) => ({
   display: 'flex',
   alignItems: 'center',
   overflow: 'hidden',
+  '&.hidden': {
+    display: 'none !important',
+    opacity: 0,
+    pointerEvents: 'none',
+    visibility: 'hidden'
+  },
   '&::before': {
     content: '""',
     position: 'absolute',
@@ -73,7 +79,9 @@ const PlayerContainer = styled(Paper)(({ theme, covercolor }) => ({
 }));
 
 
-const MarqueeText = styled(Typography)(({ isactive }) => ({
+const MarqueeText = styled(Typography, {
+  shouldForwardProp: (prop) => prop !== 'isactive'
+})(({ isactive }) => ({
   whiteSpace: 'nowrap',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -203,56 +211,99 @@ const DesktopPlayer = memo(() => {
   const currentSeekValueRef = useRef(0);
   
   const formattedCurrentTime = useMemo(() => {
-    
-    const globalTimeElement = document.getElementById('global-player-current-time');
-    if (globalTimeElement && globalTimeElement.textContent) {
-      return globalTimeElement.textContent;
+    try {
+
+      const globalTimeElement = document.getElementById('global-player-current-time');
+      if (globalTimeElement && globalTimeElement.textContent) {
+        return globalTimeElement.textContent;
+      }
+      
+
+      if (typeof getCurrentTimeRaw === 'function') {
+        const time = getCurrentTimeRaw();
+        return formatDuration(typeof time === 'number' ? time : 0);
+      }
+      
+
+      return '0:00';
+    } catch (error) {
+      console.error("Error getting current time:", error);
+      return '0:00';
     }
-    
-    return formatDuration(typeof getCurrentTimeRaw === 'function' ? getCurrentTimeRaw() : 0);
   }, [getCurrentTimeRaw]);
   
   const formattedDuration = useMemo(() => {
-    
-    const globalDurationElement = document.getElementById('global-player-duration');
-    if (globalDurationElement && globalDurationElement.textContent) {
-      return globalDurationElement.textContent;
+    try {
+
+      const globalDurationElement = document.getElementById('global-player-duration');
+      if (globalDurationElement && globalDurationElement.textContent) {
+        return globalDurationElement.textContent;
+      }
+      
+
+      if (typeof getDurationRaw === 'function') {
+        const duration = getDurationRaw();
+        return formatDuration(typeof duration === 'number' ? duration : 0);
+      }
+      
+
+      return '0:00';
+    } catch (error) {
+      console.error("Error getting duration:", error);
+      return '0:00';
     }
-    
-    return formatDuration(typeof getDurationRaw === 'function' ? getDurationRaw() : 0);
   }, [getDurationRaw]);
 
   
   useEffect(() => {
+
+    let isMounted = true;
     
+
     const updateDisplays = () => {
-      
-      const currentTimeEl = document.getElementById('desktop-current-time');
-      const durationEl = document.getElementById('desktop-duration');
-      
-      
-      if (currentTimeEl && window.audioTiming) {
-        currentTimeEl.textContent = window.audioTiming.formattedCurrentTime;
+      try {
+
+        if (!isMounted) return;
+        
+        const currentTimeEl = document.getElementById('desktop-current-time');
+        const durationEl = document.getElementById('desktop-duration');
+        
+
+        if (currentTimeEl && window.audioTiming && window.audioTiming.formattedCurrentTime) {
+          currentTimeEl.textContent = window.audioTiming.formattedCurrentTime;
+        }
+        
+        if (durationEl && window.audioTiming && window.audioTiming.formattedDuration) {
+          durationEl.textContent = window.audioTiming.formattedDuration;
+        }
+        
+
+        if (!isSeeking && window.audioTiming && typeof window.audioTiming.progress === 'number') {
+          setSeekValue(window.audioTiming.progress);
+          currentSeekValueRef.current = window.audioTiming.progress;
+        }
+        
+
+        if (isMounted) {
+          requestAnimationFrame(updateDisplays);
+        }
+      } catch (error) {
+        console.error("Error updating player displays:", error);
+
+        if (isMounted) {
+          requestAnimationFrame(updateDisplays);
+        }
       }
-      
-      if (durationEl && window.audioTiming) {
-        durationEl.textContent = window.audioTiming.formattedDuration;
-      }
-      
-      
-      if (!isSeeking && window.audioTiming) {
-        setSeekValue(window.audioTiming.progress);
-      }
-      
-      
-      requestAnimationFrame(updateDisplays);
     };
     
-    
+
     const animationId = requestAnimationFrame(updateDisplays);
     
-    
-    return () => cancelAnimationFrame(animationId);
+
+    return () => {
+      isMounted = false;
+      cancelAnimationFrame(animationId);
+    };
   }, [isSeeking]);
 
   
@@ -315,21 +366,68 @@ const DesktopPlayer = memo(() => {
   }, []);
   
   const handleSeekEnd = useCallback((_, newValue) => {
-    const durationValue = typeof getDurationRaw === 'function' ? getDurationRaw() : duration;
-    seekTo((newValue * durationValue) / 100);
-    setIsSeeking(false);
-  }, [seekTo, getDurationRaw, duration]);
+    try {
+      let durationValue = 0;
+      
+
+      if (typeof getDurationRaw === 'function') {
+        const rawDuration = getDurationRaw();
+        if (typeof rawDuration === 'number' && rawDuration > 0) {
+          durationValue = rawDuration;
+        } else if (typeof duration === 'number' && duration > 0) {
+          durationValue = duration;
+        }
+      } else if (typeof duration === 'number' && duration > 0) {
+        durationValue = duration;
+      } else if (audioRef && audioRef.current && audioRef.current.duration) {
+
+        durationValue = audioRef.current.duration;
+      }
+      
+
+      if (durationValue > 0) {
+        seekTo((newValue * durationValue) / 100);
+      }
+      
+      setIsSeeking(false);
+    } catch (error) {
+      console.error("Error in handleSeekEnd:", error);
+      setIsSeeking(false);
+    }
+  }, [seekTo, getDurationRaw, duration, audioRef]);
 
   const handleClickProgress = useCallback((event) => {
-    if (progressRef.current) {
-      const durationValue = typeof getDurationRaw === 'function' ? getDurationRaw() : duration;
-      const rect = progressRef.current.getBoundingClientRect();
-      const position = ((event.clientX - rect.left) / rect.width) * 100;
-      const clampedPosition = Math.min(Math.max(position, 0), 100);
-      setSeekValue(clampedPosition);
-      seekTo((clampedPosition * durationValue) / 100);
+    try {
+      if (progressRef.current) {
+
+        let durationValue = 0;
+        
+        if (typeof getDurationRaw === 'function') {
+          const rawDuration = getDurationRaw();
+          if (typeof rawDuration === 'number' && rawDuration > 0) {
+            durationValue = rawDuration;
+          } else if (typeof duration === 'number' && duration > 0) {
+            durationValue = duration;
+          }
+        } else if (typeof duration === 'number' && duration > 0) {
+          durationValue = duration;
+        } else if (audioRef && audioRef.current && audioRef.current.duration) {
+          durationValue = audioRef.current.duration;
+        }
+        
+
+        if (durationValue > 0) {
+          const rect = progressRef.current.getBoundingClientRect();
+          const position = ((event.clientX - rect.left) / rect.width) * 100;
+          const clampedPosition = Math.min(Math.max(position, 0), 100);
+          setSeekValue(clampedPosition);
+          seekTo((clampedPosition * durationValue) / 100);
+        }
+      }
+    } catch (error) {
+      console.error("Error in handleClickProgress:", error);
     }
-  }, [progressRef, seekTo, getDurationRaw, duration]);
+  }, [progressRef, seekTo, getDurationRaw, duration, audioRef]);
 
   const toggleLikeTrack = useCallback((e) => {
     
@@ -420,14 +518,14 @@ const DesktopPlayer = memo(() => {
   }, []);
   
   const getVolumeIcon = useMemo(() => {
-    if (isMuted || volume === 0) return <VolumeOff />;
-    if (volume < 0.5) return <VolumeDown />;
-    return <VolumeUp />;
+    if (isMuted || volume === 0) return <IoVolumeMute size={20} />;
+    if (volume < 0.5) return <IoVolumeMedium size={20} />;
+    return <IoVolumeHigh size={20} />;
   }, [isMuted, volume]);
   
   const getRepeatIcon = useMemo(() => {
-    if (repeatMode === 'one') return <RepeatOne />;
-    return <Repeat />;
+    if (repeatMode === 'one') return <IoRepeat size={20} />;
+    return <IoRepeatOutline size={20} />;
   }, [repeatMode]);
   
   return (
@@ -437,6 +535,8 @@ const DesktopPlayer = memo(() => {
         covercolor={dominantColor}
         onMouseEnter={() => setIsPlayerHovered(true)}
         onMouseLeave={() => setIsPlayerHovered(false)}
+        sx={{ display: fullScreenOpen ? 'none' : 'flex' }}
+        className={fullScreenOpen ? 'hidden' : ''}
       >
         {/* Трек-информация */}
         <Box
@@ -502,20 +602,20 @@ const DesktopPlayer = memo(() => {
           {/* Кнопки */}
           <Box sx={{ display: 'flex', justifyContent: 'center', mb: 0.8 }}>
             <ControlButton
-              icon={<Shuffle />}
+              icon={<IoShuffle size={20} />}
               onClick={handleShuffleClick}
               ariaLabel="Toggle shuffle"
               active={shuffleMode}
             />
             
             <ControlButton
-              icon={<SkipPrevious />}
+              icon={<IoPlaySkipBack size={20} />}
               onClick={prevTrack}
               ariaLabel="Previous track"
             />
             
             <ControlButton
-              icon={isPlaying ? <Pause /> : <PlayArrow />}
+              icon={isPlaying ? <IoPauseCircle size={24} /> : <IoPlayCircle size={24} />}
               onClick={togglePlay}
               ariaLabel={isPlaying ? "Pause" : "Play"}
               active={true}
@@ -523,13 +623,13 @@ const DesktopPlayer = memo(() => {
             />
             
             <ControlButton
-              icon={<SkipNext />}
+              icon={<IoPlaySkipForward size={20} />}
               onClick={nextTrack}
               ariaLabel="Next track"
             />
             
             <ControlButton
-              icon={getRepeatIcon}
+              icon={repeatMode === 'one' ? <IoRepeat size={20} /> : <IoRepeatOutline size={20} />}
               onClick={handleRepeatClick}
               ariaLabel="Toggle repeat mode"
               active={repeatMode !== 'off'}
@@ -576,7 +676,7 @@ const DesktopPlayer = memo(() => {
         {/* Дополнительные кнопки */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', width: '25%' }}>
           <ControlButton
-            icon={currentTrack?.is_liked ? <Favorite /> : <FavoriteBorder />}
+            icon={currentTrack?.is_liked ? <IoHeart size={20} /> : <IoHeartOutline size={20} />}
             onClick={toggleLikeTrack}
             ariaLabel="Toggle like"
             active={currentTrack?.is_liked}
@@ -584,13 +684,15 @@ const DesktopPlayer = memo(() => {
           />
           
           <ControlButton
-            icon={<Share />}
+            icon={<IoShareSocial size={20} />}
             onClick={handleShare}
             ariaLabel="Share track"
           />
           
           <ControlButton
-            icon={getVolumeIcon}
+            icon={isMuted ? <IoVolumeMute size={20} /> : 
+                 volume < 0.5 ? <IoVolumeMedium size={20} /> : 
+                 <IoVolumeHigh size={20} />}
             onClick={toggleMute}
             ariaLabel="Toggle mute"
           />
@@ -604,7 +706,7 @@ const DesktopPlayer = memo(() => {
           />
           
           <ControlButton
-            icon={<ExpandMore />}
+            icon={<IoChevronDown size={20} />}
             onClick={openFullScreen}
             ariaLabel="Open fullscreen player"
           />
@@ -614,7 +716,7 @@ const DesktopPlayer = memo(() => {
       <FullScreenPlayer open={fullScreenOpen} onClose={closeFullScreen} />
       
       <Snackbar
-        open={shareSnackbar.open}
+        open={shareSnackbar.open && !fullScreenOpen}
         autoHideDuration={3000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}

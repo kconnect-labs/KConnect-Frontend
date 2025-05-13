@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useRef, useCallback, useMemo } from 'react';
 import { 
   Box, 
   Typography,
@@ -53,7 +53,6 @@ import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import ReportIcon from '@mui/icons-material/Report';
 import { formatTimeAgo, formatDate } from '../../utils/dateUtils';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
-import LightBox from '../../components/LightBox';
 import ImageGrid from '../../components/Post/ImageGrid';
 import { Post } from '../../components/Post';
 import RepostItem from '../../components/RepostItem';
@@ -68,6 +67,9 @@ import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 import ContentLoader from '../../components/UI/ContentLoader';
 import TimerIcon from '@mui/icons-material/Timer';
+import UpdateInfo from '../../components/Updates/UpdateInfo';
+import UpdateService from '../../services/UpdateService';
+import SimpleImageViewer from '../../components/SimpleImageViewer';
 
 
 const PostCard = styled(Card)(({ theme }) => ({
@@ -266,7 +268,7 @@ const OnlineUsers = () => {
     const fetchOnlineUsers = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('/api/users/online?limit=50');
+        const response = await axios.get('/api/users/online?limit=1200');
         
         if (Array.isArray(response.data)) {
           setOnlineUsers(response.data);
@@ -1242,7 +1244,7 @@ const CreatePost = ({ onPostCreated }) => {
                 size="small"
                 onClick={() => fileInputRef.current?.click()}
               >
-                {mediaFiles.length ? `Файлы (${mediaFiles.length})` : 'Фото/видео'}
+                {mediaFiles.length ? `Файлы (${mediaFiles.length})` : 'Медиа'}
               </Button>
               
               <Button
@@ -1323,6 +1325,7 @@ const MainPage = React.memo(() => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [lightboxImages, setLightboxImages] = useState([]);
 
+  const [latestUpdate, setLatestUpdate] = useState(null);
   
   useEffect(() => {
     const options = {
@@ -1561,33 +1564,33 @@ const MainPage = React.memo(() => {
 
   
   const loadMorePosts = async () => {
-    
     if (loading || !hasMore || feedTypeChanged.current || loadingMoreRef.current) return;
     
     try {
       loadingMoreRef.current = true;
       setLoading(true);
       
+      const currentPage = page;
+      
       const params = {
-        page: page,
+        page: currentPage,
         per_page: 10, 
         sort: feedType,
         include_all: feedType === 'all'
       };
       
-      
       const currentRequestId = requestId + 1;
       setRequestId(currentRequestId);
       
-      const response = await axios.get('/api/posts/feed', { params });
+      setPage(currentPage + 1);
       
+      const response = await axios.get('/api/posts/feed', { params });
       
       if (requestId !== currentRequestId - 1) return;
       
       if (response.data && Array.isArray(response.data.posts)) {
         setPosts(prev => [...prev, ...response.data.posts]);
         setHasMore(response.data.has_next === true);
-        setPage(page + 1);
       } else {
         setHasMore(false);
       }
@@ -1697,6 +1700,11 @@ const MainPage = React.memo(() => {
     });
   };
   
+  useEffect(() => {
+    const update = UpdateService.getLatestUpdate();
+    setLatestUpdate(update);
+  }, []);
+  
   return (
     <Container maxWidth="lg" sx={{ 
       mt: 2, 
@@ -1769,6 +1777,7 @@ const MainPage = React.memo(() => {
                       key={post.id} 
                       post={post} 
                       showPostDetails={false}
+                      onOpenLightbox={handleOpenLightbox}
                     />
                   )
                 ))}
@@ -1915,173 +1924,36 @@ const MainPage = React.memo(() => {
             )}
           </Box>
 
-          
-          <Box 
-            component={Paper} 
-            sx={{ 
-              p: 0, 
-              borderRadius: '16px', 
-              mb: 2,
-              background: theme => theme.palette.mode === 'dark' 
-                ? 'linear-gradient(145deg, #222222, #1c1c1c)'
-                : theme.palette.background.paper,
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-              border: theme => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'}`,
-              overflow: 'hidden',
-              display: { xs: 'none', sm: 'block' } 
-            }}
-          >
-            <Box sx={{ 
-              background: theme => theme.palette.mode === 'dark' 
-                ? 'linear-gradient(90deg, rgba(208, 188, 255, 0.08), rgba(208, 188, 255, 0.02))'
-                : 'linear-gradient(90deg, rgba(140, 82, 255, 0.05), rgba(140, 82, 255, 0.01))', 
-              p: 2,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
-              <Typography 
-                variant="h6" 
-                sx={{ 
-                  fontWeight: 600,
-                  fontSize: '1.1rem',
-                  color: theme => theme.palette.text.primary,
-                  display: 'flex',
-                  alignItems: 'center',
-                  letterSpacing: '0.2px'
-                }}
-              >
-                В тренде
-              </Typography>
+          {latestUpdate && (
+            <Box 
+              sx={{ 
+                mb: 2, 
+                display: { xs: 'none', sm: 'block' },
+                '&:hover': {
+                  '& > *': { transform: 'translateY(-2px)' },
+                  cursor: 'pointer'
+                }
+              }}
+              onClick={() => navigate('/updates')}
+            >
+              <UpdateInfo 
+                version={latestUpdate.version}
+                date={latestUpdate.date}
+                title={latestUpdate.title}
+                updates={latestUpdate.updates}
+                fixes={latestUpdate.fixes}
+              />
             </Box>
-            
-            {loadingTrendingBadges ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 3, px: 2 }}>
-                <ContentLoader
-                  height={170}
-                  width="100%"
-                  speed={2}
-                  backgroundColor="#292929"
-                  foregroundColor="#333333"
-                >
-                  
-                  <rect x="0" y="0" rx="8" ry="8" width="100%" height="50" />
-                  
-                  <rect x="0" y="60" rx="8" ry="8" width="100%" height="50" />
-                  
-                  <rect x="0" y="120" rx="8" ry="8" width="100%" height="50" />
-                </ContentLoader>
-              </Box>
-            ) : trendingBadges.length === 0 ? (
-              <Box sx={{ 
-                textAlign: 'center', 
-                py: 3, 
-                px: 2,
-                background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.03))'
-              }}>
-                <Avatar 
-                  sx={{ 
-                    width: 50, 
-                    height: 50, 
-                    mx: 'auto', 
-                    mb: 2,
-                    bgcolor: 'rgba(208, 188, 255, 0.1)',
-                    border: '1px solid rgba(208, 188, 255, 0.25)'
-                  }}
-                >
-                  <ImageIcon sx={{ color: '#D0BCFF', fontSize: 26 }} />
-                </Avatar>
-                <Typography variant="body2" sx={{ fontWeight: 500, color: theme => theme.palette.text.secondary }}>
-                  Нет популярных бейджей
-                </Typography>
-                <Typography variant="caption" sx={{ display: 'block', mt: 1, maxWidth: '80%', mx: 'auto', color: theme => theme.palette.text.disabled }}>
-                  Возвращайтесь позже, чтобы увидеть популярные бейджи
-                </Typography>
-              </Box>
-            ) : (
-              <Box sx={{ p: 1 }}>
-                {trendingBadges.map((badge, index) => (
-                  <Box key={badge.id}>
-                    <Box 
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        p: 1.5,
-                        borderRadius: '12px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                        border: '1px solid rgba(255, 255, 255, 0.05)',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                          transform: 'translateY(-1px)',
-                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
-                        }
-                      }}
-                      onClick={() => navigate('/badge-shop')}
-                    >
-                      <Avatar 
-                        src={`/static/images/bages/shop/${badge.image_path}`}
-                        alt={badge.name}
-                        variant="rounded"
-                        sx={{ 
-                          width: 48, 
-                          height: 48, 
-                          mr: 2,
-                          bgcolor: 'rgba(40, 40, 40, 0.8)',
-                          padding: '4px',
-                          borderRadius: '10px',
-                          border: '1px solid rgba(208, 188, 255, 0.15)'
-                        }}
-                      />
-                      <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 500, color: theme => theme.palette.text.primary }} noWrap>
-                          {badge.name}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: theme => theme.palette.text.secondary }} noWrap>
-                          {badge.description ? badge.description.slice(0, 25) + (badge.description.length > 25 ? '...' : '') : ''}
-                        </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-                          <Box 
-                            sx={{ 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              bgcolor: 'rgba(208, 188, 255, 0.08)',
-                              borderRadius: '12px',
-                              px: 1,
-                              py: 0.2
-                            }}
-                          >
-                            <Typography variant="caption" sx={{ fontWeight: 'medium', color: '#D0BCFF' }}>
-                              {badge.price} баллов
-                            </Typography>
-                          </Box>
-                          <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                            Продано: {badge.copies_sold}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Box>
-                    {index < trendingBadges.length - 1 && (
-                      <Box sx={{ my: 1.5 }} />
-                    )}
-                  </Box>
-                ))}
-              </Box>
-            )}
-          </Box>
+          )}
         </RightColumn>
       </ContentContainer>
       
       
-      <LightBox 
+      <SimpleImageViewer 
         isOpen={lightboxOpen}
         onClose={handleCloseLightbox}
-        imageSrc={currentImage}
-        onNext={lightboxImages.length > 1 ? handleNextImage : undefined}
-        onPrev={lightboxImages.length > 1 ? handlePrevImage : undefined}
-        totalImages={lightboxImages.length}
-        currentIndex={currentImageIndex}
+        images={lightboxImages}
+        initialIndex={currentImageIndex}
       />
     </Container>
   );

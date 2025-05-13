@@ -1,0 +1,58 @@
+$apple-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+
+.container {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 5;
+
+  @media (min-width: 600px) {
+    padding: 20px 0;
+    margin-bottom: 15px;
+  }
+
+  @media (min-width: 960px) {
+    padding: 25px 0;
+    margin-bottom: 20px;
+  }
+}
+
+.leftControls, .rightControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controlButton {
+  color: rgba(255, 255, 255, 0.9) !important;
+  width: 36px !important;
+  height: 36px !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border-radius: 50% !important;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  }
+
+  &.active {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    
+    // Active button styling for Apple Music
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.2) !important;
+    }
+  }
+
+  @media (min-width: 600px) {
+    width: 40px !important;
+    height: 40px !important;
+  }
+} 

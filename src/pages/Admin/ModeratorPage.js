@@ -47,7 +47,8 @@ import {
   Zoom,
   Stack,
   DialogContentText,
-  styled
+  styled,
+  Checkbox
 } from '@mui/material';
 import { AuthContext } from '../../context/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
@@ -86,6 +87,11 @@ import HistoryIcon from '@mui/icons-material/History';
 import LinkIcon from '@mui/icons-material/Link';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import AudiotrackIcon from '@mui/icons-material/Audiotrack';
+import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';
+import QueueMusicIcon from '@mui/icons-material/QueueMusic';
+import AddIcon from '@mui/icons-material/Add';
 
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
@@ -154,6 +160,7 @@ const ModeratorPage = () => {
   const [users, setUsers] = useState([]);
   const [comments, setComments] = useState([]);
   const [badges, setBadges] = useState([]);
+  const [artists, setArtists] = useState([]);
   
   
   const [deletePostDialogOpen, setDeletePostDialogOpen] = useState(false);
@@ -164,6 +171,16 @@ const ModeratorPage = () => {
   const [bugReportStatusDialogOpen, setBugReportStatusDialogOpen] = useState(false);
   const [editBadgeDialogOpen, setEditBadgeDialogOpen] = useState(false);
   const [deleteBadgeDialogOpen, setDeleteBadgeDialogOpen] = useState(false);
+  const [deleteArtistDialogOpen, setDeleteArtistDialogOpen] = useState(false);
+  const [editArtistDialogOpen, setEditArtistDialogOpen] = useState(false);
+  const [createArtistDialogOpen, setCreateArtistDialogOpen] = useState(false);
+  const [manageArtistTracksDialogOpen, setManageArtistTracksDialogOpen] = useState(false);
+  const [artistTracks, setArtistTracks] = useState([]);
+  const [searchableTracksList, setSearchableTracksList] = useState([]);
+  const [trackSearch, setTrackSearch] = useState('');
+  const [loadingTracks, setLoadingTracks] = useState(false);
+  const [searchMode, setSearchMode] = useState('artist');
+  const [selectedTracks, setSelectedTracks] = useState([]);
   
   
   const [selectedPost, setSelectedPost] = useState(null);
@@ -172,6 +189,7 @@ const ModeratorPage = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedBugReport, setSelectedBugReport] = useState(null);
   const [selectedBadge, setSelectedBadge] = useState(null);
+  const [selectedArtist, setSelectedArtist] = useState(null);
   
   
   const [editUserName, setEditUserName] = useState('');
@@ -183,6 +201,12 @@ const ModeratorPage = () => {
   const [editBadgeActive, setEditBadgeActive] = useState(true);
   const [editBadgeImage, setEditBadgeImage] = useState(null);
   const [editBadgeImagePreview, setEditBadgeImagePreview] = useState('');
+  const [editArtistName, setEditArtistName] = useState('');
+  const [editArtistBio, setEditArtistBio] = useState('');
+  const [editArtistAvatar, setEditArtistAvatar] = useState(null);
+  const [editArtistAvatarPreview, setEditArtistAvatarPreview] = useState('');
+  const [editArtistVerified, setEditArtistVerified] = useState(false);
+  const [editArtistInfo, setEditArtistInfo] = useState('');
   
   
   const [page, setPage] = useState(1); 
@@ -194,7 +218,8 @@ const ModeratorPage = () => {
     comments: 1,
     users: 1,
     bugReports: 1,
-    badges: 1
+    badges: 1,
+    artists: 1
   });
   
   const [hasMore, setHasMore] = useState({
@@ -203,7 +228,8 @@ const ModeratorPage = () => {
     comments: true,
     users: true,
     bugReports: true,
-    badges: true
+    badges: true,
+    artists: true
   });
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -214,6 +240,7 @@ const ModeratorPage = () => {
   const usersObserver = useRef();
   const bugReportsObserver = useRef();
   const badgesObserver = useRef();
+  const artistsObserver = useRef();
 
   
   const [search, setSearch] = useState({
@@ -222,7 +249,8 @@ const ModeratorPage = () => {
     comments: '',
     users: '',
     bugReports: '',
-    badges: ''
+    badges: '',
+    artists: ''
   });
   
   
@@ -293,7 +321,8 @@ const ModeratorPage = () => {
       comments: 1,
       users: 1,
       bugReports: 1,
-      badges: 1
+      badges: 1,
+      artists: 1
     });
     
     
@@ -303,7 +332,8 @@ const ModeratorPage = () => {
       comments: true,
       users: true,
       bugReports: true,
-      badges: true
+      badges: true,
+      artists: true
     });
   };
 
@@ -458,6 +488,12 @@ const ModeratorPage = () => {
           fetchBadges();
         }
         break;
+      case 7:
+        if (permissions.manage_artists || permissions.delete_artists) {
+          setArtists([]);
+          fetchArtists();
+        }
+        break;
       default:
         break;
     }
@@ -506,6 +542,10 @@ const ModeratorPage = () => {
           setBadges([]);
           fetchBadges(false, value);
           break;
+        case 'artists':
+          setArtists([]);
+          fetchArtists(false, value);
+          break;
         default:
           break;
       }
@@ -547,6 +587,10 @@ const ModeratorPage = () => {
       case 'badges':
         setBadges([]);
         fetchBadges(false, '');
+        break;
+      case 'artists':
+        setArtists([]);
+        fetchArtists(false, '');
         break;
       default:
         break;
@@ -817,6 +861,43 @@ const ModeratorPage = () => {
     }
   };
 
+  const fetchArtists = async (loadMore = false, searchQuery = search.artists) => {
+    try {
+      if (!hasMore.artists && loadMore) return;
+      
+      loadMore ? setLoadingMore(true) : setLoading(true);
+      const currentPage = loadMore ? pageStates.artists : 1;
+      
+      const response = await axios.get(`/api/moderator/artists?page=${currentPage}&per_page=${rowsPerPage}${searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : ''}`);
+      
+      if (response.data && response.data.artists) {
+        const newArtists = response.data.artists;
+        if (loadMore) {
+          setArtists(prevArtists => [...prevArtists, ...newArtists]);
+        } else {
+          setArtists(newArtists);
+        }
+        
+        setHasMore(prev => ({
+          ...prev,
+          artists: newArtists.length === rowsPerPage
+        }));
+        
+        if (loadMore) {
+          setPageStates(prev => ({
+            ...prev,
+            artists: prev.artists + 1
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching artists:', error);
+      showNotification('error', 'Не удалось загрузить артистов');
+    } finally {
+      loadMore ? setLoadingMore(false) : setLoading(false);
+    }
+  };
+
   
   const lastPostElementRef = useCallback(node => {
     if (loading || loadingMore) return;
@@ -895,6 +976,19 @@ const ModeratorPage = () => {
     
     if (node) badgesObserver.current.observe(node);
   }, [loading, loadingMore, hasMore.badges]);
+
+  const lastArtistElementRef = useCallback(node => {
+    if (loading || loadingMore) return;
+    if (artistsObserver.current) artistsObserver.current.disconnect();
+    
+    artistsObserver.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore.artists) {
+        fetchArtists(true);
+      }
+    });
+    
+    if (node) artistsObserver.current.observe(node);
+  }, [loading, loadingMore, hasMore.artists]);
 
   
   const handleDeletePost = async () => {
@@ -3248,6 +3342,603 @@ const ModeratorPage = () => {
     }
   };
 
+  const handleDeleteArtist = async () => {
+    if (!selectedArtist) return;
+    
+    try {
+      setLoading(true);
+      const response = await axios.delete(`/api/moderator/artists/${selectedArtist.id}`);
+      
+      if (response.data.success) {
+        showNotification('success', 'Артист успешно удален');
+        setArtists(artists.filter(artist => artist.id !== selectedArtist.id));
+      } else {
+        throw new Error(response.data.error || 'Failed to delete artist');
+      }
+    } catch (error) {
+      console.error('Error deleting artist:', error);
+      showNotification('error', 'Не удалось удалить артиста');
+    } finally {
+      setLoading(false);
+      setDeleteArtistDialogOpen(false);
+    }
+  };
+  
+  const handleArtistImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        showNotification('error', 'Разрешены только изображения');
+        return;
+      }
+      
+      setEditArtistAvatar(file);
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setEditArtistAvatarPreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const handleUpdateArtist = async () => {
+    try {
+      setLoading(true);
+      
+      let response;
+      
+
+      if (!selectedArtist) {
+
+        const formData = new FormData();
+        formData.append('name', editArtistName);
+        formData.append('bio', editArtistBio || '');
+        formData.append('verified', editArtistVerified);
+        
+        if (editArtistAvatar) {
+          formData.append('avatar_file', editArtistAvatar);
+        }
+        
+        response = await axios.post('/api/moderator/artists', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        
+        if (response.data.success) {
+          showNotification('success', 'Артист успешно создан');
+
+          setArtists(prev => [{
+            id: response.data.artist_id,
+            name: editArtistName,
+            bio: editArtistBio || '',
+            is_verified: editArtistVerified,
+            avatar: response.data.artist.avatar_url ? response.data.artist.avatar_url.split('/').pop() : '',
+            created_at: new Date().toISOString(),
+            tracks_count: 0
+          }, ...prev]);
+          
+          setEditArtistDialogOpen(false);
+        } else {
+          showNotification('error', response.data.error || 'Не удалось создать артиста');
+        }
+      } else {
+
+        if (editArtistAvatar) {
+
+          const formData = new FormData();
+          formData.append('name', editArtistName);
+          formData.append('bio', editArtistBio || '');
+          formData.append('verified', editArtistVerified);
+          formData.append('avatar_file', editArtistAvatar);
+          
+          response = await axios.put(`/api/moderator/artists/${selectedArtist.id}`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+        } else {
+
+          const data = {
+            name: editArtistName,
+            bio: editArtistBio || '',
+            verified: editArtistVerified
+          };
+          
+          response = await axios.put(`/api/moderator/artists/${selectedArtist.id}`, data);
+        }
+        
+        if (response.data.success) {
+          showNotification('success', 'Данные артиста успешно обновлены');
+          
+          setArtists(prev => 
+            prev.map(artist => 
+              artist.id === selectedArtist.id 
+                ? { 
+                    ...artist, 
+                    name: editArtistName, 
+                    bio: editArtistBio || '',
+                    is_verified: editArtistVerified,
+                    avatar: response.data.artist.avatar_url ? response.data.artist.avatar_url.split('/').pop() : artist.avatar
+                  }
+                : artist
+            )
+          );
+          
+          setEditArtistDialogOpen(false);
+        } else {
+          showNotification('error', response.data.error || 'Не удалось обновить данные артиста');
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка при обновлении/создании артиста:', error);
+      showNotification('error', error.response?.data?.error || 'Не удалось выполнить операцию');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const openDeleteArtistDialog = (artist) => {
+    setSelectedArtist(artist);
+    setDeleteArtistDialogOpen(true);
+  };
+
+  const openEditArtistDialog = (artist) => {
+    setSelectedArtist(artist);
+    setEditArtistName(artist.name);
+    setEditArtistBio(artist.bio || '');
+    setEditArtistAvatar(null);
+    setEditArtistAvatarPreview(artist.avatar_url || '');
+    setEditArtistVerified(artist.verified || false);
+    setEditArtistDialogOpen(true);
+  };
+
+  const openCreateArtistDialog = () => {
+    setSelectedArtist(null);
+    setEditArtistName('');
+    setEditArtistBio('');
+    setEditArtistAvatar(null);
+    setEditArtistAvatarPreview('');
+    setEditArtistVerified(false);
+    setCreateArtistDialogOpen(true);
+  };
+
+  const renderArtists = () => {
+    if (!permissions.manage_artists && !permissions.delete_artists) {
+      return (
+        <Alert severity="warning" sx={{ mt: 2 }}>
+          У вас нет прав на управление артистами
+        </Alert>
+      );
+    }
+    
+    return (
+      <>
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <TextField 
+            sx={{ flexGrow: 1, mr: 2 }}
+            placeholder="Поиск по артистам..."
+            value={search.artists}
+            onChange={(e) => handleSearchChange('artists', e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+              endAdornment: search.artists ? (
+                <InputAdornment position="end">
+                  <IconButton size="small" onClick={() => clearSearch('artists')}>
+                    <ClearIcon />
+                  </IconButton>
+                </InputAdornment>
+              ) : null
+            }}
+            variant="outlined"
+            size="small"
+          />
+          
+          {permissions.manage_artists && (
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<PersonAddIcon />}
+              onClick={openCreateArtistDialog}
+            >
+              Добавить артиста
+            </Button>
+          )}
+        </Box>
+
+        <Grid container spacing={3}>
+          {artists.map((artist, index) => (
+            <Grid 
+              item 
+              xs={12} sm={6} md={4} lg={3} 
+              key={artist.id}
+              ref={index === artists.length - 1 ? lastArtistElementRef : null}
+            >
+              <Card 
+                elevation={3}
+                sx={{ 
+                  height: '100%', 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  '&:hover': {
+                    transform: 'translateY(-5px)',
+                    boxShadow: 6
+                  },
+                  bgcolor: 'background.paper'
+                }}
+              >
+                <CardHeader
+                  avatar={
+                    <Badge
+                      overlap="circular"
+                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                      badgeContent={
+                        artist.verified ? (
+                          <Tooltip title="Верифицированный артист">
+                            <Avatar 
+                              sx={{ 
+                                width: 15, 
+                                height: 15, 
+                                bgcolor: 'primary.main' 
+                              }}
+                            >
+                              <CheckCircleIcon sx={{ width: 10, height: 10 }} />
+                            </Avatar>
+                          </Tooltip>
+                        ) : null
+                      }
+                    >
+                      <Avatar 
+                        src={artist.avatar_url}
+                        alt={artist.name} 
+                        sx={{ bgcolor: 'primary.main', width: 56, height: 56 }}
+                      >
+                        {artist.name?.charAt(0) || 'A'}
+                      </Avatar>
+                    </Badge>
+                  }
+                  title={
+                    <Tooltip title={artist.name}>
+                      <Typography 
+                        variant="subtitle1" 
+                        sx={{ 
+                          fontWeight: 'medium',
+                          maxWidth: '100%',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          lineHeight: 1.4
+                        }}
+                      >
+                        {artist.name}
+                      </Typography>
+                    </Tooltip>
+                  }
+                  subheader={
+                    <Typography variant="caption" color="text.secondary">
+                      {artist.tracks_count || "0"} треков
+                    </Typography>
+                  }
+                  sx={{ 
+                    pb: 0,
+                    '& .MuiCardHeader-content': {
+                      overflow: 'hidden'
+                    }
+                  }}
+                />
+                <CardContent sx={{ flexGrow: 1, pt: 1, pb: 1 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ 
+                    overflow: 'hidden', 
+                    textOverflow: 'ellipsis', 
+                    display: '-webkit-box', 
+                    WebkitLineClamp: 3, 
+                    WebkitBoxOrient: 'vertical',
+                    height: '4.5rem',
+                    mb: 1
+                  }}>
+                    {artist.bio || 'Нет информации об артисте'}
+                  </Typography>
+                </CardContent>
+                <CardActions sx={{ justifyContent: 'space-between', flexWrap: 'wrap', px: 2, pb: 2, pt: 0 }}>
+                  <Box sx={{ display: 'flex', gap: 0.5 }}>
+                    <IconButton 
+                      size="small" 
+                      color="primary"
+                      onClick={() => window.open(`/artist/${artist.id}`, '_blank')}
+                      title="Открыть страницу артиста"
+                    >
+                      <OpenInNewIcon fontSize="small" />
+                    </IconButton>
+                    {permissions.manage_artists && (
+                      <IconButton 
+                        onClick={() => openEditArtistDialog(artist)}
+                        aria-label="Редактировать артиста"
+                        color="primary"
+                        size="small"
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    )}
+                    {permissions.manage_artists && (
+                      <IconButton 
+                        onClick={() => openManageArtistTracksDialog(artist)}
+                        aria-label="Управление треками артиста"
+                        color="primary"
+                        size="small"
+                      >
+                        <QueueMusicIcon fontSize="small" />
+                      </IconButton>
+                    )}
+                    {permissions.delete_artists && (
+                      <IconButton 
+                        onClick={() => openDeleteArtistDialog(artist)}
+                        aria-label="Удалить артиста"
+                        color="error"
+                        size="small"
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    )}
+                  </Box>
+                  <Chip 
+                    icon={<AccessTimeIcon fontSize="small" />} 
+                    label={new Date(artist.created_at).toLocaleDateString()} 
+                    variant="outlined"
+                    size="small"
+                    sx={{ height: 24, '& .MuiChip-label': { px: 1, fontSize: '0.7rem' } }}
+                  />
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+        
+        {artists.length === 0 && !loading && (
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <PersonAddIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
+            <Typography variant="h6" color="text.secondary">
+              Артисты не найдены
+            </Typography>
+          </Box>
+        )}
+        
+        {loadingMore && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
+            <CircularProgress size={30} />
+          </Box>
+        )}
+      </>
+    );
+  };
+
+  const openManageArtistTracksDialog = async (artist) => {
+    setSelectedArtist(artist);
+    setManageArtistTracksDialogOpen(true);
+    setLoadingTracks(true);
+    setArtistTracks([]);
+    setSearchableTracksList([]);
+    setTrackSearch('');
+    setSearchMode('artist');
+    setSelectedTracks([]);
+    
+    try {
+
+      const response = await axios.get(`/api/moderator/artists/${artist.id}/tracks`);
+      
+      if (response.data.success) {
+        setArtistTracks(response.data.tracks || []);
+      } else {
+        showNotification('error', response.data.error || 'Не удалось загрузить треки артиста');
+      }
+    } catch (error) {
+      console.error('Error loading artist tracks:', error);
+      showNotification('error', error.response?.data?.error || 'Не удалось загрузить треки артиста');
+    } finally {
+      setLoadingTracks(false);
+    }
+  };
+  
+  const searchUnassignedTracks = async () => {
+    if (!trackSearch || trackSearch.trim().length < 2) return;
+    
+    setLoadingTracks(true);
+    try {
+      let response;
+      
+      if (searchMode === 'artist') {
+
+        response = await axios.post('/api/moderator/artists/search-tracks', {
+          artist_name: trackSearch.trim(),
+          exact_match: false,
+          limit: 50
+        });
+      } else {
+
+        response = await axios.get(`/api/moderator/tracks?search=${encodeURIComponent(trackSearch.trim())}&per_page=50`);
+      }
+      
+      if (response.data.success) {
+        let tracks = [];
+        
+        if (searchMode === 'artist') {
+          tracks = response.data.tracks || [];
+        } else {
+          tracks = response.data.tracks || [];
+        }
+        
+
+        const artistTrackIds = new Set(artistTracks.map(track => track.id));
+        const unassignedTracks = tracks.filter(track => !artistTrackIds.has(track.id));
+        
+        setSearchableTracksList(unassignedTracks);
+      } else {
+        showNotification('error', response.data.error || 'Не удалось найти треки');
+      }
+    } catch (error) {
+      console.error('Error searching for unassigned tracks:', error);
+      showNotification('error', error.response?.data?.error || 'Не удалось выполнить поиск треков');
+    } finally {
+      setLoadingTracks(false);
+    }
+  };
+
+  const handleAssignTrackToArtist = async (trackId) => {
+    if (!selectedArtist) return;
+    
+    setLoadingTracks(true);
+    try {
+      const response = await axios.post(`/api/moderator/artists/${selectedArtist.id}/assign-track`, {
+        track_id: trackId
+      });
+      
+      if (response.data.success) {
+        showNotification('success', 'Трек успешно привязан к артисту');
+        
+
+        const assignedTrack = searchableTracksList.find(track => track.id === trackId);
+        if (assignedTrack) {
+          setArtistTracks(prev => [...prev, assignedTrack]);
+          setSearchableTracksList(prev => prev.filter(track => track.id !== trackId));
+          
+
+          setSelectedArtist(prev => ({
+            ...prev,
+            tracks_count: (parseInt(prev.tracks_count || 0) + 1).toString()
+          }));
+          
+
+          setArtists(prevArtists => prevArtists.map(artist => 
+            artist.id === selectedArtist.id 
+              ? { ...artist, tracks_count: (parseInt(artist.tracks_count || 0) + 1).toString() } 
+              : artist
+          ));
+        }
+        
+
+        if (selectedTracks.includes(trackId)) {
+          setSelectedTracks(prev => prev.filter(id => id !== trackId));
+        }
+      } else {
+        showNotification('error', response.data.error || 'Не удалось привязать трек к артисту');
+      }
+    } catch (error) {
+      console.error('Error assigning track to artist:', error);
+      showNotification('error', error.response?.data?.error || 'Не удалось привязать трек к артисту');
+    } finally {
+      setLoadingTracks(false);
+    }
+  };
+  
+  const handleAssignSelectedTracks = async () => {
+    if (!selectedArtist || selectedTracks.length === 0) return;
+    
+    setLoadingTracks(true);
+    try {
+      const response = await axios.post('/api/moderator/tracks/verify-batch', {
+        track_ids: selectedTracks,
+        artist_id: selectedArtist.id
+      });
+      
+      if (response.data.success) {
+        showNotification('success', `${selectedTracks.length} треков успешно привязано к артисту`);
+        
+
+        const assignedTracks = searchableTracksList.filter(track => selectedTracks.includes(track.id));
+        if (assignedTracks.length > 0) {
+          setArtistTracks(prev => [...prev, ...assignedTracks]);
+          setSearchableTracksList(prev => prev.filter(track => !selectedTracks.includes(track.id)));
+          
+
+          setSelectedArtist(prev => ({
+            ...prev,
+            tracks_count: (parseInt(prev.tracks_count || 0) + assignedTracks.length).toString()
+          }));
+          
+
+          setArtists(prevArtists => prevArtists.map(artist => 
+            artist.id === selectedArtist.id 
+              ? { ...artist, tracks_count: (parseInt(artist.tracks_count || 0) + assignedTracks.length).toString() } 
+              : artist
+          ));
+        }
+        
+
+        setSelectedTracks([]);
+      } else {
+        showNotification('error', response.data.error || 'Не удалось привязать треки к артисту');
+      }
+    } catch (error) {
+      console.error('Error assigning multiple tracks to artist:', error);
+      showNotification('error', error.response?.data?.error || 'Не удалось привязать треки к артисту');
+    } finally {
+      setLoadingTracks(false);
+    }
+  };
+  
+  const handleRemoveTrackFromArtist = async (trackId) => {
+    if (!selectedArtist) return;
+    
+    setLoadingTracks(true);
+    try {
+      const response = await axios.post(`/api/moderator/artists/${selectedArtist.id}/remove-track`, {
+        track_id: trackId
+      });
+      
+      if (response.data.success) {
+        showNotification('success', 'Трек успешно отвязан от артиста');
+        
+
+        setArtistTracks(prev => prev.filter(track => track.id !== trackId));
+        
+
+        setSelectedArtist(prev => ({
+          ...prev,
+          tracks_count: Math.max(0, parseInt(prev.tracks_count || 0) - 1).toString()
+        }));
+        
+
+        setArtists(prevArtists => prevArtists.map(artist => 
+          artist.id === selectedArtist.id 
+            ? { ...artist, tracks_count: Math.max(0, parseInt(artist.tracks_count || 0) - 1).toString() } 
+            : artist
+        ));
+      } else {
+        showNotification('error', response.data.error || 'Не удалось отвязать трек от артиста');
+      }
+    } catch (error) {
+      console.error('Error removing track from artist:', error);
+      showNotification('error', error.response?.data?.error || 'Не удалось отвязать трек от артиста');
+    } finally {
+      setLoadingTracks(false);
+    }
+  };
+  
+  const handleToggleTrackSelection = (trackId) => {
+    setSelectedTracks(prev => 
+      prev.includes(trackId) 
+        ? prev.filter(id => id !== trackId) 
+        : [...prev, trackId]
+    );
+  };
+  
+  const handleSelectAllSearchedTracks = () => {
+    if (searchableTracksList.length === 0) return;
+    
+    if (selectedTracks.length === searchableTracksList.length) {
+
+      setSelectedTracks([]);
+    } else {
+
+      setSelectedTracks(searchableTracksList.map(track => track.id));
+    }
+  };
+
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       
@@ -3281,6 +3972,7 @@ const ModeratorPage = () => {
           <Tab icon={<PersonIcon />} label="Пользователи" disabled={!permissions.change_user_name && !permissions.change_username && !permissions.delete_avatar} />
           <Tab icon={<BugReportIcon />} label="Баг-репорты" disabled={!permissions.manage_bug_reports && !permissions.delete_bug_reports} />
           <Tab icon={<EmojiEventsIcon />} label="Бейджики" disabled={!permissions.edit_badges && !permissions.delete_badges} />
+          <Tab icon={<PersonAddIcon />} label="Артисты" disabled={!permissions.manage_artists && !permissions.delete_artists} />
         </Tabs>
         
         
@@ -3292,6 +3984,7 @@ const ModeratorPage = () => {
           {tabValue === 4 && renderUsers()}
           {tabValue === 5 && renderBugReports()}
           {tabValue === 6 && renderBadges()}
+          {tabValue === 7 && renderArtists()}
         </Box>
       </Paper>
       
@@ -4441,6 +5134,991 @@ const ModeratorPage = () => {
         </DialogActions>
       </StyledDialog>
       
+      
+      <StyledDialog open={deleteArtistDialogOpen} onClose={() => setDeleteArtistDialogOpen(false)} fullWidth maxWidth="sm">
+        <Box 
+          sx={{
+            position: 'relative',
+            overflow: 'hidden',
+            p: 2,
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+            backgroundColor: 'rgba(244, 67, 54, 0.15)'
+          }}
+        >
+          <Box 
+            sx={{ 
+              position: 'absolute',
+              top: -30,
+              right: -30,
+              width: 120,
+              height: 120,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(244,67,54,0.2) 0%, rgba(244,67,54,0) 70%)',
+              zIndex: 0
+            }} 
+          />
+          <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center' }}>
+            <DeleteIcon color="error" sx={{ mr: 1.5, fontSize: 24 }} />
+            <Typography variant="h6" fontWeight="bold" color="error.light">
+              Удаление артиста
+            </Typography>
+          </Box>
+        </Box>
+        
+        <DialogContent sx={{ p: 3, pt: 2.5, bgcolor: 'transparent' }}>
+          <Box 
+            sx={{ 
+              position: 'relative',
+              p: 2.5,
+              borderRadius: 2,
+              backgroundColor: 'rgba(244, 67, 54, 0.05)',
+              border: '1px solid rgba(244, 67, 54, 0.2)',
+              mb: 1
+            }}
+          >
+            <Typography variant="subtitle1" color="rgba(255,255,255,0.87)" gutterBottom>
+              Вы действительно хотите удалить артиста <Box component="span" fontWeight="bold" color="error.light">"{selectedArtist?.name}"</Box>?
+            </Typography>
+            
+            <Typography variant="body2" color="rgba(255,255,255,0.7)" sx={{ mb: 2 }}>
+              Это действие удалит всю информацию об артисте из системы. 
+              Треки, связанные с этим артистом, станут недоступны для прослушивания.
+            </Typography>
+            
+            {selectedArtist && (
+              <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                <Avatar 
+                  src={selectedArtist.avatar ? `/static/uploads/artists/${selectedArtist.id}/${selectedArtist.avatar}` : undefined}
+                  sx={{ width: 60, height: 60, mr: 2 }}
+                />
+                <Box>
+                  <Typography variant="subtitle1" color="rgba(255,255,255,0.9)">
+                    {selectedArtist.name}
+                  </Typography>
+                  <Typography variant="body2" color="rgba(255,255,255,0.6)">
+                    {selectedArtist.tracks_count || 0} треков • {selectedArtist.is_verified ? 'Верифицирован' : 'Не верифицирован'}
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+          </Box>
+        </DialogContent>
+        
+        <DialogActions sx={{ p: 2, px: 3, justifyContent: 'space-between', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+          <Button 
+            onClick={() => setDeleteArtistDialogOpen(false)} 
+            variant="outlined"
+            color="inherit"
+            sx={{ 
+              borderRadius: 8,
+              px: 3,
+              borderColor: 'rgba(255,255,255,0.2)',
+              color: 'rgba(255,255,255,0.7)',
+              '&:hover': {
+                borderColor: 'rgba(255,255,255,0.4)',
+                background: 'rgba(255,255,255,0.05)'
+              }
+            }}
+          >
+            Отмена
+          </Button>
+          <Button 
+            onClick={handleDeleteArtist} 
+            color="error" 
+            variant="contained"
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={20} /> : <DeleteIcon />}
+            sx={{ 
+              borderRadius: 8,
+              px: 4,
+              py: 0.75,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
+              background: 'linear-gradient(45deg, #f44336 30%, #ff7961 90%)',
+              '&:hover': {
+                boxShadow: '0 6px 16px rgba(0, 0, 0, 0.5)',
+              }
+            }}
+          >
+            Удалить
+          </Button>
+        </DialogActions>
+      </StyledDialog>
+      
+      
+      <StyledDialog open={editArtistDialogOpen} onClose={() => setEditArtistDialogOpen(false)} fullWidth maxWidth="sm">
+        <Box 
+          sx={{
+            position: 'relative',
+            overflow: 'hidden',
+            p: 2,
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+            background: 'linear-gradient(90deg, rgba(63,81,181,0.2) 0%, rgba(0,0,0,0) 100%)'
+          }}
+        >
+          <Box 
+            sx={{ 
+              position: 'absolute',
+              top: -50,
+              right: -50,
+              width: 150,
+              height: 150,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(63,81,181,0.2) 0%, rgba(63,81,181,0) 70%)',
+              zIndex: 0
+            }} 
+          />
+          <Box sx={{ position: 'relative', zIndex: 1 }}>
+            <Typography variant="h5" fontWeight="bold" color="primary.light">
+              Редактирование артиста
+            </Typography>
+            <Typography variant="caption" color="rgba(255,255,255,0.6)">
+              Измените данные артиста и сохраните изменения
+            </Typography>
+          </Box>
+        </Box>
+        
+        <DialogContent sx={{ p: 3, pt: 3, bgcolor: 'transparent' }}>
+          <Grid container spacing={2.5}>
+            <Grid item xs={12}>
+              <TextField
+                autoFocus
+                label="Имя артиста"
+                type="text"
+                fullWidth
+                value={editArtistName}
+                onChange={(e) => setEditArtistName(e.target.value)}
+                variant="outlined"
+                size="small"
+                InputProps={{
+                  sx: {
+                    borderRadius: 2,
+                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    color: 'rgba(255,255,255,0.87)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255,255,255,0.1)',
+                    },
+                    '&.Mui-focused': {
+                      backgroundColor: 'rgba(63,81,181,0.15)',
+                      boxShadow: '0 0 0 2px rgba(63, 81, 181, 0.3)'
+                    }
+                  }
+                }}
+                InputLabelProps={{
+                  sx: { color: 'rgba(255,255,255,0.7)' }
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(255,255,255,0.2)'
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(255,255,255,0.3)'
+                  },
+                  '& .Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'primary.main'
+                  }
+                }}
+              />
+            </Grid>
+            
+            <Grid item xs={12}>
+              <TextField
+                label="Биография"
+                type="text"
+                fullWidth
+                multiline
+                rows={4}
+                value={editArtistBio}
+                onChange={(e) => setEditArtistBio(e.target.value)}
+                variant="outlined"
+                size="small"
+                helperText="Краткая информация об артисте"
+                FormHelperTextProps={{
+                  sx: { color: 'rgba(255,255,255,0.5)' }
+                }}
+                InputProps={{
+                  sx: {
+                    borderRadius: 2,
+                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    color: 'rgba(255,255,255,0.87)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255,255,255,0.1)',
+                    },
+                    '&.Mui-focused': {
+                      backgroundColor: 'rgba(63,81,181,0.15)',
+                      boxShadow: '0 0 0 2px rgba(63, 81, 181, 0.3)'
+                    }
+                  }
+                }}
+                InputLabelProps={{
+                  sx: { color: 'rgba(255,255,255,0.7)' }
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(255,255,255,0.2)'
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(255,255,255,0.3)'
+                  },
+                  '& .Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'primary.main'
+                  }
+                }}
+              />
+            </Grid>
+            
+            <Grid item xs={12}>
+              <Paper 
+                elevation={0} 
+                sx={{ 
+                  p: 1.5, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between',
+                  borderRadius: 2,
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <VerifiedUserIcon 
+                    color={editArtistVerified ? "primary" : "disabled"} 
+                    sx={{ mr: 1.5 }} 
+                  />
+                  <Typography variant="subtitle1" color="rgba(255, 255, 255, 0.87)">
+                    Верифицированный артист
+                  </Typography>
+                </Box>
+                <Switch 
+                  checked={editArtistVerified}
+                  onChange={(e) => setEditArtistVerified(e.target.checked)}
+                  color="primary"
+                  sx={{ 
+                    '& .MuiSwitch-switchBase.Mui-checked': {
+                      color: '#3f51b5',
+                      '&:hover': {
+                        backgroundColor: 'rgba(63, 81, 181, 0.08)',
+                      },
+                    },
+                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                      backgroundColor: '#3f51b5',
+                    },
+                  }}
+                />
+              </Paper>
+            </Grid>
+            
+            <Grid item xs={12}>
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center',
+                  p: 3,
+                  borderRadius: 2,
+                  border: '1px dashed rgba(255, 255, 255, 0.2)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+              >
+                <Box sx={{ position: 'relative', zIndex: 1, width: '100%', textAlign: 'center' }}>
+                  {editArtistAvatarPreview ? (
+                    <>
+                      <Box sx={{ mb: 2, position: 'relative', display: 'inline-block' }}>
+                        <Avatar 
+                          src={editArtistAvatarPreview} 
+                          alt="Предпросмотр"
+                          sx={{ 
+                            width: 150, 
+                            height: 150, 
+                            borderRadius: '50%',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                          }}
+                        />
+                        <Fade in timeout={500}>
+                          <Box 
+                            sx={{ 
+                              position: 'absolute', 
+                              top: -8, 
+                              right: -8, 
+                              background: 'rgba(0,0,0,0.5)',
+                              borderRadius: '50%',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                            }}
+                          >
+                            <IconButton 
+                              size="small" 
+                              color="error" 
+                              onClick={() => {
+                                setEditArtistAvatar(null);
+                                setEditArtistAvatarPreview('');
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        </Fade>
+                      </Box>
+                    </>
+                  ) : (
+                    <Typography variant="body2" color="rgba(255,255,255,0.6)" align="center" sx={{ mb: 2 }}>
+                      Загрузите новое изображение артиста
+                    </Typography>
+                  )}
+                  
+                  <Button 
+                    component="label" 
+                    variant="outlined" 
+                    startIcon={<FileUploadIcon />}
+                    sx={{ 
+                      borderRadius: 8,
+                      py: 0.5,
+                      px: 2,
+                      background: 'rgba(63,81,181,0.1)',
+                      borderColor: 'rgba(63, 81, 181, 0.5)',
+                      color: 'rgba(255,255,255,0.87)',
+                      '&:hover': {
+                        background: 'rgba(63,81,181,0.2)',
+                        borderColor: 'primary.main',
+                      }
+                    }}
+                  >
+                    Загрузить изображение
+                    <input
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      onChange={handleArtistImageChange}
+                    />
+                  </Button>
+                </Box>
+              </Box>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        
+        <DialogActions sx={{ p: 2, px: 3, justifyContent: 'space-between', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+          <Button 
+            onClick={() => setEditArtistDialogOpen(false)} 
+            variant="outlined"
+            color="inherit"
+            sx={{ 
+              borderRadius: 8,
+              px: 3,
+              borderColor: 'rgba(255,255,255,0.2)',
+              color: 'rgba(255,255,255,0.7)',
+              '&:hover': {
+                borderColor: 'rgba(255,255,255,0.4)',
+                background: 'rgba(255,255,255,0.05)'
+              }
+            }}
+          >
+            Отмена
+          </Button>
+          <Button 
+            onClick={handleUpdateArtist} 
+            color="primary" 
+            variant="contained"
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
+            sx={{ 
+              borderRadius: 8,
+              px: 4,
+              py: 0.75,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
+              background: 'linear-gradient(45deg, #3f51b5 30%, #5c6bc0 90%)',
+              '&:hover': {
+                boxShadow: '0 6px 16px rgba(0, 0, 0, 0.5)',
+              }
+            }}
+          >
+            Сохранить
+          </Button>
+        </DialogActions>
+      </StyledDialog>
+      
+      
+      <StyledDialog open={createArtistDialogOpen} onClose={() => setCreateArtistDialogOpen(false)} fullWidth maxWidth="sm">
+        <Box 
+          sx={{
+            position: 'relative',
+            overflow: 'hidden',
+            p: 2,
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+            background: 'linear-gradient(90deg, rgba(63,81,181,0.2) 0%, rgba(0,0,0,0) 100%)'
+          }}
+        >
+          <Box 
+            sx={{ 
+              position: 'absolute',
+              top: -50,
+              right: -50,
+              width: 150,
+              height: 150,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(63,81,181,0.2) 0%, rgba(63,81,181,0) 70%)',
+              zIndex: 0
+            }} 
+          />
+          <Box sx={{ position: 'relative', zIndex: 1 }}>
+            <Typography variant="h5" fontWeight="bold" color="primary.light">
+              Создание нового артиста
+            </Typography>
+            <Typography variant="caption" color="rgba(255,255,255,0.6)">
+              Введите данные нового артиста и сохраните изменения
+            </Typography>
+          </Box>
+        </Box>
+        
+        <DialogContent sx={{ p: 3, pt: 3, bgcolor: 'transparent' }}>
+          <Grid container spacing={2.5}>
+            <Grid item xs={12}>
+              <TextField
+                autoFocus
+                label="Имя артиста"
+                type="text"
+                fullWidth
+                value={editArtistName}
+                onChange={(e) => setEditArtistName(e.target.value)}
+                variant="outlined"
+                size="small"
+                InputProps={{
+                  sx: {
+                    borderRadius: 2,
+                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    color: 'rgba(255,255,255,0.87)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255,255,255,0.1)',
+                    },
+                    '&.Mui-focused': {
+                      backgroundColor: 'rgba(63,81,181,0.15)',
+                      boxShadow: '0 0 0 2px rgba(63, 81, 181, 0.3)'
+                    }
+                  }
+                }}
+                InputLabelProps={{
+                  sx: { color: 'rgba(255,255,255,0.7)' }
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(255,255,255,0.2)'
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(255,255,255,0.3)'
+                  },
+                  '& .Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'primary.main'
+                  }
+                }}
+              />
+            </Grid>
+            
+            <Grid item xs={12}>
+              <TextField
+                label="Биография"
+                type="text"
+                fullWidth
+                multiline
+                rows={4}
+                value={editArtistBio}
+                onChange={(e) => setEditArtistBio(e.target.value)}
+                variant="outlined"
+                size="small"
+                helperText="Краткая информация об артисте"
+                FormHelperTextProps={{
+                  sx: { color: 'rgba(255,255,255,0.5)' }
+                }}
+                InputProps={{
+                  sx: {
+                    borderRadius: 2,
+                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    color: 'rgba(255,255,255,0.87)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255,255,255,0.1)',
+                    },
+                    '&.Mui-focused': {
+                      backgroundColor: 'rgba(63,81,181,0.15)',
+                      boxShadow: '0 0 0 2px rgba(63, 81, 181, 0.3)'
+                    }
+                  }
+                }}
+                InputLabelProps={{
+                  sx: { color: 'rgba(255,255,255,0.7)' }
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(255,255,255,0.2)'
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(255,255,255,0.3)'
+                  },
+                  '& .Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'primary.main'
+                  }
+                }}
+              />
+            </Grid>
+            
+            <Grid item xs={12}>
+              <Paper 
+                elevation={0} 
+                sx={{ 
+                  p: 1.5, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between',
+                  borderRadius: 2,
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <VerifiedUserIcon 
+                    color={editArtistVerified ? "primary" : "disabled"} 
+                    sx={{ mr: 1.5 }} 
+                  />
+                  <Typography variant="subtitle1" color="rgba(255, 255, 255, 0.87)">
+                    Верифицированный артист
+                  </Typography>
+                </Box>
+                <Switch 
+                  checked={editArtistVerified}
+                  onChange={(e) => setEditArtistVerified(e.target.checked)}
+                  color="primary"
+                  sx={{ 
+                    '& .MuiSwitch-switchBase.Mui-checked': {
+                      color: '#3f51b5',
+                      '&:hover': {
+                        backgroundColor: 'rgba(63, 81, 181, 0.08)',
+                      },
+                    },
+                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                      backgroundColor: '#3f51b5',
+                    },
+                  }}
+                />
+              </Paper>
+            </Grid>
+            
+            <Grid item xs={12}>
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center',
+                  p: 3,
+                  borderRadius: 2,
+                  border: '1px dashed rgba(255, 255, 255, 0.2)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+              >
+                <Box sx={{ position: 'relative', zIndex: 1, width: '100%', textAlign: 'center' }}>
+                  {editArtistAvatarPreview ? (
+                    <>
+                      <Box sx={{ mb: 2, position: 'relative', display: 'inline-block' }}>
+                        <Avatar 
+                          src={editArtistAvatarPreview} 
+                          alt="Предпросмотр"
+                          sx={{ 
+                            width: 150, 
+                            height: 150, 
+                            borderRadius: '50%',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                          }}
+                        />
+                        <Fade in timeout={500}>
+                          <Box 
+                            sx={{ 
+                              position: 'absolute', 
+                              top: -8, 
+                              right: -8, 
+                              background: 'rgba(0,0,0,0.5)',
+                              borderRadius: '50%',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                            }}
+                          >
+                            <IconButton 
+                              size="small" 
+                              color="error" 
+                              onClick={() => {
+                                setEditArtistAvatar(null);
+                                setEditArtistAvatarPreview('');
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        </Fade>
+                      </Box>
+                    </>
+                  ) : (
+                    <Typography variant="body2" color="rgba(255,255,255,0.6)" align="center" sx={{ mb: 2 }}>
+                      Загрузите новое изображение артиста
+                    </Typography>
+                  )}
+                  
+                  <Button 
+                    component="label" 
+                    variant="outlined" 
+                    startIcon={<FileUploadIcon />}
+                    sx={{ 
+                      borderRadius: 8,
+                      py: 0.5,
+                      px: 2,
+                      background: 'rgba(63,81,181,0.1)',
+                      borderColor: 'rgba(63, 81, 181, 0.5)',
+                      color: 'rgba(255,255,255,0.87)',
+                      '&:hover': {
+                        background: 'rgba(63,81,181,0.2)',
+                        borderColor: 'primary.main',
+                      }
+                    }}
+                  >
+                    Загрузить изображение
+                    <input
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      onChange={handleArtistImageChange}
+                    />
+                  </Button>
+                </Box>
+              </Box>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        
+        <DialogActions sx={{ p: 2, px: 3, justifyContent: 'space-between', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+          <Button 
+            onClick={() => setCreateArtistDialogOpen(false)} 
+            variant="outlined"
+            color="inherit"
+            sx={{ 
+              borderRadius: 8,
+              px: 3,
+              borderColor: 'rgba(255,255,255,0.2)',
+              color: 'rgba(255,255,255,0.7)',
+              '&:hover': {
+                borderColor: 'rgba(255,255,255,0.4)',
+                background: 'rgba(255,255,255,0.05)'
+              }
+            }}
+          >
+            Отмена
+          </Button>
+          <Button 
+            onClick={handleUpdateArtist} 
+            color="primary" 
+            variant="contained"
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
+            sx={{ 
+              borderRadius: 8,
+              px: 4,
+              py: 0.75,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
+              background: 'linear-gradient(45deg, #3f51b5 30%, #5c6bc0 90%)',
+              '&:hover': {
+                boxShadow: '0 6px 16px rgba(0, 0, 0, 0.5)',
+              }
+            }}
+          >
+            Сохранить
+          </Button>
+        </DialogActions>
+      </StyledDialog>
+      
+      
+      <StyledDialog open={manageArtistTracksDialogOpen} onClose={() => setManageArtistTracksDialogOpen(false)} fullWidth maxWidth="md">
+        <Box 
+          sx={{
+            position: 'relative',
+            overflow: 'hidden',
+            p: 2,
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+            background: 'linear-gradient(90deg, rgba(63,81,181,0.2) 0%, rgba(0,0,0,0) 100%)'
+          }}
+        >
+          <Box 
+            sx={{ 
+              position: 'absolute',
+              top: -50,
+              right: -50,
+              width: 150,
+              height: 150,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(63,81,181,0.2) 0%, rgba(63,81,181,0) 70%)',
+              zIndex: 0
+            }} 
+          />
+          <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center' }}>
+            <LibraryMusicIcon sx={{ mr: 1.5, fontSize: 28, color: 'primary.light' }} />
+            <Box>
+              <Typography variant="h6" fontWeight="bold" color="primary.light">
+                Управление треками артиста
+              </Typography>
+              {selectedArtist && (
+                <Typography variant="body2" color="rgba(255,255,255,0.7)">
+                  {selectedArtist.name} ({artistTracks.length} треков)
+                </Typography>
+              )}
+            </Box>
+          </Box>
+        </Box>
+        
+        <DialogContent sx={{ p: 0, display: 'flex', flexDirection: 'column', height: '60vh' }}>
+          <Box sx={{ p: 2, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Треки артиста
+            </Typography>
+            
+            {artistTracks.length > 0 ? (
+              <TableContainer component={Paper} elevation={0} sx={{ bgcolor: 'rgba(0,0,0,0.2)', maxHeight: 250, overflow: 'auto' }}>
+                <Table size="small" stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Название</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Альбом</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Длительность</TableCell>
+                      <TableCell align="right">Действия</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {artistTracks.map(track => (
+                      <TableRow key={track.id}>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Avatar
+                              variant="rounded"
+                              src={track.cover_path}
+                              sx={{ width: 32, height: 32, mr: 1 }}
+                            >
+                              <AudiotrackIcon />
+                            </Avatar>
+                            <Box>
+                              <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                                {track.title}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {track.artist}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </TableCell>
+                        <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{track.album || '—'}</TableCell>
+                        <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                          {Math.floor(track.duration / 60)}:{(track.duration % 60).toString().padStart(2, '0')}
+                        </TableCell>
+                        <TableCell align="right">
+                          <IconButton 
+                            color="error" 
+                            size="small" 
+                            onClick={() => handleRemoveTrackFromArtist(track.id)}
+                            disabled={loadingTracks}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : (
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                py: 3,
+                bgcolor: 'rgba(0,0,0,0.2)',
+                borderRadius: 1
+              }}>
+                <AudiotrackIcon sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }} />
+                <Typography color="text.secondary">
+                  У артиста еще нет привязанных треков
+                </Typography>
+              </Box>
+            )}
+          </Box>
+          
+          <Divider sx={{ my: 2 }} />
+          
+          <Box sx={{ p: 2, flexGrow: 1 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Добавление треков
+            </Typography>
+            
+            <Box sx={{ display: 'flex', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+              <FormControl sx={{ minWidth: 120 }}>
+                <InputLabel id="search-mode-label">Искать по</InputLabel>
+                <Select
+                  labelId="search-mode-label"
+                  value={searchMode}
+                  onChange={(e) => setSearchMode(e.target.value)}
+                  size="small"
+                  sx={{ minWidth: 130 }}
+                >
+                  <MenuItem value="artist">Имени артиста</MenuItem>
+                  <MenuItem value="title">Названию трека</MenuItem>
+                </Select>
+              </FormControl>
+              
+              <TextField 
+                size="small"
+                placeholder="Поиск треков..."
+                value={trackSearch}
+                onChange={(e) => setTrackSearch(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  )
+                }}
+                sx={{ flexGrow: 1 }}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    searchUnassignedTracks();
+                  }
+                }}
+              />
+              <Button 
+                variant="contained" 
+                onClick={searchUnassignedTracks}
+                disabled={loadingTracks || !trackSearch || trackSearch.trim().length < 2}
+                size="small"
+              >
+                {loadingTracks ? <CircularProgress size={24} /> : 'Поиск'}
+              </Button>
+            </Box>
+            
+            {searchableTracksList.length > 0 ? (
+              <>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Найдено треков: {searchableTracksList.length}
+                  </Typography>
+                  
+                  <Box>
+                    <Button 
+                      size="small"
+                      variant="outlined"
+                      onClick={handleSelectAllSearchedTracks}
+                      disabled={searchableTracksList.length === 0}
+                    >
+                      {selectedTracks.length === searchableTracksList.length ? 'Снять выделение' : 'Выбрать все'}
+                    </Button>
+                    <Button 
+                      size="small"
+                      variant="contained"
+                      startIcon={<AddIcon />}
+                      onClick={handleAssignSelectedTracks}
+                      disabled={selectedTracks.length === 0}
+                      color="success"
+                      sx={{ ml: 1 }}
+                    >
+                      Добавить выбранные ({selectedTracks.length})
+                    </Button>
+                  </Box>
+                </Box>
+                
+                <TableContainer component={Paper} elevation={0} sx={{ bgcolor: 'rgba(0,0,0,0.2)', maxHeight: 300, overflow: 'auto' }}>
+                  <Table size="small" stickyHeader>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell padding="checkbox">
+                          <Checkbox 
+                            checked={selectedTracks.length === searchableTracksList.length && searchableTracksList.length > 0}
+                            indeterminate={selectedTracks.length > 0 && selectedTracks.length < searchableTracksList.length}
+                            onChange={handleSelectAllSearchedTracks}
+                          />
+                        </TableCell>
+                        <TableCell>Название</TableCell>
+                        <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Альбом</TableCell>
+                        <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Длительность</TableCell>
+                        <TableCell align="right">Добавить</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {searchableTracksList.map(track => (
+                        <TableRow key={track.id}>
+                          <TableCell padding="checkbox">
+                            <Checkbox 
+                              checked={selectedTracks.includes(track.id)}
+                              onChange={() => handleToggleTrackSelection(track.id)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <Avatar
+                                variant="rounded"
+                                src={track.cover_path}
+                                sx={{ width: 32, height: 32, mr: 1 }}
+                              >
+                                <AudiotrackIcon />
+                              </Avatar>
+                              <Box>
+                                <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                                  {track.title}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {track.artist}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{track.album || '—'}</TableCell>
+                          <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                            {track.duration ? `${Math.floor(track.duration / 60)}:${(track.duration % 60).toString().padStart(2, '0')}` : '—'}
+                          </TableCell>
+                          <TableCell align="right">
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={() => handleAssignTrackToArtist(track.id)}
+                              disabled={loadingTracks}
+                              startIcon={<AddIcon />}
+                            >
+                              Добавить
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </>
+            ) : searchableTracksList.length === 0 && trackSearch && !loadingTracks ? (
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                py: 3,
+                bgcolor: 'rgba(0,0,0,0.2)',
+                borderRadius: 1
+              }}>
+                <SearchIcon sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }} />
+                <Typography color="text.secondary">
+                  Не найдено треков для привязки
+                </Typography>
+              </Box>
+            ) : null}
+          </Box>
+        </DialogContent>
+        
+        <DialogActions sx={{ p: 2, px: 3, backgroundColor: 'rgba(0,0,0,0.4)' }}>
+          <Button 
+            onClick={() => setManageArtistTracksDialogOpen(false)}
+            variant="contained"
+          >
+            Закрыть
+          </Button>
+        </DialogActions>
+      </StyledDialog>
       
       <Snackbar
         open={snackbar.open}

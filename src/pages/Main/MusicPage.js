@@ -60,13 +60,14 @@ import {
   ArrowBack,
   Upload,
   Download,
-  KeyboardArrowUp
+  KeyboardArrowUp,
+  VerifiedUser
 } from '@mui/icons-material';
 import { useMusic } from '../../context/MusicContext';
 import { formatDuration } from '../../utils/formatters';
 import { useContext } from 'react';
 import { ThemeSettingsContext } from '../../App';
-import FullScreenPlayer from '../../components/Music/FullScreenPlayer';
+import FullScreenPlayer from '../../components/Music/FullScreenPlayer/index.js';
 import MobilePlayer from '../../components/Music/MobilePlayer';
 import MusicUploadDialog from '../../components/Music/MusicUploadDialog';
 import { getCoverWithFallback } from '../../utils/imageUtils';
@@ -98,7 +99,9 @@ const MusicPageContainer = styled(Container)(({ theme }) => ({
   }
 }));
 
-const CategoryCard = styled(Card)(({ theme, active }) => ({
+const CategoryCard = styled(Card, {
+  shouldForwardProp: (prop) => prop !== 'active'
+})(({ theme, active }) => ({
   cursor: 'pointer',
   height: '100%',
   background: active ? 
@@ -182,7 +185,9 @@ const StyledSearchInput = styled(Box)(({ theme, focused }) => ({
   }
 }));
 
-const TrackItem = styled(ListItem)(({ theme, active }) => ({
+const TrackItem = styled(ListItem, {
+  shouldForwardProp: (prop) => prop !== 'active'
+})(({ theme, active }) => ({
   padding: theme.spacing(0.5, 1),
   borderRadius: 8,
   cursor: 'pointer',
@@ -457,6 +462,12 @@ const MusicPage = React.memo(() => {
   });
   const [chartsLoading, setChartsLoading] = useState(true);
   
+
+  const [popularArtists, setPopularArtists] = useState([]);
+  const [artistsLoading, setArtistsLoading] = useState(true);
+  const [artistSearchQuery, setArtistSearchQuery] = useState('');
+  const [artistSearchResults, setArtistSearchResults] = useState([]);
+  const [isArtistSearching, setIsArtistSearching] = useState(false);
   
   
   const theme = useTheme();
@@ -609,6 +620,9 @@ const MusicPage = React.memo(() => {
       
       
       fetchCharts();
+      
+
+      fetchPopularArtists();
     };
     
     
@@ -1162,9 +1176,16 @@ const MusicPage = React.memo(() => {
 
   
   useEffect(() => {
+    console.log('[ScrollEffect] Инициализация эффекта бесконечной прокрутки', { 
+      tabValue, 
+      hasMoreTracks, 
+      isLoadingMore,
+      effectiveLoading,
+      searchQuery
+    });
     
     if (typeof loadMoreTracks !== 'function') {
-      console.warn('Infinite scroll functionality requires loadMoreTracks function');
+      console.warn('[ScrollEffect] Infinite scroll functionality requires loadMoreTracks function');
       return;
     }
 
@@ -1182,7 +1203,14 @@ const MusicPage = React.memo(() => {
       ? musicContext.hasMoreByType[currentType] !== false 
       : hasMoreTracks;
 
-    console.log(`Настройка бесконечного скролла для вкладки ${tabValue}, тип: ${currentType}, есть еще треки: ${currentHasMore}`);
+    console.log(`[ScrollEffect] Настройка бесконечного скролла для вкладки ${tabValue}, тип: ${currentType}, есть еще треки: ${currentHasMore}`);
+    console.log(`[ScrollEffect] Текущий статус для типа ${currentType}:`, {
+      hasMoreTracks,
+      hasMoreByType: musicContext.hasMoreByType,
+      isLoadingMore,
+      effectiveLoading,
+      tracksCount: currentType === 'liked' ? likedTracks.length : tracks.length
+    });
 
     
     let isLoadingData = false;
@@ -1190,44 +1218,65 @@ const MusicPage = React.memo(() => {
     const observer = new IntersectionObserver(
       async (entries) => {
         const [entry] = entries;
+        console.log(`[ScrollEffect] IntersectionObserver вызван, пересечение: ${entry.isIntersecting}`);
         
         
         if (entry.isIntersecting && !isLoadingMore && !isLoadingData && !effectiveLoading && currentHasMore) {
+          console.log(`[ScrollEffect] Условие загрузки для типа ${currentType} выполнено, начинаем загрузку треков`);
           setIsLoadingMore(true);
           isLoadingData = true;
           
           try {
-            console.log(`Загружаем треки для вкладки ${tabValue}, тип: ${currentType}`);
+            console.log(`[ScrollEffect] Вызываем loadMoreTracks для типа ${currentType}`);
             const result = await loadMoreTracks(currentType);
             
             
             if (result === false) {
-              console.log(`Больше нет треков для типа: ${currentType}`);
+              console.log(`[ScrollEffect] loadMoreTracks вернул false, больше нет треков для типа: ${currentType}`);
               setHasMoreTracks(false);
+            } else {
+              console.log(`[ScrollEffect] loadMoreTracks вернул true, загружено больше треков для типа: ${currentType}`);
             }
           } catch (error) {
-            console.error('Ошибка при загрузке треков:', error);
+            console.error('[ScrollEffect] Ошибка при загрузке треков:', error);
             setHasMoreTracks(false);
           } finally {
+            console.log(`[ScrollEffect] Завершаем загрузку для типа ${currentType}`);
             setIsLoadingMore(false);
             isLoadingData = false;
           }
+        } else if (entry.isIntersecting) {
+          console.log(`[ScrollEffect] Пересечение обнаружено, но условия не выполнены:`, {
+            isLoadingMore,
+            isLoadingData,
+            effectiveLoading,
+            currentHasMore
+          });
         }
       },
       { threshold: 0.2 } 
     );
 
     
-    if (loaderRef.current && currentHasMore && !effectiveLoading) {
+    if (loaderRef.current && currentHasMore && !effectiveLoading && !searchQuery) {
+      console.log('[ScrollEffect] Подключаем IntersectionObserver к элементу загрузки:', currentType);
       observer.observe(loaderRef.current);
+    } else {
+      console.log('[ScrollEffect] Не удалось подключить IntersectionObserver:', {
+        loaderExists: !!loaderRef.current,
+        hasMore: currentHasMore,
+        isLoading: effectiveLoading,
+        hasSearchQuery: !!searchQuery
+      });
     }
 
     return () => {
+      console.log(`[ScrollEffect] Очистка эффекта бесконечной прокрутки для типа ${currentType}`);
       if (loaderRef.current) {
         observer.unobserve(loaderRef.current);
       }
     };
-  }, [hasMoreTracks, isLoadingMore, loadMoreTracks, tabValue, musicContext.hasMoreByType, effectiveLoading]);
+  }, [hasMoreTracks, isLoadingMore, loadMoreTracks, tabValue, musicContext.hasMoreByType, effectiveLoading, searchQuery, tracks.length, likedTracks.length]);
 
   
   useEffect(() => {
@@ -1498,6 +1547,265 @@ const MusicPage = React.memo(() => {
       updateChartsWithLikes();
     }
   }, [likedTracks]);
+
+  const renderTrackItem = (track, index) => {
+    const isActive = currentTrack && currentTrack.id === track.id;
+    const isCurrentlyPlaying = isActive && isPlaying;
+    
+    const goToArtist = (e) => {
+      e.stopPropagation();
+      if (track.artist_info && track.artist_info.id) {
+        navigate(`/artist/${track.artist_info.id}`);
+      } else {
+        console.warn('Artist ID not available');
+
+      }
+    };
+
+    return (
+      <TrackItem 
+        key={track.id}
+        active={isActive}
+        onClick={() => handleTrackClick(track)}
+        onContextMenu={(e) => handleContextMenu(e, track)}
+      >
+        <ListItemAvatar>
+          <Box sx={{ position: 'relative', borderRadius: 1, overflow: 'hidden' }}>
+            <Avatar 
+              variant="rounded" 
+              src={track.cover_path || '/static/uploads/system/album_placeholder.jpg'} 
+              alt={track.title}
+              sx={{ 
+                width: 50, 
+                height: 50, 
+                boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+                bgcolor: 'rgba(0,0,0,0.2)'
+              }}
+            />
+            <Box 
+              sx={{ 
+                position: 'absolute', 
+                top: 0, 
+                left: 0, 
+                right: 0, 
+                bottom: 0,
+                bgcolor: 'rgba(0,0,0,0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: isCurrentlyPlaying ? 1 : 0,
+                transition: 'opacity 0.2s ease',
+              }}
+            >
+              {isCurrentlyPlaying ? <Pause fontSize="small" /> : <PlayArrow fontSize="small" />}
+            </Box>
+            {track.is_verified && (
+              <Box 
+                sx={{
+                  position: 'absolute',
+                  top: 4,
+                  right: 4,
+                  bgcolor: 'rgba(0, 0, 0, 0.6)',
+                  borderRadius: '50%',
+                  width: 16,
+                  height: 16,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <Box 
+                  component="span"
+                  sx={{
+                    width: 12,
+                    height: 12,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: theme.palette.primary.main,
+                    fontSize: 10
+                  }}
+                >
+                  ✓
+                </Box>
+              </Box>
+            )}
+          </Box>
+        </ListItemAvatar>
+        
+        <ListItemText 
+          primary={
+            <Typography 
+              variant="body1" 
+              noWrap 
+              sx={{ 
+                color: isActive ? theme.palette.primary.main : 'inherit',
+                fontWeight: isActive ? 500 : 400
+              }}
+            >
+              {track.title}
+            </Typography>
+          }
+          secondary={
+            <Box component="span" sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+              {track.artist && track.artist.split(',').map((artist, idx, arr) => (
+                <React.Fragment key={idx}>
+                  <Typography 
+                    component="span" 
+                    variant="body2" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToArtist(e);
+                    }}
+                    sx={{ 
+                      cursor: track.artist_info && track.artist_info.id ? 'pointer' : 'default',
+                      '&:hover': {
+                        color: track.artist_info && track.artist_info.id ? theme.palette.primary.main : 'inherit',
+                        textDecoration: track.artist_info && track.artist_info.id ? 'underline' : 'none'
+                      }
+                    }}
+                  >
+                    {artist.trim()}
+                  </Typography>
+                  {idx < arr.length - 1 && (
+                    <Typography component="span" variant="body2" color="text.secondary">
+                      , 
+                    </Typography>
+                  )}
+                </React.Fragment>
+              ))}
+              <Typography component="span" variant="body2" color="text.secondary" noWrap>
+                {track.album ? ` • ${track.album} • ` : ' • '}
+                {formatDuration(track.duration)}
+              </Typography>
+            </Box>
+          }
+          sx={{ overflowX: 'hidden' }}
+        />
+        
+        <ListItemSecondaryAction>
+          <IconButton 
+            edge="end" 
+            aria-label="like"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleLikeTrack(track.id);
+            }}
+            size="small"
+          >
+            {track.is_liked ? 
+              <Favorite fontSize="small" color="error" /> : 
+              <FavoriteBorder fontSize="small" />
+            }
+          </IconButton>
+        </ListItemSecondaryAction>
+      </TrackItem>
+    );
+  };
+
+
+  const fetchPopularArtists = async () => {
+    try {
+      setArtistsLoading(true);
+      
+
+      const response = await axios.get('/api/moderator/artists?page=1&per_page=6');
+      
+      if (response.data.success) {
+        setPopularArtists(response.data.artists || []);
+      } else {
+        console.error('Ошибка при получении артистов:', response.data.error);
+      }
+    } catch (error) {
+      console.error('Ошибка при получении артистов:', error);
+    } finally {
+      setArtistsLoading(false);
+    }
+  };
+  
+
+  const searchArtists = async (query) => {
+    if (!query || query.trim().length < 2) {
+      setArtistSearchResults([]);
+      return;
+    }
+    
+    try {
+      setIsArtistSearching(true);
+
+      const searchEndpoint = `/api/search/artists?query=${encodeURIComponent(query.trim())}`;
+      console.log('Searching artists with endpoint:', searchEndpoint);
+      
+      const response = await axios.get(searchEndpoint);
+      console.log('Artist search response:', response.data);
+      
+      if (response.data.success) {
+        setArtistSearchResults(response.data.artists || []);
+        console.log('Found artists:', response.data.artists.length);
+      } else {
+        console.error('Ошибка при поиске артистов:', response.data.error);
+        setArtistSearchResults([]);
+        setSnackbar({
+          open: true,
+          message: `Ошибка при поиске артистов: ${response.data.error || 'Неизвестная ошибка'}`,
+          severity: 'error'
+        });
+      }
+    } catch (error) {
+      console.error('Ошибка при поиске артистов:', error);
+      setArtistSearchResults([]);
+      
+
+      try {
+        console.log('Trying fallback search with moderator API');
+        const fallbackResponse = await axios.get(`/api/moderator/artists?search=${encodeURIComponent(query.trim())}&page=1&per_page=10`);
+        
+        if (fallbackResponse.data.success) {
+          console.log('Fallback search successful:', fallbackResponse.data);
+          setArtistSearchResults(fallbackResponse.data.artists || []);
+        } else {
+          setSnackbar({
+            open: true,
+            message: 'Ошибка при поиске артистов. Проверьте соединение.',
+            severity: 'error'
+          });
+        }
+      } catch (fallbackError) {
+        console.error('Fallback search also failed:', fallbackError);
+        setSnackbar({
+          open: true,
+          message: 'Ошибка при поиске артистов. Проверьте соединение.',
+          severity: 'error'
+        });
+      }
+    } finally {
+      setIsArtistSearching(false);
+    }
+  };
+  
+
+  const debouncedArtistSearch = useCallback(
+    debounce((query) => {
+      if (query.trim().length >= 2) {
+        searchArtists(query);
+      } else {
+        setArtistSearchResults([]);
+      }
+    }, 500),
+    []
+  );
+  
+
+  const handleArtistSearchChange = (e) => {
+    const query = e.target.value;
+    setArtistSearchQuery(query);
+    debouncedArtistSearch(query);
+  };
+  
+
+  const handleArtistClick = (artistId) => {
+    navigate(`/artist/${artistId}`);
+  };
 
   return (
     <MusicPageContainer 
@@ -2310,145 +2618,7 @@ const MusicPage = React.memo(() => {
                               style={{ transformOrigin: '0 0 0' }}
                               timeout={300 + index % 15 * 30}
                             >
-                              <TrackItem 
-                                active={currentTrack && currentTrack.id === track.id}
-                                onClick={() => handleTrackClick(track)}
-                                onContextMenu={(e) => handleContextMenu(e, track)}
-                                disableGutters
-                              >
-                                <Box 
-                                  sx={{ 
-                                    display: 'flex', 
-                                    width: '100%',
-                                    alignItems: 'center'
-                                  }}
-                                >
-                                  <Box 
-                                    sx={{ 
-                                      display: 'flex', 
-                                      alignItems: 'center', 
-                                      justifyContent: 'center',
-                                      minWidth: { xs: 24, sm: 32 },
-                                      mr: { xs: 1, sm: 2 },
-                                      color: 'text.secondary',
-                                    }}
-                                  >
-                                    {currentTrack && currentTrack.id === track.id && isPlaying ? (
-                                      <Pause fontSize="small" sx={{ color: 'primary.main' }} />
-                                    ) : currentTrack && currentTrack.id === track.id ? (
-                                      <PlayArrow fontSize="small" sx={{ color: 'primary.main' }} />
-                                    ) : (
-                                      <Typography variant="body2" color="text.secondary">
-                                        {index + 1}
-                                      </Typography>
-                                    )}
-                                  </Box>
-                                  
-                                  <Avatar
-                                    variant="rounded"
-                                    src={getCoverWithFallback(track.cover_path, "album")}
-                                    alt={track.title}
-                                    sx={{ 
-                                      width: { xs: 32, sm: 40 }, 
-                                      height: { xs: 32, sm: 40 }, 
-                                      borderRadius: 1, 
-                                      mr: { xs: 1, sm: 2 },
-                                      transition: 'transform 0.3s ease',
-                                      '&:hover': {
-                                        transform: 'scale(1.05)'
-                                      }
-                                    }}
-                                  />
-                                  
-                                  <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minWidth: 0 }}>
-                                    <Typography 
-                                      variant="body2"
-                                      noWrap
-                                      color={currentTrack && currentTrack.id === track.id ? 'primary.main' : 'text.primary'}
-                                    >
-                                      {track.title}
-                                    </Typography>
-                                    
-                                    <Typography variant="caption" color="text.secondary" noWrap>
-                                      {track.artist}
-                                    </Typography>
-                                  </Box>
-                                  
-                                  <Box sx={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center',
-                                    '& > button': { opacity: 0.7 },
-                                    '& > button:hover': { opacity: 1 }
-                                  }}>
-                                    <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
-                                      {formatDuration(track.duration)}
-                                    </Typography>
-                                    
-                                    <Tooltip title="Копировать ссылку">
-                                      <IconButton 
-                                        size="small"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          copyTrackLink(track, e);
-                                        }}
-                                        sx={{ 
-                                          color: 'text.secondary', 
-                                          mr: 1,
-                                          display: { xs: 'none', sm: 'flex' }
-                                        }}
-                                      >
-                                        <ContentCopy fontSize="small" />
-                                      </IconButton>
-                                    </Tooltip>
-                                    
-                                    <IconButton 
-                                      size="small"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleLikeTrack(track.id);
-                                      }}
-                                      sx={{ 
-                                        color: track.is_liked ? 'error.main' : 'text.secondary',
-                                        transition: 'all 0.2s ease',
-                                        '&:hover': {
-                                          color: track.is_liked ? 'error.light' : '#ff6b6b',
-                                          transform: 'scale(1.1)',
-                                        }
-                                      }}
-                                    >
-                                      {track.is_liked ? (
-                                        <Favorite 
-                                          fontSize="small" 
-                                          sx={{ 
-                                            animation: 'heartBeat 0.5s',
-                                            '@keyframes heartBeat': {
-                                              '0%': { transform: 'scale(1)' },
-                                              '14%': { transform: 'scale(1.3)' },
-                                              '28%': { transform: 'scale(1)' },
-                                              '42%': { transform: 'scale(1.3)' },
-                                              '70%': { transform: 'scale(1)' },
-                                            }
-                                          }}
-                                        />
-                                      ) : (
-                                        <FavoriteBorder 
-                                          fontSize="small"
-                                          sx={{
-                                            '&:hover': {
-                                              animation: 'pulse 1.5s infinite',
-                                              '@keyframes pulse': {
-                                                '0%': { opacity: 1 },
-                                                '50%': { opacity: 0.6 },
-                                                '100%': { opacity: 1 }
-                                              }
-                                            }
-                                          }}
-                                        />
-                                      )}
-                                    </IconButton>
-                                  </Box>
-                                </Box>
-                              </TrackItem>
+                              {renderTrackItem(track, index)}
                             </Grow>
                           ))
                         ) : (
@@ -2508,8 +2678,11 @@ const MusicPage = React.memo(() => {
                             display: 'flex', 
                             justifyContent: 'center', 
                             alignItems: 'center', 
-                            py: 3
+                            py: 3,
+                            minHeight: '80px',
+                            width: '100%'
                           }}
+                          data-testid="infinite-scroll-loader"
                         >
                           {isLoadingMore ? (
                             <Fade in={true} timeout={300}>
@@ -2518,7 +2691,7 @@ const MusicPage = React.memo(() => {
                           ) : (
                             <Fade in={true} timeout={300}>
                               <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.7 }}>
-                                Прокрутите вниз для загрузки
+                                {tabValue === 0 ? 'Прокрутите вниз для загрузки понравившихся треков' : 'Прокрутите вниз для загрузки'}
                               </Typography>
                             </Fade>
                           )}
@@ -2530,6 +2703,252 @@ const MusicPage = React.memo(() => {
               </Box>
             </Fade>
           )}
+        
+          {/* Add new Artists section */}
+          <HeaderPaper elevation={0}>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              mb: 2 
+            }}>
+              <Typography variant="h5" fontWeight="bold">
+                Исполнители
+              </Typography>
+              
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <StyledSearchInput 
+                  focused={artistSearchQuery.length > 0} 
+                  sx={{ 
+                    mr: 1, 
+                    width: { xs: '150px', sm: '200px', md: '250px' },
+                    height: '40px'
+                  }}
+                >
+                  <Search sx={{ fontSize: 18, mr: 0.5, color: 'text.secondary' }} />
+                  <input
+                    placeholder="Найти исполнителя"
+                    value={artistSearchQuery}
+                    onChange={handleArtistSearchChange}
+                    style={{ fontSize: '16px' }}
+                  />
+                  {artistSearchQuery && (
+                    <IconButton 
+                      size="small" 
+                      onClick={() => setArtistSearchQuery('')}
+                      sx={{ color: 'rgba(255, 255, 255, 0.7)', p: 0.5 }}
+                    >
+                      <Box sx={{ fontSize: 18, fontWeight: 'bold' }}>×</Box>
+                    </IconButton>
+                  )}
+                </StyledSearchInput>
+              </Box>
+            </Box>
+            
+            {artistsLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                <CircularProgress size={30} />
+              </Box>
+            ) : (
+              <>
+                {artistSearchQuery.length > 0 ? (
+                  <Box>
+                    {isArtistSearching ? (
+                      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                        <CircularProgress size={30} />
+                      </Box>
+                    ) : artistSearchResults.length > 0 ? (
+                      <Grid container spacing={2}>
+                        {artistSearchResults.map((artist, index) => (
+                          <Grid item xs={6} sm={4} md={3} lg={2} key={artist.id || index}>
+                            <Zoom in={true} style={{ transitionDelay: `${150 * (index % 8)}ms` }}>
+                              <Card 
+                                sx={{ 
+                                  borderRadius: '16px',
+                                  cursor: 'pointer',
+                                  backgroundColor: 'rgba(18,18,18,0.6)',
+                                  backdropFilter: 'blur(10px)',
+                                  transition: 'all 0.3s ease',
+                                  '&:hover': {
+                                    transform: 'translateY(-5px)',
+                                    boxShadow: '0 10px 20px rgba(0,0,0,0.2)'
+                                  },
+                                  height: '100%',
+                                  display: 'flex',
+                                  flexDirection: 'column'
+                                }}
+                                onClick={() => handleArtistClick(artist.id)}
+                              >
+                                <Box 
+                                  sx={{ 
+                                    width: '100%', 
+                                    paddingTop: '100%', 
+                                    position: 'relative',
+                                    borderRadius: '16px 16px 0 0',
+                                    overflow: 'hidden'
+                                  }}
+                                >
+                                  <Box
+                                    component="img"
+                                    src={artist.avatar_url || '/static/uploads/system/artist_placeholder.jpg'}
+                                    alt={artist.name}
+                                    sx={{
+                                      position: 'absolute',
+                                      top: 0,
+                                      left: 0,
+                                      width: '100%',
+                                      height: '100%',
+                                      objectFit: 'cover',
+                                      transition: 'transform 0.3s ease',
+                                      '&:hover': {
+                                        transform: 'scale(1.05)',
+                                      },
+                                    }}
+                                  />
+                                </Box>
+                                <CardContent sx={{ p: 1.5, pb: 2, flexGrow: 1 }}>
+                                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <Typography 
+                                      variant="body1" 
+                                      fontWeight="500" 
+                                      noWrap 
+                                      sx={{ flexGrow: 1 }}
+                                    >
+                                      {artist.name}
+                                    </Typography>
+                                    {artist.verified && (
+                                      <Tooltip title="Верифицированный артист">
+                                        <VerifiedUser 
+                                          sx={{ 
+                                            fontSize: 16, 
+                                            ml: 0.5, 
+                                            color: theme.palette.primary.main 
+                                          }} 
+                                        />
+                                      </Tooltip>
+                                    )}
+                                  </Box>
+                                </CardContent>
+                              </Card>
+                            </Zoom>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    ) : (
+                      <Box sx={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        py: 4
+                      }}>
+                        <Typography color="text.secondary">
+                          Артистов по запросу "{artistSearchQuery}" не найдено
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                ) : (
+                  <Grid container spacing={2}>
+                    {popularArtists.length > 0 ? (
+                      popularArtists.map((artist, index) => (
+                        <Grid item xs={6} sm={4} md={3} lg={2} key={artist.id || index}>
+                          <Zoom in={true} style={{ transitionDelay: `${150 * (index % 8)}ms` }}>
+                            <Card 
+                              sx={{ 
+                                borderRadius: '16px',
+                                cursor: 'pointer',
+                                backgroundColor: 'rgba(18,18,18,0.6)',
+                                backdropFilter: 'blur(10px)',
+                                transition: 'all 0.3s ease',
+                                '&:hover': {
+                                  transform: 'translateY(-5px)',
+                                  boxShadow: '0 10px 20px rgba(0,0,0,0.2)'
+                                },
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column'
+                              }}
+                              onClick={() => handleArtistClick(artist.id)}
+                            >
+                              <Box 
+                                sx={{ 
+                                  width: '100%', 
+                                  paddingTop: '100%', 
+                                  position: 'relative',
+                                  borderRadius: '16px 16px 0 0',
+                                  overflow: 'hidden'
+                                }}
+                              >
+                                <Box
+                                  component="img"
+                                  src={artist.avatar_url || '/static/uploads/system/artist_placeholder.jpg'}
+                                  alt={artist.name}
+                                  sx={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                    transition: 'transform 0.3s ease',
+                                    '&:hover': {
+                                      transform: 'scale(1.05)',
+                                    },
+                                  }}
+                                />
+                              </Box>
+                              <CardContent sx={{ p: 1.5, pb: 2, flexGrow: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                  <Typography 
+                                    variant="body1" 
+                                    fontWeight="500" 
+                                    noWrap 
+                                    sx={{ flexGrow: 1 }}
+                                  >
+                                    {artist.name}
+                                  </Typography>
+                                  {artist.verified && (
+                                    <Tooltip title="Верифицированный артист">
+                                      <VerifiedUser 
+                                        sx={{ 
+                                          fontSize: 16, 
+                                          ml: 0.5, 
+                                          color: theme.palette.primary.main 
+                                        }} 
+                                      />
+                                    </Tooltip>
+                                  )}
+                                </Box>
+                              </CardContent>
+                            </Card>
+                          </Zoom>
+                        </Grid>
+                      ))
+                    ) : (
+                      <Grid item xs={12}>
+                        <Box sx={{ 
+                          display: 'flex', 
+                          flexDirection: 'column', 
+                          alignItems: 'center', 
+                          justifyContent: 'center',
+                          py: 4,
+                          background: 'linear-gradient(135deg, rgba(208, 188, 255, 0.05) 0%, rgba(255,255,255,0.03) 100%)',
+                          borderRadius: 3,
+                          border: '1px dashed rgba(208, 188, 255, 0.2)',
+                          mx: 2
+                        }}>
+                          <Typography color="text.secondary" sx={{ mb: 1 }}>
+                            Список исполнителей пуст
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    )}
+                  </Grid>
+                )}
+              </>
+            )}
+          </HeaderPaper>
         </>
       ) : (
         
@@ -2559,120 +2978,7 @@ const MusicPage = React.memo(() => {
                       in={true} 
                       style={{ transformOrigin: '0 0 0', transitionDelay: `${index * 30}ms` }}
                     >
-                      <TrackItem
-                        onClick={() => handleTrackClick(track)}
-                        onContextMenu={(e) => handleContextMenu(e, track)}
-                      >
-                        <Box 
-                          sx={{ 
-                            display: 'flex', 
-                            width: '100%',
-                            alignItems: 'center'
-                          }}
-                        >
-                          <Avatar
-                            variant="rounded"
-                            src={getCoverWithFallback(track.cover_path || '', "album")}
-                            alt={track.title || ''}
-                            sx={{ 
-                              width: { xs: 32, sm: 40 }, 
-                              height: { xs: 32, sm: 40 }, 
-                              borderRadius: 1, 
-                              mr: { xs: 1, sm: 2 }
-                            }}
-                          />
-                          
-                          <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minWidth: 0 }}>
-                            <Typography 
-                              variant="body2" 
-                              noWrap
-                              color={currentTrack && currentTrack.id === track.id ? 'primary.main' : 'text.primary'}
-                            >
-                              {track.title || 'Без названия'}
-                            </Typography>
-                            
-                            <Typography variant="caption" color="text.secondary" noWrap>
-                              {track.artist || 'Неизвестный исполнитель'}
-                            </Typography>
-                          </Box>
-                          
-                          <Box sx={{ 
-                            display: 'flex', 
-                            alignItems: 'center',
-                            '& > button': { opacity: 0.7 },
-                            '& > button:hover': { opacity: 1 }
-                          }}>
-                            <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
-                              {formatDuration(track.duration)}
-                            </Typography>
-                            
-                            <IconButton 
-                              size="small"
-                              color={currentTrack && currentTrack.id === track.id && isPlaying ? "primary" : "default"}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleTrackClick(track);
-                              }}
-                              sx={{ 
-                                mr: 1,
-                                color: currentTrack && currentTrack.id === track.id && isPlaying ? 'primary.main' : 'text.secondary'
-                              }}
-                            >
-                              {currentTrack && currentTrack.id === track.id && isPlaying ? (
-                                <Pause fontSize="small" />
-                              ) : (
-                                <PlayArrow fontSize="small" />
-                              )}
-                            </IconButton>
-                            
-                            <IconButton 
-                              size="small"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleLikeTrack(track.id);
-                              }}
-                              sx={{ 
-                                color: track.is_liked ? 'error.main' : 'text.secondary',
-                                transition: 'all 0.2s ease',
-                                '&:hover': {
-                                  color: track.is_liked ? 'error.light' : '#ff6b6b',
-                                  transform: 'scale(1.1)',
-                                }
-                              }}
-                            >
-                              {track.is_liked ? (
-                                <Favorite 
-                                  fontSize="small" 
-                                  sx={{ 
-                                    animation: 'heartBeat 0.5s',
-                                    '@keyframes heartBeat': {
-                                      '0%': { transform: 'scale(1)' },
-                                      '14%': { transform: 'scale(1.3)' },
-                                      '28%': { transform: 'scale(1)' },
-                                      '42%': { transform: 'scale(1.3)' },
-                                      '70%': { transform: 'scale(1)' },
-                                    }
-                                  }}
-                                />
-                              ) : (
-                                <FavoriteBorder 
-                                  fontSize="small"
-                                  sx={{
-                                    '&:hover': {
-                                      animation: 'pulse 1.5s infinite',
-                                      '@keyframes pulse': {
-                                        '0%': { opacity: 1 },
-                                        '50%': { opacity: 0.6 },
-                                        '100%': { opacity: 1 }
-                                      }
-                                    }
-                                  }}
-                                />
-                              )}
-                            </IconButton>
-                          </Box>
-                        </Box>
-                      </TrackItem>
+                      {renderTrackItem(track, index)}
                     </Grow>
                   ))}
                 </List>

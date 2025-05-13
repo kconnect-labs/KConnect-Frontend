@@ -1,0 +1,789 @@
+$apple-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+$yandex-font: 'YS Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+$button-color: rgba(255, 255, 255, 0.1);
+$button-hover-color: rgba(255, 255, 255, 0.2);
+$dark-bg: rgba(0, 0, 0, 0.7);
+$text-color: #ffffff;
+$coming-soon-color: #ffffffa8;
+$light-text: rgba(255, 255, 255, 0.8);
+$dim-text: rgba(255, 255, 255, 0.5);
+
+// Container for synced lyrics
+.syncedLyricsContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  max-width: 800px;
+  margin: 0 auto;
+  overflow-y: auto;
+  padding: 30% 20px;
+  position: relative;
+  
+  // Yandex-style scrollbar styling
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+  }
+  
+  // Fade in animation
+  animation: fadeIn 0.5s ease-in-out;
+
+  // Desktop layout
+  @media (min-width: 960px) {
+    margin-left: auto;
+    margin-right: 0;
+    padding: 10% 40px;
+    max-width: 65%;
+    align-items: flex-start;
+    overflow-y: hidden; // Disable auto-scroll on desktop
+  }
+}
+
+// Style for each synced lyrics line
+.syncedLyricsLine {
+  text-align: center;
+  padding: 8px 0;
+  position: relative;
+  z-index: 1;
+  transition: all 0.4s cubic-bezier(0.215, 0.61, 0.355, 1);
+  margin: 8px 0;
+  width: 100%;
+  
+  &.currentLine {
+    z-index: 2;
+  }
+
+  // Desktop layout - left align text
+  @media (min-width: 960px) {
+    text-align: left;
+    padding: 12px 0;
+  }
+}
+
+// Text styling for synced lyrics - Yandex Music style
+.syncedLyricsText {
+  color: rgb(255, 255, 255); // Always bright white for better visibility
+  font-family: $yandex-font;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.5;
+  max-width: 92%;
+  margin: 0 auto;
+  word-break: break-word;
+  white-space: normal;
+  user-select: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); // stronger shadow for better contrast
+  transition: all 0.3s ease;
+  
+  &.currentText {
+    font-size: 22px;
+    font-weight: 700; // Bolder text for active line
+    color: #fff; // Bright white for current line
+    letter-spacing: -0.01em;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8); // Enhanced shadow for current line
+  }
+  
+  @media (min-width: 600px) {
+    font-size: 22px;
+    
+    &.currentText {
+      font-size: 30px;
+    }
+  }
+
+  // Desktop layout
+  @media (min-width: 960px) {
+    margin: 0;
+    max-width: 100%;
+    font-size: 24px;
+    
+    &.currentText {
+      font-size: 32px;
+    }
+  }
+}
+
+// Container for static/regular lyrics
+.staticLyricsContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  flex: 1;
+  overflow-y: auto;
+  padding: 30px 20px 80px;
+  
+  // Scrollbar styling
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+  }
+  
+  // Fade in animation
+  animation: fadeIn 0.5s ease-in-out;
+
+  // Desktop layout
+  @media (min-width: 960px) {
+    margin-left: auto;
+    margin-right: 0;
+    max-width: 65%;
+    align-items: flex-start;
+    padding: 60px 40px;
+  }
+}
+
+// Style for static lyrics text - Yandex Music style
+.staticLyricsText {
+  color: #ffffff; // Bright white for better visibility
+  font-family: $yandex-font;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.8;
+  white-space: pre-line;
+  text-align: center;
+  margin-bottom: 40px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); // shadow for better contrast
+  
+  @media (min-width: 600px) {
+    font-size: 22px;
+  }
+
+  // Desktop layout
+  @media (min-width: 960px) {
+    text-align: left;
+    font-size: 24px;
+  }
+}
+
+// Button to create synced lyrics
+.syncButton {
+  color: white !important;
+  font-family: $yandex-font !important;
+  padding: 12px 24px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  border-radius: 8px !important; // Yandex uses more squared buttons
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(10px) !important;
+  transition: all 0.2s ease !important;
+  
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.25) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    transform: translateY(-2px) !important;
+  }
+}
+
+// Loading state
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  padding: 20px;
+}
+
+.loadingText {
+  margin-top: 16px;
+  font-family: $yandex-font;
+  font-size: 1rem;
+  color: $light-text;
+}
+
+// Empty state
+.emptyContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  padding: 20px;
+}
+
+.emptyText {
+  font-family: $yandex-font;
+  font-size: 1.2rem;
+  color: $dim-text;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+// New focused lyrics container style
+.focusedLyricsContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 300px;
+  height: 100%;
+  width: 100%;
+  max-width: 95%;
+  margin: 0 auto;
+  padding: 20px;
+  overflow: hidden;
+  
+  @media (max-width: 960px) {
+    align-items: flex-end;
+    text-align: right;
+  }
+}
+
+// Previous line styling
+.previousLine {
+  margin-bottom: 20px;
+  opacity: 0.5;
+  transform: translateY(0);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  will-change: opacity, transform;
+  
+  &.exiting {
+    animation: slideDown 0.6s ease-in forwards;
+  }
+}
+
+.previousLineText {
+  font-family: $yandex-font;
+  font-size: 2.5rem;
+  color: $text-color;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.7);
+  text-align: right;
+  
+  @media (max-width: 960px) {
+    font-size: 2rem;
+  }
+}
+
+// Main line styling (current)
+.mainLine {
+  position: relative;
+  margin-bottom: 16px;
+  transition: transform 1s cubic-bezier(0.19, 1, 0.22, 1), 
+              opacity 1s cubic-bezier(0.19, 1, 0.22, 1);
+  transform-origin: right center;
+  will-change: transform, opacity;
+  
+  &.entering {
+    animation: scaleUpMain 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  }
+  
+  &.active {
+    transform: scale(1);
+    animation: softPulse 4s ease-in-out infinite;
+  }
+}
+
+.mainLineText {
+  display: inline-block;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
+  will-change: transform, opacity, text-shadow;
+}
+
+// Upcoming lines
+.upcomingLine {
+  position: relative;
+  margin-bottom: 12px;
+  transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
+  transform-origin: right center;
+  will-change: transform, opacity, translate;
+  
+  &.nextUp {
+    margin-bottom: 16px;
+  }
+  
+  &.movingToCurrent {
+    animation: moveToCurrentLine 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  }
+}
+
+.upcomingLineText {
+  display: inline-block;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
+  will-change: transform, opacity, text-shadow;
+}
+
+// Buttons
+.syncButton, .addLyricsButton {
+  margin-top: 24px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: $yandex-font;
+  font-weight: 500;
+  font-size: 0.95rem;
+  text-transform: none;
+  align-self: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+}
+
+@keyframes slideUp {
+  0% {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  70% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  0% {
+    transform: translateY(0);
+    opacity: 0.8;
+  }
+  30% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-40px);
+    opacity: 0;
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.3;
+  }
+  40% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.98);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulseLight {
+  0% {
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
+  }
+  50% {
+    text-shadow: 0 0 15px rgba(255, 255, 255, 1), 0 0 30px rgba(255, 255, 255, 0.6);
+  }
+  100% {
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
+  }
+}
+
+@keyframes scaleUpMain {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.3;
+    filter: blur(2px);
+  }
+  20% {
+    opacity: 0.6;
+    filter: blur(1px);
+  }
+  50% {
+    transform: scale(1.01);
+    filter: blur(0);
+  }
+  75% {
+    transform: scale(0.99);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes moveToCurrentLine {
+  0% {
+    transform: scale(1) translateY(0);
+    opacity: 0.9;
+    filter: blur(0);
+  }
+  30% {
+    transform: scale(1.02) translateY(-5px);
+    opacity: 0.7;
+  }
+  60% {
+    transform: scale(1.05) translateY(-10px);
+    opacity: 0.5;
+    filter: blur(1px);
+  }
+  80% {
+    transform: scale(1.07) translateY(-14px);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1.1) translateY(-18px);
+    opacity: 0;
+    filter: blur(2px);
+  }
+}
+
+@keyframes softPulse {
+  0% {
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    text-shadow: 0 4px 16px rgba(255, 255, 255, 0.25), 0 2px 8px rgba(0, 0, 0, 0.5);
+    transform: scale(1.005);
+  }
+  100% {
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transform: scale(1);
+  }
+}
+
+// Create a smooth line-slide animation for non-active lines
+@keyframes smoothShift {
+  0% {
+    transform: translateY(10px);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// Keep the static lyrics container for non-synced lyrics
+.staticLyricsContainer {
+  padding: 24px;
+  height: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+
+  .staticLyricsText {
+    color: white;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    margin-bottom: 24px;
+    font-family: $yandex-font;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    font-weight: 500;
+
+    @media (min-width: 960px) {
+      font-size: 1.2rem;
+    }
+  }
+
+  .syncButton {
+    align-self: center;
+    margin-top: auto;
+    background: $button-color;
+    color: white;
+    padding: 8px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    border: none;
+    text-transform: none;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: $button-hover-color;
+      transform: translateY(-2px);
+    }
+  }
+}
+
+.lyricsFlowContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 300px;
+  height: 100%;
+  width: 100%;
+  max-width: 95%;
+  margin: 0 auto;
+  padding: 20px;
+  overflow: hidden;
+  position: relative;
+  
+  @media (max-width: 960px) {
+    align-items: flex-end;
+    text-align: right;
+  }
+}
+
+.lyricsFlow {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; // Align to end (right)
+  justify-content: center;
+  position: relative;
+
+  // Добавим контейнер с ограниченной шириной
+  .lyricsContainer {
+    width: 100%;
+    max-width: 70%; // Ограничиваем ширину
+    margin-left: auto; // Позиционируем справа
+    margin-right: 0;
+  }
+
+  .flowLine {
+    position: relative;
+    width: 100%;
+    text-align: center;
+    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+    
+    &.currentFlowLine {
+      text-align: center;
+      font-weight: bold;
+    }
+    
+    &.previousFlowLine {
+      text-align: center;
+      opacity: 0.7;
+    }
+    
+    &.upcomingFlowLine {
+      text-align: center;
+      opacity: 0.5;
+    }
+  }
+}
+
+.lyricsContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column; 
+  align-items: center;
+  padding: 0 10px;
+  overflow-y: auto;
+  max-height: 100%;
+  
+  .staticLyrics {
+    text-align: center;
+    max-width: 100%;
+    margin: 0 auto;
+    
+    @media (max-width: 960px) {
+      max-width: 90%;
+    }
+  }
+  
+  .currentLine {
+    font-size: 5rem; // Огромный текст
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-align: center;
+    width: 100%;
+    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+    
+    @media (max-width: 960px) {
+      font-size: 4.5rem; // Немного меньше на средних экранах
+    }
+    
+    @media (max-width: 600px) {
+      font-size: 3.2rem; // Еще меньше на маленьких экранах
+    }
+  }
+  
+  .upcomingLines {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .upcomingLine {
+    font-size: 3rem;
+    margin-top: 5px;
+    text-align: center;
+    width: 100%;
+    opacity: 0.9;
+    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+    
+    @media (max-width: 960px) {
+      font-size: 2.8rem;
+    }
+    
+    @media (max-width: 600px) {
+      font-size: 2.2rem;
+    }
+    
+    &:nth-child(1) { opacity: 0.85; }
+    &:nth-child(2) { opacity: 0.75; }
+    &:nth-child(3) { opacity: 0.65; }
+    &:nth-child(4) { opacity: 0.55; }
+    &:nth-child(5) { opacity: 0.45; }
+    &:nth-child(6) { opacity: 0.35; }
+  }
+  
+  .previousLine {
+    font-size: 2.5rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 15px;
+    text-align: center;
+    width: 100%;
+    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+    
+    @media (max-width: 600px) {
+      font-size: 2rem;
+    }
+  }
+}
+
+/* 
+  Базовый контейнер для строки. 
+  Все строки всегда присутствуют, но с разной непрозрачностью и положением 
+*/
+.flowLine {
+  position: relative;
+  transition-property: all;
+  transition-duration: 1s;
+  transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1); /* Плавная кривая Безье */
+  will-change: transform, opacity, filter;
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 100%;
+  overflow: visible; /* Позволяем тексту переносить строки */
+  display: flex;
+  justify-content: flex-end;
+  padding-left: 10px; /* Оставляем место для переноса слов */
+  
+  &.currentFlowLine {
+    z-index: 10;
+    /* Убираю анимацию свечения */
+    /* animation: softGlowPulse 4s ease-in-out infinite; */
+    margin-bottom: 24px;
+  }
+  
+  &.previousFlowLine {
+    position: relative;
+    z-index: 5;
+    opacity: 0.5;
+    transition-duration: 1s; /* Увеличиваем время перехода для большей плавности */
+  }
+  
+  &.upcomingFlowLine {
+    z-index: 5;
+    transform-origin: right center;
+  }
+  
+  /* Убираю анимации movingOut и movingIn, чтобы избежать дерганий */
+  /* Используем только CSS transitions для более плавного движения */
+}
+
+/* 
+  Стили для текста внутри строки.
+  Увеличиваем поддержку переносов для длинных строк.
+*/
+.flowLine > span {
+  display: inline-block !important; 
+  text-align: right;
+  width: auto;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: keep-all;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  -ms-hyphens: auto;
+  white-space: normal !important;
+  padding: 4px 0;
+  transition: all 1s cubic-bezier(0.23, 1, 0.32, 1); /* Согласованная кривая перехода */
+}
+
+/* Убираем классы анимаций, которые могут вызывать дергания */
+
+/* Анимация плавного перемещения строки вверх */
+@keyframes smoothMoveUp {
+  0% {
+    transform: translateY(0);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-40px);
+    opacity: 0;
+  }
+}
+
+/* Анимация плавного появления строки */
+@keyframes smoothMoveDown {
+  0% {
+    transform: translateY(40px);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+} 

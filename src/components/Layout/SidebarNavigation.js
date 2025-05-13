@@ -6,6 +6,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { NavButton, MoreButton } from '../../UIKIT';
 import { SidebarContext } from '../../context/SidebarContext';
+import GavelIcon from '@mui/icons-material/Gavel';
 
 
 import homeIcon from '@iconify-icons/solar/home-bold';
@@ -41,7 +42,7 @@ const SidebarNavigation = memo(({
   user
 }) => {
   const location = useLocation();
-  const { expandedMore, expandedAdminMod, toggleExpandMore, toggleExpandAdminMod } = useContext(SidebarContext);
+  const { expandedMore, expandedAdminMod, expandedShops, toggleExpandMore, toggleExpandAdminMod, toggleExpandShops } = useContext(SidebarContext);
   
   
   const isActive = useCallback((path) => {
@@ -70,7 +71,8 @@ const SidebarNavigation = memo(({
     leaderboard: <Icon icon={leaderboardIcon} width="20" height="20" />,
     bug: <Icon icon={bugIcon} width="20" height="20" />,
     rules: <Icon icon={rulesIcon} width="20" height="20" />,
-    api: <Icon icon={apiIcon} width="20" height="20" />
+    api: <Icon icon={apiIcon} width="20" height="20" />,
+    auction: <GavelIcon sx={{ fontSize: 20 }} />
   }), []);
   
   
@@ -123,14 +125,6 @@ const SidebarNavigation = memo(({
         active={isActive('/search')}
         themeColor={primaryColor}
       />
-      
-      <NavButton
-        text="Магазин бейджиков"
-        icon={icons.shop}
-        path="/badge-shop"
-        active={isActive('/badge-shop')}
-        themeColor={primaryColor}
-      />
     </>
   ), [icons, isActive, primaryColor, user]);
   
@@ -175,6 +169,41 @@ const SidebarNavigation = memo(({
       </>
     )
   ), [icons, isActive, isAdmin, isModeratorUser, expandedAdminMod, toggleExpandAdminMod]);
+
+  const shopsMenu = useMemo(() => (
+    <>
+      <NavButton
+        text="Магазины"
+        icon={icons.shop}
+        active={expandedShops}
+        onClick={toggleExpandShops}
+        endIcon={expandedShops ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+        themeColor={primaryColor}
+      />
+      
+      <Collapse in={expandedShops} timeout="auto" unmountOnExit>
+        <List component="div" disablePadding sx={{ pl: 1.5, pt: 0.5 }}>
+          <NavButton
+            text="Магазин бейджиков"
+            icon={icons.shop}
+            path="/badge-shop"
+            active={isActive('/badge-shop')}
+            themeColor={primaryColor}
+            nested={true}
+          />
+          
+          <NavButton
+            text="Аукцион юзернеймов"
+            icon={icons.auction}
+            path="/username-auction"
+            active={isActive('/username-auction')}
+            themeColor={primaryColor}
+            nested={true}
+          />
+        </List>
+      </Collapse>
+    </>
+  ), [icons, isActive, primaryColor, expandedShops, toggleExpandShops]);
   
   const extraMenu = useMemo(() => (
     !isChannel && (
@@ -246,7 +275,7 @@ const SidebarNavigation = memo(({
             rel="noopener noreferrer"
           />
           
-          {/* <NavButton
+          <NavButton
             text="API Документация"
             icon={icons.api}
             path="/api-docs"
@@ -254,7 +283,7 @@ const SidebarNavigation = memo(({
             themeColor={primaryColor}
             nested={true}
           />
-           */}
+          
           <NavButton
             text="О платформе"
             icon={icons.rules}
@@ -274,6 +303,7 @@ const SidebarNavigation = memo(({
     <List component="nav" sx={{ p: 1, mt: 1 }}>
       {mainMenu}
       {adminModMenu}
+      {shopsMenu}
       {extraMenu}
       {moreSection}
     </List>

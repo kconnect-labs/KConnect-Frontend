@@ -56,7 +56,7 @@ import CommentIcon from '@mui/icons-material/Comment';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbUpOffAltIcon from '@mui/icons-material/ThumbUpOffAlt';
 import ImageGrid from '../../components/Post/ImageGrid';
-import LightBox from '../../components/LightBox';
+import SimpleImageViewer from '../../components/SimpleImageViewer';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import { Post } from '../../components/Post';
 import { formatTimeAgo, getRussianWordForm, debugDate, parseDate } from '../../utils/dateUtils';
@@ -630,27 +630,17 @@ const Comment = ({
         </Box>
       </Box>
 
-      
-      {lightboxOpen && comment.image && !currentLightboxImage && (
-        <LightBox
-          isOpen={lightboxOpen}
-          onClose={handleCloseLightbox}
-          imageSrc={comment.image}
-        />
-      )}
-      
-      
-      {lightboxOpen && currentLightboxImage && (
-        <LightBox
+      {/* Объединяем в один условный блок для обоих случаев */}
+      {lightboxOpen && (currentLightboxImage || comment.image) && (
+        <SimpleImageViewer
           isOpen={lightboxOpen}
           onClose={() => {
             setLightboxOpen(false);
             setCurrentLightboxImage('');
           }}
-          imageSrc={currentLightboxImage}
+          images={currentLightboxImage || comment.image}
         />
       )}
-
       
       {comment.replies && comment.replies.length > 0 && (
         <Box sx={{ 
@@ -2363,27 +2353,6 @@ const PostDetailPage = ({ isOverlay = false }) => {
           </Box>
         )}
       </Menu>
-
-      {lightboxOpen && (
-        <LightBox
-          isOpen={lightboxOpen}
-          onClose={() => setLightboxOpen(false)}
-          imageSrc={post.images && post.images.length > 0 
-            ? post.images[currentImageIndex] 
-            : post.image}
-          title={`Пост от ${post.user?.name || 'Пользователя'}`}
-          caption={post.content?.substring(0, 100) || ''}
-          liked={post.is_liked}
-          likesCount={post.likes_count}
-          onLike={() => {}}
-          onComment={() => {}}
-          onShare={() => {}}
-          onNext={() => setCurrentImageIndex((prev) => (prev + 1) % (post.images?.length || 1))}
-          onPrev={() => setCurrentImageIndex((prev) => (prev - 1 + (post.images?.length || 1)) % (post.images?.length || 1))}
-          totalImages={post.images?.length || 1}
-          currentIndex={currentImageIndex}
-        />
-      )}
 
       <Dialog
         open={commentDeleteDialog.open}

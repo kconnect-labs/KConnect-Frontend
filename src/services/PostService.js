@@ -2,9 +2,11 @@ import axios from './axiosConfig';
 import AuthService from './AuthService';
 
 const PostService = {
-    getFeed: async (page = 1, limit = 10) => {
+    getFeed: async (page = 1, limit = 10, forceRefresh = false) => {
     try {
-      const response = await axios.get(`/api/posts/feed?page=${page}&limit=${limit}`);
+      const response = await axios.get(`/api/posts/feed?page=${page}&limit=${limit}`, {
+        forceRefresh
+      });
       return response.data;
     } catch (error) {
       console.error('Error fetching feed:', error);
@@ -12,9 +14,11 @@ const PostService = {
     }
   },
 
-    getPost: async (postId) => {
+    getPost: async (postId, forceRefresh = false) => {
     try {
-      const response = await axios.get(`/api/posts/${postId}`);
+      const response = await axios.get(`/api/posts/${postId}`, {
+        forceRefresh
+      });
       return response.data;
     } catch (error) {
       console.error('Error fetching post:', error);
@@ -69,6 +73,17 @@ const PostService = {
           }
         });
         console.log('POST success:', response.data);
+        
+
+        axios.cache.clearPostsCache();
+        
+
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('post-created', {
+            detail: { post: response.data.post }
+          }));
+        }
+        
         return response.data;
       } catch (postError) {
         console.error('POST method failed:', postError);
@@ -81,6 +96,17 @@ const PostService = {
             }
           });
           console.log('PUT success:', putResponse.data);
+          
+
+          axios.cache.clearPostsCache();
+          
+
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('post-created', {
+              detail: { post: putResponse.data.post }
+            }));
+          }
+          
           return putResponse.data;
         } catch (putError) {
           console.error('PUT method failed:', putError);
@@ -92,6 +118,17 @@ const PostService = {
             }
           });
           console.log('Final attempt success:', finalResponse.data);
+          
+
+          axios.cache.clearPostsCache();
+          
+
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('post-created', {
+              detail: { post: finalResponse.data.post }
+            }));
+          }
+          
           return finalResponse.data;
         }
       }
@@ -104,6 +141,10 @@ const PostService = {
     likePost: async (postId) => {
     try {
       const response = await axios.post(`/api/posts/${postId}/like`);
+      
+
+      axios.cache.clearByUrlPrefix(`/api/posts/${postId}`);
+      
       return response.data;
     } catch (error) {
       console.error('Error liking post:', error);
@@ -122,6 +163,17 @@ const PostService = {
         }
       });
       console.log('DELETE method with cascade succeeded:', response.data);
+      
+
+      axios.cache.clearPostsCache();
+      
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('post-deleted', {
+          detail: { postId }
+        }));
+      }
+      
       return response.data;
     } catch (error) {
       console.error(`Error deleting post ${postId} with DELETE method:`, error);
@@ -135,6 +187,17 @@ const PostService = {
             full_delete: true
           });
           console.log('POST fallback method with cascade succeeded:', response.data);
+          
+
+          axios.cache.clearPostsCache();
+          
+
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('post-deleted', {
+              detail: { postId }
+            }));
+          }
+          
           return response.data;
         } catch (fallbackError) {
           console.error(`Fallback deletion also failed for post ${postId}:`, fallbackError);
@@ -146,12 +209,34 @@ const PostService = {
               full_delete: true
             });
             console.log('Second fallback with cascade succeeded:', response.data);
+            
+
+            axios.cache.clearPostsCache();
+            
+
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('post-deleted', {
+                detail: { postId }
+              }));
+            }
+            
             return response.data;
           } catch (secondFallbackError) {
                         try {
               console.log(`Final attempt: GET /api/posts/delete/${postId}/cascade`);
               const response = await axios.get(`/api/posts/delete/${postId}/cascade`);
               console.log('Final cascade deletion attempt succeeded:', response.data);
+              
+
+              axios.cache.clearPostsCache();
+              
+
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('post-deleted', {
+                  detail: { postId }
+                }));
+              }
+              
               return response.data;
             } catch (finalError) {
               console.error('All deletion methods failed:', finalError);
@@ -167,6 +252,34 @@ const PostService = {
       return { 
         success: false, 
         error: error.response?.data?.error || 'Не удалось удалить пост. Проверьте соединение и попробуйте снова.'
+      };
+    }
+  },
+
+
+  refreshFeed: async () => {
+    try {
+
+      axios.cache.clearPostsCache();
+      
+
+      const response = await axios.get('/api/posts/feed?page=1&limit=10', {
+        forceRefresh: true
+      });
+      
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('feed-refreshed', {
+          detail: { data: response.data }
+        }));
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error refreshing feed:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.error || 'Не удалось обновить ленту'
       };
     }
   }

@@ -1,7 +1,30 @@
 import axios from 'axios';
+import { SessionContext } from '../App';
+
+
+let sessionContext = {
+  checkSessionStatus: () => true,
+  lastFetchTime: null,
+};
+
+
+export const setSessionContext = (context) => {
+  sessionContext = context;
+};
+
+
+const shouldMakeRequest = () => {
+
+
+  return true;
+};
 
 const ProfileService = {
     getProfile: async (username) => {
+    if (!shouldMakeRequest()) {
+      return { success: false, message: 'Session expired' };
+    }
+    
     try {
       const endpoint = username ? `/api/profile/${username}` : '/api/profile';
       const response = await axios.get(endpoint);
@@ -13,8 +36,20 @@ const ProfileService = {
   },
 
     getSettings: async () => {
+    if (!shouldMakeRequest()) {
+
+      return { 
+        success: true, 
+        settings: JSON.parse(localStorage.getItem('theme_settings') || '{}')
+      };
+    }
+    
     try {
       const response = await axios.get('/api/profile/settings');
+
+      if (response.data.success && response.data.settings) {
+        localStorage.setItem('theme_settings', JSON.stringify(response.data.settings));
+      }
       return response.data;
     } catch (error) {
       console.error('Error fetching settings:', error);
@@ -23,6 +58,10 @@ const ProfileService = {
   },
 
     updateSettings: async (settings) => {
+    if (!shouldMakeRequest()) {
+      return { success: false, message: 'Session expired' };
+    }
+    
     try {
       const response = await axios.post('/api/profile/settings', settings, {
         headers: {
@@ -37,6 +76,10 @@ const ProfileService = {
   },
 
     updateName: async (name) => {
+    if (!shouldMakeRequest()) {
+      return { success: false, message: 'Session expired' };
+    }
+    
     try {
       const formData = new FormData();
       formData.append('name', name);
@@ -53,6 +96,10 @@ const ProfileService = {
   },
 
     updateUsername: async (username) => {
+    if (!shouldMakeRequest()) {
+      return { success: false, message: 'Session expired' };
+    }
+    
     try {
       const formData = new FormData();
       formData.append('username', username);
@@ -69,6 +116,10 @@ const ProfileService = {
   },
 
     updateAbout: async (about) => {
+    if (!shouldMakeRequest()) {
+      return { success: false, message: 'Session expired' };
+    }
+    
     try {
             const formData = new FormData();
       formData.append('about', about);
@@ -85,6 +136,10 @@ const ProfileService = {
   },
 
     uploadAvatar: async (file) => {
+    if (!shouldMakeRequest()) {
+      return { success: false, message: 'Session expired' };
+    }
+    
     try {
       const formData = new FormData();
       formData.append('avatar', file);
@@ -103,6 +158,10 @@ const ProfileService = {
   },
 
     uploadBanner: async (file) => {
+    if (!shouldMakeRequest()) {
+      return { success: false, message: 'Session expired' };
+    }
+    
     try {
       const formData = new FormData();
       formData.append('banner', file);
@@ -121,6 +180,10 @@ const ProfileService = {
   },
 
     updateSocial: async (name, link) => {
+    if (!shouldMakeRequest()) {
+      return { success: false, message: 'Session expired' };
+    }
+    
     try {
       const formData = new FormData();
       formData.append('name', name);
@@ -134,6 +197,10 @@ const ProfileService = {
   },
 
     deleteSocial: async (name) => {
+    if (!shouldMakeRequest()) {
+      return { success: false, message: 'Session expired' };
+    }
+    
     try {
       const formData = new FormData();
       formData.append('name', name);
@@ -146,6 +213,10 @@ const ProfileService = {
   },
 
     addSocial: async (name, link) => {
+    if (!shouldMakeRequest()) {
+      return { success: false, message: 'Session expired' };
+    }
+    
     try {
       const formData = new FormData();
       formData.append('name', name);
@@ -159,6 +230,10 @@ const ProfileService = {
   },
 
     followUser: async (userId) => {
+    if (!shouldMakeRequest()) {
+      return { success: false, message: 'Session expired' };
+    }
+    
     try {
       const response = await axios.post('/api/profile/follow', {
         followed_id: userId
@@ -171,6 +246,10 @@ const ProfileService = {
   },
   
     unfollowUser: async (userId) => {
+    if (!shouldMakeRequest()) {
+      return { success: false, message: 'Session expired' };
+    }
+    
     try {
                   const response = await axios.post('/api/profile/follow', {
         followed_id: userId
@@ -183,6 +262,10 @@ const ProfileService = {
   },
   
     checkFollowing: async (userId) => {
+    if (!shouldMakeRequest()) {
+      return { success: false, message: 'Session expired' };
+    }
+    
     try {
       const response = await axios.get(`/api/profile/${userId}`);
       return response.data.is_following;

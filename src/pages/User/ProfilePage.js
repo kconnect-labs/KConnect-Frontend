@@ -57,6 +57,7 @@ import RepostItem from '../../components/RepostItem';
 import PostSkeleton from '../../components/Post/PostSkeleton';
 import ContentLoader from '../../components/UI/ContentLoader';
 import TabContentLoader from '../../components/UI/TabContentLoader';
+import { UsernameCard } from '../../UIKIT';
 
 
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
@@ -95,6 +96,13 @@ import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
 import CollectionsIcon from '@mui/icons-material/Collections';
 import DiamondIcon from '@mui/icons-material/Diamond';
 import ChatIcon from '@mui/icons-material/Chat';
+import BlockIcon from '@mui/icons-material/Block';
+import WarningIcon from '@mui/icons-material/Warning';
+import { 
+  NavButton,
+  ContextMenu
+} from '../../UIKIT';
+import { Icon } from '@iconify/react';
 
 
 const ProfileHeader = styled(Box)(({ theme }) => ({
@@ -376,7 +384,7 @@ const MarkdownContent = styled(Box)(({ theme }) => ({
 const PublishButton = styled(Button)(({ theme }) => ({
   borderRadius: '18px',
   textTransform: 'none',
-  fontSize: '0.8rem',
+  fontSize: '0.6rem',
   fontWeight: 600,
   boxShadow: '0 2px 8px rgba(124, 77, 255, 0.25)',
   padding: theme.spacing(0.4, 1.5),
@@ -419,22 +427,46 @@ const VerificationBadge = ({ status, size }) => {
         return { color: '#ff9800', title: 'Модератор' };
       case 5:
         return { color: '#4caf50', title: 'Поддержка' };
+      case 6:
+        return { color: '#1e88e5', title: 'Канал (Верифицированный)', isChannelVerified: true };
+      case 7:
+        return { color: '#7c4dff', title: 'Канал (Премиум)', isChannelPremium: true };
       default:
         return { color: '#D0BCFF', title: 'Верифицирован' };
     }
   };
   
-  const { color, title } = getColorAndTitle(status);
+  const { color, title, isChannelVerified, isChannelPremium } = getColorAndTitle(status);
   
   return (
     <Tooltip title={title} placement="top">
-      <CheckCircleIcon 
-        sx={{ 
-          fontSize: size === 'small' ? 23 : 20,
-          ml: 0.5,
-          color
-        }} 
-      />
+      {isChannelVerified ? (
+        <Icon 
+          icon="material-symbols:verified-rounded" 
+          style={{ 
+            fontSize: size === 'small' ? '26px' : '22px',
+            color: '#1e88e5',
+            marginLeft: '4px'
+          }} 
+        />
+      ) : isChannelPremium ? (
+        <Icon 
+          icon="material-symbols:verified-user-rounded" 
+          style={{ 
+            fontSize: size === 'small' ? '26px' : '22px',
+            color: '#7c4dff',
+            marginLeft: '4px'
+          }} 
+        />
+      ) : (
+        <CheckCircleIcon 
+          sx={{ 
+            fontSize: size === 'small' ? 23 : 20,
+            ml: 0.5,
+            color
+          }} 
+        />
+      )}
     </Tooltip>
   );
 };
@@ -991,7 +1023,7 @@ const CreatePost = ({ onPostCreated, postType = 'post', recipientId = null }) =>
                   }}
                   size="small"
                 >
-                  {mediaFiles.length > 0 ? `Файлы (${mediaFiles.length})` : 'Фото/видео'}
+                  {mediaFiles.length > 0 ? `Файлы (${mediaFiles.length})` : 'Медиа'}
                 </Button>
               </label>
               
@@ -1328,8 +1360,10 @@ const ProfilePage = () => {
   const [postsCount, setPostsCount] = useState(0);
   const [followers, setFollowers] = useState([]);
   const [followingList, setFollowingList] = useState([]);
+  const [friends, setFriends] = useState([]);
   const [loadingFollowers, setLoadingFollowers] = useState(true);
   const [loadingFollowing, setLoadingFollowing] = useState(true);
+  const [loadingFriends, setLoadingFriends] = useState(true);
   const [socials, setSocials] = useState([]);
   const [page, setPage] = useState(1);
   const [photoPage, setPhotoPage] = useState(1);
@@ -1361,6 +1395,17 @@ const ProfilePage = () => {
   const [lastActive, setLastActive] = useState(null);
   
   const [fallbackAvatarUrl, setFallbackAvatarUrl] = useState('');
+  
+
+  const [selectedUsername, setSelectedUsername] = useState(null);
+  const [usernameCardAnchor, setUsernameCardAnchor] = useState(null);
+  const [usernameCardOpen, setUsernameCardOpen] = useState(false);
+  
+
+  const [userBanInfo, setUserBanInfo] = useState(null);
+  
+
+  const [isCurrentUserModerator, setIsCurrentUserModerator] = useState(false);
   
   
   const openLightbox = (imageUrl) => {
@@ -1721,6 +1766,18 @@ const ProfilePage = () => {
             console.error('Error fetching owned usernames:', error);
             setOwnedUsernames([]);
           }
+          
+
+          if (response.data.user.ban || response.data.ban) {
+            setUserBanInfo(response.data.user.ban || response.data.ban);
+          } else {
+            setUserBanInfo(null);
+          }
+          
+
+          if (response.data.current_user_is_moderator !== undefined) {
+            setIsCurrentUserModerator(response.data.current_user_is_moderator);
+          }
         } else {
           console.error('User data not found in response', response.data);
           setUser(null); 
@@ -1836,6 +1893,7 @@ const ProfilePage = () => {
     if (user && user.id) {
       setLoadingFollowers(true);
       setLoadingFollowing(true);
+      setLoadingFriends(true);
       
       console.log(`Загрузка подписчиков для пользователя ${user.id}`);
       
@@ -1887,6 +1945,32 @@ const ProfilePage = () => {
         })
         .finally(() => {
           setLoadingFollowing(false);
+        });
+        
+      console.log(`Загрузка друзей для пользователя ${user.id}`);
+      
+      axios.get(`/api/profile/${user.id}/friends`)
+        .then(response => {
+          console.log('Ответ API друзей:', response.data);
+          if (response.data && response.data.friends) {
+            
+            const friendsData = Array.isArray(response.data.friends) 
+              ? response.data.friends.filter(f => f && typeof f === 'object') 
+              : [];
+            console.log(`Получено ${friendsData.length} друзей`);
+            setFriends(friendsData);
+          } else {
+            
+            console.warn('Нет данных о друзьях в ответе API');
+            setFriends([]);
+          }
+        })
+        .catch(error => {
+          console.error('Ошибка загрузки друзей:', error);
+          setFriends([]); 
+        })
+        .finally(() => {
+          setLoadingFriends(false);
         });
     }
   }, [user]);
@@ -2035,6 +2119,17 @@ const ProfilePage = () => {
       });
     }
   }, [user]);
+
+
+  const handleUsernameClick = (event, username) => {
+    event.preventDefault();
+    setSelectedUsername(username);
+    setUsernameCardOpen(true);
+  };
+  
+  const handleCloseUsernameCard = () => {
+    setUsernameCardOpen(false);
+  };
 
   if (loading) {
     return (
@@ -2810,7 +2905,51 @@ const ProfilePage = () => {
                   </Typography>
                   
 
-                  {isOnline && user?.subscription?.type !== 'channel' ? (
+                  {userBanInfo ? (
+                    <Tooltip 
+                      title={
+                        <Box sx={{ p: 0.5 }}>
+                          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>Аккаунт заблокирован</Typography>
+                          <Typography variant="body2" sx={{ mb: 0.5 }}>Причина: {userBanInfo.reason}</Typography>
+                          <Typography variant="body2" sx={{ mb: 0.5 }}>До: {userBanInfo.end_date}</Typography>
+                          {userBanInfo.remaining_days > 0 && (
+                            <Typography variant="body2">
+                              Осталось дней: {userBanInfo.remaining_days}
+                            </Typography>
+                          )}
+                        </Box>
+                      } 
+                      arrow 
+                      placement="top"
+                    >
+                      <Typography 
+                        variant="caption" 
+                        sx={{
+                          display: 'flex', 
+                          alignItems: 'center',
+                          color: '#fff',
+                          fontWeight: 500,
+                          background: 'rgba(211, 47, 47, 0.2)',
+                          px: 1,
+                          py: 0.3,
+                          borderRadius: 4,
+                          border: '1px solid rgba(211, 47, 47, 0.4)',
+                          '&:hover': {
+                            background: 'rgba(211, 47, 47, 0.3)',
+                          },
+                          animation: 'pulse-red 2s infinite',
+                          '@keyframes pulse-red': {
+                            '0%': { boxShadow: '0 0 0 0 rgba(211, 47, 47, 0.4)' },
+                            '70%': { boxShadow: '0 0 0 6px rgba(211, 47, 47, 0)' },
+                            '100%': { boxShadow: '0 0 0 0 rgba(211, 47, 47, 0)' }
+                          }
+                        }}
+                      >
+                        <BlockIcon sx={{ fontSize: 14, mr: 0.5, opacity: 0.9 }} />
+                        <Box component="span">В бане</Box>
+                      </Typography>
+                    </Tooltip>
+                  ) : isOnline && user?.subscription?.type !== 'channel' ? (
                     <Typography 
                       variant="caption" 
                       sx={{
@@ -2986,7 +3125,7 @@ const ProfilePage = () => {
                       <Typography variant="caption" sx={{ color: theme => theme.palette.text.secondary, mr: 0.5 }}>
                         А также:
                       </Typography>
-                      {ownedUsernames.slice(0, 3).map((username, idx) => (
+                      {ownedUsernames.slice(0, 3).map((usernameItem, idx) => (
                         <React.Fragment key={idx}>
                           <Typography 
                             variant="caption" 
@@ -2995,10 +3134,15 @@ const ProfilePage = () => {
                               color: (user.status_color && user.status_text && user.subscription) ? 
                                 user.status_color : 
                                 theme => theme.palette.mode === 'dark' ? '#d0bcff' : '#7c4dff',
-                              fontWeight: 500
+                              fontWeight: 500,
+                              cursor: 'pointer',
+                              '&:hover': {
+                                textDecoration: 'underline'
+                              }
                             }}
+                            onClick={(e) => handleUsernameClick(e, usernameItem)}
                           >
-                            @{username}
+                            @{usernameItem}
                           </Typography>
                           {idx < Math.min(ownedUsernames.length, 3) - 1 && (
                             <Typography variant="caption" component="span" sx={{ mx: 0.5, color: theme => theme.palette.text.disabled }}>
@@ -3016,7 +3160,54 @@ const ProfilePage = () => {
                   </Box>
                 )}
                 
+                {userBanInfo && (isCurrentUserModerator || (currentUser && currentUser.id === 3)) && (
+                  <Box sx={{ 
+                    mt: 2,
+                    p: 1.5,
+                    borderRadius: '12px',
+                    backgroundColor: 'rgba(211, 47, 47, 0.1)',
+                    border: '1px solid rgba(211, 47, 47, 0.3)',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 1.5
+                  }}>
+                    <WarningIcon color="error" sx={{ fontSize: 22, mt: 0.5 }} />
+                    <Box>
+                      <Typography variant="subtitle2" color="error" sx={{ fontWeight: 'bold' }}>
+                        Аккаунт заблокирован
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                        Причина: {userBanInfo.reason}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                        До {userBanInfo.end_date} 
+                        {userBanInfo.remaining_days > 0 && ` (осталось ${userBanInfo.remaining_days} дн.)`}
+                      </Typography>
+                      
+                      {currentUser && currentUser.id === 3 && (
+                        <Box sx={{ mt: 1, pt: 1, borderTop: '1px dashed rgba(211, 47, 47, 0.3)' }}>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontStyle: 'italic' }}>
+                            {userBanInfo.is_auto_ban ? 'Автоматический бан системой' : (
+                              userBanInfo.admin ? `Бан выдал: ${userBanInfo.admin.name} (@${userBanInfo.admin.username})` : 'Бан выдан администрацией'
+                            )}
+                          </Typography>
+                          {userBanInfo.start_date && (
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontStyle: 'italic' }}>
+                              Начало бана: {userBanInfo.start_date}
+                            </Typography>
+                          )}
+                          {userBanInfo.details && (
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontStyle: 'italic' }}>
+                              Детали: {userBanInfo.details}
+                            </Typography>
+                          )}
+                        </Box>
+                      )}
+                    </Box>
+                  </Box>
+                )}
                 
+                {/* Блок с информацией о пользователе */}
                 {user?.about && (
                   <Typography 
                     variant="body2" 
@@ -3110,10 +3301,12 @@ const ProfilePage = () => {
                           'primary.main'
                       }}
                     >
-                      {followersCount || 0}
+                      {user?.subscription?.type === 'channel' ? 
+                        (followersCount || 0) : 
+                        (user?.friends_count || 0)}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      подписчиков
+                      {user?.subscription?.type === 'channel' ? 'подписчиков' : 'друзей'}
                     </Typography>
                   </Paper>
                   
@@ -3169,21 +3362,21 @@ const ProfilePage = () => {
                       <Grid item xs={6}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                           <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
-                            Подписчики
+                            Друзья
                           </Typography>
                           
                           
-                          {loadingFollowers ? (
+                          {loadingFriends ? (
                             <CircularProgress size={20} />
-                          ) : followers.length > 0 ? (
+                          ) : friends && friends.length > 0 ? (
                             <Box sx={{ display: 'flex', gap: 1 }}>
-                              {followers.slice(0, 3).map(follower => (
-                                <Tooltip key={follower.id} title={follower.name} arrow>
+                              {friends.slice(0, 3).map(friend => (
+                                <Tooltip key={friend.id} title={friend.name} arrow>
                                   <Avatar 
-                                    src={follower.photo} 
-                                    alt={follower.name}
+                                    src={friend.avatar_url} 
+                                    alt={friend.name}
                                     component={Link}
-                                    to={`/profile/${follower.username}`}
+                                    to={`/profile/${friend.username}`}
                                     sx={{ 
                                       width: 32, 
                                       height: 32, 
@@ -3193,19 +3386,19 @@ const ProfilePage = () => {
                                       flexShrink: 0 
                                     }}
                                     onError={(e) => {
-                                      console.error(`Failed to load follower avatar for ${follower.username}`);
-                                      if (follower.id) {
-                                        e.target.src = `/static/uploads/avatar/${follower.id}/${follower.photo || 'avatar.png'}`;
+                                      console.error(`Failed to load friend avatar for ${friend.username}`);
+                                      if (friend.id) {
+                                        e.target.src = `/static/uploads/avatar/${friend.id}/${friend.photo || 'avatar.png'}`;
                                       }
                                     }}
                                   />
                                 </Tooltip>
                               ))}
-                              {followersCount > 3 && (
-                                <Tooltip title="Показать всех" arrow>
+                              {user?.friends_count > 3 && (
+                                <Tooltip title="Показать всех друзей" arrow>
                                   <Avatar 
                                     component={Link}
-                                    to={`/profile/${user?.username}/followers`}
+                                    to={`/profile/${user?.username}/friends`}
                                     sx={{ 
                                       width: 32, 
                                       height: 32, 
@@ -3219,14 +3412,14 @@ const ProfilePage = () => {
                                       flexShrink: 0 
                                     }}
                                   >
-                                    +{followersCount - 3}
+                                    +{user?.friends_count - 3}
                                   </Avatar>
                                 </Tooltip>
                               )}
                             </Box>
                           ) : (
                             <Typography variant="caption" color="text.secondary">
-                              Нет подписчиков
+                              Нет друзей
                             </Typography>
                           )}
                         </Box>
@@ -3265,7 +3458,7 @@ const ProfilePage = () => {
                               {followingList.slice(0, 3).map(following => (
                                 <Tooltip key={following.id} title={following.name} arrow>
                                   <Avatar 
-                                    src={following.photo} 
+                                    src={following.avatar_url} 
                                     alt={following.name}
                                     component={Link}
                                     to={`/profile/${following.username}`}
@@ -3311,7 +3504,7 @@ const ProfilePage = () => {
                             </Box>
                           ) : (
                             <Typography variant="caption" color="text.secondary">
-                              Нет подписок
+                              {user?.subscription && user.subscription.type === 'channel' ? 'Нет подписчиков' : 'Нет друзей'}
                             </Typography>
                           )
                         )}
@@ -3621,20 +3814,18 @@ const ProfilePage = () => {
                         </Typography>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                           
-                          {user.purchased_usernames.map((username, idx) => (
+                          {user.purchased_usernames.map((usernameObj, idx) => (
                             <Chip 
                               key={idx}
-                              label={username.username}
+                              label={usernameObj.username}
                               size="small"
+                              variant={usernameObj.is_active ? "filled" : "outlined"}
+                              color={usernameObj.is_active ? "primary" : "default"}
+                              onClick={(e) => handleUsernameClick(e, usernameObj.username)}
                               sx={{ 
-                                bgcolor: username.is_active ? 'primary.dark' : 'background.paper',
-                                border: '1px solid',
-                                borderColor: username.is_active ? 'primary.main' : 'divider',
-                                '&:hover': {
-                                  bgcolor: username.is_active ? 'primary.main' : 'rgba(208, 188, 255, 0.1)',
-                                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
-                                },
-                                transition: 'all 0.2s'
+                                '& .MuiChip-label': {
+                                  px: 1
+                                }
                               }}
                             />
                           ))}
@@ -3768,6 +3959,17 @@ const ProfilePage = () => {
           </Box>
         )}
       </Menu>
+      
+      {/* Карточка с информацией об юзернейме */}
+      <AnimatePresence>
+        {selectedUsername && (
+          <UsernameCard 
+            username={selectedUsername}
+            onClose={handleCloseUsernameCard}
+            open={usernameCardOpen}
+          />
+        )}
+      </AnimatePresence>
     </Container>
   );
 };

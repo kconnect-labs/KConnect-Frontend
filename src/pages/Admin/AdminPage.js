@@ -77,6 +77,7 @@ import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import axios from 'axios';
+import { Icon } from '@iconify/react';
 
 
 const PageHeader = styled(Box)(({ theme }) => ({
@@ -758,6 +759,8 @@ const AdminPage = () => {
                                      user.verification_level === 3 ? '#b39ddb' : 
                                      user.verification_level === 4 ? '#ff9800' : 
                                      user.verification_level === 5 ? '#4caf50' :
+                                     user.verification_level === 6 ? '#1e88e5' :
+                                     user.verification_level === 7 ? '#7c4dff' :
                                      '#D0BCFF'
                             }} 
                           />
@@ -1691,6 +1694,32 @@ const AdminPage = () => {
                     Поддержка
                   </Box>
                 </MenuItem>
+                <MenuItem value={6}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Icon 
+                      icon="material-symbols:verified-rounded" 
+                      style={{ 
+                        fontSize: '24px', 
+                        color: '#1e88e5',
+                        marginRight: '8px'
+                      }} 
+                    />
+                    Канал (Верифицированный)
+                  </Box>
+                </MenuItem>
+                <MenuItem value={7}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Icon 
+                      icon="material-symbols:verified-user-rounded" 
+                      style={{ 
+                        fontSize: '24px', 
+                        color: '#7c4dff',
+                        marginRight: '8px'
+                      }} 
+                    />
+                    Канал (Премиум)
+                  </Box>
+                </MenuItem>
               </Select>
             </FormControl>
             <Typography variant="caption" color="text.secondary">
@@ -1852,6 +1881,8 @@ const AdminPage = () => {
                              selectedUser?.verification_level === 3 ? '#b39ddb' : 
                              selectedUser?.verification_level === 4 ? '#ff9800' : 
                              selectedUser?.verification_level === 5 ? '#4caf50' :
+                             selectedUser?.verification_level === 6 ? '#1e88e5' :
+                             selectedUser?.verification_level === 7 ? '#7c4dff' :
                              '#D0BCFF'
                     }} 
                   />
