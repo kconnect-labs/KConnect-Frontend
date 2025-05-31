@@ -31,14 +31,14 @@ export default function useApi(url, options = {}) {
     dependencies = [],
   } = options;
 
-  // Состояния хука
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [response, setResponse] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [fromCache, setFromCache] = useState(false);
 
-  // Использовать useRef для хранения последних параметров запроса
+  
   const requestParamsRef = useRef({
     url,
     method,
@@ -48,7 +48,7 @@ export default function useApi(url, options = {}) {
     cache
   });
 
-  // Обновляем ref при изменении параметров
+  
   useEffect(() => {
     requestParamsRef.current = {
       url,
@@ -60,21 +60,21 @@ export default function useApi(url, options = {}) {
     };
   }, [url, method, JSON.stringify(params), JSON.stringify(data), JSON.stringify(headers), cache]);
 
-  // Функция для выполнения запроса
+  
   const fetchData = useCallback(async (overrideParams = {}) => {
     try {
-      // Используем последние параметры запроса из ref, с возможностью переопределения
+      
       const currentParams = {
         ...requestParamsRef.current,
         ...overrideParams
       };
 
-      // Обновляем состояние
+      
       setError(null);
       setLoading(true);
       setFromCache(false);
 
-      // Формируем конфигурацию запроса
+      
       const config = {
         url: currentParams.url,
         method: currentParams.method,
@@ -88,38 +88,38 @@ export default function useApi(url, options = {}) {
         config.cacheTTL = cacheTTL;
       }
 
-      // Выполняем запрос
+      
       const result = await axios(config);
 
-      // Проверяем, был ли ответ из кэша
+      
       const isFromCache = result.fromCache === true;
       setFromCache(isFromCache);
 
-      // Обновляем состояние
+      
       setResponse(result.data);
       setLastUpdated(new Date());
 
-      // Вызываем колбэк при успехе
+      
       if (onSuccess) {
         onSuccess(result.data, isFromCache);
       }
 
       return result.data;
     } catch (err) {
-      // Обрабатываем ошибку
+      
       setError(err);
       
-      // Вызываем колбэк при ошибке
+      
       if (onError) {
         onError(err);
       }
       
-      // Показываем уведомление об ошибке, если нет колбэка
+      
       if (!onError) {
         let message = 'Произошла ошибка при загрузке данных';
         
         if (err.response) {
-          // Ошибка с ответом от сервера
+          
           const status = err.response.status;
           if (status >= 400 && status < 500) {
             message = 'Ошибка в запросе данных';
@@ -127,11 +127,11 @@ export default function useApi(url, options = {}) {
             message = 'Ошибка сервера. Пожалуйста, попробуйте позже';
           }
         } else if (err.request) {
-          // Ошибка сети
+          
           message = 'Проблема с подключением к серверу';
         }
         
-        // Диспатчим событие для отображения ошибки
+        
         window.dispatchEvent(new CustomEvent('show-error', { 
           detail: { message } 
         }));
@@ -143,32 +143,32 @@ export default function useApi(url, options = {}) {
     }
   }, [onSuccess, onError, cacheTTL]);
 
-  // Очистка кэша для текущего эндпоинта
+  
   const clearCache = useCallback(() => {
     if (url) {
-      // Очищаем кэш для текущего URL
+      
       axios.cache.clearByUrlPrefix(url);
     }
   }, [url]);
 
-  // Принудительное обновление данных
+  
   const refresh = useCallback(async (overrideParams = {}) => {
-    // При refresh всегда игнорируем кэш
+    
     return fetchData({ 
       ...overrideParams, 
       cache: false 
     });
   }, [fetchData]);
 
-  // Автоматически выполняем запрос при монтировании, если не указан lazy
+  
   useEffect(() => {
     if (!lazy) {
       fetchData();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  
   }, [lazy, ...dependencies]);
 
-  // Возвращаем состояние и методы управления
+  
   return {
     data: response,
     loading,
@@ -203,7 +203,7 @@ export function useInfiniteApi(url, options = {}) {
     ...restOptions
   } = options;
 
-  // Базовые состояния
+  
   const [items, setItems] = useState([]);
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(startPage);
@@ -211,7 +211,7 @@ export function useInfiniteApi(url, options = {}) {
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  // Инициализируем useApi хук для запросов
+  
   const apiParams = {
     ...restOptions.params,
     [pageParam]: currentPage,
@@ -233,7 +233,7 @@ export function useInfiniteApi(url, options = {}) {
     }
   });
 
-  // Функция для загрузки следующей страницы
+  
   const loadNextPage = useCallback(async () => {
     if (loading || !hasMore) return;
     
@@ -251,7 +251,7 @@ export function useInfiniteApi(url, options = {}) {
       const newItems = dataExtractor(newData);
       setHasMore(hasMoreExtractor(newData));
       
-      // Добавляем новые элементы к существующим
+      
       setItems(prev => [...prev, ...newItems]);
       setCurrentPage(prev => prev + 1);
       setLastUpdated(new Date());
@@ -265,17 +265,17 @@ export function useInfiniteApi(url, options = {}) {
     }
   }, [currentPage, dataExtractor, fetch, hasMore, hasMoreExtractor, limit, loading, pageParam, restOptions.params]);
 
-  // Функция для обновления списка (сброс и загрузка с первой страницы)
+  
   const refresh = useCallback(async () => {
     setItems([]);
     setCurrentPage(startPage);
     setHasMore(true);
     setError(null);
     
-    // Очищаем кэш
+    
     clearCache();
     
-    // Загружаем первую страницу
+    
     try {
       setLoading(true);
       
@@ -303,12 +303,12 @@ export function useInfiniteApi(url, options = {}) {
     }
   }, [fetch, clearCache, dataExtractor, hasMoreExtractor, limit, pageParam, restOptions.params, startPage]);
 
-  // Загружаем первую страницу при монтировании
+  
   useEffect(() => {
     if (!restOptions.lazy) {
       refresh();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  
   }, []);
 
   return {
@@ -339,13 +339,13 @@ export function useMutation(url, options = {}) {
   const [error, setError] = useState(null);
   const [data, setData] = useState(null);
 
-  // Функция выполнения мутации
+  
   const mutate = useCallback(async (mutationData = {}, configOverrides = {}) => {
     try {
       setLoading(true);
       setError(null);
       
-      // Формируем конфигурацию запроса
+      
       const config = {
         url,
         method,
@@ -354,13 +354,13 @@ export function useMutation(url, options = {}) {
         data: mutationData
       };
       
-      // Выполняем запрос
+      
       const response = await axios(config);
       
-      // Устанавливаем данные
+      
       setData(response.data);
       
-      // Вызываем колбэк при успехе
+      
       if (onSuccess) {
         onSuccess(response.data, mutationData);
       }
@@ -369,15 +369,15 @@ export function useMutation(url, options = {}) {
     } catch (err) {
       setError(err);
       
-      // Вызываем колбэк при ошибке
+      
       if (onError) {
         onError(err, mutationData);
       } else {
-        // Базовая обработка ошибок
+        
         let message = 'Произошла ошибка при выполнении операции';
         
         if (err.response) {
-          // Формируем понятное сообщение в зависимости от кода ошибки
+          
           const status = err.response.status;
           if (status === 400) message = 'Неверные данные для операции';
           else if (status === 401) message = 'Необходима авторизация';
@@ -386,7 +386,7 @@ export function useMutation(url, options = {}) {
           else if (status === 409) message = 'Конфликт при выполнении операции';
           else if (status >= 500) message = 'Ошибка сервера при выполнении операции';
           
-          // Если сервер вернул сообщение об ошибке, используем его
+          
           if (err.response.data && (err.response.data.message || err.response.data.error)) {
             message = err.response.data.message || err.response.data.error;
           }
@@ -394,7 +394,7 @@ export function useMutation(url, options = {}) {
           message = 'Отсутствует соединение с сервером';
         }
         
-        // Диспатчим событие для отображения ошибки
+        
         window.dispatchEvent(new CustomEvent('show-error', { 
           detail: { message } 
         }));
@@ -406,7 +406,7 @@ export function useMutation(url, options = {}) {
     }
   }, [url, method, onSuccess, onError, restOptions]);
 
-  // Сброс состояния хука
+  
   const reset = useCallback(() => {
     setLoading(false);
     setError(null);

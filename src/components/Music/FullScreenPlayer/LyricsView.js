@@ -1,549 +1,417 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { CircularProgress, Typography, Button, useMediaQuery, useTheme, Box } from '@mui/material';
+import { Box, Typography, Button, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
 import { Schedule } from '@mui/icons-material';
 import { useMusic } from '../../../context/MusicContext';
+import { styled } from '@mui/system';
+import { Lrc, useRecoverAutoScrollImmediately } from 'react-lrc';
 import styles from './LyricsView.module.scss';
 
-
-const SyncedLyricsUpdater = memo(({ lyricsData, getCurrentTimeRaw, onUpdateLyric }) => {
-  const animationFrameRef = useRef(null);
-  const transitionTimeoutRef = useRef(null);
-  const currentLyricIndexRef = useRef(-1);
-
-  useEffect(() => {
-    if (!lyricsData?.has_synced_lyrics || !lyricsData?.synced_lyrics || !Array.isArray(lyricsData.synced_lyrics)) {
-      return;
-    }
-
-    const updateCurrentLyric = () => {
-      try {
-        const syncedLyrics = lyricsData.synced_lyrics;
-
-        const rawCurrentTime = getCurrentTimeRaw();
-        const currentTimeMs = rawCurrentTime * 1000;
-        
-
-        const timeWithOffset = currentTimeMs + 800;
-        
-
-        const sortedLyrics = [...syncedLyrics]
-          .filter(line => line?.startTimeMs !== undefined && line?.text !== undefined)
-          .sort((a, b) => a.startTimeMs - b.startTimeMs);
-
-        if (sortedLyrics.length === 0) {
-          animationFrameRef.current = requestAnimationFrame(updateCurrentLyric);
-          return;
-        }
-
-
-        let activeIndex = -1;
-        
-
-        let start = 0;
-        let end = sortedLyrics.length - 1;
-        
-        while (start <= end) {
-          const mid = Math.floor((start + end) / 2);
-          
-          if (sortedLyrics[mid].startTimeMs <= timeWithOffset) {
-
-            activeIndex = mid;
-            start = mid + 1;
-          } else {
-            end = mid - 1;
-          }
-        }
-
-
-        if (activeIndex === -1 && sortedLyrics.length > 0) {
-          if (sortedLyrics[0].startTimeMs > timeWithOffset) {
-            activeIndex = -1;
-          } else {
-            activeIndex = 0;
-          }
-        }
-
-
-        if (activeIndex !== -1) {
-          const activeLyric = sortedLyrics[activeIndex];
-          const originalIndex = syncedLyrics.findIndex(
-            l => l.lineId === activeLyric.lineId || 
-                (l.text === activeLyric.text && l.startTimeMs === activeLyric.startTimeMs)
-          );
-          
-
-          if (originalIndex !== -1 && originalIndex !== currentLyricIndexRef.current) {
-            const prevIndex = currentLyricIndexRef.current;
-            currentLyricIndexRef.current = originalIndex;
-            
-
-            onUpdateLyric(originalIndex, prevIndex);
-          }
-        }
-
-        animationFrameRef.current = requestAnimationFrame(updateCurrentLyric);
-      } catch (error) {
-        console.error("Error updating current lyric:", error);
-        animationFrameRef.current = requestAnimationFrame(updateCurrentLyric);
-      }
-    };
-    
-
-    animationFrameRef.current = requestAnimationFrame(updateCurrentLyric);
-    
-    return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-      
-      if (transitionTimeoutRef.current) {
-        clearTimeout(transitionTimeoutRef.current);
-      }
-    };
-  }, [lyricsData, getCurrentTimeRaw, onUpdateLyric]);
-
-  return null;
-});
+const LyricsContainer = styled(Box)(({ theme }) => ({
+  height: '100%',
+  width: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  overflow: 'hidden',
+  position: 'relative',
+}));
 
 const LyricsView = ({ 
   lyricsData, 
   loading, 
-  currentTrack, 
+  currentTrack,
   dominantColor,
   onOpenEditor,
   onOpenTimestampEditor
 }) => {
-  const [currentLyricIndex, setCurrentLyricIndex] = useState(-1);
-  const [previousLyricIndex, setPreviousLyricIndex] = useState(-1);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const lyricsContainerRef = useRef(null);
-  const animationFrameRef = useRef(null);
-  const transitionTimeoutRef = useRef(null);
-  const theme = useTheme();
-  const isDesktop = useMediaQuery('(min-width:960px)');
-  const isLargeScreen = useMediaQuery('(min-width:1200px)');
-  
-
   const { getCurrentTimeRaw } = useMusic();
-  
+  const theme = useTheme();
+  const isLargeScreen = useMediaQuery('(min-width:1200px)');
+  const { signal, recoverAutoScrollImmediately } = useRecoverAutoScrollImmediately();
+  const lyricsContainerRef = useRef(null);
+  const [containerHeight, setContainerHeight] = useState(0);
 
-  const numUpcomingLines = isLargeScreen ? 6 : (isDesktop ? 4 : 3);
-  const prevIndex = previousLyricIndex;
-
-
-  const handleLyricUpdate = useCallback((newIndex, prevIndex) => {
-    setPreviousLyricIndex(prevIndex);
-    setCurrentLyricIndex(newIndex);
-    setIsTransitioning(true);
+  // Calculate viewport height when component mounts or resizes
+  useEffect(() => {
+    const updateHeight = () => {
+      if (lyricsContainerRef.current) {
+        setContainerHeight(lyricsContainerRef.current.clientHeight);
+      }
+    };
     
-    if (transitionTimeoutRef.current) {
-      clearTimeout(transitionTimeoutRef.current);
-    }
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
     
-    transitionTimeoutRef.current = setTimeout(() => {
-      setIsTransitioning(false);
-    }, 900);
+    return () => {
+      window.removeEventListener('resize', updateHeight);
+    };
   }, []);
 
-
-  const getValidLyrics = useCallback(() => {
-    if (!lyricsData?.synced_lyrics || !Array.isArray(lyricsData.synced_lyrics)) {
-      return [];
-    }
-    return lyricsData.synced_lyrics.filter(line => line && line.text?.trim());
-  }, [lyricsData]);
-
-
-  const getActiveColor = () => {
-
-    return '#ffffff';
-  };
-  
-  const getButtonStyles = () => {
-    if (dominantColor) {
-      return {
-        backgroundColor: `rgba(${dominantColor}, 0.2)`,
-        color: `rgb(${dominantColor})`,
-        '&:hover': {
-          backgroundColor: `rgba(${dominantColor}, 0.3)`,
-        }
-      };
-    }
-    return {};
-  };
+  // Calculate highlight color from dominantColor with increased brightness
+  const highlightColor = dominantColor 
+    ? `rgba(${Math.min(255, dominantColor.r + 50)}, ${Math.min(255, dominantColor.g + 50)}, ${Math.min(255, dominantColor.b + 50)}, 1)`
+    : '#ffffff';
 
   if (loading) {
     return (
-      <div className={styles.loadingContainer}>
+      <Box 
+        className={styles.lyricsTransitionContainer}
+        sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center' 
+        }}
+      >
         <CircularProgress 
-          size={36} 
-          thickness={4}
-          style={{color: getActiveColor()}}
+          size={46} 
+          thickness={4} 
+          sx={{ 
+            color: highlightColor,
+            boxShadow: '0 0 20px rgba(0,0,0,0.2)'
+          }} 
         />
-        <Typography className={styles.loadingText}>
-          Загрузка текста песни...
-        </Typography>
-      </div>
+      </Box>
     );
   }
 
   if (!lyricsData) {
     return (
-      <div className={styles.emptyContainer}>
-        <Typography className={styles.emptyText}>
-          Нет текста песни для этого трека
-        </Typography>
-        <Button
-          className={styles.addLyricsButton}
-          onClick={onOpenEditor}
-        >
-          Добавить текст
-        </Button>
-      </div>
-    );
-  }
-
-
-  if (lyricsData.has_synced_lyrics && lyricsData.synced_lyrics && Array.isArray(lyricsData.synced_lyrics)) {
-
-    const validLyrics = getValidLyrics();
-    
-    if (validLyrics.length === 0) {
-      return (
-        <div className={styles.emptyContainer}>
-          <Typography className={styles.emptyText}>
-            Синхронизированный текст не содержит строк
-          </Typography>
-          <Button
-            className={styles.addLyricsButton}
-            onClick={onOpenEditor}
-          >
-            Редактировать текст
-          </Button>
-        </div>
-      );
-    }
-    
-
-    let currentIndex = -1;
-    if (currentLyricIndex >= 0) {
-      const currentLineId = lyricsData.synced_lyrics[currentLyricIndex]?.lineId;
-      currentIndex = validLyrics.findIndex(line => line.lineId === currentLineId);
-    }
-    
-
-    if (currentIndex === -1) {
-      currentIndex = 0;
-    }
-
-
-
-    const visibleBefore = 2;
-    const visibleAfter = 6;
-    const startIdx = Math.max(0, currentIndex - visibleBefore);
-    const endIdx = Math.min(validLyrics.length, currentIndex + visibleAfter + 1);
-    
-
-    const getMaxFontSize = (text, isMain) => {
-
-      const baseSize = isMain 
-        ? (isLargeScreen ? 3.2 : (isDesktop ? 2.8 : 2.2)) 
-        : (isLargeScreen ? 2.0 : (isDesktop ? 1.8 : 1.4));
-      
-      if (!text) return `${baseSize}rem`;
-      
-      const length = text.length;
-      
-
-      if (length > 60) return `${baseSize * 0.65}rem`;
-      if (length > 50) return `${baseSize * 0.7}rem`;
-      if (length > 40) return `${baseSize * 0.75}rem`;
-      if (length > 30) return `${baseSize * 0.8}rem`;
-      
-      return `${baseSize}rem`;
-    };
-
-
-    const getShouldWrapText = (text) => {
-      if (!text) return false;
-      return text.length > 40;
-    };
-
-
-    const formatLyricText = (text) => {
-      if (!text) return '';
-      
-
-      if (text.length <= 40) return text;
-      
-
-      
-
-      const commaIndex = text.indexOf(',');
-      const midPoint = Math.floor(text.length / 2);
-      
-
-
-      if (commaIndex > 0 && commaIndex >= text.length * 0.3 && commaIndex <= text.length * 0.7) {
-
-        const firstPart = text.substring(0, commaIndex + 1);
-        const secondPart = text.substring(commaIndex + 1).trim();
-        
-        return (
-          <>
-            {firstPart}<br />{secondPart}
-          </>
-        );
-      }
-      
-
-
-      let spaceBeforeMid = text.lastIndexOf(' ', midPoint);
-
-      let spaceAfterMid = text.indexOf(' ', midPoint);
-      
-
-      let breakIndex;
-      if (spaceBeforeMid === -1 && spaceAfterMid === -1) {
-
-        return text;
-      } else if (spaceBeforeMid === -1) {
-        breakIndex = spaceAfterMid;
-      } else if (spaceAfterMid === -1) {
-        breakIndex = spaceBeforeMid;
-      } else {
-
-        breakIndex = (midPoint - spaceBeforeMid < spaceAfterMid - midPoint) ? 
-                      spaceBeforeMid : spaceAfterMid;
-      }
-      
-
-      const firstPart = text.substring(0, breakIndex);
-      const secondPart = text.substring(breakIndex).trim();
-      
-      return (
-        <>
-          {firstPart}<br />{secondPart}
-        </>
-      );
-    };
-
-    return (
       <Box 
-        className={styles.lyricsFlow}
-        sx={{
-          position: 'relative',
-          height: '100%',
-          padding: '100px 0',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-end',
+        className={styles.lyricsTransitionContainer}
+        sx={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
           justifyContent: 'center',
-          width: '100%',
-          overflow: 'hidden'
-        }}
-      >
-        {/* Invisible component that handles lyrics timing updates */}
-        <SyncedLyricsUpdater 
-          lyricsData={lyricsData} 
-          getCurrentTimeRaw={getCurrentTimeRaw}
-          onUpdateLyric={handleLyricUpdate}
-        />
-        
-        {/* Контейнер с ограниченной шириной и выравниванием по правому краю */}
-        <Box
-          sx={{
-            width: '100%',
-            maxWidth: isLargeScreen ? '100%' : (isDesktop ? '100%' : '100%'),
-            marginLeft: 'auto',
-            marginRight: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          {/* Отображаем только необходимые строки */}
-          {validLyrics.slice(startIdx, endIdx).map((line, idx) => {
-
-            const actualIndex = startIdx + idx;
-            const relPosition = actualIndex - currentIndex;
-            
-
-            let className = styles.flowLine;
-            if (relPosition === 0) className += ` ${styles.currentFlowLine}`;
-            else if (relPosition < 0) className += ` ${styles.previousFlowLine}`;
-            else className += ` ${styles.upcomingFlowLine}`;
-            
-
-
-            const offsetY = relPosition === 0 ? 0 : 
-                            relPosition > 0 ? 35 + (relPosition - 1) * 40 :
-                                            -35 * Math.abs(relPosition);
-            
-
-            const isMainLine = relPosition === 0;
-            const dynamicFontSize = getMaxFontSize(line.text, isMainLine);
-            
-            const opacity = relPosition === 0
-              ? 1
-              : Math.max(0.3, 0.95 - Math.abs(relPosition) * 0.15);
-            
-
-            const needsWrapping = getShouldWrapText(line.text);
-            
-            return (
-              <div 
-                key={`line-${line.lineId || actualIndex}`}
-                className={className}
-                style={{
-                  transform: `translateY(${offsetY}px)`,
-                  opacity,
-                  transition: 'all 1s cubic-bezier(0.23, 1, 0.32, 1)', 
-                  marginBottom: relPosition === 0 ? '20px' : '10px', 
-                  width: '100%',
-                  textAlign: 'center',
-                  position: 'relative',
-                  overflow: 'visible',
-                  maxWidth: '100%'
-                }}
-              >
-                <Typography 
-                  variant={relPosition === 0 ? "h2" : "h3"}
-                  component="div"
-                  sx={{
-                    fontSize: dynamicFontSize,
-                    fontWeight: relPosition === 0 ? 700 : (relPosition === 1 ? 600 : 500),
-                    color: relPosition === 0 ? '#ffffff' : 'rgba(255, 255, 255, 0.85)',
-                    whiteSpace: needsWrapping ? 'normal' : 'nowrap',
-                    wordWrap: 'break-word',
-                    wordBreak: 'keep-all',
-                    textAlign: 'center',
-                    width: '100%',
-                    lineHeight: 1.2,
-                    textShadow: relPosition === 0 ? '0 1px 2px rgba(0, 0, 0, 0.3)' : 'none',
-                    transition: 'all 1s cubic-bezier(0.23, 1, 0.32, 1)',
-
-                    display: needsWrapping ? '-webkit-box' : null,
-                    WebkitLineClamp: needsWrapping ? 2 : null,
-                    WebkitBoxOrient: needsWrapping ? 'vertical' : null,
-                    overflow: needsWrapping ? 'hidden' : null,
-                    padding: '0 10px'
-                  }}
-                >
-                  {needsWrapping ? formatLyricText(line.text) : line.text}
-                </Typography>
-              </div>
-            );
-          })}
-        </Box>
-      </Box>
-    );
-  }
-
-
-  return (
-    <Box 
-      className={styles.lyricsContainer} 
-      style={{
-        width: '100%',
-        display: 'flex',
-        justifyContent: 'flex-end',
-        pointerEvents: 'auto'
-      }}
-    >
-      <Box
-        sx={{
-          maxWidth: isLargeScreen ? '70%' : (isDesktop ? '80%' : '90%'),
-          padding: isLargeScreen ? '0 40px 0 0' : '0 10px',
+          padding: '0 20px',
           textAlign: 'center'
         }}
       >
-        {/* Show a message if no lyrics are available */}
-        {!lyricsData.has_synced_lyrics && (
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            color: 'rgba(255, 255, 255, 0.9)', 
+            mb: 3,
+            fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif',
+            fontWeight: 600,
+            fontSize: '1.3rem',
+            letterSpacing: '-0.01em'
+          }}
+        >
+          Нет текста песни для этого трека
+        </Typography>
+        <Button 
+          variant="outlined" 
+          className={styles.addLyricsButton}
+          onClick={onOpenEditor}
+          sx={{
+            color: '#fff',
+            '&:hover': {
+              borderColor: highlightColor,
+            }
+          }}
+        >
+          Добавить текст
+        </Button>
+      </Box>
+    );
+  }
+
+  if (lyricsData.has_synced_lyrics && lyricsData.synced_lyrics && Array.isArray(lyricsData.synced_lyrics)) {
+    const validLyrics = lyricsData.synced_lyrics.filter(line => 
+      line && line.text?.trim() && line.startTimeMs !== undefined
+    );
+
+    if (validLyrics.length === 0) {
+      return (
+        <Box 
+          className={styles.lyricsTransitionContainer}
+          sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            padding: '0 20px',
+            textAlign: 'center'
+          }}
+        >
           <Typography 
-            variant="h5" 
-            className={styles.noLyrics}
-            style={{
-              pointerEvents: 'auto'
+            variant="h6" 
+            sx={{ 
+              color: 'rgba(255, 255, 255, 0.9)', 
+              mb: 3,
+              fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif',
+              fontWeight: 600,
+              fontSize: '1.3rem',
+              letterSpacing: '-0.01em'
             }}
           >
-            {currentTrack?.lyrics ? 'Текст песни доступен' : 'Нет синхронизированного текста'}
+            Синхронизированный текст не содержит строк
           </Typography>
-        )}
+          <Button 
+            variant="outlined" 
+            className={styles.addLyricsButton}
+            onClick={onOpenEditor}
+            sx={{
+              color: '#fff',
+              '&:hover': {
+                borderColor: highlightColor,
+              }
+            }}
+          >
+            Редактировать текст
+          </Button>
+        </Box>
+      );
+    }
 
-        {/* Display synced lyrics */}
-        {lyricsData.has_synced_lyrics && lyricsData.synced_lyrics && Array.isArray(lyricsData.synced_lyrics) && (
-          <>
-            {/* Current line */}
-            <Typography 
-              className={styles.currentLine}
-              style={{
-                color: getActiveColor(),
-                textAlign: 'center'
+    // Modified lrcContent format to include unique identifiers for each line
+    const { lrcContent, linesMap } = generateLrcContentWithIds(validLyrics);
+
+    // Calculate vertical space needed for centering
+    const verticalSpace = containerHeight ? Math.floor(containerHeight / 2) : 300;
+
+    const lineRenderer = ({ index, active, line }) => {
+      // Extract the unique ID from the line content if it exists
+      const lineIdMatch = line.content.match(/\[id:(\d+)\](.*)/);
+      const lineId = lineIdMatch ? parseInt(lineIdMatch[1]) : null;
+      const actualContent = lineIdMatch ? lineIdMatch[2] : line.content;
+      
+      // Get current time in milliseconds
+      const currentTimeMs = getCurrentTimeRaw() * 1000;
+      
+      // Find the active line based on the current time
+      let activeLineIndex = -1;
+      let activeLineId = null;
+      
+      // Find the active line by checking the timestamps
+      for (const [id, lineData] of Object.entries(linesMap)) {
+        if (lineData.startTimeMs <= currentTimeMs) {
+          activeLineId = parseInt(id);
+          activeLineIndex = lineData.index;
+        }
+      }
+      
+      // If this is the active line based on ID
+      const isActiveLine = lineId === activeLineId;
+      
+      // Override the active prop from react-lrc with our custom active state
+      const isActive = isActiveLine;
+      
+      // Calculate distance from active line (for visual effects)
+      let distance = 0;
+      if (lineId !== null && activeLineId !== null) {
+        const thisIndex = linesMap[lineId]?.index || index;
+        const activeIndex = linesMap[activeLineId]?.index || activeLineIndex;
+        distance = Math.abs(thisIndex - activeIndex);
+      } else {
+        // Fallback to index-based calculation if IDs aren't available
+        distance = Math.abs(index - activeLineIndex);
+      }
+      
+      // Apply smoother visual effects based on distance
+      const blurAmount = Math.min(4, distance * 0.8);
+      const opacity = Math.max(0.4, 1 - distance * 0.12);
+      
+      // Adjusted scale calculation for smoother transitions
+      const baseScale = isActive ? 1 : 0.94;
+      const scaleAdjust = isActive ? 0 : (Math.min(0.06, distance * 0.012));
+      const scale = baseScale - scaleAdjust;
+      
+      // Common transition settings for consistency
+      const transitionCurve = 'cubic-bezier(0.19, 1, 0.22, 1)';
+      const transitionDuration = '1.2s';
+
+      return (
+        <Typography
+          variant={isActive ? "h4" : "h5"}
+          className={`${styles.lrcLine} ${isActive ? styles.active : ''}`}
+          sx={{
+            fontSize: isActive 
+              ? (isLargeScreen ? '2rem' : '1.8rem') 
+              : (isLargeScreen ? '1.4rem' : '1.3rem'),
+            fontWeight: isActive ? 700 : 500,
+            color: isActive ? highlightColor : '#ffffff',
+            opacity: opacity,
+            transition: `all ${transitionDuration} ${transitionCurve}`,
+            textAlign: 'left',
+            letterSpacing: isActive ? '-0.02em' : '-0.01em',
+            lineHeight: 1.3,
+            filter: `blur(${blurAmount}px)`,
+            transform: `scale(${scale})`,
+            transformOrigin: 'left center',
+            whiteSpace: 'pre-line',
+            padding: '8px 0',
+            textShadow: isActive ? `0 2px 10px rgba(${dominantColor?.r || 0}, ${dominantColor?.g || 0}, ${dominantColor?.b || 0}, 0.3)` : 'none'
+          }}
+        >
+          {actualContent}
+        </Typography>
+      );
+    };
+
+    const lrcStyle = {
+      height: '100%',
+      width: '100%',
+      overflow: 'auto',
+      padding: 0,
+      paddingLeft: '10px',
+      textAlign: 'left',
+      '::-webkit-scrollbar': { width: 0 },
+      scrollbarWidth: 'none',
+      willChange: 'transform',
+      scrollBehavior: 'smooth',
+      '--vertical-space': `${verticalSpace}px`,
+    };
+
+    return (
+      <LyricsContainer 
+        className={styles.lyricsTransitionContainer}
+        ref={lyricsContainerRef}
+      >
+        <Lrc
+          lrc={lrcContent}
+          lineRenderer={lineRenderer}
+          currentMillisecond={(getCurrentTimeRaw() * 1000)}
+          recoverAutoScrollInterval={3000}
+          recoverAutoScrollSingal={signal}
+          verticalSpace={verticalSpace}
+          style={lrcStyle}
+          className={styles.lrcContainer}
+        />
+      </LyricsContainer>
+    );
+  }
+
+  // Fallback to regular lyrics if no synchronized lyrics
+  return (
+    <Box 
+      className={styles.lyricsTransitionContainer}
+      sx={{
+        height: '100%',
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        justifyContent: 'flex-start',
+        padding: '20px 30px',
+        overflowY: 'auto',
+        '::-webkit-scrollbar': { width: 0 },
+        scrollbarWidth: 'none',
+      }}
+    >
+      {!lyricsData.has_synced_lyrics && (
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            color: 'rgba(255, 255, 255, 0.9)', 
+            textAlign: 'left', 
+            mb: 2,
+            fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif',
+            fontWeight: 700,
+            fontSize: '1.6rem',
+            letterSpacing: '-0.02em',
+          }}
+        >
+          {currentTrack?.lyrics ? 'Текст песни' : 'Нет синхронизированного текста'}
+        </Typography>
+      )}
+
+      {lyricsData.lyrics && !lyricsData.has_synced_lyrics && (
+        <Box sx={{ width: '100%', maxWidth: '95%' }}>
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              whiteSpace: 'pre-line',
+              lineHeight: 1.8,
+              fontSize: '1.1rem',
+              color: 'rgba(255, 255, 255, 0.9)',
+              textAlign: 'left',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif',
+              fontWeight: 500
+            }}
+          >
+            {lyricsData.lyrics}
+          </Typography>
+        </Box>
+      )}
+      
+      {(!lyricsData.lyrics && !lyricsData.has_synced_lyrics) && (
+        <Box sx={{ textAlign: 'center', width: '100%', mt: 2 }}>
+          <Button 
+            variant="outlined" 
+            onClick={onOpenEditor}
+            className={styles.addLyricsButton}
+            sx={{
+              mt: 2,
+              color: '#fff',
+              '&:hover': {
+                borderColor: highlightColor,
+              }
+            }}
+          >
+            Добавить текст
+          </Button>
+        </Box>
+      )}
+
+      {lyricsData.lyrics && !lyricsData.has_synced_lyrics && (
+        <Box sx={{ textAlign: 'center', width: '100%', mt: 4 }}>
+            <Button
+              variant="outlined"
+              onClick={onOpenTimestampEditor}
+              startIcon={<Schedule />}
+              className={styles.syncButton}
+              sx={{ 
+                color: '#fff',
+                '&:hover': {
+                borderColor: highlightColor,
+                }
               }}
             >
-              {validLyrics[currentIndex]?.text ? 
-                (getShouldWrapText(validLyrics[currentIndex].text) ? 
-                  formatLyricText(validLyrics[currentIndex].text) : 
-                  validLyrics[currentIndex].text) : 
-                ''}
-            </Typography>
-
-            {/* Upcoming lines */}
-            <Box className={styles.upcomingLines}>
-              {Array.from({ length: numUpcomingLines }).map((_, i) => {
-                const lineIndex = currentIndex + i + 1;
-                if (lineIndex < validLyrics.length) {
-
-                  const isNextUp = i === 0;
-                  const wasActive = prevIndex === lineIndex;
-                  const isEntering = isTransitioning && !wasActive;
-                  
-
-                  const opacityReduction = 0.15 * i;
-                  const opacity = 0.9 - opacityReduction;
-                  
-
-                  const text = validLyrics[lineIndex]?.text || '';
-                  const needsWrapping = getShouldWrapText(text);
-                  
-                  return (
-                    <Typography 
-                      key={`next-${i}`} 
-                      className={styles.upcomingLine}
-                      sx={{
-                        opacity: Math.max(0.3, opacity),
-                        transform: `translateY(${i * 8}px) scale(${1 - i * 0.05})`,
-                        textAlign: 'center',
-                        padding: '0 10px'
-                      }}
-                    >
-                      {needsWrapping ? formatLyricText(text) : text}
-                    </Typography>
-                  );
-                }
-                return null;
-              })}
-            </Box>
-          </>
-        )}
-
-        {/* Static lyrics, shown when no synced lyrics available */}
-        {lyricsData.lyrics && !lyricsData.has_synced_lyrics && (
-          <Box className={styles.staticLyrics} style={{ pointerEvents: 'auto', textAlign: 'center' }}>
-            <Typography variant="body1" sx={{ textAlign: 'center' }}>
-              {lyricsData.lyrics.split('\n').map((line, index) => (
-                <React.Fragment key={index}>
-                  {line}
-                  <br />
-                </React.Fragment>
-              ))}
-            </Typography>
-          </Box>
-        )}
-      </Box>
+            Добавить синхронизацию
+            </Button>
+        </Box>
+      )}
     </Box>
   );
 };
 
-export default memo(LyricsView); 
+// Helper function to generate LRC content with unique IDs for each line
+const generateLrcContentWithIds = (syncedLyrics) => {
+  let lrcContent = '';
+  const linesMap = {};
+  
+  // Sort by start time
+  const sortedLyrics = [...syncedLyrics].sort((a, b) => a.startTimeMs - b.startTimeMs);
+
+  sortedLyrics.forEach((line, index) => {
+    if (line.startTimeMs !== undefined && line.text) {
+      const timeMs = line.startTimeMs;
+      const minutes = Math.floor(timeMs / 60000);
+      const seconds = Math.floor((timeMs % 60000) / 1000);
+      const ms = Math.floor((timeMs % 1000) / 10);
+
+      // Create unique ID for this line
+      const lineId = index;
+      
+      // Format timestamp
+      const formattedTime = `[${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}]`;
+
+      // Add line to content with unique ID embedded
+      lrcContent += `${formattedTime}[id:${lineId}]${line.text}\n`;
+      
+      // Store line info in map for quick lookup
+      linesMap[lineId] = {
+        startTimeMs: line.startTimeMs,
+        text: line.text,
+        index: index
+      };
+    }
+  });
+
+  return { lrcContent, linesMap };
+};
+
+export default memo(LyricsView);

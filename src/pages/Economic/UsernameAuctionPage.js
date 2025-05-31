@@ -1063,7 +1063,7 @@ const UsernameAuctionPage = () => {
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                             <ScheduleIcon sx={{ mr: 1, fontSize: '0.875rem', color: 'text.secondary' }} />
                             <Typography variant="body2" color="text.secondary">
-                              Осталось: {auction.remaining_time || formatTimeRemaining(auction.end_time)}
+                              Осталось: {auction.remaining_time_formatted || formatTimeRemaining(auction.end_time)}
                             </Typography>
                           </Box>
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -1169,7 +1169,7 @@ const UsernameAuctionPage = () => {
                             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                               <ScheduleIcon sx={{ mr: 1, fontSize: '0.875rem', color: 'text.secondary' }} />
                               <Typography variant="body2" color="text.secondary">
-                                Осталось: {auction.remaining_time || formatTimeRemaining(auction.end_time)}
+                                Осталось: {auction.remaining_time_formatted || formatTimeRemaining(auction.end_time)}
                               </Typography>
                             </Box>
                           )}
@@ -1306,7 +1306,7 @@ const UsernameAuctionPage = () => {
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <ScheduleIcon sx={{ mr: 1, fontSize: '0.875rem', color: 'text.secondary' }} />
                             <Typography variant="body2" color="text.secondary">
-                              Осталось: {bid.remaining_time || formatTimeRemaining(bid.end_time)}
+                              Осталось: {bid.remaining_time_formatted || formatTimeRemaining(bid.end_time)}
                             </Typography>
                           </Box>
                           {bid.am_winning && (
@@ -1728,7 +1728,7 @@ const UsernameAuctionPage = () => {
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                               <ScheduleIcon sx={{ mr: 1.5, color: 'info.main', fontSize: '1.2rem' }} />
                               <Typography variant="body1">
-                                Осталось: <strong>{detailAuction.remaining_time || formatTimeRemaining(detailAuction.end_time)}</strong>
+                                Осталось: <strong>{detailAuction.remaining_time_formatted || formatTimeRemaining(detailAuction.end_time)}</strong>
                               </Typography>
                             </Box>
                           </>
@@ -1811,7 +1811,16 @@ const UsernameAuctionPage = () => {
                                   <ListItemAvatar>
                                     <Avatar 
                                       alt={bid.bidder.username}
-                                      src={bid.bidder.avatar_url || (bid.bidder.photo && `/static/uploads/avatar/${bid.bidder.id}/${bid.bidder.photo}`)} 
+                                      src={
+                                        bid.bidder.avatar_url || 
+                                        (bid.bidder.photo ? 
+                                          (bid.bidder.photo.startsWith('/') || bid.bidder.photo.startsWith('http') ? 
+                                            bid.bidder.photo : 
+                                            `/static/uploads/avatar/${bid.bidder.id}/${bid.bidder.photo}`
+                                          ) : 
+                                          null
+                                        )
+                                      }
                                       sx={(isHighestBid || isWinner) ? {
                                         bgcolor: 'success.main',
                                         color: 'white'

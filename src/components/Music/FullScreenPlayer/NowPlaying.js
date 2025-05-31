@@ -12,31 +12,25 @@ const NowPlaying = ({ track, dominantColor }) => {
   const isDesktop = useMediaQuery('(min-width:960px)');
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'info' });
 
-
   const goToArtist = async (artistName) => {
     if (!artistName || artistName.trim() === '') return;
     artistName = artistName.trim();
     
     try {
-
       const response = await axios.get(`/api/search/artists?query=${encodeURIComponent(artistName)}`);
       
       if (response.data && response.data.artists && response.data.artists.length > 0) {
-
         const exactMatch = response.data.artists.find(
           a => a.name.toLowerCase() === artistName.toLowerCase()
         );
-        
 
         if (exactMatch) {
           navigate(`/artist/${exactMatch.id}`);
           return;
         }
-        
 
         navigate(`/artist/${response.data.artists[0].id}`);
       } else {
-
         setNotification({
           open: true,
           message: `Артист "${artistName}" не найден`,
@@ -53,11 +47,9 @@ const NowPlaying = ({ track, dominantColor }) => {
     }
   };
 
-
   const handleCloseNotification = () => {
     setNotification(prev => ({ ...prev, open: false }));
   };
-
 
   const renderArtists = () => {
     if (!track.artist) return <span className={styles.artistName}>Unknown Artist</span>;
@@ -72,6 +64,12 @@ const NowPlaying = ({ track, dominantColor }) => {
               className={`${styles.artistName} ${styles.clickable}`} 
               onClick={() => goToArtist(artist)}
               title={`View artist: ${artist.trim()}`}
+              style={{
+                color: 'rgba(255, 255, 255, 0.8)',
+                '&:hover': {
+                  color: dominantColor ? `rgb(${dominantColor.r}, ${dominantColor.g}, ${dominantColor.b})` : 'white'
+                }
+              }}
             >
               {artist.trim()}
             </span>
@@ -88,9 +86,8 @@ const NowPlaying = ({ track, dominantColor }) => {
         <div 
           className={`${styles.coverArtContainer} ${isPlaying ? styles.playing : ''}`}
           style={{
-
             boxShadow: dominantColor ? 
-              `0 10px 30px rgba(${dominantColor}, 0.3), 0 30px 60px rgba(0,0,0,0.4)` : 
+              `0 10px 30px rgba(${dominantColor.r}, ${dominantColor.g}, ${dominantColor.b}, 0.3), 0 30px 60px rgba(0,0,0,0.4)` : 
               '0 10px 30px rgba(0,0,0,0.3), 0 30px 60px rgba(0,0,0,0.4)'
           }}
         >
@@ -102,7 +99,18 @@ const NowPlaying = ({ track, dominantColor }) => {
         </div>
         
         <div className={`${styles.trackInfo} ${isDesktop ? styles.desktopTrackInfo : ''}`}>
-          <h2 className={styles.trackTitle}>{track.title}</h2>
+          <Typography 
+            variant="h1" 
+            className={styles.trackTitle}
+            sx={{
+              fontWeight: 700,
+              letterSpacing: '-0.02em',
+              textShadow: '0 2px 4px rgba(0,0,0,0.2)'
+            }}
+          >
+            {track.title}
+          </Typography>
+          
           <div className={styles.trackDetails}>
             {renderArtists()}
             {track.album && (
@@ -115,7 +123,6 @@ const NowPlaying = ({ track, dominantColor }) => {
         </div>
       </div>
       
-      {/* Уведомление */}
       <Snackbar
         open={notification.open}
         autoHideDuration={4000}
@@ -125,7 +132,11 @@ const NowPlaying = ({ track, dominantColor }) => {
         <Alert 
           onClose={handleCloseNotification} 
           severity={notification.severity} 
-          sx={{ width: '100%' }}
+          sx={{ 
+            width: '100%',
+            borderRadius: '8px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+          }}
         >
           {notification.message}
         </Alert>

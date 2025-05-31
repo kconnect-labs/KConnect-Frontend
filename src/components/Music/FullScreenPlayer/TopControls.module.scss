@@ -32,24 +32,14 @@ $apple-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neu
   color: rgba(255, 255, 255, 0.9) !important;
   width: 36px !important;
   height: 36px !important;
-  background-color: rgba(255, 255, 255, 0.1) !important;
   backdrop-filter: blur(8px) !important;
   -webkit-backdrop-filter: blur(8px) !important;
   border-radius: 50% !important;
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.15) !important;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
   }
 
-  &.active {
-    background-color: rgba(255, 255, 255, 0.15) !important;
-    
-    // Active button styling for Apple Music
-    &:hover {
-      background-color: rgba(255, 255, 255, 0.2) !important;
-    }
-  }
 
   @media (min-width: 600px) {
     width: 40px !important;

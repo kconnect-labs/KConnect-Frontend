@@ -206,10 +206,18 @@ export const SettingsCard = styled(Card)(({ theme }) => ({
   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
   overflow: 'hidden',
   transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-  backgroundColor: 'rgba(18, 18, 18, 0.95)',
-  border: '1px solid rgba(255, 255, 255, 0.05)',
+  backgroundColor: theme.palette.mode === 'light' 
+    ? alpha(theme.palette.background.paper, 0.95)
+    : theme.palette.mode === 'contrast'
+      ? alpha('#101010', 0.95)
+      : alpha('#1c1c1c', 0.95),
+  border: theme.palette.mode === 'light'
+    ? '1px solid rgba(0, 0, 0, 0.08)'
+    : '1px solid rgba(255, 255, 255, 0.05)',
   '&:hover': {
-    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.25)'
+    boxShadow: theme.palette.mode === 'light'
+      ? '0 8px 30px rgba(0, 0, 0, 0.15)'
+      : '0 8px 30px rgba(0, 0, 0, 0.25)'
   }
 }));
 
@@ -296,11 +304,15 @@ const ColorPreview = styled(Box)(({ bg }) => ({
 
 const StyledTabs = styled(Tabs)(({ theme }) => ({
   marginBottom: theme.spacing(3),
-  backgroundColor: 'rgba(16, 16, 16, 0.6)',
+  backgroundColor: theme.palette.mode === 'light'
+    ? 'rgba(240, 240, 240, 0.8)'
+    : theme.palette.mode === 'contrast'
+      ? 'rgba(10, 10, 10, 0.8)' 
+      : 'rgba(16, 16, 16, 0.6)',
   borderRadius: 8,
   padding: '4px',
   '& .MuiTabs-indicator': {
-    backgroundColor: '#D0BCFF',
+    backgroundColor: theme.palette.primary.main,
     height: 3,
     borderRadius: '3px 3px 0 0',
   },
@@ -309,7 +321,7 @@ const StyledTabs = styled(Tabs)(({ theme }) => ({
     textTransform: 'none',
     minWidth: 120,
     '&.Mui-selected': {
-      color: '#D0BCFF',
+      color: theme.palette.primary.main,
     },
   },
 }));
@@ -320,10 +332,10 @@ const StyledTab = styled(Tab)(({ theme }) => ({
     fontSize: '1rem',
     transition: 'all 0.2s ease',
     '&:hover': {
-      backgroundColor: alpha('#D0BCFF', 0.08),
+      backgroundColor: alpha(theme.palette.primary.main, 0.08),
     },
     '&.Mui-selected': {
-      color: '#D0BCFF',
+      color: theme.palette.primary.main,
     }
   },
 }));
@@ -2229,6 +2241,9 @@ const SettingsPage = () => {
   
   
   const [profileData, setProfileData] = useState(null);
+  const [purchasedBadges, setPurchasedBadges] = useState([]);
+  const [loadingPurchasedBadges, setLoadingPurchasedBadges] = useState(false);
+  const [isCustomProfileActive, setIsCustomProfileActive] = useState(false); 
   
   useEffect(() => {
     fetchProfileData();
@@ -2286,6 +2301,9 @@ const SettingsPage = () => {
         setProfileData(profileData);
         
         
+        setIsCustomProfileActive(profileData.user.profile_id === 2);
+        
+        
         if (profileData.user.element_connected !== undefined) {
           setElementConnected(profileData.user.element_connected);
         } else {
@@ -2325,9 +2343,6 @@ const SettingsPage = () => {
     }
   };
   
-  
-  const [purchasedBadges, setPurchasedBadges] = useState([]);
-  const [loadingPurchasedBadges, setLoadingPurchasedBadges] = useState(false);
   
   const fetchPurchasedBadges = async () => {
     try {
@@ -2919,81 +2934,72 @@ const SettingsPage = () => {
   
   const handleColorChange = (colorType, color) => {
     
-    const updatedSettings = {
-      ...settings,
-      [colorType]: color
-    };
-    setSettings(updatedSettings);
-
-    
-    document.documentElement.style.setProperty(`--${colorType.replace(/_/g, '-')}`, color);
-
-    
     if (colorType === 'background_color') {
+      setSettings(prev => ({ ...prev, background_color: color }));
       updateThemeSettings({ backgroundColor: color });
+      
+      document.documentElement.style.setProperty('--background-color', color);
+      localStorage.setItem('backgroundColor', color);
     } else if (colorType === 'container_color') {
+      setSettings(prev => ({ ...prev, container_color: color }));
       updateThemeSettings({ paperColor: color });
-    } else if (colorType === 'header_color') {
-      updateThemeSettings({ headerColor: color });
       
-      document.querySelectorAll('.MuiAppBar-root').forEach(el => {
-        el.style.backgroundColor = color;
-        el.style.color = getContrastTextColor(color);
-      });
-    } else if (colorType === 'bottom_nav_color') {
-      updateThemeSettings({ bottomNavColor: color });
-      
-      document.querySelectorAll('.MuiBottomNavigation-root').forEach(el => {
-        el.style.backgroundColor = color;
-      });
-      document.querySelectorAll('.MuiBottomNavigationAction-root').forEach(el => {
-        el.style.color = getContrastTextColor(color);
-      });
-    } else if (colorType === 'content_color') {
-      updateThemeSettings({ contentColor: color });
-      
-      document.querySelectorAll('.MuiCard-root').forEach(el => {
-        el.style.backgroundColor = color;
-        el.style.color = getContrastTextColor(color);
-      });
+      document.documentElement.style.setProperty('--paper-color', color);
+      localStorage.setItem('paperColor', color);
     } else if (colorType === 'welcome_bubble_color') {
+      setSettings(prev => ({ ...prev, welcome_bubble_color: color }));
       updateThemeSettings({ welcomeBubbleColor: color });
+      
+      document.documentElement.style.setProperty('--welcome-bubble-color', color);
+      localStorage.setItem('welcomeBubbleColor', color);
     } else if (colorType === 'avatar_border_color') {
+      setSettings(prev => ({ ...prev, avatar_border_color: color }));
       updateThemeSettings({ primaryColor: color });
       
-      document.documentElement.style.setProperty('--primary', color);
-      document.documentElement.style.setProperty('--primary-light', color);
-      document.documentElement.style.setProperty('--primary-dark', color);
-      
-      
-      document.querySelectorAll('.MuiAvatar-root').forEach(el => {
-        el.style.borderColor = color;
-      });
-    } else if (colorType === 'button_primary_color') {
-      updateThemeSettings({ buttonPrimaryColor: color });
-    } else if (colorType === 'button_primary_border_color') {
-      updateThemeSettings({ buttonPrimaryBorderColor: color });
-    } else if (colorType === 'button_edit_color') {
-      updateThemeSettings({ buttonEditColor: color });
-    } else if (colorType === 'button_edit_border_color') {
-      updateThemeSettings({ buttonEditBorderColor: color });
+      document.documentElement.style.setProperty('--primary-color', color);
+      localStorage.setItem('primaryColor', color);
     } else if (colorType === 'info_bubble_color') {
+      setSettings(prev => ({ ...prev, info_bubble_color: color }));
       updateThemeSettings({ infoBubbleColor: color });
-    } else if (colorType === 'info_bubble_border_color') {
-      updateThemeSettings({ infoBubbleBorderColor: color });
-    } else if (colorType === 'popup_alert_color') {
-      updateThemeSettings({ popupAlertColor: color });
+      
+      document.documentElement.style.setProperty('--info-bubble-color', color);
+      localStorage.setItem('infoBubbleColor', color);
+    } else if (colorType === 'header_color') {
+      setSettings(prev => ({ ...prev, header_color: color }));
+      updateThemeSettings({ headerColor: color });
+      
+      document.documentElement.style.setProperty('--header-color', color);
+      localStorage.setItem('headerColor', color);
+    } else if (colorType === 'bottom_nav_color') {
+      setSettings(prev => ({ ...prev, bottom_nav_color: color }));
+      updateThemeSettings({ bottomNavColor: color });
+      
+      document.documentElement.style.setProperty('--bottom-nav-color', color);
+      localStorage.setItem('bottomNavColor', color);
+    } else if (colorType === 'content_color') {
+      setSettings(prev => ({ ...prev, content_color: color }));
+      updateThemeSettings({ contentColor: color });
+      
+      document.documentElement.style.setProperty('--content-color', color);
+      localStorage.setItem('contentColor', color);
+    }
+
+    
+    window.dispatchEvent(new Event('storage'));
+    
+    
+    if (autoSaveTimeout) {
+      clearTimeout(autoSaveTimeout);
     }
     
-    
-    if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
     setAutoSaveTimeout(setTimeout(() => {
       handleSaveSettings();
-    }, 500));
+    }, 1000));
   };
 
   
   const getContrastTextColor = (hexColor) => {
+    
     
     const color = hexColor.charAt(0) === '#' ? hexColor.substring(1) : hexColor;
     
@@ -3127,7 +3133,38 @@ const SettingsPage = () => {
       setSaving(true);
       let newSettings = {...settings};
       
+      
+      const saveThemeSetting = (key, value) => {
+        
+        localStorage.setItem(key, value);
+        
+        
+        sessionStorage.setItem(key, value);
+        
+        
+        try {
+          const expires = new Date();
+          expires.setTime(expires.getTime() + 365 * 24 * 60 * 60 * 1000);
+          document.cookie = `${key}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+        } catch (e) {
+          console.error('Error setting cookie:', e);
+        }
+        
+        
+        if (key === 'theme' || key === 'themeMode') {
+          document.documentElement.setAttribute('data-theme', value);
+        } else {
+          const cssKey = key.replace(/([A-Z])/g, '-$1').toLowerCase();
+          document.documentElement.style.setProperty(`--${cssKey}`, value);
+        }
+      };
+      
+      
+      const themeData = {};
+      
+      
       if (theme === 'dark') {
+        
         newSettings = {
           ...newSettings,
           background_color: '#131313',
@@ -3141,15 +3178,42 @@ const SettingsPage = () => {
         };
 
         
-        localStorage.setItem('theme', 'dark');
-        localStorage.setItem('backgroundColor', '#131313');
-        localStorage.setItem('paperColor', '#1c1c1c');
-        localStorage.setItem('headerColor', '#1c1c1c');
-        localStorage.setItem('bottomNavColor', '#1c1c1c');
-        localStorage.setItem('contentColor', '#1c1c1c');
-        localStorage.setItem('primaryColor', '#D0BCFF');
-        localStorage.setItem('textColor', '#FFFFFF');
+        updateThemeSettings({ 
+          mode: 'dark',
+          backgroundColor: '#131313',
+          paperColor: '#1c1c1c',
+          headerColor: '#1c1c1c',
+          bottomNavColor: '#1c1c1c',
+          contentColor: '#1c1c1c',
+          primaryColor: '#D0BCFF',
+          textColor: '#FFFFFF'
+        });
+
+        
+        saveThemeSetting('theme', 'dark');
+        saveThemeSetting('themeMode', 'dark');
+        saveThemeSetting('backgroundColor', '#131313');
+        saveThemeSetting('paperColor', '#1c1c1c');
+        saveThemeSetting('headerColor', '#1c1c1c');
+        saveThemeSetting('bottomNavColor', '#1c1c1c');
+        saveThemeSetting('contentColor', '#1c1c1c');
+        saveThemeSetting('primaryColor', '#D0BCFF');
+        saveThemeSetting('textColor', '#FFFFFF');
+        
+        
+        themeData.mode = 'dark';
+        themeData.theme = 'dark';
+        themeData.themeMode = 'dark';
+        themeData.backgroundColor = '#131313';
+        themeData.paperColor = '#1c1c1c';
+        themeData.headerColor = '#1c1c1c';
+        themeData.bottomNavColor = '#1c1c1c';
+        themeData.contentColor = '#1c1c1c';
+        themeData.primaryColor = '#D0BCFF';
+        themeData.textColor = '#FFFFFF';
+        
       } else if (theme === 'light') {
+        
         newSettings = {
           ...newSettings,
           background_color: '#f5f5f5',
@@ -3163,15 +3227,42 @@ const SettingsPage = () => {
         };
 
         
-        localStorage.setItem('theme', 'light');
-        localStorage.setItem('backgroundColor', '#f5f5f5');
-        localStorage.setItem('paperColor', '#ffffff');
-        localStorage.setItem('headerColor', '#ffffff');
-        localStorage.setItem('bottomNavColor', '#ffffff');
-        localStorage.setItem('contentColor', '#ffffff');
-        localStorage.setItem('primaryColor', '#8c52ff');
-        localStorage.setItem('textColor', '#121212');
+        updateThemeSettings({ 
+          mode: 'light',
+          backgroundColor: '#f5f5f5',
+          paperColor: '#ffffff',
+          headerColor: '#ffffff',
+          bottomNavColor: '#ffffff',
+          contentColor: '#ffffff',
+          primaryColor: '#8c52ff',
+          textColor: '#121212'
+        });
+        
+        
+        saveThemeSetting('theme', 'light');
+        saveThemeSetting('themeMode', 'light');
+        saveThemeSetting('backgroundColor', '#f5f5f5');
+        saveThemeSetting('paperColor', '#ffffff');
+        saveThemeSetting('headerColor', '#ffffff');
+        saveThemeSetting('bottomNavColor', '#ffffff');
+        saveThemeSetting('contentColor', '#ffffff');
+        saveThemeSetting('primaryColor', '#8c52ff');
+        saveThemeSetting('textColor', '#121212');
+        
+        
+        themeData.mode = 'light';
+        themeData.theme = 'light';
+        themeData.themeMode = 'light';
+        themeData.backgroundColor = '#f5f5f5';
+        themeData.paperColor = '#ffffff';
+        themeData.headerColor = '#ffffff';
+        themeData.bottomNavColor = '#ffffff';
+        themeData.contentColor = '#ffffff';
+        themeData.primaryColor = '#8c52ff';
+        themeData.textColor = '#121212';
+        
       } else if (theme === 'contrast') {
+        
         newSettings = {
           ...newSettings,
           background_color: '#080808', 
@@ -3185,30 +3276,50 @@ const SettingsPage = () => {
         };
 
         
-        localStorage.setItem('theme', 'contrast');
-        localStorage.setItem('backgroundColor', '#080808');
-        localStorage.setItem('paperColor', '#101010');
-        localStorage.setItem('headerColor', '#101010');
-        localStorage.setItem('bottomNavColor', '#101010');
-        localStorage.setItem('contentColor', '#101010');
-        localStorage.setItem('primaryColor', '#7B46E3');
-        localStorage.setItem('textColor', '#FFFFFF');
+        updateThemeSettings({ 
+          mode: 'contrast',
+          backgroundColor: '#080808',
+          paperColor: '#101010',
+          headerColor: '#101010',
+          bottomNavColor: '#101010',
+          contentColor: '#101010',
+          primaryColor: '#7B46E3',
+          textColor: '#FFFFFF'
+        });
+        
+        
+        saveThemeSetting('theme', 'contrast');
+        saveThemeSetting('themeMode', 'contrast');
+        saveThemeSetting('backgroundColor', '#080808');
+        saveThemeSetting('paperColor', '#101010');
+        saveThemeSetting('headerColor', '#101010');
+        saveThemeSetting('bottomNavColor', '#101010');
+        saveThemeSetting('contentColor', '#101010');
+        saveThemeSetting('primaryColor', '#7B46E3');
+        saveThemeSetting('textColor', '#FFFFFF');
+        
+        
+        themeData.mode = 'contrast';
+        themeData.theme = 'contrast';
+        themeData.themeMode = 'contrast';
+        themeData.backgroundColor = '#080808';
+        themeData.paperColor = '#101010';
+        themeData.headerColor = '#101010';
+        themeData.bottomNavColor = '#101010';
+        themeData.contentColor = '#101010';
+        themeData.primaryColor = '#7B46E3';
+        themeData.textColor = '#FFFFFF';
       }
       
       
+      try {
+        localStorage.setItem('themeData', JSON.stringify(themeData));
+        sessionStorage.setItem('themeData', JSON.stringify(themeData));
+      } catch (e) {
+        console.error('Error saving theme data JSON:', e);
+      }
+      
       setSettings(newSettings);
-      
-      
-      updateThemeSettings({
-        mode: theme, 
-        backgroundColor: newSettings.background_color,
-        paperColor: newSettings.container_color,
-        headerColor: newSettings.header_color || newSettings.container_color,
-        bottomNavColor: newSettings.bottom_nav_color || newSettings.container_color,
-        contentColor: newSettings.content_color || newSettings.container_color,
-        primaryColor: newSettings.avatar_border_color,
-        textColor: theme === 'light' ? '#121212' : '#FFFFFF'
-      });
       
       
       const response = await ProfileService.updateSettings(newSettings);
@@ -3216,6 +3327,9 @@ const SettingsPage = () => {
       if (response.success) {
         setSuccess(true);
         showNotification('success', `Тема "${theme}" применена`);
+        
+        
+        window.dispatchEvent(new Event('storage'));
       } else {
         throw new Error('Failed to apply theme');
       }
@@ -3637,9 +3751,7 @@ const SettingsPage = () => {
     
     useEffect(() => {
       if (profileData) {
-
         if (isChannel && profileData.user && profileData.user.main_account_id) {
-
           const hasValidSubscription = 
             (subscription && 
               (subscription.type === 'premium' || 
@@ -3654,7 +3766,6 @@ const SettingsPage = () => {
           
           setIsPremium(hasValidSubscription);
           
-
           const hasUltimateSubscription = 
             (subscription && 
               subscription.type === 'ultimate' && 
@@ -3665,29 +3776,31 @@ const SettingsPage = () => {
           
           setIsUltimate(hasUltimateSubscription);
         } else {
-
           setIsPremium(subscription && 
             (subscription.type === 'premium' || 
              subscription.type === 'ultimate' || 
              subscription.type === 'pick-me') && 
             subscription.active);
           
-
           setIsUltimate(subscription && 
             subscription.type === 'ultimate' && 
             subscription.active);
         }
         
         
-        if (profileData.status_text) {
-          
-          const parsedStatus = parseStatusText(profileData.status_text);
+        const statusTextToUse = profileData.user?.status_text || profileData.status_text;
+        if (statusTextToUse) {
+          const parsedStatus = parseStatusText(statusTextToUse);
           setStatusText(parsedStatus.text);
           setSelectedIcon(parsedStatus.iconName);
+          console.log("Loaded status text:", parsedStatus.text, "icon:", parsedStatus.iconName);
         }
         
-        if (profileData.status_color) {
-          setStatusColor(profileData.status_color);
+        
+        const statusColorToUse = profileData.user?.status_color || profileData.status_color;
+        if (statusColorToUse) {
+          setStatusColor(statusColorToUse);
+          console.log("Loaded status color:", statusColorToUse);
         }
         
         setInitialLoaded(true);
@@ -4772,7 +4885,52 @@ const SettingsPage = () => {
             transition={{ duration: 0.3 }}
           >
             
+            {/* Theme selector for customizing appearance */}
             <ThemeSelector onThemeSelect={applyTheme} />
+            
+            {/* Profile style toggle - only for Ultimate subscription */}
+            {profileData?.subscription?.type === 'ultimate' && (
+              <Box sx={{ mt: 4, mb: 2 }}>
+                <Paper sx={{ p: 2, borderRadius: 2, bgcolor: 'rgba(18, 18, 18, 0.9)' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box>
+                      <Typography variant="subtitle1" fontWeight={600}>
+                        Необычный профиль
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Изменить внешний вид профиля
+                      </Typography>
+                    </Box>
+                    <IOSSwitch 
+                      checked={isCustomProfileActive}
+                      onChange={async () => {
+                        try {
+                          const newProfileId = isCustomProfileActive ? 1 : 2;
+                          const response = await fetch('/api/user/profile-style', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ profile_id: newProfileId })
+                          });
+                          
+                          const data = await response.json();
+                          if (data.success) {
+                            setIsCustomProfileActive(!isCustomProfileActive);
+                            showNotification('success', 'Стиль профиля обновлен');
+                          } else {
+                            showNotification('error', data.error || 'Не удалось обновить стиль профиля');
+                          }
+                        } catch (error) {
+                          console.error('Error updating profile style:', error);
+                          showNotification('error', 'Ошибка при обновлении стиля профиля');
+                        }
+                      }}
+                    />
+                  </Box>
+                </Paper>
+              </Box>
+            )}
             
             <Divider sx={{ my: 3 }} />
             
@@ -5754,7 +5912,6 @@ const SettingsPage = () => {
           user={user}
         />
         
-        {/* Add at the bottom of the container, before the closing tag */}
         <Box sx={{ mt: 4, borderTop: '1px solid rgba(255, 255, 255, 0.12)', pt: 3 }}>
           <Typography variant="h6" gutterBottom>
             Безопасность и устройства
@@ -5819,6 +5976,7 @@ const SettingsPage = () => {
 
 const ThemeSelector = ({ onThemeSelect }) => {
   const theme = useTheme();
+  const { themeSettings } = useContext(ThemeSettingsContext);
   const currentTheme = localStorage.getItem('theme') || 'dark';
   
   const themes = [
@@ -5827,21 +5985,24 @@ const ThemeSelector = ({ onThemeSelect }) => {
       name: 'Темная тема',
       bg: '#131313',
       paper: '#1c1c1c',
-      primary: '#D0BCFF'
+      primary: '#D0BCFF',
+      textColor: '#FFFFFF'
     },
     {
       id: 'light',
       name: 'Светлая тема',
       bg: '#f5f5f5',
       paper: '#ffffff',
-      primary: '#8c52ff'
+      primary: '#8c52ff',
+      textColor: '#121212'
     },
     {
       id: 'contrast',
       name: 'Контрастная',
       bg: '#080808',
       paper: '#101010',
-      primary: '#7B46E3'
+      primary: '#7B46E3',
+      textColor: '#FFFFFF'
     }
   ];
 
@@ -5851,71 +6012,42 @@ const ThemeSelector = ({ onThemeSelect }) => {
         Готовые темы оформления
       </Typography>
       <Grid container spacing={2}>
-        {themes.map((themeOption) => (
+        {themes.map(themeOption => (
           <Grid item xs={12} sm={4} key={themeOption.id}>
             <Box
               onClick={() => onThemeSelect(themeOption.id)}
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                border: `2px solid ${currentTheme === themeOption.id ? theme.palette.primary.main : 'rgba(255,255,255,0.1)'}`,
+                border: `2px solid ${currentTheme === themeOption.id ? 
+                  (themeSettings.primaryColor || theme.palette.primary.main) : 
+                  theme.palette.mode === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'}`,
                 borderRadius: 2,
                 overflow: 'hidden',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
                 '&:hover': {
                   transform: 'translateY(-4px)',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                  boxShadow: theme.palette.mode === 'light' 
+                    ? '0 4px 20px rgba(0,0,0,0.1)' 
+                    : '0 4px 20px rgba(0,0,0,0.2)'
                 }
               }}
             >
-              
               <Box sx={{ height: 120, bgcolor: themeOption.bg, position: 'relative', p: 1 }}>
-                <Box 
-                  sx={{ 
-                    height: 24, 
-                    bgcolor: themeOption.paper, 
-                    borderRadius: 1, 
-                    mb: 1 
-                  }}
-                />
+                <Box sx={{ height: 24, bgcolor: themeOption.paper, borderRadius: 1, mb: 1 }} />
                 <Box sx={{ display: 'flex', gap: 1, height: 60 }}>
-                  <Box 
-                    sx={{ 
-                      width: '30%', 
-                      bgcolor: themeOption.paper, 
-                      borderRadius: 1 
-                    }}
-                  />
-                  <Box 
-                    sx={{ 
-                      width: '70%', 
-                      bgcolor: themeOption.paper, 
-                      borderRadius: 1,
-                      position: 'relative'
-                    }}
-                  >
-                    <Box 
-                      sx={{ 
-                        position: 'absolute', 
-                        width: 30, 
-                        height: 6, 
-                        bgcolor: themeOption.primary,
-                        borderRadius: 1,
-                        top: 10,
-                        left: 10
-                      }}
-                    />
+                  <Box sx={{ width: '30%', bgcolor: themeOption.paper, borderRadius: 1 }} />
+                  <Box sx={{ width: '70%', bgcolor: themeOption.paper, borderRadius: 1, position: 'relative' }}>
+                    <Box sx={{ position: 'absolute', width: 30, height: 6, bgcolor: themeOption.primary, borderRadius: 1, top: 10, left: 10 }} />
                   </Box>
                 </Box>
               </Box>
-              
-              
               <Box 
                 sx={{ 
                   p: 1.5, 
                   bgcolor: themeOption.paper, 
-                  color: themeOption.id === 'light' ? '#121212' : '#ffffff'
+                  color: themeOption.textColor
                 }}
               >
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>

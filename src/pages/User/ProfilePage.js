@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef, useMemo, useCallback, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { 
   Box, 
   Typography, 
@@ -10,34 +10,15 @@ import {
   Paper, 
   Tabs, 
   Tab, 
-  Card, 
-  CardContent, 
-  CardMedia, 
   IconButton, 
-  Menu, 
-  MenuItem, 
-  ListItemIcon, 
-  ListItemText, 
-  Divider, 
   Snackbar, 
   Alert, 
   TextField, 
   Tooltip, 
-  Dialog, 
-  DialogTitle, 
-  DialogContent, 
-  DialogActions,
   Link as MuiLink,
   ImageList,
   ImageListItem,
   Chip,
-  InputBase,
-  Badge,
-  Skeleton,
-  useTheme,
-  Popover,
-  ButtonBase,
-  Collapse,
   SvgIcon
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
@@ -46,237 +27,34 @@ import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 import PostService from '../../services/PostService';
-import ReactMarkdown from 'react-markdown';
 import 'react-medium-image-zoom/dist/styles.css';
 import { ThemeSettingsContext } from '../../App';
-import ImageGrid from '../../components/ImageGrid';
-import { formatTimeAgo, getRussianWordForm, formatDate } from '../../utils/dateUtils';
-import Post from '../../components/Post/Post'; 
+import { formatDate } from '../../utils/dateUtils';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import RepostItem from '../../components/RepostItem';
-import PostSkeleton from '../../components/Post/PostSkeleton';
-import ContentLoader from '../../components/UI/ContentLoader';
 import TabContentLoader from '../../components/UI/TabContentLoader';
-import { UsernameCard } from '../../UIKIT';
-
-
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import FeedIcon from '@mui/icons-material/Feed';
+import { UsernameCard, VerificationBadge } from '../../UIKIT';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import DeleteIcon from '@mui/icons-material/Delete';
-import ZoomInIcon from '@mui/icons-material/ZoomIn';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
-import ShareIcon from '@mui/icons-material/Share';
-import ImageIcon from '@mui/icons-material/Image';
-import VideoCameraBackIcon from '@mui/icons-material/VideoCameraBack';
-import SendIcon from '@mui/icons-material/Send';
 import CloseIcon from '@mui/icons-material/Close';
-import EditIcon from '@mui/icons-material/Edit';
-import ReplyIcon from '@mui/icons-material/Reply';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
-import CommentIcon from '@mui/icons-material/Comment';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import LinkIcon from '@mui/icons-material/Link';
-import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined';
 import MusicSelectDialog from '../../components/Music/MusicSelectDialog';
 import InfoIcon from '@mui/icons-material/Info';
 import CakeIcon from '@mui/icons-material/Cake';
 import TodayIcon from '@mui/icons-material/Today';
-import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
-import CollectionsIcon from '@mui/icons-material/Collections';
 import DiamondIcon from '@mui/icons-material/Diamond';
 import ChatIcon from '@mui/icons-material/Chat';
-import BlockIcon from '@mui/icons-material/Block';
 import WarningIcon from '@mui/icons-material/Warning';
-import { 
-  NavButton,
-  ContextMenu
-} from '../../UIKIT';
+import BlockIcon from '@mui/icons-material/Block';
 import { Icon } from '@iconify/react';
-
-
-const ProfileHeader = styled(Box)(({ theme }) => ({
-  position: 'relative',
-  overflow: 'hidden',
-  borderRadius: '16px',
-  marginBottom: theme.spacing(2),
-  backgroundColor: theme.palette.background.paper
-}));
-
-const CoverPhoto = styled(Box)(({ theme }) => ({
-  width: '100%',
-  height: 200,
-  position: 'relative',
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  backgroundColor: theme.palette.background.default,
-  [theme.breakpoints.up('sm')]: {
-    height: 250,
-  },
-  [theme.breakpoints.up('md')]: {
-    height: 300,
-  },
-}));
-
-const ProfileContent = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  padding: theme.spacing(1),
-  [theme.breakpoints.up('md')]: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: theme.spacing(3),
-    padding: theme.spacing(3),
-  },
-}));
-
-const AvatarWrap = styled(Box)(({ theme }) => ({
-  position: 'relative',
-  marginTop: -60,
-  marginBottom: theme.spacing(2),
-  display: 'flex',
-  justifyContent: 'center',
-  [theme.breakpoints.up('md')]: {
-    marginTop: -80,
-    marginBottom: 0,
-    justifyContent: 'flex-start',
-  },
-}));
-
-const ProfileAvatar = styled(Avatar)(({ theme }) => ({
-  width: 120,
-  height: 120,
-  border: '4px solid rgba(26, 26, 26, 0.9)',
-  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
-  [theme.breakpoints.up('md')]: {
-    width: 160,
-    height: 160,
-  },
-}));
-
-const ProfileInfo = styled(Box)(({ theme }) => ({
-  flex: 1,
-  [theme.breakpoints.up('md')]: {
-    flex: 1,
-    maxWidth: '100%',
-    marginLeft: 0,
-  },
-}));
-
-const ProfileName = styled(Typography)(({ theme }) => ({
-  fontWeight: 700,
-  marginBottom: theme.spacing(0.5),
-  fontSize: '1.5rem',
-  textAlign: 'center',
-  [theme.breakpoints.up('md')]: {
-    fontSize: '2rem',
-    textAlign: 'left',
-  },
-}));
-
-const ProfileUsername = styled(Typography)(({ theme }) => ({
-  color: theme.palette.text.secondary,
-  marginBottom: theme.spacing(1.5),
-  textAlign: 'center',
-  [theme.breakpoints.up('md')]: {
-    textAlign: 'left',
-  },
-}));
-
-const ProfileBio = styled(Typography)(({ theme }) => ({
-  marginBottom: theme.spacing(2),
-  whiteSpace: 'pre-wrap',
-  textAlign: 'center',
-  [theme.breakpoints.up('md')]: {
-    textAlign: 'left',
-  },
-}));
-
-const ProfileStats = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  justifyContent: 'center',
-  gap: theme.spacing(3),
-  marginBottom: theme.spacing(2),
-  padding: theme.spacing(1.5, 0),
-  borderTop: `1px solid ${theme.palette.divider}`,
-  borderBottom: `1px solid ${theme.palette.divider}`,
-  [theme.breakpoints.up('md')]: {
-    justifyContent: 'flex-start',
-  },
-}));
-
-const StatItem = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  [theme.breakpoints.up('md')]: {
-    alignItems: 'flex-start',
-  },
-}));
-
-const SocialLinks = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  flexWrap: 'wrap',
-  justifyContent: 'center',
-  gap: theme.spacing(1.5),
-  marginBottom: theme.spacing(2),
-  [theme.breakpoints.up('md')]: {
-    justifyContent: 'flex-start',
-  },
-}));
-
-const ActionButton = styled(Button)(({ theme }) => ({
-  margin: theme.spacing(1),
-  borderRadius: '20px',
-  zIndex: 1,
-  fontWeight: 'bold',
-  textTransform: 'none',
-  boxShadow: '0 2px 8px rgba(208, 188, 255, 0.25)',
-  padding: theme.spacing(0.5, 2),
-}));
-
-const PostCard = styled(Card)(({ theme }) => ({
-  marginBottom: 10,
-  borderRadius: theme.shape.borderRadius,
-  overflow: 'hidden',
-  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-  background: theme.palette.mode === 'dark' ? '#1A1A1A' : '#FFFFFF',
-  cursor: 'pointer'
-}));
-
-
-const CreatePostCard = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(2),
-  background: theme.palette.mode === 'dark' 
-    ? 'linear-gradient(145deg, rgba(30, 30, 30, 0.8) 0%, rgba(20, 20, 20, 0.9) 100%)'
-    : 'linear-gradient(145deg, rgba(245, 245, 245, 0.8) 0%, rgba(250, 250, 250, 0.9) 100%)',
-  backdropFilter: 'blur(10px)',
-  border: theme.palette.mode === 'dark' 
-    ? '1px solid rgba(255, 255, 255, 0.05)'
-    : '1px solid rgba(0, 0, 0, 0.05)',
-  boxShadow: theme.palette.mode === 'dark'
-    ? '0 4px 20px rgba(0, 0, 0, 0.2)'
-    : '0 4px 20px rgba(0, 0, 0, 0.1)',
-  borderRadius: '10px',
-  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-  marginBottom: theme.spacing(0),
-  '&:hover': {
-    boxShadow: theme.palette.mode === 'dark'
-      ? '0 6px 25px rgba(0, 0, 0, 0.3)'
-      : '0 6px 25px rgba(0, 0, 0, 0.15)',
-    transform: 'translateY(-2px)'
-  }
-}));
+import { PostsFeed, WallFeed } from './components';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import ModeCommentOutlinedIcon from '@mui/icons-material/ModeCommentOutlined';
+import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 
 
 const PostInput = styled(TextField)(({ theme }) => ({
@@ -319,66 +97,8 @@ const PostActions = styled(Box)(({ theme }) => ({
   marginTop: theme.spacing(1.5)
 }));
 
-const MediaPreviewContainer = styled(Box)(({ theme }) => ({
-  position: 'relative',
-  marginTop: theme.spacing(2),
-  borderRadius: theme.shape.borderRadius,
-  overflow: 'hidden',
-  backgroundColor: theme.palette.mode === 'dark'
-    ? 'rgba(0, 0, 0, 0.2)'
-    : 'rgba(0, 0, 0, 0.05)',
-}));
 
-const RemoveMediaButton = styled(IconButton)(({ theme }) => ({
-  position: 'absolute',
-  top: 8,
-  right: 8,
-  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  color: theme.palette.common.white,
-  padding: theme.spacing(0.5),
-  '&:hover': {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  },
-}));
 
-const MarkdownContent = styled(Box)(({ theme }) => ({
-  '& p': {
-    margin: theme.spacing(1, 0),
-    lineHeight: 1.6,
-  },
-  '& h1, & h2, & h3, & h4, & h5, & h6': {
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(1),
-    fontWeight: 600,
-  },
-  '& a': {
-    color: theme.palette.primary.main,
-    textDecoration: 'none',
-    '&:hover': {
-      textDecoration: 'underline',
-    },
-  },
-  '& ul, & ol': {
-    marginLeft: theme.spacing(2),
-  },
-  '& code': {
-    fontFamily: 'monospace',
-    backgroundColor: theme.palette.action.hover,
-    padding: theme.spacing(0.3, 0.6),
-    borderRadius: 3,
-  },
-  '& pre': {
-    backgroundColor: theme.palette.grey[900],
-    color: theme.palette.common.white,
-    padding: theme.spacing(1.5),
-    borderRadius: theme.shape.borderRadius,
-    overflowX: 'auto',
-    '& code': {
-      backgroundColor: 'transparent',
-      padding: 0,
-    },
-  },
-}));
 
 
 const PublishButton = styled(Button)(({ theme }) => ({
@@ -406,72 +126,6 @@ const PublishButton = styled(Button)(({ theme }) => ({
 }));
 
 
-const VerificationBadge = ({ status, size }) => {
-  if (!status) return null;
-  
-  const getColorAndTitle = (status) => {
-    
-    if (status === 'verified') {
-      return { color: '#D0BCFF', title: 'Верифицирован' };
-    }
-    
-    
-    switch(Number(status)) {
-      case 1:
-        return { color: '#9e9e9e', title: 'Верифицирован' };
-      case 2:
-        return { color: '#d67270', title: 'Официальный аккаунт' };
-      case 3:
-        return { color: '#b39ddb', title: 'VIP аккаунт' };
-      case 4:
-        return { color: '#ff9800', title: 'Модератор' };
-      case 5:
-        return { color: '#4caf50', title: 'Поддержка' };
-      case 6:
-        return { color: '#1e88e5', title: 'Канал (Верифицированный)', isChannelVerified: true };
-      case 7:
-        return { color: '#7c4dff', title: 'Канал (Премиум)', isChannelPremium: true };
-      default:
-        return { color: '#D0BCFF', title: 'Верифицирован' };
-    }
-  };
-  
-  const { color, title, isChannelVerified, isChannelPremium } = getColorAndTitle(status);
-  
-  return (
-    <Tooltip title={title} placement="top">
-      {isChannelVerified ? (
-        <Icon 
-          icon="material-symbols:verified-rounded" 
-          style={{ 
-            fontSize: size === 'small' ? '26px' : '22px',
-            color: '#1e88e5',
-            marginLeft: '4px'
-          }} 
-        />
-      ) : isChannelPremium ? (
-        <Icon 
-          icon="material-symbols:verified-user-rounded" 
-          style={{ 
-            fontSize: size === 'small' ? '26px' : '22px',
-            color: '#7c4dff',
-            marginLeft: '4px'
-          }} 
-        />
-      ) : (
-        <CheckCircleIcon 
-          sx={{ 
-            fontSize: size === 'small' ? 23 : 20,
-            ml: 0.5,
-            color
-          }} 
-        />
-      )}
-    </Tooltip>
-  );
-};
-
-
 const CreatePost = ({ onPostCreated, postType = 'post', recipientId = null }) => {
   const [content, setContent] = useState('');
   const [media, setMedia] = useState(null);
@@ -484,6 +138,7 @@ const CreatePost = ({ onPostCreated, postType = 'post', recipientId = null }) =>
   const fileInputRef = useRef(null);
   const [musicTracks, setMusicTracks] = useState([]);
   const [showMusicPicker, setShowMusicPicker] = useState(false);
+  const [mediaNotification, setMediaNotification] = useState({ open: false, message: '' });
   
   const { user } = useContext(AuthContext);
   const placeholderText = postType === 'stena' ? 'Че напишем?' : 'Что у вас нового?';
@@ -534,59 +189,37 @@ const CreatePost = ({ onPostCreated, postType = 'post', recipientId = null }) =>
   
   
   const processFiles = (files) => {
-    if (!files || files.length === 0) {
-      console.error('No files to process');
-      return;
-    }
-    
-    console.log(`processFiles: Processing ${files.length} files`);
-    
-    
-    setMediaFiles([]);
-    setMediaPreview([]);
-    setMediaType('');
-    setMusicTracks([]);
-    
-    
-    if (files.length > 1) {
-      
-      const allImages = files.every(file => file.type.startsWith('image/'));
-      
-      if (allImages) {
-        setMediaFiles(files);
-        setMediaType('images');
-        
-        
-        files.forEach(file => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setMediaPreview(prevPreviews => [...prevPreviews, reader.result]);
-          };
-          reader.readAsDataURL(file);
-        });
-        return;
-      }
-    }
-    
-    
+    if (!files.length) return;
+
     const file = files[0];
-    
-    
     const isImage = file.type.startsWith('image/');
     const isVideo = file.type.startsWith('video/');
-    
-    if (isImage || isVideo) {
-      setMediaFiles([file]);
-      setMedia(file);
-      setMediaType(isImage ? 'image' : 'video');
-      
-      
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setMediaPreview([reader.result]);
-      };
-      reader.readAsDataURL(file);
+
+    if (!isImage && !isVideo) {
+      setMediaNotification({
+        open: true,
+        message: 'Поддерживаются только изображения и видео'
+      });
+      return;
     }
+
+    
+    if (mediaType && ((isImage && mediaType === 'video') || (isVideo && mediaType === 'image'))) {
+      setMediaNotification({
+        open: true,
+        message: 'Нельзя прикрепить фото и видео одновременно'
+      });
+      return;
+    }
+
+    setMediaFiles([file]);
+    setMediaType(isImage ? 'image' : 'video');
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setMediaPreview([reader.result]);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleMediaChange = (e) => {
@@ -611,6 +244,41 @@ const CreatePost = ({ onPostCreated, postType = 'post', recipientId = null }) =>
     setMusicTracks([]);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+  
+  const handlePaste = (e) => {
+    const clipboardData = e.clipboardData;
+    if (clipboardData.items) {
+      const items = clipboardData.items;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          e.preventDefault();  
+          const file = items[i].getAsFile();
+          if (file) {
+            
+            if (mediaType && mediaType === 'video') {
+              setMediaNotification({
+                open: true,
+                message: 'Нельзя прикрепить фото и видео одновременно'
+              });
+              return;
+            }
+
+            
+            setMediaFiles(prev => [...prev, file]);
+            setMediaType('image');
+            
+            
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              setMediaPreview(prev => [...prev, reader.result]);
+            };
+            reader.readAsDataURL(file);
+            break;
+          }
+        }
+      }
     }
   };
   
@@ -751,14 +419,14 @@ const CreatePost = ({ onPostCreated, postType = 'post', recipientId = null }) =>
   if (!user) return null;
   
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        p: 2,
-        mb: 0,
-        borderRadius: '24px',
-        backgroundColor: theme => theme.palette.mode === 'dark' ? '#1E1E1E' : theme.palette.background.paper,
+    <Paper 
+      elevation={0} 
+      sx={{ 
+        p: 2, 
+        borderRadius: 2,
+        backgroundColor: (theme) => theme.palette.background.paper,
         position: 'relative',
+        overflow: 'hidden',
         border: '1px solid rgba(255, 255, 255, 0.1)'
       }}
     >
@@ -842,77 +510,117 @@ const CreatePost = ({ onPostCreated, postType = 'post', recipientId = null }) =>
                 }
               }}
             />
-            <PostInput 
+            <PostInput
               placeholder={placeholderText}
               multiline
-              minRows={1}
+              maxRows={6}
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              sx={{
-                width: '100%',
-                '& .MuiInputBase-root': {
-                  transition: 'all 0.3s ease',
-                  minHeight: '40px !important',
-                  fontSize: '0.95rem'
-                },
-                '& textarea': {
-                  lineHeight: '1.4 !important',
-                }
-              }}
+              onPaste={handlePaste}
+              fullWidth
             />
           </Box>
           
           
           {mediaPreview.length > 0 && (
-            <Box sx={{ position: 'relative', mt: 1 }}>
-              {mediaType === 'images' && mediaPreview.length > 1 ? (
-                <ImageList 
-                  sx={{ 
-                    width: '100%', 
-                    height: 'auto', 
-                    maxHeight: 500,
-                    borderRadius: '8px',
-                    overflow: 'hidden'
-                  }} 
-                  cols={mediaPreview.length > 3 ? 3 : 2} 
-                  rowHeight={mediaPreview.length > 6 ? 120 : 164}
-                >
-                  {mediaPreview.map((preview, index) => (
-                    <ImageListItem key={index}>
-                      <img
-                        src={preview}
-                        alt={`Preview ${index + 1}`}
-                        style={{ objectFit: 'cover', height: '100%', width: '100%' }}
-                      />
-                    </ImageListItem>
-                  ))}
-                </ImageList>
-              ) : (
-                <img
-                  src={mediaPreview[0]}
-                  alt="Preview"
-                  style={{ 
-                    width: '100%', 
-                    borderRadius: '8px',
-                    maxHeight: '300px',
-                    objectFit: mediaType === 'image' ? 'contain' : 'cover'
-                  }}
-                />
-              )}
-              <IconButton
-                size="small"
-                sx={{
-                  position: 'absolute',
-                  top: 5,
-                  right: 5,
-                  bgcolor: 'rgba(0,0,0,0.5)',
-                  padding: '4px',
-                  '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' }
-                }}
-                onClick={handleRemoveMedia}
-              >
-                <CloseIcon sx={{ fontSize: 16 }} />
-              </IconButton>
+            <Box sx={{ position: 'relative', mb: 2 }}>
+              <Box sx={{ 
+                position: 'relative',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: 'rgba(0, 0, 0, 0.2)'
+              }}>
+                {mediaType === 'image' ? (
+                  <ImageList 
+                    sx={{ 
+                      width: '100%', 
+                      height: 'auto',
+                      maxHeight: 500,
+                      margin: 0,
+                      padding: 1
+                    }} 
+                    cols={mediaPreview.length > 3 ? 3 : mediaPreview.length} 
+                    rowHeight={164}
+                    gap={8}
+                  >
+                    {mediaPreview.map((preview, index) => (
+                      <ImageListItem 
+                        key={index}
+                        sx={{
+                          position: 'relative',
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                          border: '1px solid rgba(255, 255, 255, 0.1)'
+                        }}
+                      >
+                        <img
+                          src={preview}
+                          alt={`Preview ${index + 1}`}
+                          style={{ 
+                            objectFit: 'cover',
+                            height: '100%',
+                            width: '100%',
+                            borderRadius: '8px'
+                          }}
+                        />
+                        <IconButton
+                          onClick={() => {
+                            setMediaFiles(prev => prev.filter((_, i) => i !== index));
+                            setMediaPreview(prev => prev.filter((_, i) => i !== index));
+                            if (mediaPreview.length === 1) {
+                              setMediaType('');
+                            }
+                          }}
+                          sx={{
+                            position: 'absolute',
+                            top: 4,
+                            right: 4,
+                            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                            color: 'white',
+                            padding: '4px',
+                            '&:hover': {
+                              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            },
+                            backdropFilter: 'blur(4px)'
+                          }}
+                        >
+                          <CloseIcon fontSize="small" />
+                        </IconButton>
+                      </ImageListItem>
+                    ))}
+                  </ImageList>
+                ) : (
+                  <video
+                    src={mediaPreview[0]}
+                    controls
+                    style={{ 
+                      width: '100%', 
+                      maxHeight: '300px',
+                      borderRadius: '12px'
+                    }}
+                  />
+                )}
+                {mediaType === 'video' && (
+                  <IconButton
+                    onClick={handleRemoveMedia}
+                    sx={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                      color: 'white',
+                      '&:hover': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                      },
+                      padding: '8px',
+                      backdropFilter: 'blur(4px)'
+                    }}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                )}
+              </Box>
             </Box>
           )}
           
@@ -1074,6 +782,21 @@ const CreatePost = ({ onPostCreated, postType = 'post', recipientId = null }) =>
           />
         </Box>
       </Box>
+      
+      <Snackbar
+        open={mediaNotification.open}
+        autoHideDuration={3000}
+        onClose={() => setMediaNotification({ ...mediaNotification, open: false })}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setMediaNotification({ ...mediaNotification, open: false })} 
+          severity="warning"
+          sx={{ width: '100%' }}
+        >
+          {mediaNotification.message}
+        </Alert>
+      </Snackbar>
     </Paper>
   );
 };
@@ -1341,17 +1064,88 @@ const requireAuth = (user, isAuthenticated, navigate) => {
 };
 
 
+const getLighterColor = (hexColor, factor = 0.3) => {
+  if (!hexColor || hexColor === 'transparent' || hexColor.startsWith('rgba')) {
+    return hexColor;
+  }
+  
+  
+  const hex = hexColor.replace('#', '');
+  
+  
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  
+  
+  const lighter = (component) => Math.min(255, Math.floor(component + (255 - component) * factor));
+  
+  
+  return `#${lighter(r).toString(16).padStart(2, '0')}${lighter(g).toString(16).padStart(2, '0')}${lighter(b).toString(16).padStart(2, '0')}`;
+};
+
+
+const SubscriptionBadge = ({ duration, subscriptionDate, subscriptionType }) => {
+  
+  if (!duration || duration < 1 || subscriptionType !== 'ultimate') return null;
+  
+  console.log(`SubscriptionBadge: duration=${duration}, type=${subscriptionType}`); 
+  
+  
+  let badgeType = 'bronze'; 
+  if (duration >= 6) {
+    badgeType = 'diamond';
+  } else if (duration >= 3) {
+    badgeType = 'gold';
+  } else if (duration >= 2) {
+    badgeType = 'silver';
+  }
+  
+  console.log(`SubscriptionBadge: selected badge type=${badgeType}`); 
+  
+  
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+  
+  const tooltipText = `Подписчик Ultima с ${formatDate(subscriptionDate)}`;
+  
+  return (
+    <Tooltip title={tooltipText} arrow placement="top">
+      <Box 
+        component="img" 
+        src={`/static/subs/${badgeType}.svg`}
+        alt={`${badgeType} подписка`}
+        sx={{ 
+          width: 24, 
+          height: 24, 
+          ml: 0.5,
+          cursor: 'pointer',
+          transition: 'transform 0.2s ease-in-out',
+          '&:hover': {
+            transform: 'scale(1.2)'
+          }
+        }} 
+      />
+    </Tooltip>
+  );
+};
+
 const ProfilePage = () => {
   const { username } = useParams();
   const { user: currentUser, isAuthenticated } = useContext(AuthContext);
   const [user, setUser] = useState(null);
   const [ownedUsernames, setOwnedUsernames] = useState([]);
-  const [posts, setPosts] = useState([]);
-  const [photos, setPhotos] = useState([]);
-  const [videos, setVideos] = useState([]);
+  const [photos, setPhotos] = useState([]);  
+  const [videos, setVideos] = useState([]);  
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [loadingPosts, setLoadingPosts] = useState(true);
   const [loadingPhotos, setLoadingPhotos] = useState(true);
   const [loadingVideos, setLoadingVideos] = useState(true);
   const [following, setFollowing] = useState(false);
@@ -1366,29 +1160,11 @@ const ProfilePage = () => {
   const [loadingFriends, setLoadingFriends] = useState(true);
   const [socials, setSocials] = useState([]);
   const [page, setPage] = useState(1);
-  const [photoPage, setPhotoPage] = useState(1);
-  const [videoPage, setVideoPage] = useState(1);
-  const [hasMorePosts, setHasMorePosts] = useState(true);
-  const [hasMorePhotos, setHasMorePhotos] = useState(true);
-  const [hasMoreVideos, setHasMoreVideos] = useState(true);
-  const [loadingMorePosts, setLoadingMorePosts] = useState(false);
-  const [loadingMorePhotos, setLoadingMorePhotos] = useState(false);
-  const [loadingMoreVideos, setLoadingMoreVideos] = useState(false);
   const [lightboxIsOpen, setLightboxIsOpen] = useState(false);
   const [currentImage, setCurrentImage] = useState('');
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: '',
-    severity: 'success'
-  });
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const navigate = useNavigate();
   const { themeSettings } = useContext(ThemeSettingsContext);
-  const [notifications, setNotifications] = useState([]);
-  const [notificationMenuAnchor, setNotificationMenuAnchor] = useState(null);
-  const [currentPostIndex, setCurrentPostIndex] = useState(0);
-  const [selectedFiles, setSelectedFiles] = useState([]);
-  const [previewUrls, setPreviewUrls] = useState([]);
-  const [statsExpanded, setStatsExpanded] = useState(false);
   const [totalLikes, setTotalLikes] = useState(0);
   
   const [isOnline, setIsOnline] = useState(false);
@@ -1396,7 +1172,9 @@ const ProfilePage = () => {
   
   const [fallbackAvatarUrl, setFallbackAvatarUrl] = useState('');
   
-
+  const [medals, setMedals] = useState([]);
+  const [loadingMedals, setLoadingMedals] = useState(false);
+  
   const [selectedUsername, setSelectedUsername] = useState(null);
   const [usernameCardAnchor, setUsernameCardAnchor] = useState(null);
   const [usernameCardOpen, setUsernameCardOpen] = useState(false);
@@ -1440,10 +1218,7 @@ const ProfilePage = () => {
     setTabValue(newValue);
   };
   
-  
-  const handleTabClick = (index) => {
-    setTabValue(index);
-  };
+
   
   const handleFollow = async () => {
     
@@ -1466,190 +1241,8 @@ const ProfilePage = () => {
   };
   
   const handlePostCreated = (newPost) => {
-    if (newPost) {
-      
-      if (tabValue === 0 && (!newPost.type || newPost.type === 'post')) {
-        setPosts((prevPosts) => [newPost, ...prevPosts]);
-      }
-      
-      
-      if (newPost.type === 'stena') {
-        const event = new CustomEvent('post_created', { detail: newPost });
-        window.dispatchEvent(event);
-      }
-
-      
-      setSnackbar({
-        open: true,
-        message: "Пост успешно создан",
-        severity: "success"
-      });
-    }
+    showNotification('success', 'Пост успешно создан');
   };
-
-  const handleDeletePost = async (postId, updatedPost) => {
-    
-    if (!requireAuth(currentUser, isAuthenticated, navigate)) {
-      return;
-    }
-    
-    try {
-      
-      if (updatedPost) {
-        console.log('Updating post with ID:', postId, 'New data:', updatedPost);
-        
-        
-        setPosts(prevPosts => prevPosts.map(post => 
-          post.id.toString() === postId.toString() ? updatedPost : post
-        ));
-        
-        
-        showNotification('success', 'Пост успешно обновлен');
-        return;
-      }
-      
-      console.log('Deleting post/repost with ID:', postId);
-      let response;
-      
-      
-      const isRepost = postId.toString().startsWith('repost-');
-      
-      if (isRepost) {
-        
-        const repostId = postId.substring(7);
-        console.log('Deleting repost with ID:', repostId);
-        response = await axios.delete(`/api/reposts/${repostId}`);
-      } else {
-        console.log('Deleting regular post with ID:', postId);
-        response = await axios.delete(`/api/posts/${postId}`);
-      }
-      
-      if (response.data && response.data.success) {
-        
-        setPosts(prevPosts => prevPosts.filter(post => {
-          if (isRepost) {
-            
-            return `repost-${post.id}` !== postId;
-          }
-          
-          return post.id.toString() !== postId.toString();
-        }));
-        
-        
-        showNotification('success', isRepost ? 'Репост успешно удален' : 'Пост успешно удален');
-      }
-    } catch (error) {
-      console.error('Error deleting post:', error);
-      showNotification('error', 'Не удалось удалить пост. Попробуйте позже');
-    }
-  };
-  
-  
-  const loadMorePosts = async () => {
-    if (loadingPosts || !hasMorePosts) return;
-    
-    try {
-      setLoadingPosts(true);
-      
-      
-      const nextPage = page + 1;
-      setPage(nextPage);
-      
-      const response = await axios.get(`/api/profile/${username}/posts`, {
-        params: {
-          page: nextPage,
-          per_page: 10
-        }
-      });
-      
-      if (response.data.posts && Array.isArray(response.data.posts)) {
-        const newPosts = response.data.posts;
-        setPosts(prev => {
-          
-          const prevArray = Array.isArray(prev) ? prev : [];
-          return [...prevArray, ...newPosts];
-        });
-        setHasMorePosts(response.data.has_next);
-      } else {
-        setHasMorePosts(false);
-      }
-    } catch (error) {
-      console.error('Error loading more posts:', error);
-    } finally {
-      setLoadingPosts(false);
-    }
-  };
-  
-  const loadMorePhotos = async () => {
-    if (loadingPhotos || !hasMorePhotos) return;
-    
-    try {
-      setLoadingPhotos(true);
-      
-      
-      const nextPage = photoPage + 1;
-      setPhotoPage(nextPage);
-      
-      const response = await axios.get(`/api/profile/${username}/photos`, {
-        params: {
-          page: nextPage,
-          per_page: 12
-        }
-      });
-      
-      if (response.data.media && Array.isArray(response.data.media)) {
-        const newPhotos = response.data.media;
-        setPhotos(prev => {
-          
-          const prevArray = Array.isArray(prev) ? prev : [];
-          return [...prevArray, ...newPhotos];
-        });
-        setHasMorePhotos(response.data.has_next);
-      } else {
-        setHasMorePhotos(false);
-      }
-    } catch (error) {
-      console.error('Error loading more photos:', error);
-    } finally {
-      setLoadingPhotos(false);
-    }
-  };
-  
-  const loadMoreVideos = async () => {
-    if (loadingVideos || !hasMoreVideos) return;
-    
-    try {
-      setLoadingVideos(true);
-      
-      
-      const nextPage = videoPage + 1;
-      setVideoPage(nextPage);
-      
-      const response = await axios.get(`/api/profile/${username}/videos`, {
-        params: {
-          page: nextPage,
-          per_page: 8
-        }
-      });
-      
-      if (response.data.media && Array.isArray(response.data.media)) {
-        const newVideos = response.data.media;
-        setVideos(prev => {
-          
-          const prevArray = Array.isArray(prev) ? prev : [];
-          return [...prevArray, ...newVideos];
-        });
-        setHasMoreVideos(response.data.has_next);
-      } else {
-        setHasMoreVideos(false);
-      }
-    } catch (error) {
-      console.error('Error loading more videos:', error);
-    } finally {
-      setLoadingVideos(false);
-    }
-  };
-  
   
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -1672,7 +1265,6 @@ const ProfilePage = () => {
           if (response.data.user.verification_status === undefined && response.data.verification) {
             response.data.user.verification_status = response.data.verification.status || null;
           }
-          
           
           
           if (response.data.achievement) {
@@ -1698,20 +1290,12 @@ const ProfilePage = () => {
             console.log('Full API response:', response.data);
           }
           
-          if (response.data.user.posts) {
-            
-            const postsData = Array.isArray(response.data.user.posts) ? response.data.user.posts : [];
-            setPosts(postsData);
-            setHasMorePosts(postsData.length >= 10);
-          } else {
-            setPosts([]);
-          }
+          
           
           if (response.data.user.photos) {
             
             const photosData = Array.isArray(response.data.user.photos) ? response.data.user.photos : [];
             setPhotos(photosData);
-            setHasMorePhotos(photosData.length >= 12);
           } else {
             setPhotos([]);
           }
@@ -1720,7 +1304,6 @@ const ProfilePage = () => {
             
             const videosData = Array.isArray(response.data.user.videos) ? response.data.user.videos : [];
             setVideos(videosData);
-            setHasMoreVideos(videosData.length >= 8);
           } else {
             setVideos([]);
           }
@@ -1751,7 +1334,6 @@ const ProfilePage = () => {
           if (response.data.socials) {
             setSocials(response.data.socials);
           }
-          
           
           try {
             const usernamesResponse = await axios.get(`/api/username/purchased/${response.data.user.id}`);
@@ -1795,97 +1377,14 @@ const ProfilePage = () => {
     
     
     fetchUserProfile();
-  }, [username, setLoading, setUser, setPosts, setHasMorePosts, setPhotos, setHasMorePhotos, setVideos, setHasMoreVideos, setFollowersCount, setFollowingCount, setFollowing, setPostsCount, setSocials, setTotalLikes]);
+  }, [username, setLoading, setUser, setFollowersCount, setFollowingCount, setFollowing, setPostsCount, setSocials, setTotalLikes]);
   
   
   useEffect(() => {
-    const fetchUserPosts = async () => {
-      if (!user) return;
-      
-      try {
-        setLoadingPosts(true);
-        const profileUsername = username || (user && user.username);
-        if (!profileUsername) return;
-        
-        
-        setPage(1);
-        
-        const response = await axios.get(`/api/profile/${profileUsername}/posts?page=1`);
-        setPosts(response.data.posts);
-        setHasMorePosts(response.data.has_next);
-      } catch (error) {
-        console.error('Error fetching user posts:', error);
-      } finally {
-        setLoadingPosts(false);
-      }
-    };
-    
-    if (tabValue === 0) {
-      fetchUserPosts();
+    if (!currentUser) {
+      setUser(null);
     }
-  }, [username, user, tabValue]);
-  
-  
-  useEffect(() => {
-    const fetchUserPhotos = async () => {
-      if (!user) return;
-      
-      try {
-        setLoadingPhotos(true);
-        const profileUsername = username || (user && user.username);
-        if (!profileUsername) return;
-        
-        
-        setPhotoPage(1);
-        
-        const response = await axios.get(`/api/profile/${profileUsername}/photos?page=1`);
-        
-        if (response.data.media) {
-          setPhotos(response.data.media);
-          setHasMorePhotos(response.data.has_next);
-        }
-      } catch (error) {
-        console.error('Error fetching user photos:', error);
-      } finally {
-        setLoadingPhotos(false);
-      }
-    };
-    
-    if (tabValue === 1) {
-      fetchUserPhotos();
-    }
-  }, [username, user, tabValue]);
-  
-  
-  useEffect(() => {
-    const fetchUserVideos = async () => {
-      if (!user) return;
-      
-      try {
-        setLoadingVideos(true);
-        const profileUsername = username || (user && user.username);
-        if (!profileUsername) return;
-        
-        
-        setVideoPage(1);
-        
-        const response = await axios.get(`/api/profile/${profileUsername}/videos?page=1`);
-        
-        if (response.data.media) {
-          setVideos(response.data.media);
-          setHasMoreVideos(response.data.has_next);
-        }
-      } catch (error) {
-        console.error('Error fetching user videos:', error);
-      } finally {
-        setLoadingVideos(false);
-      }
-    };
-    
-    if (tabValue === 2) {
-      fetchUserVideos();
-    }
-  }, [username, user, tabValue]);
+  }, [currentUser]);
 
   
   useEffect(() => {
@@ -1977,109 +1476,26 @@ const ProfilePage = () => {
 
   
   useEffect(() => {
-    const handleScroll = () => {
-      
-      if (tabValue !== 0) return;
-      
-      
-      if (
-        window.innerHeight + document.documentElement.scrollTop + 200 >= 
-        document.documentElement.offsetHeight
-      ) {
-        loadMorePosts();
-      }
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [tabValue, loadMorePosts]);
-
-  
-  useEffect(() => {
-    const handleScroll = () => {
-      
-      if (tabValue === 1) { 
-        if (
-          window.innerHeight + document.documentElement.scrollTop + 200 >= 
-          document.documentElement.offsetHeight
-        ) {
-          loadMorePhotos();
-        }
-      } else if (tabValue === 2) { 
-        if (
-          window.innerHeight + document.documentElement.scrollTop + 200 >= 
-          document.documentElement.offsetHeight
-        ) {
-          loadMoreVideos();
-        }
-      }
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [tabValue, loadMorePhotos, loadMoreVideos]);
-
-  useEffect(() => {
-    const fetchNotifications = async () => {
+    const fetchTotalLikes = async () => {
       try {
-        const response = await axios.get('/api/notifications');
-        setNotifications(response.data.notifications);
+        if (user && user.id) {
+          const response = await axios.get(`/api/profile/${user.id}/stats`);
+          if (response.data && response.data.total_likes !== undefined) {
+            setTotalLikes(response.data.total_likes);
+          } else {
+            setTotalLikes(0);
+          }
+        }
       } catch (error) {
-        console.error('Error fetching notifications:', error);
+        console.error('Error fetching total likes:', error);
+        setTotalLikes(0);
       }
     };
-
-    fetchNotifications();
     
-    const interval = setInterval(fetchNotifications, 30000); 
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleNotificationClick = async (notification) => {
-    try {
-      await axios.post(`/api/notifications/${notification.id}/read`);
-      setNotifications(prev => 
-        prev.map(n => n.id === notification.id ? { ...n, is_read: true } : n)
-      );
-      if (notification.link) {
-        navigate(notification.link);
-      }
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  };
-
-  
-  useEffect(() => {
-    if (posts && posts.length > 0) {
-      
-      let likesCount = 0;
-      posts.forEach(post => {
-        if (post && post.likes_count) {
-          likesCount += parseInt(post.likes_count) || 0;
-        }
-      });
-      
-      
-      const fetchTotalLikes = async () => {
-        try {
-          if (user && user.id) {
-            const response = await axios.get(`/api/profile/${user.id}/stats`);
-            if (response.data && response.data.total_likes !== undefined) {
-              setTotalLikes(response.data.total_likes);
-            } else {
-              setTotalLikes(likesCount);
-            }
-          }
-        } catch (error) {
-          console.error('Error fetching total likes:', error);
-          setTotalLikes(likesCount);
-        }
-      };
-      
+    if (user && user.id) {
       fetchTotalLikes();
     }
-  }, [posts, user]);
+  }, [user]);
 
   
   const fetchOnlineStatus = async () => {
@@ -2101,11 +1517,6 @@ const ProfilePage = () => {
   useEffect(() => {
     if (username) {
       fetchOnlineStatus();
-      
-      
-      const interval = setInterval(fetchOnlineStatus, 30000);
-      
-      return () => clearInterval(interval);
     }
   }, [username]);
 
@@ -2119,6 +1530,30 @@ const ProfilePage = () => {
       });
     }
   }, [user]);
+
+  useEffect(() => {
+    if (user && user.id) {
+      fetchUserMedals();
+    }
+  }, [user]);
+
+  const fetchUserMedals = async () => {
+    try {
+      setLoadingMedals(true);
+      const response = await axios.get(`/api/profile/${user.id}/medals`);
+      if (response.data.success) {
+        setMedals(response.data.medals || []);
+      } else {
+        console.error('Error fetching medals:', response.data.error);
+        setMedals([]);
+      }
+    } catch (error) {
+      console.error('Error fetching medals:', error);
+      setMedals([]);
+    } finally {
+      setLoadingMedals(false);
+    }
+  };
 
 
   const handleUsernameClick = (event, username) => {
@@ -2159,431 +1594,16 @@ const ProfilePage = () => {
   }
   
   const isCurrentUser = currentUser && currentUser.username === user.username;
-
-  
-  const PhotosGrid = () => {
-    return (
-      <ContentLoader loading={loadingPhotos} skeletonCount={1} height="300px">
-        {photos.length > 0 ? (
-          <Box sx={{ mt: 0.5 }}>
-            <Grid container spacing={0.5}>
-              {photos.map((photo, index) => {
-                
-                if (!photo || typeof photo !== 'object' || !photo.url) {
-                  return null;
-                }
-                
-                
-                const imageUrl = photo.url || '';
-                
-                
-                return (
-                  <Grid item xs={12} sm={6} md={4} key={`photo-${index}`}>
-                    <Box
-                      sx={{
-                        position: 'relative',
-                        width: '100%',
-                        borderRadius: '10px',
-                        overflow: 'hidden',
-                        paddingTop: '100%', 
-                        backgroundColor: 'rgba(0,0,0,0.05)',
-                        '&:hover': {
-                          transform: 'translateY(-4px)',
-                          boxShadow: '0 12px 20px rgba(0,0,0,0.15)',
-                        },
-                        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                        cursor: 'pointer'
-                      }}
-                      onClick={() => openLightbox(imageUrl)}
-                    >
-                      <Box
-                        component="img"
-                        src={imageUrl}
-                        alt={photo.content || `Фото ${index + 1}`}
-                        onError={(e) => {
-                          
-                          console.error(`Failed to load image: ${imageUrl}`);
-                          e.currentTarget.src = '/static/uploads/system/image_placeholder.jpg';
-                        }}
-                        sx={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                        }}
-                      />
-                    </Box>
-                  </Grid>
-                );
-              })}
-            </Grid>
-            
-            {loadingMorePhotos && (
-              <Box sx={{ display: 'flex', justifyContent: 'center', my: 0.5 }}>
-                <CircularProgress size={30} />
-              </Box>
-            )}
-          </Box>
-        ) : (
-          <Box sx={{ 
-            textAlign: 'center', 
-            py: 0.5
-          }}>
-            <Typography color="text.secondary">
-              Нет фотографий для отображения
-            </Typography>
-          </Box>
-        )}
-      </ContentLoader>
-    );
-  };
-  
-  
-  const VideosGrid = () => {
-    return (
-      <ContentLoader loading={loadingVideos} skeletonCount={1} height="300px">
-        {videos.length > 0 ? (
-          <Box sx={{ mt: 0.5 }}>
-            <Grid container spacing={0.5}>
-              {videos.map((video, index) => (
-                <Grid item xs={12} sm={6} md={4} key={`video-${index}`}>
-                  <Box sx={{ 
-                    borderRadius: '10px', 
-                    overflow: 'hidden',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
-                    height: '100%',
-                    bgcolor: 'background.paper',
-                    position: 'relative'
-                  }}>
-                    <video 
-                      src={video.url} 
-                      controls
-                      style={{ 
-                        width: '100%',
-                        borderRadius: '10px 10px 0 0',
-                        backgroundColor: '#111',
-                      }} 
-                      onError={(e) => {
-                        console.error("Failed to load video");
-                        const videoId = video.id || video.url.split('/').pop().split('.')[0];
-                        if (videoId) {
-                          e.currentTarget.src = `/static/uploads/post/${videoId}/${video.url.split('/').pop()}`;
-                        }
-                      }}
-                    />
-                    
-                    {video.content && (
-                      <Box sx={{ p: 0.5, backgroundColor: 'rgba(26, 26, 26, 0.9)' }}>
-                        <Typography variant="body2" sx={{ fontSize: '0.9rem' }}>
-                          {video.content}
-                        </Typography>
-                      </Box>
-                    )}
-                  </Box>
-                </Grid>
-              ))}
-            </Grid>
-            
-            {loadingMoreVideos && (
-              <Box sx={{ display: 'flex', justifyContent: 'center', my: 0.5 }}>
-                <CircularProgress size={30} />
-              </Box>
-            )}
-          </Box>
-        ) : (
-          <Box sx={{ 
-            textAlign: 'center', 
-            py: 0.5
-          }}>
-            <Typography color="text.secondary">
-              Нет видео для отображения
-            </Typography>
-          </Box>
-        )}
-      </ContentLoader>
-    );
-  };
-
   
   const WallPostsTab = ({ userId }) => {
-    const [wallPosts, setWallPosts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [hasMorePosts, setHasMorePosts] = useState(true);
-    const [page, setPage] = useState(1);
-    const [loadingMorePosts, setLoadingMorePosts] = useState(false);
-    const observerRef = useRef(null);
-    const loaderRef = useRef(null); 
-    const isMounted = useRef(true);
-    const loadLock = useRef(false);
-
-    useEffect(() => {
-      
-      isMounted.current = true;
-      return () => {
-        isMounted.current = false;
-      };
-    }, []);
-
-    
-    const fetchWallPosts = useCallback(async (pageNum = 1, initialLoad = false) => {
-      
-      if (loadLock.current && !initialLoad) return;
-      
-      try {
-        initialLoad ? setLoading(true) : setLoadingMorePosts(true);
-        loadLock.current = true;
-        
-        const response = await axios.get(`/api/profile/${userId}/wall`, {
-          params: {
-            page: pageNum,
-            per_page: 10
-          }
-        });
-        
-        if (!isMounted.current) return;
-        
-        if (response.data.posts && Array.isArray(response.data.posts)) {
-          if (initialLoad) {
-            setWallPosts(response.data.posts);
-          } else {
-            setWallPosts(prev => [...prev, ...response.data.posts]);
-          }
-          setHasMorePosts(response.data.has_next);
-        } else {
-          if (initialLoad) setWallPosts([]);
-          setHasMorePosts(false);
-        }
-      } catch (error) {
-        console.error('Error fetching wall posts:', error);
-        if (initialLoad) setWallPosts([]);
-      } finally {
-        if (isMounted.current) {
-          initialLoad ? setLoading(false) : setLoadingMorePosts(false);
-          
-          
-          setTimeout(() => {
-            loadLock.current = false;
-          }, 300);
-        }
-      }
-    }, [userId]);
-    
-    
-    useEffect(() => {
-      if (userId) {
-        setPage(1);
-        fetchWallPosts(1, true);
-      }
-      
-      return () => {
-        
-        if (observerRef.current) {
-          observerRef.current.disconnect();
-        }
-      };
-    }, [userId, fetchWallPosts]);
-    
-    
-    useEffect(() => {
-      const handleObserver = (entries) => {
-        const [entry] = entries;
-        
-        
-        if (entry.isIntersecting && hasMorePosts && !loadingMorePosts && !loadLock.current) {
-          const nextPage = page + 1;
-          setPage(nextPage);
-          fetchWallPosts(nextPage, false);
-        }
-      };
-      
-      
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-      
-      
-      observerRef.current = new IntersectionObserver(handleObserver, {
-        root: null,
-        rootMargin: '0px', 
-        threshold: 0.5     
-      });
-      
-      
-      if (loaderRef.current && hasMorePosts) {
-        observerRef.current.observe(loaderRef.current);
-      }
-      
-    }, [hasMorePosts, page, loadingMorePosts, fetchWallPosts]);
-
-    
-    const handleDeletePost = (postId, updatedPost) => {
-      if (updatedPost) {
-        
-        setWallPosts(prevPosts => prevPosts.map(post => 
-          post.id.toString() === postId.toString() ? updatedPost : post
-        ));
-      } else {
-        
-        setWallPosts(prevPosts => prevPosts.filter(post => 
-          post.id.toString() !== postId.toString()
-        ));
-      }
-    };
-    
-    
-    useEffect(() => {
-      const handleGlobalPostCreated = (event) => {
-        const newPost = event.detail;
-        
-        if (newPost.type === 'stena' && newPost.recipient_id === parseInt(userId)) {
-          setWallPosts(prevPosts => [newPost, ...prevPosts]);
-        }
-      };
-      
-      
-      window.addEventListener('post_created', handleGlobalPostCreated);
-      
-      
-      return () => {
-        window.removeEventListener('post_created', handleGlobalPostCreated);
-      };
-    }, [userId]);
-
     return (
-      <ContentLoader loading={loading} skeletonCount={3} height="120px">
-        {wallPosts.length > 0 ? (
-          <Box sx={{ mt: 0.5 }}>
-            {/* Отображаем все посты на стене */}
-            {wallPosts.map((post, index) => (
-              <Box key={post.id}>
-                <Post post={post} onDelete={handleDeletePost} showActions />
-              </Box>
-            ))}
-            
-            {/* Элемент-сентинель для бесконечной прокрутки */}
-            {hasMorePosts && (
-              <Box 
-                ref={loaderRef} 
-                sx={{ 
-                  width: '100%', 
-                  height: '50px', 
-                  display: 'flex', 
-                  justifyContent: 'center', 
-                  alignItems: 'center',
-                  my: 1
-                }}
-              >
-                {loadingMorePosts && <CircularProgress size={24} />}
-              </Box>
-            )}
-            
-            {/* Сообщение, когда постов больше нет */}
-            {!hasMorePosts && wallPosts.length > 5 && (
-              <Box sx={{ textAlign: 'center', py: 2 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Больше записей нет
-                </Typography>
-              </Box>
-            )}
-          </Box>
-        ) : (
-          <Box sx={{ 
-            textAlign: 'center', 
-            py: 0.5
-          }}>
-            <Typography color="text.secondary">
-              На стене нет записей
-            </Typography>
-          </Box>
-        )}
-      </ContentLoader>
+      <WallFeed userId={userId} />
     );
   };
 
-  
   const PostsTab = () => {
-    
-    const filteredPosts = posts.filter(post => !post.type || post.type !== 'stena');
-    
     return (
-      <ContentLoader loading={loadingPosts} skeletonCount={3} height="120px">
-        {filteredPosts.length > 0 ? (
-          <Box sx={{ mt: 0.5 }}>
-            {filteredPosts.map(post => (
-              post.is_repost ? (
-                <RepostItem key={post.id} post={post} onDelete={handleDeletePost} />
-              ) : (
-                <Post key={post.id} post={post} onDelete={handleDeletePost} showActions />
-              )
-            ))}
-            
-            
-            <Box sx={{ textAlign: 'center', mt: 0.5, mb: 0.5 }}>
-              {hasMorePosts ? (
-                <Button 
-                  variant="outlined" 
-                  onClick={loadMorePosts}
-                  disabled={loadingMorePosts}
-                  startIcon={loadingMorePosts ? <CircularProgress size={16} /> : null}
-                  sx={{ 
-                    py: 1,
-                    px: 3, 
-                    borderRadius: 2,
-                    transition: 'all 0.2s ease',
-                    '&:hover': {
-                      transform: 'translateY(-2px)'
-                    }
-                  }}
-                >
-                  {loadingMorePosts ? 'Загрузка...' : 'Загрузить еще'}
-                </Button>
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  Больше постов нет
-                </Typography>
-              )}
-            </Box>
-          </Box>
-        ) : (
-          <Box sx={{ 
-            textAlign: 'center', 
-            py: 6,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 2,
-            background: 'rgba(255, 255, 255, 0.03)',
-            borderRadius: '16px',
-            border: '1px dashed rgba(255, 255, 255, 0.1)',
-            padding: 4,
-            mt: 2
-          }}>
-            <Box 
-              sx={{ 
-                width: 80, 
-                height: 80, 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                borderRadius: '50%',
-                backgroundColor: 'rgba(208, 188, 255, 0.1)',
-                mb: 2
-              }}
-            >
-              <ArticleOutlinedIcon sx={{ fontSize: 40, color: 'rgba(208, 188, 255, 0.6)' }} />
-            </Box>
-            <Typography variant="h6" color="text.primary" sx={{ fontWeight: 'medium' }}>
-              Нет публикаций
-            </Typography>
-            <Typography color="text.secondary" sx={{ maxWidth: 400 }}>
-              Пользователь еще не опубликовал ни одного поста. Публикации будут отображаться здесь, когда они появятся.
-            </Typography>
-          </Box>
-        )}
-      </ContentLoader>
+      <PostsFeed userId={user?.id} />
     );
   };
 
@@ -2624,10 +1644,24 @@ const ProfilePage = () => {
               if (currentTheme === 'amoled') {
                 return 'linear-gradient(135deg, #000000 0%, #000000 100%)';
               }
+              
+              if (user?.profile_id === 2 && user?.banner_url) {
+                return 'transparent';
+              }
+              
+              if (user?.profile_id === 1) {
+                return 'rgb(26, 26, 26)';
+              }
+              
               return theme.palette.mode === 'dark'
                 ? 'linear-gradient(135deg, #232526 0%, #121212 100%)'
                 : 'linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%)';
             },
+            backgroundImage: user?.profile_id === 2 && user?.banner_url 
+              ? `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.6)), url(${user.banner_url})` 
+              : 'none',
+            backgroundSize: user?.profile_id === 2 ? 'cover' : 'auto',
+            backgroundPosition: user?.profile_id === 2 ? 'center' : 'auto',
             boxShadow: theme => {
               
               const currentTheme = localStorage.getItem('theme');
@@ -2683,70 +1717,70 @@ const ProfilePage = () => {
             })
           }}>
             
-            {user?.banner_url ? (
-              <Box sx={{ 
-                width: '100%',
-                height: { xs: 150, sm: 200 },
-                backgroundImage: `url(${user.banner_url})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                position: 'relative',
-                transition: 'transform 0.5s ease',
-                '&:hover': {
-                  transform: 'scale(1.02)'
-                },
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
+            {/* Banner section */}
+            {user?.profile_id !== 2 ? (
+              
+              user?.banner_url ? (
+                <Box sx={{ 
+                  width: '100%',
+                  height: { xs: 150, sm: 200 },
+                  backgroundImage: `url(${user.banner_url})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  position: 'relative',
+                  transition: 'transform 0.5s ease',
+                  '&:hover': {
+                    transform: 'scale(1.02)'
+                  },
+                  '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: theme => theme.palette.mode === 'dark'
+                      ? 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(18,18,18,0.45) 100%)'
+                      : 'linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.4) 100%)'
+                  }
+                }}></Box>
+              ) : (
+                <Box sx={{ 
+                  width: '100%',
+                  height: { xs: 100, sm: 120 },
                   background: theme => theme.palette.mode === 'dark'
-                    ? 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(18,18,18,0.45) 100%)'
-                    : 'linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.4) 100%)'
-                }
-              }}>
-                
-                
-              </Box>
+                    ? 'linear-gradient(135deg, #4568dc 0%, #b06ab3 100%)'
+                    : 'linear-gradient(135deg, #7c4dff 0%, #b388ff 100%)',
+                  position: 'relative',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zm60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z\' fill=\'%23ffffff\' fill-opacity=\'0.05\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")',
+                    opacity: 0.4
+                  },
+                  '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: theme => theme.palette.mode === 'dark'
+                      ? 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(18,18,18,0.9) 100%)'
+                      : 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 100%)'
+                  }
+                }}></Box>
+              )
             ) : (
-              <Box sx={{ 
-                width: '100%',
-                height: { xs: 100, sm: 120 },
-                background: theme => theme.palette.mode === 'dark'
-                  ? 'linear-gradient(135deg, #4568dc 0%, #b06ab3 100%)'
-                  : 'linear-gradient(135deg, #7c4dff 0%, #b388ff 100%)',
-                position: 'relative',
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z\' fill=\'%23ffffff\' fill-opacity=\'0.05\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")',
-                  opacity: 0.4
-                },
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: theme => theme.palette.mode === 'dark'
-                    ? 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(18,18,18,0.9) 100%)'
-                    : 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 100%)'
-                }
-              }}>
-                
-                
-              </Box>
+              
+              null
             )}
             
-            
-            <Box sx={{ px: 3, pb: 3, pt: 0, mt: -7 }}>
+            <Box sx={{ px: 3, pb: 3, pt: 0, mt: user?.profile_id === 2 ? 2 : -7 }}>
               
               <Box sx={{ 
                 display: 'flex', 
@@ -2770,10 +1804,10 @@ const ProfilePage = () => {
                           ? `4px solid ${user.status_color}` 
                           : user?.subscription 
                             ? `4px solid ${user.subscription.type === 'premium' ? 'rgba(186, 104, 200)' : user.subscription.type === 'pick-me' ? 'rgba(208, 188, 255)' : user.subscription.type === 'ultimate' ? 'rgba(124, 77, 255)' : 'rgba(66, 165, 245)'}` 
-                            : theme => theme.palette.mode === 'dark'
+                          : theme => theme.palette.mode === 'dark'
                               ? '4px solid #121212'
                               : '4px solid #ffffff',
-                        boxShadow: (user?.status_color && user?.status_text && user?.subscription) 
+                        boxShadow: (user?.status_color && user?.status_text && user.subscription) 
                           ? `0 0 15px ${user.status_color}80` 
                           : user?.subscription 
                             ? (user.subscription.type === 'premium' ? '0 0 15px rgba(186, 104, 200, 0.5)' : user.subscription.type === 'pick-me' ? '0 0 15px rgba(208, 188, 255, 0.5)' : user.subscription.type === 'ultimate' ? '0 0 15px rgba(124, 77, 255, 0.5)' : '0 0 15px rgba(66, 165, 245, 0.5)') 
@@ -2783,12 +1817,12 @@ const ProfilePage = () => {
                         cursor: 'pointer',
                         '&:hover': {
                           transform: 'scale(1.03)',
-                          boxShadow: (user?.status_color && user?.status_text && user?.subscription) 
+                          boxShadow: (user?.status_color && user?.status_text && user.subscription) 
                             ? `0 0 20px ${user.status_color}B3` 
                             : user?.subscription 
                               ? (user.subscription.type === 'premium' ? '0 0 20px rgba(186, 104, 200, 0.7)' : user.subscription.type === 'pick-me' ? '0 0 20px rgba(208, 188, 255, 0.7)' : user.subscription.type === 'ultimate' ? '0 0 20px rgba(124, 77, 255, 0.7)' : '0 0 20px rgba(66, 165, 245, 0.7)') 
                               : '0 10px 25px rgba(0, 0, 0, 0.35)',
-                          border: (user?.status_color && user?.status_text && user?.subscription) 
+                          border: (user?.status_color && user?.status_text && user.subscription) 
                             ? `4px solid ${user.status_color}CC` 
                             : user?.subscription 
                               ? `4px solid ${user.subscription.type === 'premium' ? 'rgba(186, 104, 200, 0.8)' : user.subscription.type === 'pick-me' ? 'rgba(208, 188, 255, 0.8)' : user.subscription.type === 'ultimate' ? 'rgba(124, 77, 255, 0.8)' : 'rgba(66, 165, 245, 0.8)'}`
@@ -2852,16 +1886,26 @@ const ProfilePage = () => {
                       variant="h5" 
                       sx={{ 
                         fontWeight: 700,
-                        background: theme => theme.palette.mode === 'dark' 
+                        color: user?.profile_id === 2 ? '#fff' : 'inherit',
+                        textShadow: user?.profile_id === 2 ? '0 1px 3px rgba(0,0,0,0.7)' : 'none',
+                        background: user?.profile_id === 2 ? 'none' : theme => theme.palette.mode === 'dark' 
                           ? 'linear-gradient(90deg, #fff 0%, rgba(255,255,255,0.8) 100%)'
                           : 'linear-gradient(90deg, #000 0%, rgba(0,0,0,0.8) 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent'
+                        WebkitBackgroundClip: user?.profile_id === 2 ? 'unset' : 'text',
+                        WebkitTextFillColor: user?.profile_id === 2 ? 'unset' : 'transparent'
                       }}>
                       {user?.name || 'Пользователь'}
                     </Typography>
                     <VerificationBadge status={user?.verification_status} size="small" />
                     
+                    {/* Добавляем значок подписки, если у пользователя есть подписка */}
+                    {user?.subscription && user.subscription.total_duration_months > 0 && (
+                      <SubscriptionBadge 
+                        duration={user.subscription.total_duration_months} 
+                        subscriptionDate={user.subscription.subscription_date}
+                        subscriptionType={user.subscription.type}
+                      />
+                    )}
 
                     {user?.achievement && (
                       <Box 
@@ -2891,14 +1935,19 @@ const ProfilePage = () => {
                     variant="body2" 
                     sx={{ 
                       fontWeight: 500,
-                      color: theme => theme.palette.text.secondary,
+                      color: user?.profile_id === 2 ? 'rgba(255,255,255,0.9)' : theme => theme.palette.text.secondary,
+                      textShadow: user?.profile_id === 2 ? '0 1px 2px rgba(0,0,0,0.5)' : 'none',
                       display: 'flex',
                       alignItems: 'center',
-                      background: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+                      background: user?.profile_id === 2 
+                        ? 'rgba(0,0,0,0.3)'
+                        : theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
                       px: 1.2,
                       py: 0.4,
                       borderRadius: 4,
-                      border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)'
+                      border: user?.profile_id === 2
+                        ? '1px solid rgba(255,255,255,0.15)'
+                        : theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)'
                     }}
                   >
                     @{user?.username || 'username'}
@@ -2929,13 +1978,14 @@ const ProfilePage = () => {
                           alignItems: 'center',
                           color: '#fff',
                           fontWeight: 500,
-                          background: 'rgba(211, 47, 47, 0.2)',
+                          background: 'rgba(211, 47, 47, 0.7)', 
                           px: 1,
-                          py: 0.3,
+                          py: 0.1,
                           borderRadius: 4,
-                          border: '1px solid rgba(211, 47, 47, 0.4)',
+                          border: '1px solid rgba(211, 47, 47, 0.8)',
+                          boxShadow: '0 0 8px rgba(211, 47, 47, 0.5)',
                           '&:hover': {
-                            background: 'rgba(211, 47, 47, 0.3)',
+                            background: 'rgba(211, 47, 47, 0.8)',
                           },
                           animation: 'pulse-red 2s infinite',
                           '@keyframes pulse-red': {
@@ -2949,7 +1999,9 @@ const ProfilePage = () => {
                         <Box component="span">В бане</Box>
                       </Typography>
                     </Tooltip>
-                  ) : isOnline && user?.subscription?.type !== 'channel' ? (
+                  ) : null}
+
+                  {isOnline && user?.subscription?.type !== 'channel' ? (
                     <Typography 
                       variant="caption" 
                       sx={{
@@ -2961,7 +2013,7 @@ const ProfilePage = () => {
                           ? 'rgba(46, 125, 50, 0.1)' 
                           : 'rgba(46, 125, 50, 0.15)',
                         px: 1,
-                        py: 0.3,
+                        py: 0.1,
                         borderRadius: 4,
                         border: '1px solid rgba(46, 125, 50, 0.2)'
                       }}
@@ -2997,7 +2049,44 @@ const ProfilePage = () => {
                       {lastActive ? `${lastActive}` : "не в сети"}
                     </Typography>
                   ) : null}
-                                    {user?.subscription && (
+
+                  {user?.scam === 1 && (
+                    <Tooltip 
+                      title="Этот аккаунт был отмечен как мошеннический. Будьте осторожны!" 
+                      arrow 
+                      placement="top"
+                    >
+                      <Typography 
+                        variant="caption" 
+                        sx={{
+                          display: 'flex', 
+                          alignItems: 'center',
+                          color: '#fff',
+                          fontWeight: 500,
+                          background: 'rgba(211, 47, 47, 0.6)',
+                          px: 1,
+                          py: 0.1,
+                          borderRadius: 4,
+                          border: '1px solid rgba(211, 47, 47, 0.8)',
+                          boxShadow: '0 0 8px rgba(211, 47, 47, 0.5)',
+                          '&:hover': {
+                            background: 'rgba(211, 47, 47, 0.7)',
+                          },
+                          animation: 'pulse-red 2s infinite',
+                          '@keyframes pulse-red': {
+                            '0%': { boxShadow: '0 0 0 0 rgba(211, 47, 47, 0.4)' },
+                            '70%': { boxShadow: '0 0 0 6px rgba(211, 47, 47, 0)' },
+                            '100%': { boxShadow: '0 0 0 0 rgba(211, 47, 47, 0)' }
+                          }
+                        }}
+                      >
+                        <WarningIcon sx={{ fontSize: 14, mr: 0.5, opacity: 0.9 }} />
+                        <Box component="span">SCAM</Box>
+                      </Typography>
+                    </Tooltip>
+                  )}
+                  
+                  {user?.subscription && (
                     user.subscription.type === 'channel' ? (
                       <Chip
                         icon={<ChatIcon fontSize="small" />}
@@ -3024,7 +2113,8 @@ const ProfilePage = () => {
                           '& .MuiChip-icon': {
                             color: 'inherit'
                           },
-                          
+                          py: 0.25, 
+                          height: 'auto',
                           animation: 'pulse-light 2s infinite',
                           '@keyframes pulse-light': {
                             '0%': {
@@ -3070,7 +2160,8 @@ const ProfilePage = () => {
                             '& .MuiChip-icon': {
                               color: 'inherit'
                             },
-                            
+                            py: 0.25, 
+                            height: 'auto',
                             animation: 'pulse-light 2s infinite',
                             '@keyframes pulse-light': {
                               '0%': {
@@ -3122,7 +2213,7 @@ const ProfilePage = () => {
                         flexWrap: 'wrap'
                       }}
                     >
-                      <Typography variant="caption" sx={{ color: theme => theme.palette.text.secondary, mr: 0.5 }}>
+                      <Typography variant="caption" sx={{ color: user?.status_color ? getLighterColor(user.status_color) : theme => theme.palette.text.secondary, mr: 0.5 }}>
                         А также:
                       </Typography>
                       {ownedUsernames.slice(0, 3).map((usernameItem, idx) => (
@@ -3165,39 +2256,41 @@ const ProfilePage = () => {
                     mt: 2,
                     p: 1.5,
                     borderRadius: '12px',
-                    backgroundColor: 'rgba(211, 47, 47, 0.1)',
-                    border: '1px solid rgba(211, 47, 47, 0.3)',
+                    backgroundColor: 'rgba(211, 47, 47, 0.7)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(211, 47, 47, 0.8)',
+                    boxShadow: '0 0 15px rgba(211, 47, 47, 0.4)',
                     display: 'flex',
                     alignItems: 'flex-start',
                     gap: 1.5
                   }}>
-                    <WarningIcon color="error" sx={{ fontSize: 22, mt: 0.5 }} />
+                    <WarningIcon sx={{ fontSize: 22, mt: 0.5, color: 'white' }} />
                     <Box>
-                      <Typography variant="subtitle2" color="error" sx={{ fontWeight: 'bold' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'white' }}>
                         Аккаунт заблокирован
                       </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                      <Typography variant="caption" sx={{ display: 'block', color: 'rgba(255,255,255,0.9)' }}>
                         Причина: {userBanInfo.reason}
                       </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                      <Typography variant="caption" sx={{ display: 'block', color: 'rgba(255,255,255,0.9)' }}>
                         До {userBanInfo.end_date} 
                         {userBanInfo.remaining_days > 0 && ` (осталось ${userBanInfo.remaining_days} дн.)`}
                       </Typography>
                       
                       {currentUser && currentUser.id === 3 && (
-                        <Box sx={{ mt: 1, pt: 1, borderTop: '1px dashed rgba(211, 47, 47, 0.3)' }}>
-                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontStyle: 'italic' }}>
+                        <Box sx={{ mt: 1, pt: 1, borderTop: '1px dashed rgba(255, 255, 255, 0.4)' }}>
+                          <Typography variant="caption" sx={{ display: 'block', fontStyle: 'italic', color: 'rgba(255,255,255,0.9)' }}>
                             {userBanInfo.is_auto_ban ? 'Автоматический бан системой' : (
                               userBanInfo.admin ? `Бан выдал: ${userBanInfo.admin.name} (@${userBanInfo.admin.username})` : 'Бан выдан администрацией'
                             )}
                           </Typography>
                           {userBanInfo.start_date && (
-                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontStyle: 'italic' }}>
+                            <Typography variant="caption" sx={{ display: 'block', fontStyle: 'italic', color: 'rgba(255,255,255,0.9)' }}>
                               Начало бана: {userBanInfo.start_date}
                             </Typography>
                           )}
                           {userBanInfo.details && (
-                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontStyle: 'italic' }}>
+                            <Typography variant="caption" sx={{ display: 'block', fontStyle: 'italic', color: 'rgba(255,255,255,0.9)' }}>
                               Детали: {userBanInfo.details}
                             </Typography>
                           )}
@@ -3214,7 +2307,7 @@ const ProfilePage = () => {
                     sx={{ 
                       mt: 1,
                       lineHeight: 1.5,
-                      color: theme => theme.palette.text.primary,
+                      color: user?.status_color ? getLighterColor(user.status_color) : theme => theme.palette.text.secondary,
                       p: 1.5,
                       borderRadius: 2,
                       background: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
@@ -3263,7 +2356,9 @@ const ProfilePage = () => {
                     >
                       {postsCount || 0}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant="caption" sx={{ 
+                      color: user?.status_color ? getLighterColor(user.status_color) : theme => theme.palette.text.secondary
+                    }}>
                       публикаций
                     </Typography>
                   </Paper>
@@ -3301,12 +2396,12 @@ const ProfilePage = () => {
                           'primary.main'
                       }}
                     >
-                      {user?.subscription?.type === 'channel' ? 
-                        (followersCount || 0) : 
-                        (user?.friends_count || 0)}
+                      {followersCount || 0}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {user?.subscription?.type === 'channel' ? 'подписчиков' : 'друзей'}
+                    <Typography variant="caption" sx={{ 
+                      color: user?.status_color ? getLighterColor(user.status_color) : theme => theme.palette.text.secondary
+                    }}>
+                      подписчиков
                     </Typography>
                   </Paper>
                   
@@ -3346,7 +2441,9 @@ const ProfilePage = () => {
                       >
                         {followingCount || 0}
                       </Typography>
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography variant="caption" sx={{ 
+                        color: user?.status_color ? getLighterColor(user.status_color) : theme => theme.palette.text.secondary
+                      }}>
                         подписок
                       </Typography>
                     </Paper>
@@ -3362,7 +2459,7 @@ const ProfilePage = () => {
                       <Grid item xs={6}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                           <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
-                            Друзья
+                            Подписчики
                           </Typography>
                           
                           
@@ -3395,10 +2492,10 @@ const ProfilePage = () => {
                                 </Tooltip>
                               ))}
                               {user?.friends_count > 3 && (
-                                <Tooltip title="Показать всех друзей" arrow>
+                                <Tooltip title="Показать всех подписчиков" arrow>
                                   <Avatar 
                                     component={Link}
-                                    to={`/profile/${user?.username}/friends`}
+                                    to={`/profile/${user?.username}/followers`}
                                     sx={{ 
                                       width: 32, 
                                       height: 32, 
@@ -3419,7 +2516,7 @@ const ProfilePage = () => {
                             </Box>
                           ) : (
                             <Typography variant="caption" color="text.secondary">
-                              Нет друзей
+                              Нет подписчиков
                             </Typography>
                           )}
                         </Box>
@@ -3650,22 +2747,17 @@ const ProfilePage = () => {
             <Tabs 
               value={tabValue} 
               onChange={handleTabChange}
+              indicatorColor="primary"
               variant="fullWidth"
               sx={{
+                '& .MuiTab-root': {
+                  color: theme => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+                  '&.Mui-selected': {
+                    color: theme => theme.palette.primary.main,
+                  }
+                },
                 '& .MuiTabs-indicator': {
                   backgroundColor: 'primary.main',
-                  height: 3
-                },
-                '& .MuiTab-root': {
-                  color: 'rgba(255,255,255,0.6)',
-                  fontSize: '0.9rem',
-                  fontWeight: 500,
-                  py: 1.5,
-                  textTransform: 'none',
-                  '&.Mui-selected': {
-                    color: 'primary.main',
-                    fontWeight: 700
-                  }
                 }
               }}
             >
@@ -3834,16 +2926,72 @@ const ProfilePage = () => {
                     </Box>
                   </Grid>
                 )}
+
+                {/* Medals section */}
+                {medals && medals.length > 0 && (
+                  <Grid item xs={12}>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'flex-start', 
+                      gap: 1.5,
+                      pb: 2,
+                      borderBottom: '1px solid rgba(255,255,255,0.07)'
+                    }}>
+                      <EmojiEventsIcon color="primary" sx={{ mt: 0.5 }} />
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                          Медали
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 1 }}>
+                          {medals.map((medal) => (
+                            <Tooltip
+                              key={medal.id}
+                              title={
+                                <Box>
+                                  {medal.description && (
+                                    <Typography variant="caption">{medal.description}</Typography>
+                                  )}
+                                  <Typography variant="caption" display="block" sx={{ mt: 0.5, opacity: 0.8 }}>
+                                    Выдана: {new Date(medal.awarded_at).toLocaleDateString()}
+                                  </Typography>
+                                  <Typography variant="caption" display="block" sx={{ opacity: 0.8 }}>
+                                    Кем: @{medal.awarded_by}
+                                  </Typography>
+                                </Box>
+                              }
+                              arrow
+                            >
+                              <img
+                                src={medal.image_path}
+                                alt={medal.name}
+                                style={{ 
+                                  width: 150,
+                                  height: 150,
+                                  cursor: 'pointer',
+                                  transition: 'transform 0.2s',
+                                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
+                                }}
+                                onMouseOver={(e) => {
+                                  e.currentTarget.style.transform = 'translateY(-2px)';
+                                  e.currentTarget.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))';
+                                }}
+                                onMouseOut={(e) => {
+                                  e.currentTarget.style.transform = 'translateY(0)';
+                                  e.currentTarget.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))';
+                                }}
+                              />
+                            </Tooltip>
+                          ))}
+                        </Box>
+                      </Box>
+                    </Box>
+                  </Grid>
+                )}
               </Grid>
             </Paper>
           </TabPanel>
         </Grid>
       </Grid>
-      {loadingMorePosts && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
-          <CircularProgress size={30} />
-          </Box>
-        )}
       
       
       {lightboxIsOpen && (
@@ -3904,63 +3052,6 @@ const ProfilePage = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-      
-      <Menu
-        anchorEl={notificationMenuAnchor}
-        open={Boolean(notificationMenuAnchor)}
-        onClose={() => setNotificationMenuAnchor(null)}
-        PaperProps={{
-          sx: {
-            bgcolor: theme => theme.palette.mode === 'dark' ? '#1E1E1E' : theme.palette.background.paper,
-            boxShadow: '0 5px 15px rgba(0, 0, 0, 0.2)',
-            mt: 1,
-            maxHeight: 400,
-            width: 360
-          }
-        }}
-      >
-        <Box sx={{ p: 2, borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-          <Typography variant="h6">Уведомления</Typography>
-        </Box>
-        
-        {notifications.length > 0 ? (
-          notifications.map(notification => (
-            <MenuItem
-              key={notification.id}
-              onClick={() => handleNotificationClick(notification)}
-              sx={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: 2,
-                p: 2,
-                '&:hover': {
-                  bgcolor: 'rgba(255, 255, 255, 0.05)'
-                }
-              }}
-            >
-              <Avatar
-                src={notification.sender_user?.avatar_url}
-                alt={notification.sender_user?.name}
-                sx={{ width: 40, height: 40 }}
-              />
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="body2" sx={{ mb: 0.5 }}>
-                  {notification.message}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {formatTimeAgo(notification.created_at)}
-                </Typography>
-              </Box>
-            </MenuItem>
-          ))
-        ) : (
-          <Box sx={{ p: 2, textAlign: 'center' }}>
-            <Typography color="text.secondary">Нет новых уведомлений</Typography>
-          </Box>
-        )}
-      </Menu>
-      
-      {/* Карточка с информацией об юзернейме */}
       <AnimatePresence>
         {selectedUsername && (
           <UsernameCard 

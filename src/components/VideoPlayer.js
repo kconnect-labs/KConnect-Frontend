@@ -12,6 +12,7 @@ const VideoContainer = styled(Box)({
   position: 'relative',
   aspectRatio: '16/9',
   backgroundColor: '#11111C',
+  cursor: 'pointer',
   '& .plyr': {
     width: '100%',
     height: '100%',
@@ -20,12 +21,24 @@ const VideoContainer = styled(Box)({
     borderRadius: '8px',
     overflow: 'hidden',
   },
+  '& .plyr--video .plyr__controls': {
+    background: 'rgba(0, 0, 0, 0.3) !important',
+    backdropFilter: 'blur(10px) !important',
+    padding: '5px !important',
+    paddingTop: '0px !important',
+  },
 });
+
 
 const VideoPlayer = ({ videoUrl, poster, options = {} }) => {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
   const { themeSettings } = useContext(ThemeSettingsContext);
+  
+  
+  const handleContainerClick = (e) => {
+    e.stopPropagation();
+  };
   
   useEffect(() => {
     if (!videoRef.current) return;
@@ -34,19 +47,22 @@ const VideoPlayer = ({ videoUrl, poster, options = {} }) => {
     const accentColor = themeSettings?.button_primary_border_color || '#D0BCFF';
     
     
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+    
+    
+    const controlsForDevice = [
+      'play-large',
+      'play',
+      'progress',
+      'current-time',
+      'mute',
+      ...(isMobile ? [] : ['volume']), 
+      'captions',
+      'fullscreen'
+    ];
+    
     const defaultOptions = {
-      controls: [
-        'play-large',
-        'play',
-        'progress',
-        'current-time',
-        'mute',
-        'volume',
-        'captions',
-        'settings',
-        'pip',
-        'fullscreen'
-      ],
+      controls: controlsForDevice,
       displayDuration: true,
       invertTime: false,
       toggleInvert: false,
@@ -110,7 +126,7 @@ const VideoPlayer = ({ videoUrl, poster, options = {} }) => {
   
   if (sourceType === 'youtube' || sourceType === 'vimeo') {
     return (
-      <VideoContainer>
+      <VideoContainer onClick={handleContainerClick}>
         <div 
           ref={videoRef} 
           data-plyr-provider={sourceType} 
@@ -126,7 +142,7 @@ const VideoPlayer = ({ videoUrl, poster, options = {} }) => {
   
   
   return (
-    <VideoContainer>
+    <VideoContainer onClick={handleContainerClick}>
       <video 
         ref={videoRef} 
         controls 

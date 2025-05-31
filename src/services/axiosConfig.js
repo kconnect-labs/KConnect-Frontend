@@ -295,26 +295,32 @@ instance.interceptors.response.use(
     
 
     if (error.response) {
-
+      
       if (error.response.status === 401) {
-
         window.dispatchEvent(new CustomEvent('auth-error', { 
-          detail: { message: "Сессия истекла, пожалуйста, войдите снова" } 
+          detail: { 
+            message: "Сессия истекла", 
+            shortMessage: "Войдите снова",
+            notificationType: "error",
+            animationType: "pill" 
+          } 
         }));
       }
       
-
+      
       if (error.response.status === 429) {
-
         window.dispatchEvent(new CustomEvent('rate-limit-error', { 
           detail: { 
-            message: "Слишком много запросов, пожалуйста, подождите",
+            message: "Лимит запросов превышен",
+            shortMessage: "Подождите",
+            notificationType: "warning",
+            animationType: "bounce", 
             retryAfter: error.response.headers['retry-after'] 
           } 
         }));
       }
       
-
+      
       if ([500, 502, 503, 504].includes(error.response.status) && 
           config && !config._retryCount) {
 
@@ -332,7 +338,11 @@ instance.interceptors.response.use(
             detail: { 
               url: config.url,
               attempt: config._retryCount,
-              delay: delay
+              delay: delay,
+              message: "Повторное подключение",
+              shortMessage: `Попытка ${config._retryCount}`,
+              notificationType: "info",
+              animationType: "pulse"
             } 
           }));
           
@@ -343,9 +353,14 @@ instance.interceptors.response.use(
         }
       }
     } else if (error.request) {
-
+      
       window.dispatchEvent(new CustomEvent('network-error', { 
-        detail: { message: "Проблема с подключением к серверу, проверьте ваше интернет-соединение" } 
+        detail: { 
+          message: "Проблема с подключением", 
+          shortMessage: "Нет сети",
+          notificationType: "error",
+          animationType: "drop"
+        } 
       }));
     }
     
@@ -371,24 +386,54 @@ instance.helpers = {
       if (onError) {
         onError(error);
       } else {
-
-        let message = 'Произошла ошибка при загрузке данных';
+        
+        let message = 'Ошибка загрузки данных';
+        let shortMessage = 'Ошибка';
+        let notificationType = 'error';
+        let animationType = 'pill';
         
         if (error.response) {
           switch(error.response.status) {
-            case 400: message = 'Неверный запрос'; break;
-            case 401: message = 'Необходима авторизация'; break;
-            case 403: message = 'Доступ запрещен'; break;
-            case 404: message = 'Ресурс не найден'; break;
-            case 429: message = 'Слишком много запросов'; break;
-            case 500: message = 'Внутренняя ошибка сервера'; break;
+            case 400: 
+              message = 'Неверный запрос'; 
+              shortMessage = 'Ошибка запроса';
+              break;
+            case 401: 
+              message = 'Требуется авторизация'; 
+              shortMessage = 'Войдите';
+              break;
+            case 403: 
+              message = 'Доступ запрещен'; 
+              shortMessage = 'Нет доступа';
+              break;
+            case 404: 
+              message = 'Ресурс не найден'; 
+              shortMessage = 'Не найдено';
+              break;
+            case 429: 
+              message = 'Превышен лимит запросов'; 
+              shortMessage = 'Подождите';
+              notificationType = 'warning';
+              animationType = 'bounce';
+              break;
+            case 500: 
+              message = 'Ошибка сервера'; 
+              shortMessage = 'Сервер недоступен';
+              break;
           }
         } else if (error.request) {
           message = 'Нет ответа от сервера';
+          shortMessage = 'Нет соединения';
+          animationType = 'drop';
         }
         
         window.dispatchEvent(new CustomEvent('show-error', { 
-          detail: { message } 
+          detail: { 
+            message, 
+            shortMessage, 
+            notificationType, 
+            animationType 
+          } 
         }));
       }
       throw error;

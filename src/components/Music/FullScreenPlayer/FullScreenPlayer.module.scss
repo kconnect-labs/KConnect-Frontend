@@ -28,6 +28,7 @@ $yandex-font: 'YS Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
   height: 100%;
   overflow: hidden !important;
   position: relative;
+  font-family: $apple-font;
 }
 
 .contentContainer {
@@ -65,6 +66,29 @@ $yandex-font: 'YS Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
   max-width: 70%;
   transform: translateX(0);
   animation: slideCenterIn 0.4s cubic-bezier(0.17, 0.67, 0.3, 0.98) forwards;
+}
+
+// // Full-width gradient overlays
+// .fadeGradientTop {
+//   position: absolute;
+//   top: 0;
+//   left: 0;
+//   right: 0;
+//   height: 180px;
+//   background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0) 100%);
+//   pointer-events: none;
+//   z-index: 3;
+// }
+
+.fadeGradientBottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 180px;
+  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0) 100%);
+  pointer-events: none;
+  z-index: 3;
 }
 
 @keyframes slideCenterIn {
@@ -111,7 +135,7 @@ $yandex-font: 'YS Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
 .snackbarAlert {
   border-radius: 12px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  font-family: $yandex-font;
+  font-family: $apple-font;
   font-weight: 500;
   letter-spacing: -0.01em;
 }
@@ -138,7 +162,7 @@ $yandex-font: 'YS Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
   100% { transform: scale(1); }
 }
 
-/* Global apple music styles */
+/* Apple Music styles */
 :global(.apple-music-btn) {
   transition: all 0.2s cubic-bezier(0.21, 0.61, 0.35, 1);
   transform-origin: center center;
@@ -152,36 +176,63 @@ $yandex-font: 'YS Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
   }
 }
 
-// Добавим дополнительные стили для мобильной версии
+// Mobile version styles
 @media (max-width: 959px) {
   .contentContainer {
-    // Выставляем минимальную высоту, чтобы содержимое не сжималось
     min-height: 100vh;
   }
   
-  // Добавляем стиль для контейнера текста, чтобы он не влиял на поток документа
   .playerContainer {
     position: relative;
     height: 100%;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
   
-  // Верхние элементы управления должны быть фиксированными
+  // Fixed top controls
   .topControlsContainer {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 20;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background-color: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
   
-  // Нижние элементы управления всегда внизу
+  // Fixed bottom controls
   .bottomControlsContainer {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     z-index: 20;
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    background-color: rgba(0, 0, 0, 0.4);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  // Album cover styles
+  .belowCoverContainer {
+    margin-top: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .belowCoverTitle {
+    font-family: $apple-font;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  
+  .belowCoverArtists {
+    font-family: $apple-font;
+    font-weight: 500;
+    letter-spacing: -0.01em;
   }
 }
 
@@ -200,5 +251,116 @@ $yandex-font: 'YS Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
   }
   to {
     max-width: 60%;
+  }
+}
+
+// Playlist styles - Apple Music design
+.playlistTracks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  max-height: 70vh;
+  font-family: $apple-font;
+}
+
+.playlistTrackItem {
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  background-color: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+    transform: scale(1.01);
+  }
+  
+  &.active {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+}
+
+.playlistTrackCover {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-right: 14px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.playlistTrackInfo {
+  flex: 1;
+  min-width: 0;
+  
+  h3 {
+    margin: 0 0 4px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+    letter-spacing: -0.02em;
+}
+
+  p {
+  margin: 0;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+    letter-spacing: -0.01em;
+  }
+}
+
+// Custom scrollbar - Apple style
+:global {
+  ::-webkit-scrollbar {
+    width: 6px;
+}
+
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+  ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+  
+  &:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+  }
+}
+
+/* Apple Music animations for mobile cover */
+@keyframes appleMusicPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+@keyframes appleSlideUp {
+  from { 
+    transform: translateY(15px); 
+    opacity: 0; 
+  }
+  to { 
+    transform: translateY(0); 
+    opacity: 1; 
   }
 } 

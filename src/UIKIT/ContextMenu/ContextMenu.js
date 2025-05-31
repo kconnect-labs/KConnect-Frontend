@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import './ContextMenu.css';
+import React, { useEffect, useRef, useState, useContext } from 'react';
+import { Box, alpha, styled, useTheme } from '@mui/material';
+import { ThemeSettingsContext } from '../../App';
 
 /**
  * Переиспользуемый компонент контекстного меню
@@ -10,11 +11,72 @@ import './ContextMenu.css';
  * @param {boolean} props.show - Отображать ли меню
  * @param {Function} props.onClose - Функция, вызываемая при закрытии меню
  */
+
+const MenuContainer = styled(Box)(({ theme }) => ({
+  position: 'fixed',
+  zIndex: 1000,
+  backgroundColor: theme.palette.mode === 'light' 
+    ? alpha(theme.palette.background.paper, 0.95)
+    : theme.palette.mode === 'contrast'
+      ? '#101010'
+      : '#1A1A1A',
+  borderRadius: 8,
+  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
+  minWidth: 180,
+  padding: '6px 0',
+  overflow: 'hidden',
+  animation: 'fadeIn 0.15s ease-out',
+  border: theme.palette.mode === 'light'
+    ? '1px solid rgba(0, 0, 0, 0.08)'
+    : '1px solid rgba(255, 255, 255, 0.1)',
+  '@keyframes fadeIn': {
+    from: {
+      opacity: 0,
+      transform: 'scale(0.95)',
+    },
+    to: {
+      opacity: 1,
+      transform: 'scale(1)',
+    },
+  },
+}));
+
+const MenuItem = styled(Box)(({ theme, disabled }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  padding: '8px 16px',
+  cursor: disabled ? 'not-allowed' : 'pointer',
+  transition: 'background-color 0.2s',
+  userSelect: 'none',
+  color: theme.palette.mode === 'light' ? theme.palette.text.primary : '#E6E6E6',
+  opacity: disabled ? 0.5 : 1,
+  '&:hover': {
+    backgroundColor: disabled ? 'transparent' : alpha(theme.palette.primary.main, 0.12),
+  },
+}));
+
+const MenuIcon = styled(Box)(({ theme }) => ({
+  marginRight: 10,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 22,
+  height: 22,
+  color: theme.palette.primary.main,
+}));
+
+const MenuLabel = styled(Box)(({ theme }) => ({
+  fontSize: 14,
+  color: theme.palette.mode === 'light' ? theme.palette.text.primary : '#E6E6E6',
+}));
+
 const ContextMenu = ({ items, x, y, show, onClose }) => {
+  const theme = useTheme();
+  const { themeSettings } = useContext(ThemeSettingsContext);
   const menuRef = useRef(null);
   const [position, setPosition] = useState({ x, y });
 
-    useEffect(() => {
+  useEffect(() => {
     if (show && menuRef.current) {
       const menu = menuRef.current;
       const rect = menu.getBoundingClientRect();
@@ -24,11 +86,11 @@ const ContextMenu = ({ items, x, y, show, onClose }) => {
       let adjustedX = x;
       let adjustedY = y;
       
-            if (x + rect.width > viewportWidth) {
+      if (x + rect.width > viewportWidth) {
         adjustedX = viewportWidth - rect.width;
       }
       
-            if (y + rect.height > viewportHeight) {
+      if (y + rect.height > viewportHeight) {
         adjustedY = viewportHeight - rect.height;
       }
       
@@ -36,7 +98,7 @@ const ContextMenu = ({ items, x, y, show, onClose }) => {
     }
   }, [show, x, y]);
 
-    useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         onClose();
@@ -52,7 +114,7 @@ const ContextMenu = ({ items, x, y, show, onClose }) => {
     };
   }, [show, onClose]);
 
-    useEffect(() => {
+  useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
         onClose();
@@ -71,18 +133,17 @@ const ContextMenu = ({ items, x, y, show, onClose }) => {
   if (!show) return null;
 
   return (
-    <div 
-      className="context-menu"
+    <MenuContainer 
       ref={menuRef}
-      style={{
+      sx={{
         left: `${position.x}px`,
         top: `${position.y}px`
       }}
     >
       {items.map((item) => (
-        <div 
+        <MenuItem 
           key={item.id} 
-          className={`context-menu-item ${item.disabled ? 'disabled' : ''}`}
+          disabled={item.disabled}
           onClick={() => {
             if (!item.disabled) {
               item.onClick();
@@ -90,11 +151,11 @@ const ContextMenu = ({ items, x, y, show, onClose }) => {
             }
           }}
         >
-          {item.icon && <span className="context-menu-icon">{item.icon}</span>}
-          <span className="context-menu-label">{item.label}</span>
-        </div>
+          {item.icon && <MenuIcon>{item.icon}</MenuIcon>}
+          <MenuLabel>{item.label}</MenuLabel>
+        </MenuItem>
       ))}
-    </div>
+    </MenuContainer>
   );
 };
 

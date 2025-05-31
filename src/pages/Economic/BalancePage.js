@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
 import {
   Container,
   Typography,
@@ -33,7 +33,8 @@ import {
   DialogActions as MuiDialogActions,
   TextField,
   Snackbar,
-  InputAdornment
+  InputAdornment,
+  useMediaQuery
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { AuthContext } from '../../context/AuthContext';
@@ -70,6 +71,7 @@ import CallMadeIcon from '@mui/icons-material/CallMade';
 import CallReceivedIcon from '@mui/icons-material/CallReceived';
 import CasinoIcon from '@mui/icons-material/Casino';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
+import { TransferMenu } from '../../UIKIT';
 
 
 const BalanceHeader = styled(Box)(({ theme }) => ({
@@ -797,6 +799,7 @@ const BalancePage = () => {
   const { user } = useContext(AuthContext);
   const theme = useTheme();
   const navigate = useNavigate();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [userPoints, setUserPoints] = useState(0);
   const [weeklyEstimate, setWeeklyEstimate] = useState(0);
   const [purchaseHistory, setPurchaseHistory] = useState([]);
@@ -808,6 +811,7 @@ const BalancePage = () => {
   const [error, setError] = useState(null);
   const [tabValue, setTabValue] = useState(0);
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [newTransferMenuOpen, setNewTransferMenuOpen] = useState(false);
   const [transferData, setTransferData] = useState({ username: '', amount: '', message: '', recipient_id: null });
   const [transferErrors, setTransferErrors] = useState({});
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
@@ -831,6 +835,8 @@ const BalancePage = () => {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [gameTransactions, setGameTransactions] = useState([]);
+  
+  const debounceTimerRef = useRef(null);
 
   
   const allTransactions = React.useMemo(() => {
@@ -1065,82 +1071,95 @@ const BalancePage = () => {
 
   
   const searchUser = useCallback((username) => {
+    // Always clear previous timer first to reset the debounce
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
     
-    if (userSearch.timer) clearTimeout(userSearch.timer);
-    
-    
+    // If username is empty, just reset everything
     if (!username) {
       setUserSearch(prev => ({
         ...prev,
         loading: false,
         exists: false,
         suggestions: [],
-        timer: null
       }));
-      
       setTransferData(prev => ({...prev, recipient_id: null}));
       return;
     }
     
-    
-    setUserSearch(prev => ({
-      ...prev,
-      loading: true,
-      timer: setTimeout(async () => {
-        try {
-          
-          const response = await axios.get(`/api/user/search-recipients?query=${username}`);
-          
+    // Set new timer
+    debounceTimerRef.current = setTimeout(() => {
+      // Only show loading and make the API call after timeout
+      setUserSearch(prev => ({ ...prev, loading: true }));
+      
+      axios.get(`/api/user/search-recipients?query=${username}`)
+        .then(response => {
           if (response.data && response.data.users) {
-            
+            // Find exact match
             const exactMatch = response.data.users.find(
               user => user.username.toLowerCase() === username.toLowerCase()
             );
             
-            
+            // Update recipient ID if exact match found
             if (exactMatch) {
               setTransferData(prev => ({...prev, recipient_id: exactMatch.id}));
             } else {
               setTransferData(prev => ({...prev, recipient_id: null}));
             }
             
-            
+            // Update search results
             setUserSearch(prev => ({
               ...prev,
               loading: false,
               exists: !!exactMatch,
-              suggestions: response.data.users.slice(0, 3) 
+              suggestions: response.data.users.slice(0, 3),
             }));
           } else {
             setUserSearch(prev => ({
               ...prev,
               loading: false,
               exists: false,
-              suggestions: []
+              suggestions: [],
             }));
             setTransferData(prev => ({...prev, recipient_id: null}));
           }
-        } catch (error) {
+        })
+        .catch(error => {
           console.error('Ошибка при поиске пользователя:', error);
           setUserSearch(prev => ({
             ...prev,
             loading: false,
             exists: false,
-            suggestions: []
+            suggestions: [],
           }));
           setTransferData(prev => ({...prev, recipient_id: null}));
-        }
-      }, 500) 
-    }));
-  }, [userSearch.timer]);
+        });
+    }, 1000); // 1 second delay
+  }, []);
   
   
   const handleUsernameChange = (e) => {
     const username = e.target.value;
     setTransferData(prev => ({...prev, username}));
     
-    
-    searchUser(username);
+    // Simple pass to searchUser, which now handles proper debouncing
+    if (username.trim()) {
+      searchUser(username.trim());
+    } else {
+      // If empty, reset search state and clear any pending timers
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+      setUserSearch(prev => ({
+        ...prev,
+        loading: false,
+        exists: false,
+        suggestions: [],
+      }));
+      setTransferData(prev => ({...prev, recipient_id: null}));
+    }
   };
   
   
@@ -1453,6 +1472,63 @@ const BalancePage = () => {
     }
   };
 
+  // Add new useEffect to reset loading state when username changes
+  useEffect(() => {
+    // If user changes the username, cancel any loading state
+    if (userSearch.loading) {
+      setUserSearch(prev => ({
+        ...prev,
+        loading: false
+      }));
+    }
+  }, [transferData.username]);
+
+  // Update the dialog close handler
+  const handleCloseTransferDialog = () => {
+    // Clear the debounce timer properly
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    
+    // Reset all state
+    setTransferDialogOpen(false);
+    setTransferData({ username: '', amount: '', message: '', recipient_id: null });
+    setTransferErrors({});
+    setUserSearch({
+      loading: false,
+      exists: false,
+      suggestions: [],
+    });
+  };
+
+  // Find the useEffect for dialog closing and update it
+  useEffect(() => {
+    if (!newTransferMenuOpen && debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+  }, [newTransferMenuOpen]);
+
+  // Add a cleanup useEffect after the existing one
+  useEffect(() => {
+    // Cleanup function for component unmount
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  // Add handler for the new transfer menu
+  const handleNewTransferSuccess = (receiptData) => {
+    // Don't set transferSuccess to true, as the new component has its own success UI
+    // Just update the balance and history
+    fetchUserPoints();
+    fetchTransferHistory();
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
@@ -1506,7 +1582,7 @@ const BalancePage = () => {
               <ActionButtonText>Пополнить</ActionButtonText>
             </ActionButtonItem>
 
-            <ActionButtonItem onClick={() => setTransferDialogOpen(true)}>
+            <ActionButtonItem onClick={() => setNewTransferMenuOpen(true)}>
               <ActionCircleIcon>
                 <SendIcon />
               </ActionCircleIcon>
@@ -1667,6 +1743,7 @@ const BalancePage = () => {
         onClose={handleCloseTransactionDetails}
         fullWidth
         maxWidth="sm"
+        fullScreen={isMobile}
       >
         {selectedTransaction && (
           <>
@@ -2247,7 +2324,7 @@ const BalancePage = () => {
       
       <StyledDialog 
         open={transferDialogOpen} 
-        onClose={() => setTransferDialogOpen(false)}
+        onClose={handleCloseTransferDialog}
         maxWidth="sm"
         fullWidth
       >
@@ -2290,6 +2367,23 @@ const BalancePage = () => {
                     {userSearch.exists && !userSearch.loading && 
                       <CheckCircleIcon sx={{ color: '#4CAF50' }} />
                     }
+                    {transferData.username && !userSearch.loading && (
+                      <InputAdornment position="end">
+                        <IconButton 
+                          edge="end"
+                          onClick={() => {
+                            if (debounceTimerRef.current) {
+                              clearTimeout(debounceTimerRef.current);
+                              debounceTimerRef.current = null;
+                            }
+                            setTransferData(prev => ({...prev, username: '', recipient_id: null}));
+                            setUserSearch(prev => ({ ...prev, loading: false, exists: false, suggestions: [] }));
+                          }}
+                        >
+                          <CloseIcon fontSize="small" />
+                        </IconButton>
+                      </InputAdornment>
+                    )}
                   </React.Fragment>
                 )
               }}
@@ -2379,7 +2473,7 @@ const BalancePage = () => {
           borderTop: '1px solid rgba(255,255,255,0.07)'
         }}>
           <CancelButton 
-            onClick={() => setTransferDialogOpen(false)}
+            onClick={handleCloseTransferDialog}
             disabled={isTransferring}
           >
             Отмена
@@ -2714,6 +2808,14 @@ const BalancePage = () => {
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
         message={snackbar.message}
+      />
+
+      {/* New Transfer Menu Component */}
+      <TransferMenu 
+        open={newTransferMenuOpen}
+        onClose={() => setNewTransferMenuOpen(false)}
+        userPoints={userPoints}
+        onSuccess={handleNewTransferSuccess}
       />
     </Container>
   );

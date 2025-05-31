@@ -668,41 +668,28 @@ const Login = () => {
             
             <form onSubmit={handleSubmit} style={{ width: '100%' }}>
               <TextField
-                margin="normal"
-                required
                 fullWidth
-                id="usernameOrEmail"
-                label="Имя пользователя или Email"
+                label="Email или имя пользователя"
                 name="usernameOrEmail"
-                autoComplete="username"
-                autoFocus
                 value={formData.usernameOrEmail}
                 onChange={handleChange}
-                variant="outlined"
-                sx={{ 
-                  mb: 2.5,
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                  }
-                }}
+                error={!!error}
+                disabled={loading}
+                sx={{ mb: 2 }}
               />
-              
               <TextField
-                margin="normal"
-                required
                 fullWidth
-                name="password"
                 label="Пароль"
+                name="password"
                 type={showPassword ? 'text' : 'password'}
-                id="password"
-                autoComplete="current-password"
                 value={formData.password}
                 onChange={handleChange}
+                error={!!error}
+                disabled={loading}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
-                        aria-label="toggle password visibility"
                         onClick={handleClickShowPassword}
                         edge="end"
                       >
@@ -710,12 +697,6 @@ const Login = () => {
                       </IconButton>
                     </InputAdornment>
                   )
-                }}
-                sx={{ 
-                  mb: 1.5,
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                  }
                 }}
               />
               

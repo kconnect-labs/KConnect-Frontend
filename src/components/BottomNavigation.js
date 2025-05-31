@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { Paper, BottomNavigation as MuiBottomNavigation, BottomNavigationAction } from '@mui/material';
+import { Paper, BottomNavigation as MuiBottomNavigation, BottomNavigationAction, alpha } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import HomeIcon from '@mui/icons-material/Home';
@@ -71,7 +71,7 @@ const AppBottomNavigation = ({ user }) => {
     const path = location.pathname;
     if (path === '/' || path === '/feed' || path === '/main') return 0;
     if (path === '/music') return 1;
-    if (path === '/subscriptions') return 2;
+    if (path.startsWith('/messenger')) return 2;
     if (path.startsWith('/profile')) return 3;
     if (path === '/more') return 4;
     return false;
@@ -89,7 +89,7 @@ const AppBottomNavigation = ({ user }) => {
         navigate('/music');
         break;
       case 2:
-        navigate('/subscriptions');
+        navigate('/messenger');
         break;
       case 3:
         navigate(user ? `/profile/${user.username}` : '/login');
@@ -103,9 +103,29 @@ const AppBottomNavigation = ({ user }) => {
     }
   };
 
-  
-  const bottomNavColor = themeSettings.bottomNavColor || theme.palette.background.paper;
-  const borderColor = theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+  // Get appropriate colors based on theme mode
+  const getBackgroundColor = () => {
+    switch (theme.palette.mode) {
+      case 'light':
+        return alpha(theme.palette.background.paper, 0.9);
+      case 'contrast':
+        return '#101010';
+      default: // dark
+        return '#121212cf';
+    }
+  };
+
+  const borderColor = theme.palette.mode === 'light' 
+    ? alpha(theme.palette.divider, 0.1)
+    : theme.palette.mode === 'contrast'
+      ? alpha(theme.palette.common.white, 0.15)
+      : alpha(theme.palette.common.white, 0.1);
+
+  const textColor = theme.palette.mode === 'light'
+    ? alpha(theme.palette.text.primary, 0.7)
+    : theme.palette.mode === 'contrast'
+      ? alpha(theme.palette.common.white, 0.9)
+      : 'rgb(214 209 227 / 77%)';
 
   return (
     <Paper 
@@ -118,7 +138,7 @@ const AppBottomNavigation = ({ user }) => {
         display: { xs: 'block', md: 'none' },
         zIndex: 1000,
         borderTop: `1px solid ${borderColor}`,
-        backgroundColor: bottomNavColor,
+        backgroundColor: getBackgroundColor(),
         backgroundImage: 'unset',
         backdropFilter: 'blur(10px)'
       }} 
@@ -130,8 +150,12 @@ const AppBottomNavigation = ({ user }) => {
         sx={{
           bgcolor: 'transparent',
           height: 75,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'flex-start',
+          marginTop: '10px',
           '& .MuiBottomNavigationAction-root': {
-            color: theme.palette.mode === 'dark' ? '#FFFFFF' : theme.palette.text.secondary,
+            color: textColor,
             '&.Mui-selected': {
               color: themeSettings.primaryColor || theme.palette.primary.main
             }
@@ -159,8 +183,8 @@ const AppBottomNavigation = ({ user }) => {
           }}
         />
         <BottomNavigationAction 
-          label="Подписки" 
-          icon={<Icon icon="solar:users-group-rounded-bold" width="28" height="28" />}
+          label="Мессенджер" 
+          icon={<Icon icon="solar:chat-round-dots-bold" width="28" height="28" />}
           sx={{ 
             minWidth: 'auto',
             '& .MuiBottomNavigationAction-label': {

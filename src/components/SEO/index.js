@@ -2,8 +2,12 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import PropTypes from 'prop-types';
 
+// Базовый URL для абсолютных ссылок (используется для всех изображений и URL)
+const BASE_URL = 'https://k-connect.ru';
+
 /**
- * Компонент SEO для управления метатегами и предпросмотром контента
+ * SEO компонент для управления метатегами и ссылочными превью
+ * Оптимизировано для работы с предпросмотрами в мессенджерах и социальных сетях
  * 
  * @param {Object} props - Свойства компонента
  * @param {string} props.title - Заголовок страницы
@@ -17,118 +21,103 @@ const SEO = ({
   title = 'К-Коннект',
   description = 'К-Коннект - социальная сеть от независимого разработчика',
   image = '/icon-512.png',
-  url = window.location.href,
+  url = typeof window !== 'undefined' ? window.location.href : 'https://k-connect.ru',
   type = 'website',
   meta = {},
 }) => {
   
-  // Normalize image path to remove duplications
-  const normalizeImagePath = (path) => {
-    if (!path) return '/icon-512.png';
+  // Подготовка абсолютного URL для текущей страницы
+  const pageUrl = url.startsWith('http') 
+    ? url 
+    : `${BASE_URL}${url.startsWith('/') ? url : `/${url}`}`;
+  
+  // Подготовка абсолютного URL для изображения
+  const getAbsoluteImageUrl = (imagePath) => {
+    if (!imagePath) return `${BASE_URL}/icon-512.png`;
+    if (imagePath.startsWith('http') || imagePath.startsWith('//')) return imagePath;
     
-    // Check if it's already a full URL
-    if (path.startsWith('http') || path.startsWith('//')) {
-      return path;
+    // Очищаем от двойных слешей
+    let cleanPath = imagePath;
+    
+    if (imagePath.includes('//')) {
+      const parts = imagePath.split('//');
+      cleanPath = parts[parts.length - 1];
+      if (cleanPath.startsWith('/')) cleanPath = cleanPath.substring(1);
     }
     
-    // Fix duplicate paths - look for patterns like /static/uploads/posts//static/uploads/
-    if (path.includes('//')) {
-      // Find the second occurrence of /static/ or /uploads/ after a double slash
-      const doubleSlashPos = path.indexOf('//');
-      if (doubleSlashPos !== -1) {
-        const afterDoubleSlash = path.substring(doubleSlashPos + 2);
-        if (afterDoubleSlash.startsWith('static/') || afterDoubleSlash.startsWith('uploads/')) {
-          // Keep only what's after the double slash
-          return '/' + afterDoubleSlash;
-        }
-      }
-    }
-    
-    // Handle paths that already start with /static/ or /uploads/
-    if (path.startsWith('/static/') || path.startsWith('/uploads/')) {
-      return path;
-    }
-    
-    // Add origin for relative paths
-    return `${window.location.origin}${path.startsWith('/') ? '' : '/'}${path}`;
+    // Добавляем правильный префикс
+    return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
   };
 
-  const imageUrl = normalizeImagePath(image);
+  const absoluteImageUrl = getAbsoluteImageUrl(image);
 
   return (
-    <Helmet>
-      
+    <Helmet 
+      prioritizeSeoTags 
+      encodeSpecialCharacters={false}
+      // Важно добавить defer={false} чтобы теги добавлялись сразу
+      defer={false}
+    >
+      {/* Основные метатеги */}
       <title>{title}</title>
       <meta name="description" content={description} />
+      <link rel="canonical" href={pageUrl} />
       
-      
+      {/* Индексация поисковиками */}
       <meta name="robots" content="index, follow" />
       <meta name="googlebot" content="index, follow" />
       <meta name="google" content="notranslate" />
-      <meta name="google-site-verification" content={meta.googleVerification || ''} />
-      <meta name="yandex-verification" content={meta.yandexVerification || ''} />
+      {meta.googleVerification && <meta name="google-site-verification" content={meta.googleVerification} />}
+      {meta.yandexVerification && <meta name="yandex-verification" content={meta.yandexVerification} />}
       
-      
+      {/* OpenGraph теги - для Facebook, VK и Telegram */}
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
-      <meta property="og:image" content={imageUrl} />
-      <meta property="og:url" content={url} />
+      <meta property="og:image" content={absoluteImageUrl} />
+      <meta property="og:url" content={pageUrl} />
       <meta property="og:type" content={type} />
       <meta property="og:site_name" content="К-Коннект" />
       <meta property="og:locale" content="ru_RU" />
       
+      {/* Дополнительные теги для изображений */}
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta property="og:image:alt" content={title} />
       
+      {/* Twitter Card теги */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={imageUrl} />
+      <meta name="twitter:image" content={absoluteImageUrl} />
       
-      
+      {/* Дополнительные метатеги */}
+      {meta.keywords && <meta name="keywords" content={meta.keywords} />}
       {meta.author && <meta name="author" content={meta.author} />}
-      {meta.canonical && <link rel="canonical" href={meta.canonical} />}
+      {meta.viewport && <meta name="viewport" content={meta.viewport || "width=device-width, initial-scale=1, maximum-scale=5"} />}
       
-      
-      {type === 'profile' && meta.firstName && (
-        <meta property="profile:first_name" content={meta.firstName} />
-      )}
-      {type === 'profile' && meta.lastName && (
-        <meta property="profile:last_name" content={meta.lastName} />
-      )}
-      {type === 'profile' && meta.username && (
-        <meta property="profile:username" content={meta.username} />
-      )}
-      
-      
+      {/* Специальные теги для статей */}
       {type === 'article' && meta.publishedTime && (
         <meta property="article:published_time" content={meta.publishedTime} />
-      )}
-      {type === 'article' && meta.modifiedTime && (
-        <meta property="article:modified_time" content={meta.modifiedTime} />
       )}
       {type === 'article' && meta.author && (
         <meta property="article:author" content={meta.author} />
       )}
-      {type === 'article' && meta.section && (
-        <meta property="article:section" content={meta.section} />
-      )}
-      {type === 'article' && meta.tags && (
-        <meta property="article:tag" content={meta.tags} />
-      )}
       
-      
-      {type === 'music' && meta.song && (
-        <meta property="music:song" content={meta.song} />
+      {/* Schema.org JSON-LD - структурированные данные для Google */}
+      {type === 'article' && (
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            "headline": title,
+            "description": description,
+            "image": absoluteImageUrl,
+            "author": meta.author || "К-Коннект",
+            "datePublished": meta.publishedTime || new Date().toISOString(),
+            "url": pageUrl
+          })}
+        </script>
       )}
-      {type === 'music' && meta.artist && (
-        <meta property="music:musician" content={meta.artist} />
-      )}
-      {type === 'music' && meta.album && (
-        <meta property="music:album" content={meta.album} />
-      )}
-      
-      
-      {meta.keywords && <meta name="keywords" content={meta.keywords} />}
-      {meta.viewport && <meta name="viewport" content={meta.viewport} />}
     </Helmet>
   );
 };

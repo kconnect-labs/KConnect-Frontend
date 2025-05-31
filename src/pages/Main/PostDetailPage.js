@@ -72,6 +72,7 @@ import { ThemeSettingsContext } from '../../App';
 import { requireAuth } from '../../utils/authUtils';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import { usePostDetail } from '../../context/PostDetailContext';
+import { VerificationBadge } from '../../UIKIT';
 
 
 const MarkdownContent = styled(Box)(({ theme }) => ({
@@ -157,6 +158,19 @@ const RemoveMediaButton = styled(IconButton)(({ theme }) => ({
 }));
 
 
+const sanitizeImagePath = (imagePath) => {
+  if (!imagePath) return null;
+  
+  
+  if (imagePath.includes('/static/uploads/') && 
+      imagePath.indexOf('/static/uploads/') !== imagePath.lastIndexOf('/static/uploads/')) {
+    
+    return imagePath.substring(imagePath.lastIndexOf('/static/uploads/'));
+  }
+  
+  return imagePath;
+};
+
 const Comment = ({ 
   comment, 
   onLike, 
@@ -187,22 +201,21 @@ const Comment = ({
   const { user, isAuthenticated } = useContext(AuthContext);
   const navigate = useNavigate();
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
-  const menuOpen = Boolean(menuAnchorEl);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [commentImageError, setCommentImageError] = useState(false);
   const [replyImageErrors, setReplyImageErrors] = useState({});
   const [replyImageFallbacks, setReplyImageFallbacks] = useState({});
 
-  const handleMenuOpen = (event) => {
-    event.stopPropagation();
-    setMenuAnchorEl(event.currentTarget);
-  };
-
   const handleMenuClose = () => {
     setMenuAnchorEl(null);
   };
 
-  const handleOpenImage = () => {
+  const handleOpenImage = (event) => {
+    
+    if (event) {
+      event.stopPropagation();
+    }
+    
     setLightboxOpen(true);
   };
 
@@ -212,6 +225,22 @@ const Comment = ({
 
   const handleCommentImageError = () => {
     console.error("Comment image failed to load:", comment.image);
+    
+    
+    if (comment.image && comment.image.includes('/static/uploads/') && 
+        (comment.image.indexOf('/static/uploads/') !== comment.image.lastIndexOf('/static/uploads/'))) {
+      
+      const fixedUrl = comment.image.substring(comment.image.lastIndexOf('/static/uploads/'));
+      console.log("Fixing duplicated image path:", comment.image, "->", fixedUrl);
+      
+      
+      comment.image = fixedUrl;
+      
+      
+      setCommentImageError(false);
+      return;
+    }
+    
     setCommentImageError(true);
   };
 
@@ -252,6 +281,21 @@ const Comment = ({
     console.error("Reply image failed to load:", imageUrl);
     
     
+    if (imageUrl && imageUrl.includes('/static/uploads/') && 
+        (imageUrl.indexOf('/static/uploads/') !== imageUrl.lastIndexOf('/static/uploads/'))) {
+      
+      const fixedUrl = imageUrl.substring(imageUrl.lastIndexOf('/static/uploads/'));
+      console.log("Fixing duplicated reply image path:", imageUrl, "->", fixedUrl);
+      
+      
+      setReplyImageFallbacks(prev => ({
+        ...prev,
+        [replyId]: fixedUrl
+      }));
+      return;
+    }
+    
+    
     console.log("Reply image details:", {
       replyId: replyId,
       url: imageUrl,
@@ -280,25 +324,19 @@ const Comment = ({
 
   
   const isCommentOwner = user && (comment.user_id === user.id || user.is_admin);
+  const isOwnComment = user && comment.user_id === user.id;
 
   return (
-    <Box>
+    <Box sx={{ mb: 1.5 }}>
       <Box 
         id={`comment-${comment.id}`}
         sx={{ 
-        bgcolor: 'rgba(28, 28, 32, 0.4)', 
-        backdropFilter: 'blur(10px)',
-        borderRadius: '14px', 
-        p: { xs: 1.5, sm: 2 }, 
-        border: '1px solid rgba(255, 255, 255, 0.03)', 
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', 
-        transition: 'all 0.2s ease-in-out',
-        '&:hover': {
-          boxShadow: '0 3px 12px rgba(0, 0, 0, 0.12)',
-          bgcolor: 'rgba(30, 30, 36, 0.5)'
-        }
-      }}>
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: { xs: 1, sm: 1.5 } }}>
+          display: 'flex',
+          flexDirection: 'column',
+          width: '100%',
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 0.5, px: 0.5 }}>
           <Avatar 
             src={comment.user.photo && comment.user.photo !== 'avatar.png'
               ? `/static/uploads/avatar/${comment.user.id}/${comment.user.photo}`
@@ -307,9 +345,10 @@ const Comment = ({
             component={Link}
             to={`/profile/${comment.user.username}`}
             sx={{ 
-              width: { xs: 30, sm: 36 }, 
-              height: { xs: 30, sm: 36 },
-              border: '1px solid rgba(140, 82, 255, 0.2)', 
+              width: 40, 
+              height: 40,
+              border: '1px solid rgba(140, 82, 255, 0.15)', 
+              mr: 1,
               transition: 'all 0.2s ease',
               '&:hover': {
                 borderColor: 'primary.main',
@@ -323,247 +362,168 @@ const Comment = ({
               }
             }}
           />
-          <Box sx={{ flex: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography 
-                  component={Link}
-                  to={`/profile/${comment.user.username}`}
-                  sx={{ 
-                    fontWeight: 'bold',
-                    textDecoration: 'none',
-                    color: 'text.primary',
-                    '&:hover': { color: 'primary.main' },
-                    display: 'flex',
-                    alignItems: 'center',
-                    fontSize: { xs: '0.8rem', sm: '0.9rem' } 
-                  }}
-                >
-                  {comment.user.name}
-                  {comment.user.verification && comment.user.verification.status > 0 && (
-                    <CheckCircleIcon 
-                      sx={{ 
-                        ml: 0.5,
-                        color: comment.user.verification.status === 1 ? '#9e9e9e' : 
-                               comment.user.verification.status === 2 ? '#d67270' : 
-                               comment.user.verification.status === 3 ? '#b39ddb' : 
-                               'primary.main',
-                        width: { xs: 12, sm: 14 },
-                        height: { xs: 12, sm: 14 }
-                      }}
-                    />
-                  )}
-                  {comment.user.achievement && (
-                    <Box 
-                      component="img" 
-                      sx={{ 
-                        width: { xs: 14, sm: 16 }, 
-                        height: { xs: 14, sm: 16 }, 
-                        ml: 0.5 
-                      }} 
-                      src={`/static/images/bages/${comment.user.achievement.image_path}`} 
-                      alt={comment.user.achievement.bage}
-                      onError={(e) => {
-                        console.error("Achievement badge failed to load:", e);
-                        e.target.style.display = 'none';
-                      }}
-                    />
-                  )}
-                </Typography>
-                <Typography 
-                  variant="caption" 
-                  color="text.secondary"
-                  sx={{ ml: 1, fontSize: '0.65rem' }}
-                >
-                  {formatTimeAgo(comment.timestamp)}
-                </Typography>
-              </Box>
-              {isCommentOwner && (
-                <IconButton
-                  size="small"
-                  onClick={handleMenuOpen}
-                  sx={{ 
-                    p: 0.25,
-                    color: 'text.secondary',
-                    '&:hover': { color: 'text.primary' }
-                  }}
-                >
-                  <MoreVertIcon fontSize="small" />
-                </IconButton>
-              )}
-              <Menu
-                anchorEl={menuAnchorEl}
-                open={menuOpen}
-                onClose={handleMenuClose}
-                onClick={(e) => e.stopPropagation()}
-                PaperProps={{
-                  sx: {
-                    bgcolor: 'rgba(28, 28, 32, 0.9)',
-                    backdropFilter: 'blur(10px)',
-                    boxShadow: '0 3px 10px rgba(0, 0, 0, 0.2)',
-                    borderRadius: '12px',
-                    border: '1px solid rgba(255, 255, 255, 0.03)',
-                    mt: 1
-                  }
-                }}
-                anchorOrigin={{
-                  vertical: 'top',
-                  horizontal: 'left',
-                }}
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            maxWidth: 'calc(100% - 40px)'
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+              <Typography 
+                component={Link}
+                to={`/profile/${comment.user.username}`}
+                sx={{ 
+                  textDecoration: 'none',
+                  color: 'text.primary',
+                  '&:hover': { color: 'primary.main' },
+                  display: 'flex',
+                  alignItems: 'center',
+                  fontSize: '0.8rem',
+                  mr: 0.75
                 }}
               >
-                <MenuItem 
-                  onClick={() => {
-                    handleMenuClose();
-                    setReplyingToReply(null);
-                    setReplyFormOpen(true);
-                    setActiveComment(comment);
-                  }}
-                  sx={{
-                    borderRadius: '8px',
-                    mx: 0.5,
-                    my: 0.2,
-                    '&:hover': {
-                      bgcolor: 'rgba(255, 255, 255, 0.05)'
-                    }
-                  }}
-                >
-                  <ListItemIcon>
-                    <ReplyIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-                  </ListItemIcon>
-                  <ListItemText primary="Ответить" />
-                </MenuItem>
-                {isCommentOwner && (
-                  <MenuItem 
-                    onClick={() => {
-                      handleMenuClose();
-                      onDeleteComment(comment.id);
-                    }}
+                {comment.user.name}
+                {comment.user.verification && comment.user.verification.status > 0 && (
+                  <VerificationBadge 
+                    status={comment.user.verification.status} 
+                    size="small" 
+                  />
+                )}
+                {comment.user.achievement && (
+                  <Box 
+                    component="img" 
                     sx={{ 
-                      color: '#f44336', 
-                      borderRadius: '8px',
-                      mx: 0.5,
-                      my: 0.2,
+                      width: 12,
+                      height: 12,
+                      ml: 0.5 
+                    }} 
+                    src={`/static/images/bages/${comment.user.achievement.image_path}`} 
+                    alt={comment.user.achievement.bage}
+                    onError={(e) => {
+                      console.error("Achievement badge failed to load:", e);
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                )}
+              </Typography>
+              <Typography 
+                variant="caption" 
+                color="text.secondary"
+                sx={{ fontSize: '0.6rem' }}
+              >
+                {formatTimeAgo(comment.timestamp)}
+              </Typography>
+            </Box>
+            
+            <Box sx={{ 
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              bgcolor: 'rgba(45, 45, 50, 0.5)',
+              p: 1.25,
+              borderRadius: '18px',
+              borderTopLeftRadius: '4px',
+              maxWidth: '100%',
+              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+            }}>
+              <Typography variant="body2" sx={{ 
+                color: 'text.primary',
+                fontSize: '0.85rem',
+                lineHeight: 1.3,
+                width: '100%',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                overflowWrap: 'break-word',
+              }}>
+                {comment.content}
+              </Typography>
+              
+              {comment.image && (
+                <Box sx={{ mt: 1, width: '100%' }}>
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      width: '100%',
                       '&:hover': {
-                        bgcolor: 'rgba(244, 67, 54, 0.08)'
+                        '& .zoom-icon': {
+                          opacity: 1
+                        }
+                      }
+                    }}
+                    onClick={(event) => {
+                      if (!commentImageError) {
+                        event.stopPropagation();
+                        setLightboxOpen(true);
+                        setCurrentLightboxImage(sanitizeImagePath(comment.image));
                       }
                     }}
                   >
-                    <ListItemIcon>
-                      <DeleteIcon fontSize="small" sx={{ color: '#f44336' }} />
-                    </ListItemIcon>
-                    <ListItemText primary="Удалить" />
-                  </MenuItem>
-                )}
-              </Menu>
-            </Box>
-            
-            <Typography variant="body2" sx={{ 
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
-              overflowWrap: 'break-word',
-              color: 'text.primary',
-              lineHeight: 1.4,
-              mb: { xs: 1, sm: 1.5 },
-              mt: 0.5,
-              fontSize: { xs: '0.8rem', sm: '0.85rem' }
-            }}>
-              {comment.content}
-            </Typography>
-            
-            {comment.image && (
-              <Box sx={{ mt: 1, mb: { xs: 1, sm: 1.5 } }}>
-                <Box
-                  sx={{
-                    position: 'relative',
-                    borderRadius: '10px',
-                    overflow: 'hidden',
-                    border: '1px solid rgba(255, 255, 255, 0.05)',
-                    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
-                    cursor: 'pointer',
-                    display: 'inline-block', 
-                    maxWidth: { xs: '240px', sm: '280px' }, 
-                    '&:hover': {
-                      '& .zoom-icon': {
-                        opacity: 1
-                      }
-                    }
-                  }}
-                  onClick={handleOpenImage}
-                >
-                  {!commentImageError ? (
-                    <img 
-                      src={comment.image}
-                      alt="Comment" 
-                      style={{ 
-                        maxWidth: '100%',
-                        maxHeight: '200px',
-                        borderRadius: '10px',
-                        objectFit: 'contain', 
-                        display: 'block', 
-                        margin: '0 auto' 
-                      }} 
-                      onError={handleCommentImageError}
-                    />
-                  ) : (
-                    <Box
-                      sx={{
-                        backgroundColor: 'rgba(244, 67, 54, 0.1)',
-                        border: '1px solid rgba(244, 67, 54, 0.3)',
-                        borderRadius: '8px',
-                        padding: '10px',
-                        margin: '10px 0',
-                        color: '#f44336',
-                        fontSize: '0.85rem',
-                        textAlign: 'center',
-                        wordBreak: 'break-all'
-                      }}
-                    >
-                      <Typography sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                        Ошибка загрузки медиа
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.75rem', opacity: 0.8 }}>
-                        {comment.image || 'URL недоступен'}
-                      </Typography>
-                    </Box>
-                  )}
-                  {!commentImageError && (
-                    <Box 
-                      className="zoom-icon"
-                      sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        bgcolor: 'rgba(0, 0, 0, 0.6)',
-                        color: 'white',
-                        borderRadius: '50%',
-                        width: 36,
-                        height: 36,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        opacity: 0,
-                        transition: 'opacity 0.2s ease',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <ZoomInIcon sx={{ fontSize: '1.2rem' }} />
-                    </Box>
-                  )}
+                    {!commentImageError ? (
+                      <img 
+                        src={sanitizeImagePath(comment.image)}
+                        alt="Comment" 
+                        style={{ 
+                          width: '100%',
+                          maxHeight: '160px',
+                          borderRadius: '10px',
+                          objectFit: 'cover'
+                        }} 
+                        onError={handleCommentImageError}
+                      />
+                    ) : (
+                      <Box
+                        sx={{
+                          backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                          border: '1px solid rgba(244, 67, 54, 0.3)',
+                          borderRadius: '8px',
+                          padding: '8px',
+                          color: '#f44336',
+                          fontSize: '0.7rem',
+                          textAlign: 'center'
+                        }}
+                      >
+                        <Typography sx={{ fontWeight: 'bold', mb: 0.25, fontSize: '0.65rem' }}>
+                          Ошибка загрузки медиа
+                        </Typography>
+                      </Box>
+                    )}
+                    {!commentImageError && (
+                      <Box 
+                        className="zoom-icon"
+                        sx={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          bgcolor: 'rgba(0, 0, 0, 0.5)',
+                          color: 'white',
+                          borderRadius: '50%',
+                          width: 28,
+                          height: 28,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          opacity: 0,
+                          transition: 'opacity 0.2s ease',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <ZoomInIcon sx={{ fontSize: '0.9rem' }} />
+                      </Box>
+                    )}
+                  </Box>
                 </Box>
-              </Box>
-            )}
-            
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              mt: 0.5, 
-              gap: { xs: 1, sm: 1.5 },
-              flexWrap: 'wrap'
+              )}
+            </Box>
+
+            <Box sx={{
+              display: 'flex',
+              mt: 0.5,
+              alignItems: 'center',
+              ml: 1
             }}>
               <Box 
                 onClick={() => onLike(comment.id)}
@@ -571,28 +531,27 @@ const Comment = ({
                   display: 'flex', 
                   alignItems: 'center',
                   cursor: 'pointer',
-                  padding: { xs: '3px 6px', sm: '4px 8px' },
-                  borderRadius: '16px',
-                  transition: 'all 0.2s ease',
-                  backgroundColor: comment.user_liked ? 'rgba(140, 82, 255, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+                  p: '2px 4px',
+                  borderRadius: '12px',
+                  transition: 'all 0.15s ease',
+                  mr: 1.5,
                   '&:hover': {
-                    backgroundColor: comment.user_liked ? 'rgba(140, 82, 255, 0.15)' : 'rgba(255, 255, 255, 0.06)',
-                    transform: 'translateY(-1px)'
+                    backgroundColor: 'rgba(140, 82, 255, 0.08)',
+                    transform: 'scale(1.05)'
                   }
                 }}
               >
                 {comment.user_liked ? (
-                  <FavoriteIcon sx={{ color: '#8c52ff', fontSize: { xs: 14, sm: 16 } }} />
+                  <FavoriteIcon sx={{ color: '#8c52ff', fontSize: 12 }} />
                 ) : (
-                  <FavoriteBorderIcon sx={{ color: '#757575', fontSize: { xs: 14, sm: 16 } }} />
+                  <FavoriteBorderIcon sx={{ color: '#757575', fontSize: 12 }} />
                 )}
                 <Typography 
                   variant="caption" 
                   sx={{ 
                     ml: 0.5,
                     color: comment.user_liked ? '#8c52ff' : 'text.secondary',
-                    fontWeight: comment.user_liked ? 'medium' : 'normal',
-                    fontSize: '0.7rem'
+                    fontSize: '0.75rem'
                   }}
                 >
                   {comment.likes_count}
@@ -601,196 +560,149 @@ const Comment = ({
 
               <Box 
                 onClick={() => {
-                  setReplyingToReply(null);
+                  handleMenuClose();
                   setReplyFormOpen(true);
                   setActiveComment(comment);
+                  setReplyingToReply(null);
                 }}
                 sx={{ 
                   display: 'flex', 
                   alignItems: 'center',
                   cursor: 'pointer',
-                  padding: { xs: '3px 6px', sm: '4px 8px' },
-                  borderRadius: '16px',
+                  p: '2px 4px',
+                  borderRadius: '12px',
                   color: 'text.secondary',
-                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                  transition: 'all 0.15s ease',
                   '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
                     color: 'text.primary',
-                    transform: 'translateY(-1px)'
+                    transform: 'scale(1.05)'
                   }
                 }}
               >
-                <ChatBubbleOutlineIcon sx={{ fontSize: { xs: 14, sm: 16 } }} />
-                <Typography variant="caption" sx={{ ml: 0.5, fontSize: '0.7rem' }}>
+                <ReplyIcon sx={{ fontSize: 12, transform: 'scaleX(-1)' }} />
+                <Typography variant="caption" sx={{ ml: 0.5, fontSize: '0.65rem' }}>
                   Ответить
                 </Typography>
               </Box>
+              
+              {isCommentOwner && (
+                <IconButton
+                  size="small"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setMenuAnchorEl(event.currentTarget);
+                    
+                    setMenuAnchorEl({
+                      element: event.currentTarget,
+                      replyId: null,
+                      commentId: comment.id
+                    });
+                  }}
+                  sx={{ 
+                    p: 0.25,
+                    ml: 'auto',
+                    color: 'text.secondary',
+                    '&:hover': { color: 'text.primary' }
+                  }}
+                >
+                  <MoreVertIcon sx={{ fontSize: '0.85rem' }} />
+                </IconButton>
+              )}
+              
+              <Menu
+                anchorEl={menuAnchorEl ? menuAnchorEl.element : null}
+                open={Boolean(menuAnchorEl)}
+                onClose={() => setMenuAnchorEl(null)}
+                PaperProps={{
+                  sx: {
+                    backgroundColor: '#1a1a1a',
+                    minWidth: 120,
+                    boxShadow: '0 3px 8px rgba(0, 0, 0, 0.3)',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    border: '1px solid rgba(255, 255, 255, 0.05)'
+                  }
+                }}
+              >
+                {menuAnchorEl && menuAnchorEl.replyId ? (
+                  
+                  <MenuItem 
+                    onClick={() => {
+                      setMenuAnchorEl(null);
+                      onDeleteReply(menuAnchorEl.commentId, menuAnchorEl.replyId);
+                    }}
+                    sx={{ 
+                      py: 1,
+                      fontSize: '0.8rem',
+                      '&:hover': {
+                        backgroundColor: 'rgba(244, 67, 54, 0.08)'
+                      }
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 36 }}>
+                      <DeleteIcon sx={{ color: '#f44336', fontSize: '0.9rem' }} />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary="Удалить ответ" 
+                      primaryTypographyProps={{ 
+                        sx: { 
+                          color: '#f44336',
+                          fontSize: '0.8rem'
+                        }
+                      }} 
+                    />
+                  </MenuItem>
+                ) : (
+                  
+                  <MenuItem 
+                    onClick={() => {
+                      setMenuAnchorEl(null);
+                      onDeleteComment(comment.id);
+                    }}
+                    sx={{ 
+                      py: 1,
+                      fontSize: '0.8rem',
+                      '&:hover': {
+                        backgroundColor: 'rgba(244, 67, 54, 0.08)'
+                      }
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 36 }}>
+                      <DeleteIcon sx={{ color: '#f44336', fontSize: '0.9rem' }} />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary="Удалить" 
+                      primaryTypographyProps={{ 
+                        sx: { 
+                          color: '#f44336',
+                          fontSize: '0.8rem'
+                        }
+                      }} 
+                    />
+                  </MenuItem>
+                )}
+              </Menu>
             </Box>
           </Box>
         </Box>
-      </Box>
 
-      {/* Объединяем в один условный блок для обоих случаев */}
-      {lightboxOpen && (currentLightboxImage || comment.image) && (
-        <SimpleImageViewer
-          isOpen={lightboxOpen}
-          onClose={() => {
-            setLightboxOpen(false);
-            setCurrentLightboxImage('');
-          }}
-          images={currentLightboxImage || comment.image}
-        />
-      )}
-      
-      {comment.replies && comment.replies.length > 0 && (
-        <Box sx={{ 
-          mt: 0.5, 
-          ml: { xs: 0.5, sm: 4 }, 
-          pl: { xs: 0.5, sm: 2 },
-          borderLeft: '2px solid rgba(140, 82, 255, 0.2)',
-          py: { xs: 0.5, sm: 1 }
-        }}>
-          {[...comment.replies]
-            
-            .sort((a, b) => {
-              
-              const dateA = a.created_at ? new Date(a.created_at) : a.timestamp ? new Date(a.timestamp) : new Date(0);
-              const dateB = b.created_at ? new Date(b.created_at) : b.timestamp ? new Date(b.timestamp) : new Date(0);
-              
-              return dateA.getTime() - dateB.getTime();
-            })
-            .map(reply => {
+        {comment.replies && comment.replies.length > 0 && (
+          <Box sx={{ mt: 0.5, pl: { xs: 3, sm: 4 } }}>
+            {comment.replies.map(reply => {
               const isReplyOwner = user && (reply.user_id === user.id || user.is_admin);
+              
               return (
                 <Box 
                   key={reply.id}
                   sx={{ 
-                    bgcolor: 'rgba(32, 32, 36, 0.4)',
-                    backdropFilter: 'blur(5px)',
-                    borderRadius: '14px',
-                    p: { xs: 1.25, sm: 2 }, 
-                    mb: 1, 
-                    border: '1px solid rgba(255, 255, 255, 0.03)',
-                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.08)',
-                    transition: 'all 0.2s ease-in-out',
-                    '&:hover': {
-                      boxShadow: '0 3px 12px rgba(0, 0, 0, 0.12)',
-                      bgcolor: 'rgba(35, 35, 40, 0.5)'
-                    }
+                    mb: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start'
                   }}
                 >
-                  
-                  {reply.parent_reply_id ? (
-                    <Box 
-                      sx={{ 
-                        bgcolor: 'rgba(255, 255, 255, 0.03)',
-                        borderRadius: '8px',
-                        p: { xs: 1, sm: 1.5 }, 
-                        mb: 1, 
-                        borderLeft: '3px solid rgba(140, 82, 255, 0.5)'
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Avatar 
-                          src={comment.replies.find(r => r.id === reply.parent_reply_id)?.user?.photo && comment.replies.find(r => r.id === reply.parent_reply_id)?.user?.photo !== 'avatar.png'
-                            ? `/static/uploads/avatar/${comment.replies.find(r => r.id === reply.parent_reply_id)?.user?.id}/${comment.replies.find(r => r.id === reply.parent_reply_id)?.user?.photo}`
-                            : `/static/uploads/avatar/system/avatar.png`}
-                          alt={comment.replies.find(r => r.id === reply.parent_reply_id)?.user?.name}
-                          sx={{ width: 18, height: 18 }} 
-                          onError={(e) => {
-                            console.error("Reply avatar failed to load");
-                            if (e.currentTarget && e.currentTarget.setAttribute) {
-                              e.currentTarget.setAttribute('src', '/static/uploads/avatar/system/avatar.png');
-                            }
-                          }}
-                        />
-                        <Typography 
-                          variant="caption"
-                          sx={{ 
-                            fontWeight: 'bold',
-                            color: 'text.primary',
-                            fontSize: '0.7rem'
-                          }}
-                        >
-                          {comment.replies.find(r => r.id === reply.parent_reply_id)?.user?.name}
-                        </Typography>
-                      </Box>
-                      <Typography 
-                        variant="caption" 
-                        color="text.secondary"
-                        sx={{ 
-                          display: '-webkit-box',
-                          WebkitLineClamp: 1, 
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          mt: 0.25,
-                          fontSize: '0.7rem',
-                          lineHeight: 1.3,
-                          whiteSpace: 'pre-wrap',
-                          wordBreak: 'break-word',
-                          overflowWrap: 'break-word'
-                        }}
-                      >
-                        {comment.replies.find(r => r.id === reply.parent_reply_id)?.content}
-                      </Typography>
-                    </Box>
-                  ) : (
-                    <Box 
-                      sx={{ 
-                        bgcolor: 'rgba(255, 255, 255, 0.03)',
-                        borderRadius: '8px',
-                        p: { xs: 1, sm: 1.5 }, 
-                        mb: 1, 
-                        borderLeft: '3px solid rgba(140, 82, 255, 0.5)'
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Avatar 
-                          src={comment.user.photo && comment.user.photo !== 'avatar.png'
-                            ? `/static/uploads/avatar/${comment.user.id}/${comment.user.photo}`
-                            : `/static/uploads/avatar/system/avatar.png`}
-                          alt={comment.user.name}
-                          sx={{ width: 18, height: 18 }} 
-                          onError={(e) => {
-                            console.error("Reply form avatar failed to load");
-                            if (e.currentTarget && e.currentTarget.setAttribute) {
-                              e.currentTarget.setAttribute('src', '/static/uploads/avatar/system/avatar.png');
-                            }
-                          }}
-                        />
-                        <Typography 
-                          variant="caption"
-                          sx={{ 
-                            fontWeight: 'bold',
-                            color: 'text.primary',
-                            fontSize: '0.7rem'
-                          }}
-                        >
-                          {comment.user.name}
-                        </Typography>
-                      </Box>
-                      <Typography 
-                        variant="caption" 
-                        color="text.secondary"
-                        sx={{ 
-                          display: '-webkit-box',
-                          WebkitLineClamp: 1, 
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          mt: 0.25,
-                          fontSize: '0.7rem',
-                          lineHeight: 1.3,
-                          whiteSpace: 'pre-wrap',
-                          wordBreak: 'break-word',
-                          overflowWrap: 'break-word'
-                        }}
-                      >
-                        {comment.content}
-                      </Typography>
-                    </Box>
-                  )}
-
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
                     <Avatar 
                       src={reply.user.photo && reply.user.photo !== 'avatar.png'
                         ? `/static/uploads/avatar/${reply.user.id}/${reply.user.photo}`
@@ -799,12 +711,11 @@ const Comment = ({
                       component={Link}
                       to={`/profile/${reply.user.username}`}
                       sx={{ 
-                        width: 26, 
-                        height: 26,
-                        border: '1px solid rgba(140, 82, 255, 0.2)',
+                        width: 35, 
+                        height: 35,
+                        mr: 1,
                         transition: 'all 0.2s ease',
                         '&:hover': {
-                          borderColor: 'primary.main',
                           transform: 'scale(1.05)'
                         }
                       }}
@@ -815,232 +726,281 @@ const Comment = ({
                         }
                       }}
                     />
-                    <Box sx={{ flex: 1 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.25 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Typography 
-                            component={Link}
-                            to={`/profile/${reply.user.username}`}
-                            sx={{ 
-                              fontWeight: 'bold',
-                              textDecoration: 'none',
-                              color: 'text.primary',
-                              '&:hover': { color: 'primary.main' },
-                              fontSize: '0.8rem'
-                            }}
-                          >
-                            {reply.user.name}
-                          </Typography>
+                    
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                      maxWidth: 'calc(100% - 30px)'
+                    }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                        <Typography 
+                          component={Link}
+                          to={`/profile/${reply.user.username}`}
+                          sx={{ 
+                            textDecoration: 'none',
+                            color: 'text.primary',
+                            '&:hover': { color: 'primary.main' },
+                            display: 'flex',
+                            alignItems: 'center',
+                            fontSize: '0.8rem',
+                            mr: 0.75
+                          }}
+                        >
+                          {reply.user.name}
+                          {reply.user.verification && reply.user.verification.status > 0 && (
+                            <VerificationBadge 
+                              status={reply.user.verification.status} 
+                              size="small" 
+                            />
+                          )}
+                        </Typography>
+                        <Typography 
+                          variant="caption" 
+                          color="text.secondary"
+                          sx={{ fontSize: '0.6rem' }}
+                        >
+                          {formatTimeAgo(reply.timestamp)}
+                        </Typography>
+                      </Box>
+                      
+                      {reply.parent_reply_id && !reply.parent_reply && (
+                        <Box 
+                          sx={{ 
+                            bgcolor: 'rgba(255, 255, 255, 0.03)',
+                            borderRadius: '8px',
+                            p: 1, 
+                            mb: 0.75, 
+                            borderLeft: '2px solid rgba(140, 82, 255, 0.5)',
+                            width: '100%'
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <Avatar 
+                              src={comment.user.photo && comment.user.photo !== 'avatar.png'
+                                ? `/static/uploads/avatar/${comment.user.id}/${comment.user.photo}`
+                                : `/static/uploads/avatar/system/avatar.png`}
+                              alt={comment.user.name}
+                              sx={{ width: 16, height: 16 }} 
+                              onError={(e) => {
+                                console.error("Reply parent avatar failed to load");
+                                if (e.currentTarget && e.currentTarget.setAttribute) {
+                                  e.currentTarget.setAttribute('src', '/static/uploads/avatar/system/avatar.png');
+                                }
+                              }}
+                            />
+                            <Typography 
+                              variant="caption"
+                              sx={{ 
+                                fontWeight: 'bold',
+                                color: 'text.primary',
+                                fontSize: '0.65rem'
+                              }}
+                            >
+                              {comment.user.name}
+                            </Typography>
+                          </Box>
                           <Typography 
                             variant="caption" 
                             color="text.secondary"
-                            sx={{ ml: 0.5, fontSize: '0.65rem' }}
+                            sx={{ 
+                              display: '-webkit-box',
+                              WebkitLineClamp: 1, 
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              mt: 0.25,
+                              fontSize: '0.65rem',
+                              lineHeight: 1.3,
+                              whiteSpace: 'pre-wrap',
+                              wordBreak: 'break-word',
+                              overflowWrap: 'break-word'
+                            }}
                           >
-                            {formatTimeAgo(reply.timestamp)}
+                            {comment.content}
                           </Typography>
                         </Box>
-                        {isReplyOwner && (
-                          <React.Fragment>
-                            <IconButton
-                              size="small"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setMenuAnchorEl(e.currentTarget);
+                      )}
+                      
+                      {reply.parent_reply_id && reply.parent_reply && (
+                        <Box 
+                          sx={{ 
+                            bgcolor: 'rgba(255, 255, 255, 0.03)',
+                            borderRadius: '8px',
+                            p: 1, 
+                            mb: 0.75, 
+                            borderLeft: '2px solid rgba(140, 82, 255, 0.5)',
+                            width: '100%'
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <Avatar 
+                              src={reply.parent_reply.user.photo && reply.parent_reply.user.photo !== 'avatar.png'
+                                ? `/static/uploads/avatar/${reply.parent_reply.user.id}/${reply.parent_reply.user.photo}`
+                                : `/static/uploads/avatar/system/avatar.png`}
+                              alt={reply.parent_reply.user.name}
+                              sx={{ width: 16, height: 16 }} 
+                              onError={(e) => {
+                                console.error("Reply parent avatar failed to load");
+                                if (e.currentTarget && e.currentTarget.setAttribute) {
+                                  e.currentTarget.setAttribute('src', '/static/uploads/avatar/system/avatar.png');
+                                }
                               }}
+                            />
+                            <Typography 
+                              variant="caption"
                               sx={{ 
-                                p: 0.25,
-                                color: 'text.secondary',
-                                '&:hover': { color: 'text.primary' }
+                                fontWeight: 'bold',
+                                color: 'text.primary',
+                                fontSize: '0.65rem'
                               }}
                             >
-                              <MoreVertIcon fontSize="small" />
-                            </IconButton>
-                            <Menu
-                              anchorEl={menuAnchorEl}
-                              open={menuOpen}
-                              onClose={handleMenuClose}
-                              onClick={(e) => e.stopPropagation()}
-                              PaperProps={{
-                                sx: {
-                                  bgcolor: 'rgba(32, 32, 36, 0.9)',
-                                  backdropFilter: 'blur(10px)',
-                                  boxShadow: '0 5px 15px rgba(0, 0, 0, 0.2)',
-                                  borderRadius: '12px',
-                                  border: '1px solid rgba(255, 255, 255, 0.05)',
-                                  mt: 1
-                                }
-                              }}
-                              anchorOrigin={{
-                                vertical: 'top',
-                                horizontal: 'left',
-                              }}
-                              transformOrigin={{
-                                vertical: 'top',
-                                horizontal: 'right',
-                              }}
-                            >
-                              <MenuItem 
-                                onClick={() => {
-                                  handleMenuClose();
-                                  setReplyingToReply(reply);
-                                  setReplyFormOpen(true);
-                                  setActiveComment(comment);
-                                }}
-                                sx={{
-                                  borderRadius: '8px',
-                                  mx: 0.5,
-                                  my: 0.2,
-                                  '&:hover': {
-                                    bgcolor: 'rgba(255, 255, 255, 0.05)'
-                                  }
-                                }}
-                              >
-                                <ListItemIcon>
-                                  <ReplyIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-                                </ListItemIcon>
-                                <ListItemText primary="Ответить" />
-                              </MenuItem>
-                              <MenuItem 
-                                onClick={() => {
-                                  handleMenuClose();
-                                  onDeleteReply(comment.id, reply.id);
-                                }}
-                                sx={{ 
-                                  color: '#f44336',
-                                  borderRadius: '8px',
-                                  mx: 0.5,
-                                  my: 0.2,
-                                  '&:hover': {
-                                    bgcolor: 'rgba(244, 67, 54, 0.08)'
-                                  }
-                                }}
-                              >
-                                <ListItemIcon>
-                                  <DeleteIcon fontSize="small" sx={{ color: '#f44336' }} />
-                                </ListItemIcon>
-                                <ListItemText primary="Удалить" />
-                              </MenuItem>
-                            </Menu>
-                          </React.Fragment>
-                        )}
-                      </Box>
-                      
-                      <Typography variant="body2" sx={{ 
-                        color: 'text.primary',
-                        fontSize: '0.75rem',
-                        lineHeight: 1.4,
-                        mt: 0.5,
-                        mb: 0.5,
-                        whiteSpace: 'pre-wrap',
-                        wordBreak: 'break-word',
-                        overflowWrap: 'break-word'
-                      }}>
-                        {reply.content}
-                      </Typography>
-                      
-                      
-                      {reply.image ? (
-                        <Box sx={{ mt: 1, mb: { xs: 1, sm: 1.5 } }}>
-                          <Box
-                            sx={{
-                              position: 'relative',
-                              borderRadius: '10px',
+                              {reply.parent_reply.user.name}
+                            </Typography>
+                          </Box>
+                          <Typography 
+                            variant="caption" 
+                            color="text.secondary"
+                            sx={{ 
+                              display: '-webkit-box',
+                              WebkitLineClamp: 1, 
+                              WebkitBoxOrient: 'vertical',
                               overflow: 'hidden',
-                              border: '1px solid rgba(255, 255, 255, 0.05)',
-                              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
-                              cursor: 'pointer',
-                              display: 'inline-block', 
-                              maxWidth: { xs: '240px', sm: '280px' }, 
-                              '&:hover': {
-                                '& .zoom-icon': {
-                                  opacity: 1
-                                }
-                              }
-                            }}
-                            onClick={() => {
-                              if (!replyImageErrors[reply.id]) {
-                                setLightboxOpen(true);
-                                setCurrentLightboxImage(replyImageFallbacks[reply.id] || reply.image);
-                              }
+                              mt: 0.25,
+                              fontSize: '0.65rem',
+                              lineHeight: 1.3,
+                              whiteSpace: 'pre-wrap',
+                              wordBreak: 'break-word',
+                              overflowWrap: 'break-word'
                             }}
                           >
-                            {!replyImageErrors[reply.id] ? (
-                              <img 
-                                src={replyImageFallbacks[reply.id] || reply.image}
-                                alt="Reply" 
-                                style={{ 
-                                  maxWidth: '100%',
-                                  maxHeight: '200px',
-                                  borderRadius: '10px',
-                                  objectFit: 'contain', 
-                                  display: 'block', 
-                                  margin: '0 auto' 
-                                }} 
-                                onError={() => handleReplyImageError(reply.id, replyImageFallbacks[reply.id] || reply.image)}
-                              />
-                            ) : (
-                              <Box
-                                sx={{
-                                  backgroundColor: 'rgba(244, 67, 54, 0.1)',
-                                  border: '1px solid rgba(244, 67, 54, 0.3)',
-                                  borderRadius: '8px',
-                                  padding: '10px',
-                                  color: '#f44336',
-                                  fontSize: '0.85rem',
-                                  textAlign: 'center',
-                                  width: '100%'
-                                }}
-                              >
-                                <Typography sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                                  Ошибка загрузки медиа
-                                </Typography>
-                                <Typography sx={{ fontSize: '0.75rem', opacity: 0.8, wordBreak: 'break-all' }}>
-                                  {reply.image || 'URL недоступен'}
-                                </Typography>
-                              </Box>
-                            )}
-                            {!replyImageErrors[reply.id] && (
-                              <Box 
-                                className="zoom-icon"
-                                sx={{
-                                  position: 'absolute',
-                                  top: '50%',
-                                  left: '50%',
-                                  transform: 'translate(-50%, -50%)',
-                                  bgcolor: 'rgba(0, 0, 0, 0.6)',
-                                  color: 'white',
-                                  borderRadius: '50%',
-                                  width: 36,
-                                  height: 36,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  opacity: 0,
-                                  transition: 'opacity 0.2s ease',
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                <ZoomInIcon sx={{ fontSize: '1.2rem' }} />
-                              </Box>
-                            )}
-                          </Box>
+                            {reply.parent_reply.content}
+                          </Typography>
                         </Box>
-                      ) : null}
+                      )}
                       
-                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 0.5 }}>
+                      <Box sx={{ 
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        bgcolor: 'rgba(45, 45, 50, 0.5)',
+                        p: 1.25,
+                        borderRadius: '18px',
+                        borderTopLeftRadius: '4px',
+                        maxWidth: '100%',
+                        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                      }}>
+                        <Typography variant="body2" sx={{ 
+                          color: 'text.primary',
+                          fontSize: '0.85rem',
+                          lineHeight: 1.3,
+                          width: '100%',
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-word',
+                          overflowWrap: 'break-word',
+                        }}>
+                          {reply.content}
+                        </Typography>
+                        
+                        {reply.image ? (
+                          <Box sx={{ mt: 1, width: '100%' }}>
+                            <Box
+                              sx={{
+                                position: 'relative',
+                                borderRadius: '12px',
+                                overflow: 'hidden',
+                                cursor: 'pointer',
+                                width: '100%',
+                                '&:hover': {
+                                  '& .zoom-icon': {
+                                    opacity: 1
+                                  }
+                                }
+                              }}
+                              onClick={(event) => {
+                                if (!replyImageErrors[reply.id]) {
+                                  event.stopPropagation();
+                                  setLightboxOpen(true);
+                                  setCurrentLightboxImage(sanitizeImagePath(replyImageFallbacks[reply.id] || reply.image));
+                                }
+                              }}
+                            >
+                              {!replyImageErrors[reply.id] ? (
+                                <img 
+                                  src={sanitizeImagePath(replyImageFallbacks[reply.id] || reply.image)}
+                                  alt="Reply" 
+                                  style={{ 
+                                    width: '100%',
+                                    maxHeight: '160px',
+                                    borderRadius: '10px',
+                                    objectFit: 'cover'
+                                  }} 
+                                  onError={() => handleReplyImageError(reply.id, replyImageFallbacks[reply.id] || reply.image)}
+                                />
+                              ) : (
+                                <Box
+                                  sx={{
+                                    backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                                    border: '1px solid rgba(244, 67, 54, 0.3)',
+                                    borderRadius: '8px',
+                                    padding: '8px',
+                                    color: '#f44336',
+                                    fontSize: '0.7rem',
+                                    textAlign: 'center'
+                                  }}
+                                >
+                                  <Typography sx={{ fontWeight: 'bold', mb: 0.25, fontSize: '0.65rem' }}>
+                                    Ошибка загрузки медиа
+                                  </Typography>
+                                </Box>
+                              )}
+                              {!replyImageErrors[reply.id] && (
+                                <Box 
+                                  className="zoom-icon"
+                                  sx={{
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    bgcolor: 'rgba(0, 0, 0, 0.5)',
+                                    color: 'white',
+                                    borderRadius: '50%',
+                                    width: 28,
+                                    height: 28,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    opacity: 0,
+                                    transition: 'opacity 0.2s ease',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  <ZoomInIcon sx={{ fontSize: '0.9rem' }} />
+                                </Box>
+                              )}
+                            </Box>
+                          </Box>
+                        ) : null}
+                      </Box>
+
+                      <Box sx={{
+                        display: 'flex',
+                        mt: 0.5,
+                        alignItems: 'center',
+                        ml: 1
+                      }}>
                         <Box 
-                          onClick={() => onLikeReply(reply.id)}
+                          onClick={() => onLikeReply(comment.id, reply.id)}
                           sx={{ 
                             display: 'flex', 
                             alignItems: 'center',
                             cursor: 'pointer',
-                            padding: '3px 6px',
+                            p: '2px 4px',
                             borderRadius: '12px',
-                            transition: 'all 0.2s ease',
-                            backgroundColor: reply.user_liked ? 'rgba(140, 82, 255, 0.12)' : 'rgba(255, 255, 255, 0.04)',
+                            transition: 'all 0.15s ease',
+                            mr: 1.5,
                             '&:hover': {
-                              backgroundColor: reply.user_liked ? 'rgba(140, 82, 255, 0.2)' : 'rgba(255, 255, 255, 0.08)',
-                              transform: 'translateY(-1px)'
+                              backgroundColor: 'rgba(140, 82, 255, 0.08)',
+                              transform: 'scale(1.05)'
                             }
                           }}
                         >
@@ -1054,8 +1014,7 @@ const Comment = ({
                             sx={{ 
                               ml: 0.5,
                               color: reply.user_liked ? '#8c52ff' : 'text.secondary',
-                              fontWeight: reply.user_liked ? 'bold' : 'normal',
-                              fontSize: '0.7rem'
+                              fontSize: '0.75rem'
                             }}
                           >
                             {reply.likes_count}
@@ -1065,39 +1024,63 @@ const Comment = ({
                         <Box 
                           onClick={() => {
                             handleMenuClose();
-                            setReplyingToReply(reply);
                             setReplyFormOpen(true);
                             setActiveComment(comment);
+                            setReplyingToReply(reply);
                           }}
                           sx={{ 
                             display: 'flex', 
                             alignItems: 'center',
                             cursor: 'pointer',
-                            padding: '3px 6px',
+                            p: '2px 4px',
                             borderRadius: '12px',
                             color: 'text.secondary',
-                            backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                            transition: 'all 0.15s ease',
                             '&:hover': {
-                              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                              backgroundColor: 'rgba(255, 255, 255, 0.05)',
                               color: 'text.primary',
-                              transform: 'translateY(-1px)'
+                              transform: 'scale(1.05)'
                             }
                           }}
                         >
-                          <CommentOutlinedIcon sx={{ fontSize: 12 }} />
-                          <Typography variant="caption" sx={{ ml: 0.5, fontSize: '0.7rem' }}>
+                          <ReplyIcon sx={{ fontSize: 12, transform: 'scaleX(-1)' }} />
+                          <Typography variant="caption" sx={{ ml: 0.5, fontSize: '0.65rem' }}>
                             Ответить
                           </Typography>
                         </Box>
+                        
+                        {isReplyOwner && (
+                          <IconButton
+                            size="small"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setMenuAnchorEl(event.currentTarget);
+                              
+                              setMenuAnchorEl({
+                                element: event.currentTarget,
+                                replyId: reply.id,
+                                commentId: comment.id
+                              });
+                            }}
+                            sx={{ 
+                              p: 0.25,
+                              ml: 'auto',
+                              color: 'text.secondary',
+                              '&:hover': { color: 'text.primary' }
+                            }}
+                          >
+                            <MoreVertIcon sx={{ fontSize: '0.85rem' }} />
+                          </IconButton>
+                        )}
                       </Box>
                     </Box>
                   </Box>
                 </Box>
               );
             })}
-        </Box>
-      )}
-
+          </Box>
+        )}
+      </Box>
       
       {isReplyFormOpen && activeCommentId === comment.id && (
         <Box sx={{ 
@@ -1107,60 +1090,56 @@ const Comment = ({
           pr: { xs: 0.5, sm: 0 },
           position: 'relative'
         }}>
-          
-          <Box 
-            sx={{ 
-              bgcolor: 'rgba(255, 255, 255, 0.03)',
-              borderRadius: '8px',
-              p: { xs: 1, sm: 1.5 },
-              mb: 1,
-              borderLeft: '3px solid rgba(140, 82, 255, 0.5)'
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Avatar 
-                src={replyingToReply 
-                  ? (replyingToReply.user.photo && replyingToReply.user.photo !== 'avatar.png'
-                    ? `/static/uploads/avatar/${replyingToReply.user.id}/${replyingToReply.user.photo}`
-                    : `/static/uploads/avatar/system/avatar.png`)
-                  : (comment.user.photo && comment.user.photo !== 'avatar.png'
-                    ? `/static/uploads/avatar/${comment.user.id}/${comment.user.photo}`
-                    : `/static/uploads/avatar/system/avatar.png`)}
-                alt={replyingToReply ? replyingToReply.user.name : comment.user.name}
-                sx={{ width: 18, height: 18 }}
-                onError={(e) => {
-                  console.error("Reply form avatar failed to load");
-                  if (e.currentTarget && e.currentTarget.setAttribute) {
-                    e.currentTarget.setAttribute('src', '/static/uploads/avatar/system/avatar.png');
-                  }
-                }}
-              />
-              <Typography 
-                variant="caption"
+          {replyingToReply || !user?.id || comment.user_id !== user?.id ? (
+            <Box 
+              sx={{ 
+                display: 'flex',
+                alignItems: 'center',
+                mb: 1,
+                pl: 0.5
+              }}
+            >
+              <Box 
                 sx={{ 
-                  fontWeight: 'bold',
-                  color: 'text.primary',
-                  fontSize: '0.7rem'
+                  bgcolor: 'rgba(140, 82, 255, 0.08)',
+                  borderRadius: '8px',
+                  py: 0.75,
+                  px: 1,
+                  fontSize: '0.7rem',
+                  color: 'primary.main',
+                  lineHeight: 1.2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  maxWidth: '100%'
                 }}
               >
-                {replyingToReply ? replyingToReply.user.name : comment.user.name}
-              </Typography>
+                <ReplyIcon sx={{ fontSize: 14, mr: 0.5, transform: 'scaleX(-1)' }} />
+                <Box component="span" sx={{ 
+                  display: 'inline-flex', 
+                  fontWeight: 'medium',
+                  whiteSpace: 'nowrap'
+                }}>
+                  Ответ для {replyingToReply 
+                    ? replyingToReply.user.name
+                    : comment.user.name}
+                </Box>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setReplyingToReply(null);
+                  }}
+                  sx={{ 
+                    p: 0.25,
+                    ml: 0.5,
+                    color: 'text.secondary',
+                    '&:hover': { color: 'text.primary' }
+                  }}
+                >
+                  <CloseIcon sx={{ fontSize: '0.7rem' }} />
+                </IconButton>
+              </Box>
             </Box>
-            <Typography variant="caption" color="text.secondary" sx={{ 
-              display: '-webkit-box',
-              WebkitLineClamp: 1,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              mt: 0.25,
-              fontSize: '0.7rem',
-              lineHeight: 1.3,
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
-              overflowWrap: 'break-word'
-            }}>
-              {replyingToReply ? replyingToReply.content : comment.content}
-            </Typography>
-          </Box>
+          ) : null}
 
           <TextField
             fullWidth
@@ -1170,36 +1149,46 @@ const Comment = ({
             onChange={(e) => onReplyTextChange(e.target.value)}
             disabled={isSubmittingComment || Date.now() < waitUntil}
             InputProps={{
+              startAdornment: (
+                <Box component="span" sx={{ mr: 0.75 }}>
+                  <Avatar 
+                    src={user?.photo && user.photo !== 'avatar.png'
+                      ? `/static/uploads/avatar/${user.id}/${user.photo}`
+                      : `/static/uploads/avatar/system/avatar.png`}
+                    alt={user?.name}
+                    sx={{ width: 30, height: 30 }}
+                  />
+                </Box>
+              ),
               endAdornment: (
-                <Box sx={{ display: 'flex', gap: 1 }}>
+                <Box sx={{ display: 'flex', gap: 0.5 }}>
                   <input 
+                    ref={replyFileInputRef}
                     type="file" 
                     accept="image/*" 
-                    onChange={handleReplyImageChange}
-                    ref={replyFileInputRef}
                     style={{ display: 'none' }}
-                    id="reply-image-upload"
+                    onChange={handleReplyImageChange}
                     disabled={isSubmittingComment || Date.now() < waitUntil}
                   />
                   <IconButton
                     size="small"
-                    component="label"
-                    htmlFor="reply-image-upload"
-                    sx={{ color: 'text.secondary' }}
+                    onClick={() => replyFileInputRef.current.click()}
                     disabled={isSubmittingComment || Date.now() < waitUntil}
+                    sx={{ padding: '4px' }}
                   >
-                    <ImageIcon fontSize="small" />
+                    <ImageIcon fontSize="small" sx={{ fontSize: '1.1rem' }} />
                   </IconButton>
                   <IconButton
                     size="small"
                     color="primary"
                     onClick={() => onReplySubmit(comment.id, replyingToReply?.id)}
                     disabled={(!replyText.trim() && !replyImage) || isSubmittingComment || Date.now() < waitUntil}
+                    sx={{ padding: '4px' }}
                   >
                     {isSubmittingComment ? (
                       <CircularProgress size={16} color="inherit" />
                     ) : (
-                      <SendIcon fontSize="small" />
+                      <SendIcon fontSize="small" sx={{ fontSize: '1.1rem' }} />
                     )}
                   </IconButton>
                   <IconButton
@@ -1212,41 +1201,43 @@ const Comment = ({
                       setReplyImage(null);
                       setReplyImagePreview('');
                     }}
-                    sx={{ color: 'text.secondary' }}
+                    sx={{ color: 'text.secondary', padding: '4px' }}
                   >
-                    <CloseIcon fontSize="small" />
+                    <CloseIcon fontSize="small" sx={{ fontSize: '0.9rem' }} />
                   </IconButton>
                 </Box>
               ),
               sx: { 
-                bgcolor: 'rgba(32, 32, 36, 0.6)',
+                bgcolor: 'rgba(28, 28, 32, 0.3)',
                 backdropFilter: 'blur(5px)',
-                borderRadius: '14px',
+                borderRadius: '30px',
                 border: '1px solid rgba(255, 255, 255, 0.05)',
                 '& .MuiOutlinedInput-notchedOutline': {
                   borderColor: 'transparent'
                 },
                 '&:hover .MuiOutlinedInput-notchedOutline': {
-                  borderColor: 'rgba(140, 82, 255, 0.3)'
+                  borderColor: 'rgba(140, 82, 255, 0.2)'
                 },
                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: 'rgba(140, 82, 255, 0.5)'
+                  borderColor: 'rgba(140, 82, 255, 0.4)'
+                },
+                '& input': {
+                  padding: '12px 5px',
+                  fontSize: '0.9rem'
                 }
               }
             }}
           />
           
-          
           {replyImagePreview && (
-            <Box sx={{ mt: 1, position: 'relative' }}>
+            <Box sx={{ mt: 1, position: 'relative', borderRadius: '16px', overflow: 'hidden' }}>
               <img 
                 src={replyImagePreview} 
                 alt="Preview" 
                 style={{ 
                   width: '100%', 
-                  maxHeight: '150px', 
-                  objectFit: 'cover',
-                  borderRadius: '12px'
+                  maxHeight: '120px', 
+                  objectFit: 'cover'
                 }} 
               />
               <IconButton
@@ -1254,15 +1245,16 @@ const Comment = ({
                 onClick={handleRemoveReplyImage}
                 sx={{
                   position: 'absolute',
-                  top: 8,
-                  right: 8,
-                  bgcolor: 'rgba(0, 0, 0, 0.5)',
+                  top: 6,
+                  right: 6,
+                  bgcolor: 'rgba(0, 0, 0, 0.6)',
+                  padding: '3px',
                   '&:hover': {
-                    bgcolor: 'rgba(0, 0, 0, 0.7)'
+                    bgcolor: 'rgba(0, 0, 0, 0.8)'
                   }
                 }}
               >
-                <CloseIcon fontSize="small" />
+                <CloseIcon fontSize="small" sx={{ fontSize: '0.8rem', color: 'white' }} />
               </IconButton>
             </Box>
           )}
@@ -1343,34 +1335,56 @@ const PostDetailPage = ({ isOverlay = false }) => {
         setLoading(true);
         const response = await axios.get(`/api/posts/${postId}`);
         setPost(response.data.post);
-        setComments(response.data.comments);
+        
+        
+        if (response.data.comments && response.data.comments.length > 0) {
+          
+          const sanitizedComments = response.data.comments.map(comment => {
+            
+            if (comment.image) {
+              comment.image = sanitizeImagePath(comment.image);
+            }
+            
+            
+            if (comment.replies && comment.replies.length > 0) {
+              comment.replies = comment.replies.map(reply => {
+                if (reply.image) {
+                  reply.image = sanitizeImagePath(reply.image);
+                }
+                return reply;
+              });
+            }
+            
+            return comment;
+          });
+          
+          setComments(sanitizedComments);
+        } else {
+          setComments([]);
+        }
         
         
         console.log("DEBUG - Post data received:", response.data);
         
-        
-        const hasReplyWithImage = response.data.comments.some(comment => 
+        const hasReplyWithImage = response.data.comments && response.data.comments.some(comment => 
           comment.replies && comment.replies.some(reply => reply.image)
         );
         console.log("DEBUG - Any replies with image field:", hasReplyWithImage);
         
-        
-        const replyWithImage = response.data.comments
+        const replyWithImage = response.data.comments && response.data.comments
           .flatMap(c => c.replies || [])
           .find(r => r.image);
         if (replyWithImage) {
           console.log("DEBUG - Example reply with image:", replyWithImage);
         }
         
-        
-        const totalReplies = response.data.comments.reduce(
+        const totalReplies = response.data.comments ? response.data.comments.reduce(
           (sum, comment) => sum + (comment.replies ? comment.replies.length : 0), 
           0
-        );
+        ) : 0;
         console.log(`DEBUG - Total replies: ${totalReplies}`);
         
         setLoading(false);
-        
         
         if (!viewCounted.current) {
           incrementViewCount(postId);
@@ -1568,7 +1582,14 @@ const PostDetailPage = ({ isOverlay = false }) => {
       }
 
       
-      setComments(prev => [response.data.comment, ...prev]);
+      
+      const newComment = response.data.comment;
+      if (newComment && newComment.image) {
+        newComment.image = sanitizeImagePath(newComment.image);
+      }
+      
+      
+      setComments(prev => [newComment, ...prev]);
       setCommentText('');
       setCommentImage(null);
       setImagePreview('');
@@ -1699,6 +1720,11 @@ const PostDetailPage = ({ isOverlay = false }) => {
             'Content-Type': 'application/json'
           }
         });
+      }
+
+      
+      if (response.data.reply && response.data.reply.image) {
+        response.data.reply.image = sanitizeImagePath(response.data.reply.image);
       }
 
       console.log("Reply submitted successfully, response:", response.data);
@@ -1903,7 +1929,12 @@ const PostDetailPage = ({ isOverlay = false }) => {
       setCommentDeleteDialog(prev => ({ ...prev, deleting: true }));
       
       
-      setComments(prev => prev.filter(comment => comment.id !== commentDeleteDialog.commentId));
+      const updatedComments = JSON.parse(JSON.stringify(
+        comments.filter(comment => comment.id !== commentDeleteDialog.commentId)
+      ));
+      
+      
+      setComments(updatedComments);
       
       
       setCommentDeleteDialog(prev => ({ ...prev, deleted: true, deleting: false }));
@@ -1935,6 +1966,13 @@ const PostDetailPage = ({ isOverlay = false }) => {
       return;
     }
     
+    console.log("Deleting reply:", replyId, "from comment:", commentId);
+    console.log("Current comments structure:", JSON.stringify(comments.map(c => ({ 
+      id: c.id, 
+      content: c.content.substring(0, 20) + "...", 
+      replies_count: c.replies?.length 
+    }))));
+    
     setReplyDeleteDialog({
       open: true,
       deleting: false,
@@ -1950,26 +1988,27 @@ const PostDetailPage = ({ isOverlay = false }) => {
       
       setReplyDeleteDialog(prev => ({ ...prev, deleting: true }));
       
+      console.log("Before deletion - Comment ID:", replyDeleteDialog.commentId, "Reply ID:", replyDeleteDialog.replyId);
+      console.log("Comments count:", comments.length);
       
-      setComments(prev => {
-        const updatedComments = [...prev];
+      
+      const newComments = comments.map(comment => {
         
-        
-        const commentIndex = updatedComments.findIndex(c => c.id === replyDeleteDialog.commentId);
-        
-        if (commentIndex !== -1) {
-          
-          const updatedComment = {
-            ...updatedComments[commentIndex],
-            replies: updatedComments[commentIndex].replies.filter(reply => reply.id !== replyDeleteDialog.replyId)
-          };
-          
-          
-          updatedComments[commentIndex] = updatedComment;
+        if (comment.id !== replyDeleteDialog.commentId) {
+          return {...comment};
         }
         
-        return updatedComments;
+        
+        return {
+          ...comment,
+          replies: comment.replies.filter(reply => reply.id !== replyDeleteDialog.replyId)
+        };
       });
+      
+      console.log("After filtering - Comments count:", newComments.length);
+      
+      
+      setComments(newComments);
       
       
       setReplyDeleteDialog(prev => ({ ...prev, deleted: true, deleting: false }));
@@ -1991,6 +2030,37 @@ const PostDetailPage = ({ isOverlay = false }) => {
         message: 'Ошибка при удалении ответа',
         severity: 'error'
       });
+      
+      
+      try {
+        console.log("Reloading comments after error");
+        const response = await axios.get(`/api/posts/${postId}`);
+        if (response.data.comments) {
+          
+          const sanitizedComments = response.data.comments.map(comment => {
+            
+            if (comment.image) {
+              comment.image = sanitizeImagePath(comment.image);
+            }
+            
+            
+            if (comment.replies && comment.replies.length > 0) {
+              comment.replies = comment.replies.map(reply => {
+                if (reply.image) {
+                  reply.image = sanitizeImagePath(reply.image);
+                }
+                return reply;
+              });
+            }
+            
+            return comment;
+          });
+          
+          setComments(sanitizedComments);
+        }
+      } catch (refreshError) {
+        console.error('Error refreshing comments after delete error:', refreshError);
+      }
     }
   };
 
@@ -2069,9 +2139,28 @@ const PostDetailPage = ({ isOverlay = false }) => {
       )}
 
       
-      <Box sx={{ px: { xs: 2, sm: 0 }, mb: { xs: 1, sm: 2 }, mt: { xs: 2, sm: 3 } }}>
+      <Box sx={{ px: { xs: 2, sm: 0 }, mb: 2 }}>
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            mb: { xs: 2, sm: 2.5 },
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontWeight: 600,
+            color: 'text.primary',
+            fontSize: { xs: '0.95rem', sm: '1.1rem' },
+            letterSpacing: '0.01em'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+            <ChatBubbleOutlineIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+            Комментарии ({post?.total_comments_count || (comments ? comments.length : 0)})
+          </Box>
+        </Typography>
+
         {user ? (
-          <Box>
+          <Box sx={{ mb: 3 }}>
             {commentError && (
               <Alert 
                 severity="error" 
@@ -2090,8 +2179,19 @@ const PostDetailPage = ({ isOverlay = false }) => {
               onChange={(e) => setCommentText(e.target.value)}
               disabled={isSubmittingComment || Date.now() < waitUntil}
               InputProps={{
+                startAdornment: (
+                  <Box component="span" sx={{ mr: 0.75 }}>
+                    <Avatar 
+                      src={user?.photo && user.photo !== 'avatar.png'
+                        ? `/static/uploads/avatar/${user.id}/${user.photo}`
+                        : `/static/uploads/avatar/system/avatar.png`}
+                      alt={user?.name}
+                      sx={{ width: 30, height: 30 }}
+                    />
+                  </Box>
+                ),
                 endAdornment: (
-                  <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Box sx={{ display: 'flex', gap: 0.5 }}>
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -2104,43 +2204,49 @@ const PostDetailPage = ({ isOverlay = false }) => {
                       size="small"
                       onClick={() => fileInputRef.current.click()}
                       disabled={isSubmittingComment || Date.now() < waitUntil}
+                      sx={{ padding: '4px' }}
                     >
-                      <ImageIcon fontSize="small" />
+                      <ImageIcon fontSize="small" sx={{ fontSize: '1.1rem' }} />
                     </IconButton>
                     <IconButton
                       size="small"
                       color="primary"
                       onClick={handleCommentSubmit}
                       disabled={(!commentText.trim() && !commentImage) || isSubmittingComment || Date.now() < waitUntil}
+                      sx={{ padding: '4px' }}
                     >
                       {isSubmittingComment ? (
                         <CircularProgress size={16} color="inherit" />
                       ) : (
-                        <SendIcon fontSize="small" />
+                        <SendIcon fontSize="small" sx={{ fontSize: '1.1rem' }} />
                       )}
                     </IconButton>
                   </Box>
                 ),
                 sx: { 
-                  bgcolor: 'rgba(32, 32, 36, 0.6)',
+                  bgcolor: 'rgba(28, 28, 32, 0.3)',
                   backdropFilter: 'blur(5px)',
-                  borderRadius: '14px',
+                  borderRadius: '30px',
                   border: '1px solid rgba(255, 255, 255, 0.05)',
                   '& .MuiOutlinedInput-notchedOutline': {
                     borderColor: 'transparent'
                   },
                   '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'rgba(140, 82, 255, 0.3)'
+                    borderColor: 'rgba(140, 82, 255, 0.2)'
                   },
                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'rgba(140, 82, 255, 0.5)'
+                    borderColor: 'rgba(140, 82, 255, 0.4)'
+                  },
+                  '& input': {
+                    padding: '12px 5px',
+                    fontSize: '0.9rem'
                   }
                 }
               }}
             />
             
             {imagePreview && (
-              <Box sx={{ mt: 1, position: 'relative' }}>
+              <Box sx={{ mt: 1, position: 'relative', borderRadius: '16px', overflow: 'hidden' }}>
                 <img 
                   src={imagePreview} 
                   alt="Preview" 
@@ -2158,69 +2264,59 @@ const PostDetailPage = ({ isOverlay = false }) => {
                     position: 'absolute',
                     top: 8,
                     right: 8,
-                    bgcolor: 'rgba(0, 0, 0, 0.5)',
+                    bgcolor: 'rgba(0, 0, 0, 0.6)',
+                    padding: '3px',
                     '&:hover': {
-                      bgcolor: 'rgba(0, 0, 0, 0.7)'
+                      bgcolor: 'rgba(0, 0, 0, 0.8)'
                     }
                   }}
                 >
-                  <CloseIcon fontSize="small" />
+                  <CloseIcon fontSize="small" sx={{ fontSize: '0.8rem', color: 'white' }} />
                 </IconButton>
               </Box>
             )}
           </Box>
         ) : (
-          <Typography 
-            variant="body2" 
-            color="text.secondary" 
-            align="center"
-          >
-            <MuiLink 
-              component={Link} 
-              to="/login" 
+          <Box sx={{ mb: 3 }}>
+            <Typography 
+              variant="body2" 
+              color="text.secondary" 
+              align="center"
               sx={{ 
-                color: 'primary.main',
-                textDecoration: 'none',
-                fontWeight: 'bold',
-                '&:hover': {
-                  textDecoration: 'underline'
-                }
+                py: 2, 
+                bgcolor: 'rgba(28, 28, 32, 0.3)', 
+                borderRadius: '14px',
+                border: '1px solid rgba(255, 255, 255, 0.03)'
               }}
             >
-              Войдите
-            </MuiLink>
-            , чтобы оставить комментарий
-          </Typography>
+              <MuiLink 
+                component={Link} 
+                to="/login" 
+                sx={{ 
+                  color: 'primary.main',
+                  textDecoration: 'none',
+                  fontWeight: 'bold',
+                  '&:hover': {
+                    textDecoration: 'underline'
+                  }
+                }}
+              >
+                Войдите
+              </MuiLink>
+              , чтобы оставить комментарий
+            </Typography>
+          </Box>
         )}
-      </Box>
-
-      
-      <Box sx={{ px: { xs: 2, sm: 0 }, mb: 4 }}>
-        <Typography 
-          variant="h6" 
-          sx={{ 
-            mb: { xs: 1.5, sm: 3 },
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1,
-            fontWeight: 600,
-            color: 'text.primary',
-            fontSize: { xs: '1rem', sm: '1.25rem' }
-          }}
-        >
-          <ChatBubbleOutlineIcon sx={{ fontSize: { xs: 20, sm: 24 } }} />
-          Комментарии ({post?.total_comments_count || comments.length})
-        </Typography>
 
         {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', my: { xs: 2, sm: 4 } }}>
-            <CircularProgress />
+          <Box sx={{ display: 'flex', justifyContent: 'center', my: { xs: 2, sm: 3 } }}>
+            <CircularProgress size={30} thickness={4} />
           </Box>
-        ) : comments.length > 0 ? (
+        ) : (comments && comments.length > 0) ? (
           <Box sx={{ 
             display: 'flex', 
             flexDirection: 'column', 
-            gap: { xs: 1.5, sm: 3 } 
+            gap: { xs: 0.5, sm: 0.5 } 
           }}>
             {comments.map(comment => (
               <Comment 
@@ -2260,14 +2356,15 @@ const PostDetailPage = ({ isOverlay = false }) => {
           </Box>
         ) : (
           <Box sx={{ 
-            p: { xs: 2, sm: 4 }, 
+            p: { xs: 3, sm: 4 }, 
             textAlign: 'center',
-            bgcolor: 'rgba(255, 255, 255, 0.02)',
-            borderRadius: '16px',
-            border: '1px dashed rgba(255, 255, 255, 0.1)'
+            bgcolor: 'rgba(28, 28, 32, 0.3)',
+            borderRadius: '20px',
+            border: '1px dashed rgba(255, 255, 255, 0.08)',
+            backdropFilter: 'blur(10px)'
           }}>
-            <ChatBubbleOutlineIcon sx={{ fontSize: { xs: 32, sm: 40 }, color: 'text.secondary', mb: { xs: 1, sm: 2 }, opacity: 0.6 }} />
-            <Typography variant="body1" color="text.secondary" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+            <ChatBubbleOutlineIcon sx={{ fontSize: { xs: 28, sm: 32 }, color: 'text.secondary', mb: { xs: 1, sm: 1.5 }, opacity: 0.5 }} />
+            <Typography variant="body1" color="text.secondary" sx={{ fontSize: { xs: '0.85rem', sm: '0.9rem' } }}>
               Комментариев пока нет. Будьте первым!
             </Typography>
           </Box>
@@ -2568,7 +2665,7 @@ const PostDetailPage = ({ isOverlay = false }) => {
         }}
         sx={{
           '& .MuiDialog-paper': {
-            width: { sm: '100%', md: '90%', lg: '80%' },
+            width: { sm: '100%', md: '90%', lg: '55%' },
             height: { xs: '100%', sm: '90vh' },
             maxWidth: 1000,
             m: { xs: 0, sm: 2 },

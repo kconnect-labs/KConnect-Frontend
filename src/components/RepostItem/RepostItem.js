@@ -19,12 +19,16 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import { AuthContext } from '../../context/AuthContext';
 import { MusicContext } from '../../context/MusicContext';
+import { VerificationBadge } from '../../UIKIT';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ReportIcon from '@mui/icons-material/Report';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 
 const RepostCard = styled(Card)(({ theme, background }) => ({
@@ -131,24 +135,6 @@ const BlurredMenu = styled(Menu)(({ theme }) => ({
     }
   }
 }));
-
-
-const VerificationBadge = ({ status, size }) => {
-  if (!status) return null;
-  
-  return (
-    <CheckCircleIcon 
-      sx={{ 
-        fontSize: size === 'small' ? 16 : 20,
-        ml: 0.5,
-        color: status === 1 ? '#9e9e9e' : 
-              status === 2 ? '#d67270' : 
-              status === 3 ? '#b39ddb' : 
-              '#7B68EE'
-      }} 
-    />
-  );
-};
 
 
 const MusicTrackPreview = styled(Box)(({ theme }) => ({

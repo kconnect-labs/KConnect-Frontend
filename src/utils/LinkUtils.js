@@ -38,7 +38,6 @@ export const LinkPreview = ({ url }) => {
     const fetchPreview = async () => {
       try {
         setLoading(true);
-        // Запрос на получение метаданных ссылки
         const response = await axios.post('/api/utils/link-preview', { url });
         if (response.data) {
           setPreview(response.data);
@@ -58,7 +57,6 @@ export const LinkPreview = ({ url }) => {
     }
   }, [url]);
 
-  // Не показываем ничего при ошибке
   if (error) {
     return null;
   }
@@ -68,7 +66,6 @@ export const LinkPreview = ({ url }) => {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
-  // Function to extract the domain name
   const getDomainName = (url) => {
     try {
       const hostname = new URL(url).hostname;
@@ -83,21 +80,22 @@ export const LinkPreview = ({ url }) => {
       elevation={0}
       onClick={handleClick}
       sx={{
-        mt: 2,
-        mb: 2,
+        mt: 1,
+        mb: 1,
         overflow: 'hidden',
-        borderRadius: '12px',
+        borderRadius: '8px',
         backgroundColor: 'rgba(140, 82, 255, 0.03)',
         border: '1px solid rgba(140, 82, 255, 0.1)',
         display: 'flex',
-        flexDirection: { xs: 'column', sm: 'row' },
+        flexDirection: { xs: 'row' },
         cursor: 'pointer',
         transition: 'all 0.3s ease',
         position: 'relative',
+        height: '90px',
         '&:hover': {
           backgroundColor: 'rgba(140, 82, 255, 0.06)',
-          transform: 'translateY(-3px) scale(1.01)',
-          boxShadow: '0 6px 16px rgba(0, 0, 0, 0.15)'
+          transform: 'translateY(-2px)',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
         },
         '&:before': {
           content: '""',
@@ -105,25 +103,23 @@ export const LinkPreview = ({ url }) => {
           left: 0,
           top: 0,
           height: '100%',
-          width: '4px',
+          width: '3px',
           backgroundColor: '#9E77ED',
           borderRadius: '2px',
         }
       }}
     >
       {loading ? (
-        <Box sx={{ p: 2, width: '100%' }}>
-          <Skeleton variant="text" width="70%" sx={{ mb: 1 }} />
-          <Skeleton variant="text" width="40%" sx={{ mb: 1 }} />
-          <Skeleton variant="text" width="90%" />
+        <Box sx={{ p: 1.5, width: '100%', display: 'flex', alignItems: 'center' }}>
+          <Skeleton variant="text" width="70%" sx={{ mb: 0.5 }} />
         </Box>
       ) : (
         <>
           {preview?.image && (
             <Box
               sx={{
-                width: { xs: '100%', sm: 200 },
-                height: { xs: 140, sm: 'auto' },
+                width: 90,
+                height: 90,
                 flexShrink: 0,
                 position: 'relative',
                 overflow: 'hidden'
@@ -137,10 +133,6 @@ export const LinkPreview = ({ url }) => {
                   width: '100%',
                   height: '100%',
                   objectFit: 'cover',
-                  transition: 'transform 0.5s ease',
-                  '&:hover': {
-                    transform: 'scale(1.05)'
-                  }
                 }}
                 onError={(e) => {
                   e.target.onerror = null;
@@ -150,60 +142,102 @@ export const LinkPreview = ({ url }) => {
             </Box>
           )}
           <Box sx={{ 
-            p: 2, 
+            p: 1.5, 
             flex: 1,
-            borderLeft: preview?.image ? { xs: 'none', sm: '1px solid rgba(255, 255, 255, 0.08)' } : 'none',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            borderLeft: preview?.image ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
             backgroundColor: 'rgba(0, 0, 0, 0.02)'
           }}>
             <Typography 
-              variant="subtitle1" 
-              fontWeight="medium" 
-              noWrap
+              variant="subtitle2" 
               sx={{ 
+                margin: 0,
+                fontFamily: '"SF Pro Display", "Roboto", "Arial", sans-serif',
+                fontWeight: 500,
+                fontSize: '0.85rem',
+                lineHeight: 1.57,
                 color: '#f0f0f0',
-                fontSize: '0.95rem',
                 display: 'flex',
-                alignItems: 'center'
+                alignItems: 'center',
+                mb: 0.5,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                '&.MuiTypography-root': {
+                  margin: 0,
+                  fontFamily: '"SF Pro Display", "Roboto", "Arial", sans-serif',
+                  fontWeight: 500,
+                  fontSize: '0.85rem',
+                  lineHeight: 1.57,
+                  color: '#f0f0f0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  mb: 0.5,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }
               }}
             >
-              {preview?.title || getDomainName(url)}
+              {(preview?.title || getDomainName(url)).length > 35 
+                ? `${(preview?.title || getDomainName(url)).substring(0, 35)}...` 
+                : (preview?.title || getDomainName(url))}
             </Typography>
             {preview?.description && (
               <Typography
-                variant="body2"
-                color="text.secondary"
+                variant="caption"
                 sx={{
-                  mt: 0.5,
-                  mb: 1,
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
+                  margin: 0,
+                  fontFamily: '"SF Pro Display", "Roboto", "Arial", sans-serif',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontSize: '0.75rem',
+                  lineHeight: 1.4,
                   overflow: 'hidden',
-                  fontSize: '0.8rem',
-                  opacity: 0.8,
-                  lineHeight: 1.4
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  mb: 0.5
                 }}
               >
-                {preview.description}
+                {preview.description.length > 50 
+                  ? `${preview.description.substring(0, 50)}...` 
+                  : preview.description}
               </Typography>
             )}
             <Box sx={{ 
               display: 'flex', 
-              alignItems: 'center', 
-              mt: 1,
+              alignItems: 'center',
               backgroundColor: 'rgba(0, 0, 0, 0.1)',
-              py: 0.5,
-              px: 1,
+              py: 0.25,
+              px: 0.75,
               borderRadius: '4px',
               width: 'fit-content'
             }}>
-              <LinkIcon fontSize="small" sx={{ color: '#9E77ED', mr: 1, fontSize: '0.875rem' }} />
+              <LinkIcon fontSize="small" sx={{ color: '#9E77ED', mr: 0.5, fontSize: '0.75rem' }} />
               <Typography 
                 variant="caption" 
                 sx={{ 
+                  margin: 0,
+                  fontFamily: '"SF Pro Display", "Roboto", "Arial", sans-serif',
                   color: 'rgba(255, 255, 255, 0.7)',
-                  fontWeight: 'medium',
-                  fontSize: '0.75rem'
+                  fontWeight: 500,
+                  fontSize: '0.7rem',
+                  lineHeight: 1.57,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  '&.MuiTypography-root': {
+                    margin: 0,
+                    fontFamily: '"SF Pro Display", "Roboto", "Arial", sans-serif',
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    fontWeight: 500,
+                    fontSize: '0.7rem',
+                    lineHeight: 1.57,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }
                 }} 
                 noWrap
               >
@@ -217,7 +251,7 @@ export const LinkPreview = ({ url }) => {
   );
 };
 
-// Функция для обработки текста с ссылками
+
 export const processTextWithLinks = (text) => {
   if (!text) return null;
   
@@ -226,11 +260,11 @@ export const processTextWithLinks = (text) => {
   let lastIndex = 0;
   let match;
   
-  // Prepare combined text for processing
+  
   let processedText = text;
   let combinedMatches = [];
   
-  // Find all URL matches
+  
   URL_REGEX.lastIndex = 0;
   while ((match = URL_REGEX.exec(text)) !== null) {
     combinedMatches.push({
@@ -241,7 +275,7 @@ export const processTextWithLinks = (text) => {
     });
   }
   
-  // Find all @username mentions
+  
   USERNAME_MENTION_REGEX.lastIndex = 0;
   while ((match = USERNAME_MENTION_REGEX.exec(text)) !== null) {
     combinedMatches.push({
@@ -253,7 +287,7 @@ export const processTextWithLinks = (text) => {
     });
   }
   
-  // Find all #hashtag matches
+  
   HASHTAG_REGEX.lastIndex = 0;
   while ((match = HASHTAG_REGEX.exec(text)) !== null) {
     combinedMatches.push({
@@ -265,23 +299,19 @@ export const processTextWithLinks = (text) => {
     });
   }
   
-  // Sort all matches by their position in the text
+  
   combinedMatches.sort((a, b) => a.index - b.index);
   
-  // Convert the matches into React elements
+  
   combinedMatches.forEach((item, i) => {
-    // Add any text before this match
+    
     if (item.index > lastIndex) {
       parts.push(text.substring(lastIndex, item.index));
     }
     
     if (item.type === 'url') {
       const url = item.match;
-      
-      // Add URL to the set of URLs for preview
       urls.add(url);
-      
-      // Create a clickable link
       parts.push(
         <a 
           key={`url-${i}`}
@@ -300,7 +330,6 @@ export const processTextWithLinks = (text) => {
         </a>
       );
     } else if (item.type === 'mention') {
-      // Create a clickable mention
       parts.push(
         <a 
           key={`mention-${i}`}
@@ -320,7 +349,6 @@ export const processTextWithLinks = (text) => {
         </a>
       );
     } else if (item.type === 'hashtag') {
-      // Create a clickable hashtag with full domain
       parts.push(
         <a 
           key={`hashtag-${i}`}
@@ -344,7 +372,7 @@ export const processTextWithLinks = (text) => {
     lastIndex = item.index + item.length;
   });
   
-  // Add any remaining text
+  
   if (lastIndex < text.length) {
     parts.push(text.substring(lastIndex));
   }
@@ -355,11 +383,11 @@ export const processTextWithLinks = (text) => {
   };
 };
 
-// Custom renderer для ReactMarkdown
+
 export const linkRenderers = {
   p: ({ children }) => {
     if (typeof children === 'string') {
-      // Process text content to detect and convert URLs and @mentions
+      
       const { parts, urls } = processTextWithLinks(children);
       
       return (
@@ -378,9 +406,9 @@ export const linkRenderers = {
     
     return <Typography component="p" variant="body1" sx={{ mb: 1 }}>{children}</Typography>;
   },
-  // Add a custom renderer for links to make them more prominent
+  
   a: ({ node, children, href }) => {
-    // Check if this is a username mention link (starts with /profile/)
+    
     if (href.startsWith('/profile/')) {
       const username = href.substring('/profile/'.length);
       return (
@@ -389,7 +417,7 @@ export const linkRenderers = {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            // Navigate to the profile page
+            
             window.location.href = href;
           }}
           style={{ 
@@ -406,16 +434,16 @@ export const linkRenderers = {
       );
     }
     
-    // Check if this is a hashtag search link (contains search?q=)
+    
     if (href.includes('search?q=') && href.includes('type=posts')) {
-      // Handle hashtag links
+      
       return (
         <a 
           href={href}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            // Use the full URL for navigation
+            
             window.location.href = href;
           }}
           style={{ 
@@ -471,9 +499,11 @@ export const TextWithLinks = ({ text }) => {
         {parts}
       </Typography>
       
-      {!DISABLE_LINK_PREVIEWS && urls.length > 0 && urls.slice(0, 1).map((url, index) => (
-        <LinkPreview key={`preview-${index}`} url={url} />
-      ))}
+      {!DISABLE_LINK_PREVIEWS && urls.length > 0 && (
+        <Box sx={{ mt: 2 }}>
+          <LinkPreview url={urls[0]} />
+        </Box>
+      )}
     </>
   );
 };

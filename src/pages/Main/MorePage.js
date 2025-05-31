@@ -23,6 +23,8 @@ import axios from 'axios';
 import { Icon } from '@iconify/react';
 import GavelIcon from '@mui/icons-material/Gavel';
 import SettingsIcon from '@mui/icons-material/Settings';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { VerificationBadge } from '../../UIKIT';
 
 
 const ProfileBanner = styled(Box)(({ theme }) => ({
@@ -409,17 +411,9 @@ const MorePage = () => {
         <ProfileName variant="h5">
           {user?.name || 'Пользователь'}
           {user?.verification && user.verification.status > 0 && (
-            <Icon 
-              icon="solar:verified-check-bold" 
-              width="18" 
-              height="18"
-              style={{ 
-                marginLeft: '4px', 
-                color: user.verification.status === 1 ? '#9e9e9e' : 
-                      user.verification.status === 2 ? '#d67270' : 
-                      user.verification.status === 3 ? '#b39ddb' : 
-                      theme.palette.primary.main 
-              }} 
+            <VerificationBadge 
+              status={user.verification.status} 
+              size="small" 
             />
           )}
         </ProfileName>
@@ -619,13 +613,18 @@ const MorePage = () => {
             <ListItemText primary="Правила" />
           </MenuListItem>
           
+          <MenuListItem button component={Link} to="/messenger">
+            <MenuItemIcon>
+              <Icon icon="solar:code-bold" width="20" height="20" />
+            </MenuItemIcon>
+            <ListItemText primary="Мессенджер" />
+          </MenuListItem>
           <MenuListItem button component={Link} to="/api-docs">
             <MenuItemIcon>
               <Icon icon="solar:code-bold" width="20" height="20" />
             </MenuItemIcon>
             <ListItemText primary="API Документация" />
           </MenuListItem>
-          
           <Divider sx={{ my: 1, mx: 2 }} />
           
           <MenuListItem button onClick={handleLogout}>
@@ -643,7 +642,8 @@ const MorePage = () => {
       {/* Footer */}
       <FooterSection>
         <Typography variant="caption" display="block" color="primary" sx={{ fontWeight: 500, mb: 0.5 }}>
-          К-Коннект v2.6
+          К-Коннект v2.7
+          
         </Typography>
         <Typography variant="caption" display="block" color="textSecondary">
           verif@k-connect.ru

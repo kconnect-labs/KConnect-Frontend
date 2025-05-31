@@ -1691,7 +1691,7 @@ const BadgeShopPage = () => {
               px: 3
             }}
           >
-            Создать за 300 баллов
+            Создать за 3000 баллов
           </Button>
         </DialogActions>
       </Dialog>

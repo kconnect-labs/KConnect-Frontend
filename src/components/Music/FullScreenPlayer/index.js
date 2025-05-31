@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Dialog, DialogContent, Snackbar, Alert, Box, useMediaQuery, useTheme, IconButton, Typography } from '@mui/material';
+import { Dialog, DialogContent, Snackbar, Alert, Box, useMediaQuery, useTheme, IconButton, Typography, List, ListItem, ListItemText, ListItemAvatar, Avatar } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import LyricsIcon from '@mui/icons-material/MusicNote';
 import Edit from '@mui/icons-material/Edit';
+import QueueMusicIcon from '@mui/icons-material/QueueMusic';
+import MusicNoteIcon from '@mui/icons-material/MusicNote';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useMusic } from '../../../context/MusicContext';
 import BackgroundLayer from './BackgroundLayer';
 import TopControls from './TopControls';
@@ -15,6 +18,7 @@ import { extractDominantColor } from '../../../utils/imageUtils';
 import styles from './FullScreenPlayer.module.scss';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import lyricsStyles from './LyricsView.module.scss';
 
 
 const defaultCover = '/static/uploads/system/album_placeholder.jpg';
@@ -24,6 +28,7 @@ const FullScreenPlayer = ({ open, onClose, ...props }) => {
   const [showLyrics, setShowLyrics] = useState(false);
   const [showLyricsEditor, setShowLyricsEditor] = useState(false);
   const [showTimestampEditor, setShowTimestampEditor] = useState(false);
+  const [showPlaylist, setShowPlaylist] = useState(false);
   const [lyricsData, setLyricsData] = useState(null);
   const [loadingLyrics, setLoadingLyrics] = useState(false);
   const [lyricsText, setLyricsText] = useState('');
@@ -38,8 +43,34 @@ const FullScreenPlayer = ({ open, onClose, ...props }) => {
     severity: 'success'
   });
 
-  const { currentTrack } = useMusic();
+  const { 
+    currentTrack,
+    currentSection,
+    playlistTracks,
+    playTrack
+  } = useMusic();
 
+  // Получаем треки текущего плейлиста
+  const currentPlaylistTracks = useMemo(() => {
+    if (!currentSection || !currentSection.startsWith('playlist_')) {
+      return [];
+    }
+    return playlistTracks[currentSection] || [];
+  }, [currentSection, playlistTracks]);
+
+  const handleTogglePlaylist = useCallback(() => {
+    setShowPlaylist(prev => !prev);
+    setShowLyrics(false);
+    setShowLyricsEditor(false);
+    setShowTimestampEditor(false);
+  }, []);
+
+  // Обработчик нажатия на трек в плейлисте
+  const handlePlayTrackFromPlaylist = useCallback((track) => {
+    if (playTrack && currentSection) {
+      playTrack(track, currentSection);
+    }
+  }, [playTrack, currentSection]);
 
   const goToArtist = async (artistName) => {
     if (!artistName || artistName.trim() === '') return;
@@ -142,6 +173,7 @@ const FullScreenPlayer = ({ open, onClose, ...props }) => {
     setShowLyrics(prev => !prev);
     setShowLyricsEditor(false);
     setShowTimestampEditor(false);
+    setShowPlaylist(false);
   }, []);
 
   const handleOpenLyricsEditor = useCallback(() => {
@@ -205,7 +237,16 @@ const FullScreenPlayer = ({ open, onClose, ...props }) => {
 
 
   const renderContent = () => {
-    if (showLyrics && !showLyricsEditor && !showTimestampEditor) {
+    if (showPlaylist) {
+      return (
+        <PlaylistView 
+          tracks={currentPlaylistTracks}
+          currentTrack={currentTrack}
+          dominantColor={dominantColor}
+          onPlayTrack={handlePlayTrackFromPlaylist}
+        />
+      );
+    } else if (showLyrics && !showLyricsEditor && !showTimestampEditor) {
       return (
         <LyricsView 
           lyricsData={lyricsData} 
@@ -282,6 +323,9 @@ const FullScreenPlayer = ({ open, onClose, ...props }) => {
             dominantColor={dominantColor} 
           />
           
+          <Box className={styles.fadeGradientTop} />
+          <Box className={styles.fadeGradientBottom} />
+          
           <Box className={styles.contentContainer}>
             {isMobile ? (
               <>
@@ -305,32 +349,53 @@ const FullScreenPlayer = ({ open, onClose, ...props }) => {
                         onClick={handleToggleLyrics}
                         sx={{
                           color: showLyrics ? theme.palette.primary.main : 'inherit',
-                          backgroundColor: showLyrics ? 'rgba(255, 255, 255, 0.2)' : 'transparent'
+                          backgroundColor: showLyrics ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                          mr: 1
                         }}
                       >
                         <LyricsIcon />
                       </IconButton>
+                      {currentPlaylistTracks.length > 0 && (
+                        <IconButton 
+                          onClick={handleTogglePlaylist}
+                          sx={{
+                            color: showPlaylist ? theme.palette.primary.main : 'inherit',
+                            backgroundColor: showPlaylist ? 'rgba(255, 255, 255, 0.2)' : 'transparent'
+                          }}
+                        >
+                          <QueueMusicIcon />
+                        </IconButton>
+                      )}
                     </Box>
                   </Box>
                 </Box>
                 
-                <Box className={styles.playerContainer} sx={{ pt: 6, pb: 12 }}>
+                <Box className={styles.playerContainer} sx={{ pt: 8, pb: 20 }}>
                   {/* Album Cover */}
                   <Box
                     sx={{
-                      padding: '0 16px',
-                      marginBottom: 2,
-                      display: showLyrics ? 'none' : 'block'
+                      padding: '0px 16px',
+                      marginBottom: '0',
+                      display: (showLyrics || showPlaylist) ? 'none' : 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '75%',
+                      width: '100%'
                     }}
                   >
                     <Box
                       sx={{
                         position: 'relative',
-                        width: '100%',
-                        paddingBottom: '100%',
-                        borderRadius: 2,
+                        width: '80%',
+                        maxWidth: '500px',
+                        aspectRatio: '1/1',
+                        borderRadius: '12px',
                         overflow: 'hidden',
-                        marginBottom: 2,
+                        boxShadow: dominantColor ? 
+                          `0 10px 30px rgba(${dominantColor.r}, ${dominantColor.g}, ${dominantColor.b}, 0.3), 0 30px 60px rgba(0,0,0,0.4)` : 
+                          '0 10px 30px rgba(0,0,0,0.3), 0 30px 60px rgba(0,0,0,0.4)',
+                        animation: 'appleMusicPulse 4s infinite alternate cubic-bezier(0.455, 0.03, 0.515, 0.955)',
                       }}
                     >
                       <img
@@ -343,26 +408,28 @@ const FullScreenPlayer = ({ open, onClose, ...props }) => {
                           width: '100%',
                           height: '100%',
                           objectFit: 'cover',
+                          aspectRatio: '1/1',
                         }}
                       />
                     </Box>
                     
-                    {/* Track info below cover */}
                     <Box className={styles.belowCoverContainer}
                       sx={{
                         textAlign: 'center',
-                        width: '100%'
+                        width: '100%',
+                        animation: 'appleSlideUp 0.4s 0.2s ease-out forwards',
                       }}
                     >
                       <Typography variant="h6" className={styles.belowCoverTitle} 
                         sx={{
-                          fontSize: '22px',
-                          fontWeight: 'bold',
+                          fontSize: '24px',
+                          fontWeight: 700,
                           color: '#ffffff',
                           textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                          mb: 1,
                           textAlign: 'center',
-                          width: '100%'
+                          width: '100%',
+                          letterSpacing: '-0.02em',
+                          fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif',
                         }}
                       >
                         {currentTrack?.title || 'Untitled'}
@@ -372,7 +439,11 @@ const FullScreenPlayer = ({ open, onClose, ...props }) => {
                           display: 'flex',
                           flexWrap: 'wrap',
                           justifyContent: 'center',
-                          padding: '0 8px'
+                          padding: '0 8px',
+                          color: 'rgba(255,255,255,0.8)',
+                          fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif',
+                          fontWeight: 500,
+                          fontSize: '18px',
                         }}
                       >
                         {currentTrack?.artist && currentTrack.artist.split(',').map((artist, index, array) => (
@@ -381,15 +452,16 @@ const FullScreenPlayer = ({ open, onClose, ...props }) => {
                               component="span" 
                               sx={{
                                 cursor: 'pointer',
-                                color: 'rgba(255,255,255,0.9)',
+                                color: 'rgba(255,255,255,0.8)',
                                 fontWeight: 500,
                                 transition: 'all 0.2s',
                                 '&:hover': {
-                                  color: theme.palette.primary.main,
+                                  color: '#ffffff',
                                   textDecoration: 'underline'
                                 },
                                 px: 0.5,
-                                py: 0.25
+                                py: 0.25,
+                                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif',
                               }}
                               onClick={() => goToArtist(artist.trim())}
                             >
@@ -400,7 +472,8 @@ const FullScreenPlayer = ({ open, onClose, ...props }) => {
                                 component="span" 
                                 sx={{ 
                                   color: 'rgba(255,255,255,0.5)', 
-                                  mx: 0.5 
+                                  mx: 0.5,
+                                  fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif',
                                 }}
                               >
                                 ,
@@ -418,13 +491,13 @@ const FullScreenPlayer = ({ open, onClose, ...props }) => {
                       position: 'absolute',
                       left: 0,
                       right: 0,
-                      top: showLyrics ? '10px' : '60px',
+                      top: (showLyrics || showPlaylist) ? '10px' : '60px',
                       bottom: '140px',
                       overflow: 'hidden',
-                      display: showLyrics || showLyricsEditor || showTimestampEditor ? 'flex' : 'none',
+                      display: showLyrics || showLyricsEditor || showTimestampEditor || showPlaylist ? 'flex' : 'none',
                       flexDirection: 'column',
                       justifyContent: 'center',
-                      pointerEvents: showLyrics || showLyricsEditor || showTimestampEditor ? 'auto' : 'none',
+                      pointerEvents: showLyrics || showLyricsEditor || showTimestampEditor || showPlaylist ? 'auto' : 'none',
                       zIndex: 10,
                       paddingRight: '15px',
                       paddingLeft: '10px'
@@ -438,7 +511,7 @@ const FullScreenPlayer = ({ open, onClose, ...props }) => {
                   <Box 
                     sx={{ 
                       p: 2, 
-                      pb: showLyrics || showLyricsEditor || showTimestampEditor ? 2 : 9.5,
+                      pb: showLyrics || showLyricsEditor || showTimestampEditor || showPlaylist ? 2 : 9.5,
                       transition: 'padding 0.3s ease-in-out',
                     }}
                   >
@@ -447,26 +520,58 @@ const FullScreenPlayer = ({ open, onClose, ...props }) => {
                 </Box>
               </>
             ) : (
-
               <>
                 <Box 
-                  className={`${styles.controlsSideContainer} ${!showLyrics && !showLyricsEditor && !showTimestampEditor ? styles.controlsSideContainerCentered : ''}`}
+                  className={`${styles.controlsSideContainer} ${!showLyrics && !showLyricsEditor && !showTimestampEditor && !showPlaylist ? styles.controlsSideContainerCentered : ''}`}
                   sx={{
                     transition: 'all 0.4s cubic-bezier(0.17, 0.67, 0.3, 0.98)'
                   }}
                 >
                   {MemoizedNowPlaying}
-                  {MemoizedTopControls}
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                    <IconButton 
+                      onClick={handleToggleLyrics}
+                      sx={{
+                        color: showLyrics ? theme.palette.primary.main : 'inherit',
+                        backgroundColor: showLyrics ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                        mx: 1
+                      }}
+                    >
+                      <LyricsIcon />
+                    </IconButton>
+                    <IconButton 
+                      onClick={handleOpenLyricsEditor}
+                      sx={{
+                        color: showLyricsEditor ? theme.palette.primary.main : 'inherit',
+                        backgroundColor: showLyricsEditor ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                        mx: 1
+                      }}
+                    >
+                      <Edit />
+                    </IconButton>
+                    {currentPlaylistTracks.length > 0 && (
+                      <IconButton 
+                        onClick={handleTogglePlaylist}
+                        sx={{
+                          color: showPlaylist ? theme.palette.primary.main : 'inherit',
+                          backgroundColor: showPlaylist ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                          mx: 1
+                        }}
+                      >
+                        <QueueMusicIcon />
+                      </IconButton>
+                    )}
+                  </Box>
                   {MemoizedPlayerControls}
                 </Box>
 
                 <Box 
-                  className={`${styles.contentSideContainer} ${(showLyrics || showLyricsEditor || showTimestampEditor) ? 'animated-content-show' : 'animated-content-hide'}`}
+                  className={`${styles.contentSideContainer} ${(showLyrics || showLyricsEditor || showTimestampEditor || showPlaylist) ? 'animated-content-show' : 'animated-content-hide'}`}
                   sx={{ 
-                    opacity: showLyrics || showLyricsEditor || showTimestampEditor ? 1 : 0,
-                    maxWidth: showLyrics || showLyricsEditor || showTimestampEditor ? '60%' : '0%',
-                    visibility: showLyrics || showLyricsEditor || showTimestampEditor ? 'visible' : 'hidden',
-                    animation: showLyrics || showLyricsEditor || showTimestampEditor
+                    opacity: showLyrics || showLyricsEditor || showTimestampEditor || showPlaylist ? 1 : 0,
+                    maxWidth: showLyrics || showLyricsEditor || showTimestampEditor || showPlaylist ? '60%' : '0%',
+                    visibility: showLyrics || showLyricsEditor || showTimestampEditor || showPlaylist ? 'visible' : 'hidden',
+                    animation: showLyrics || showLyricsEditor || showTimestampEditor || showPlaylist
                       ? `${styles.contentShow} 0.4s cubic-bezier(0.17, 0.67, 0.3, 0.98) forwards` 
                       : `${styles.contentHide} 0.4s cubic-bezier(0.17, 0.67, 0.3, 0.98) forwards`
                   }}
@@ -489,6 +594,114 @@ const FullScreenPlayer = ({ open, onClose, ...props }) => {
         </Alert>
       </Snackbar>
     </>
+  );
+};
+
+// Компонент для отображения списка треков плейлиста
+const PlaylistView = ({ tracks = [], currentTrack, dominantColor, onPlayTrack }) => {
+  const theme = useTheme();
+
+  const isCurrentTrack = (track) => {
+    return currentTrack && currentTrack.id === track.id;
+  };
+
+  if (!tracks || tracks.length === 0) {
+    return (
+      <Box sx={{ 
+        textAlign: 'center', 
+        p: 3, 
+        color: 'white'
+      }}>
+        <Typography variant="h6">
+          В этом плейлисте нет треков
+        </Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ width: '100%' }}>
+      <Typography
+        variant="h6"
+        sx={{
+          mb: 2,
+          fontWeight: 600,
+          color: 'white',
+          textShadow: '0 1px 3px rgba(0,0,0,0.3)',
+          textAlign: 'center'
+        }}
+      >
+        Треки плейлиста
+      </Typography>
+
+      <List sx={{ 
+        maxHeight: '70vh', 
+        overflow: 'auto',
+        pr: 2,
+        pl: 1,
+        '&::-webkit-scrollbar': {
+          width: '4px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: 'rgba(255,255,255,0.1)',
+          borderRadius: '4px',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: theme.palette.primary.main,
+          borderRadius: '4px',
+        },
+      }}>
+        {tracks.map((track, index) => (
+          <ListItem
+            key={track.id}
+            button
+            onClick={() => onPlayTrack(track)}
+            sx={{
+              borderRadius: '8px',
+              mb: 0.5,
+              backgroundColor: isCurrentTrack(track) 
+                ? `rgba(${dominantColor?.r || 0}, ${dominantColor?.g || 0}, ${dominantColor?.b || 0}, 0.4)` 
+                : 'rgba(255,255,255,0.05)',
+              '&:hover': {
+                backgroundColor: isCurrentTrack(track) 
+                  ? `rgba(${dominantColor?.r || 0}, ${dominantColor?.g || 0}, ${dominantColor?.b || 0}, 0.6)` 
+                  : 'rgba(255,255,255,0.12)',
+              },
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', width: '24px', mr: 1, flexShrink: 0 }}>
+              {isCurrentTrack(track) ? (
+                <PlayArrowIcon sx={{ color: theme.palette.primary.main }} />
+              ) : (
+                <Typography sx={{ color: 'rgba(255,255,255,0.7)' }}>{index + 1}</Typography>
+              )}
+            </Box>
+            <ListItemAvatar sx={{ minWidth: 40 }}>
+              <Avatar 
+                variant="rounded" 
+                sx={{ width: 32, height: 32 }}
+                src={track.cover_path}
+              >
+                <MusicNoteIcon />
+              </Avatar>
+            </ListItemAvatar>
+            <ListItemText
+              primary={track.title}
+              secondary={track.artist}
+              primaryTypographyProps={{
+                noWrap: true,
+                color: isCurrentTrack(track) ? theme.palette.primary.main : 'white',
+                fontWeight: isCurrentTrack(track) ? 600 : 400,
+              }}
+              secondaryTypographyProps={{
+                noWrap: true,
+                color: 'rgba(255,255,255,0.7)',
+              }}
+            />
+          </ListItem>
+        ))}
+      </List>
+    </Box>
   );
 };
 

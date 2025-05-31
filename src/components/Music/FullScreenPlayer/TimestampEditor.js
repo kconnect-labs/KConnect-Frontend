@@ -16,7 +16,7 @@ const TimestampEditor = ({
     if (dominantColor) {
       return `rgb(${dominantColor})`;
     }
-    return '#ff2d55';
+    return '#d0bcff';
   };
   
   const getButtonBackgroundColor = () => {

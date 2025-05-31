@@ -294,90 +294,59 @@ const Register = ({ setUser }) => {
       )}
       <form onSubmit={handleSubmit} style={{ width: '100%' }}>
         <TextField
-          margin="normal"
-          required
           fullWidth
-          id="username"
           label="Имя пользователя"
           name="username"
-          autoComplete="username"
-          autoFocus
           value={formData.username}
           onChange={handleChange}
-          variant="outlined"
-                sx={{ 
-                  mb: 2.5,
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                  }
-                }}
+          error={!!error}
+          disabled={loading}
+          sx={{ mb: 2 }}
         />
         <TextField
-          margin="normal"
-          required
           fullWidth
-          id="email"
           label="Email"
           name="email"
-          autoComplete="email"
           type="email"
           value={formData.email}
           onChange={handleChange}
-          variant="outlined"
-                sx={{ 
-                  mb: 2.5,
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                  }
-                }}
+          error={!!error}
+          disabled={loading}
+          sx={{ mb: 2 }}
         />
         <TextField
-          margin="normal"
-          required
           fullWidth
-          name="password"
           label="Пароль"
+          name="password"
           type={showPassword ? 'text' : 'password'}
-          id="password"
-          autoComplete="new-password"
           value={formData.password}
           onChange={handleChange}
+          error={!!error}
+          disabled={loading}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
                 <IconButton
-                  aria-label="toggle password visibility"
                   onClick={handleClickShowPassword}
                   edge="end"
                 >
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
                 </IconButton>
               </InputAdornment>
             )
           }}
-                sx={{ 
-                  mb: 2.5,
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                  }
-                }}
+          sx={{ mb: 2 }}
         />
         <TextField
-          margin="normal"
-          required
           fullWidth
-          name="confirmPassword"
           label="Подтвердите пароль"
+          name="confirmPassword"
           type={showPassword ? 'text' : 'password'}
-          id="confirmPassword"
-          autoComplete="new-password"
           value={formData.confirmPassword}
           onChange={handleChange}
-                sx={{ 
-                  mb: 2.5,
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                  }
-                }}
+          error={!!error}
+          disabled={loading}
+          sx={{ mb: 2 }}
         />
         <FormControlLabel
           control={

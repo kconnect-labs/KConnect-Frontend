@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Paper, BottomNavigation, BottomNavigationAction } from '@mui/material';
+import { Paper, BottomNavigation, BottomNavigationAction, alpha } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import BrushIcon from '@mui/icons-material/Brush';
@@ -13,9 +13,29 @@ const SettingsBottomNavigation = ({ activeTab, onTabChange, user }) => {
   const theme = useTheme();
   const { themeSettings } = useContext(ThemeSettingsContext);
 
-  
-  const bottomNavColor = themeSettings.bottomNavColor || theme.palette.background.paper;
-  const borderColor = theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+  // Get appropriate colors based on theme mode
+  const getBackgroundColor = () => {
+    switch (theme.palette.mode) {
+      case 'light':
+        return alpha(theme.palette.background.paper, 0.9);
+      case 'contrast':
+        return '#101010';
+      default: // dark
+        return '#121212cf';
+    }
+  };
+
+  const borderColor = theme.palette.mode === 'light' 
+    ? alpha(theme.palette.divider, 0.1)
+    : theme.palette.mode === 'contrast'
+      ? alpha(theme.palette.common.white, 0.15)
+      : alpha(theme.palette.common.white, 0.1);
+
+  const textColor = theme.palette.mode === 'light'
+    ? alpha(theme.palette.text.primary, 0.7)
+    : theme.palette.mode === 'contrast'
+      ? alpha(theme.palette.common.white, 0.9)
+      : 'rgb(214 209 227 / 77%)';
 
   return (
     <Paper 
@@ -27,7 +47,7 @@ const SettingsBottomNavigation = ({ activeTab, onTabChange, user }) => {
         display: { xs: 'block', md: 'none' },
         zIndex: 1000,
         borderTop: `1px solid ${borderColor}`,
-        backgroundColor: bottomNavColor,
+        backgroundColor: getBackgroundColor(),
         backgroundImage: 'unset',
         backdropFilter: 'blur(10px)'
       }} 
@@ -45,8 +65,12 @@ const SettingsBottomNavigation = ({ activeTab, onTabChange, user }) => {
         sx={{
           bgcolor: 'transparent',
           height: 75,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'flex-start',
+          marginTop: '10px',
           '& .MuiBottomNavigationAction-root': {
-            color: theme.palette.mode === 'dark' ? '#FFFFFF' : theme.palette.text.secondary,
+            color: textColor,
             '&.Mui-selected': {
               color: themeSettings.primaryColor || theme.palette.primary.main
             }

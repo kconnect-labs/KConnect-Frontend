@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useContext } from 'react';
 import { 
   Box, 
   Typography, 
@@ -7,8 +7,11 @@ import {
   CardMedia, 
   CardContent, 
   IconButton, 
-  Skeleton
+  Skeleton,
+  useTheme,
+  alpha
 } from '@mui/material';
+import { ThemeSettingsContext } from '../../App';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded';
@@ -20,14 +23,18 @@ const StyledCard = styled(Card)(({ theme, compact }) => ({
   borderRadius: compact ? theme.spacing(1.2) : theme.spacing(2),
   overflow: 'hidden',
   transition: 'all 0.3s ease',
-  backgroundColor: theme.palette.mode === 'dark' 
-    ? 'rgba(255, 255, 255, 0.05)' 
-    : 'rgba(0, 0, 0, 0.02)',
+  backgroundColor: theme.palette.mode === 'light'
+    ? alpha(theme.palette.background.paper, 0.9)
+    : theme.palette.mode === 'contrast'
+      ? alpha(theme.palette.background.paper, 0.05)
+      : alpha(theme.palette.common.white, 0.05),
   '&:hover': {
     transform: 'translateY(-4px)',
-    boxShadow: theme.palette.mode === 'dark'
-      ? '0 6px 16px rgba(0, 0, 0, 0.4)'
-      : '0 6px 16px rgba(0, 0, 0, 0.1)',
+    boxShadow: theme.palette.mode === 'light'
+      ? '0 6px 16px rgba(0, 0, 0, 0.1)'
+      : theme.palette.mode === 'contrast'
+        ? '0 6px 16px rgba(0, 0, 0, 0.5)'
+        : '0 6px 16px rgba(0, 0, 0, 0.4)',
     '& .MusicCard-hoverControls': {
       opacity: 1,
     },
@@ -37,6 +44,9 @@ const StyledCard = styled(Card)(({ theme, compact }) => ({
   },
   width: compact ? 160 : 200,
   maxWidth: '100%',
+  border: theme.palette.mode === 'light'
+    ? '1px solid rgba(0, 0, 0, 0.08)'
+    : '1px solid rgba(255, 255, 255, 0.05)',
 }));
 
 const MediaWrapper = styled(Box)(({ theme }) => ({
@@ -70,7 +80,11 @@ const HoverControls = styled(Box)(({ theme }) => ({
 
 const PlayButton = styled(IconButton)(({ theme }) => ({
   backgroundColor: 'rgba(255, 255, 255, 0.9)',
-  color: theme.palette.mode === 'dark' ? '#000' : theme.palette.primary.main,
+  color: theme.palette.mode === 'light' 
+    ? theme.palette.primary.main 
+    : theme.palette.mode === 'contrast'
+      ? '#000'
+      : '#000',
   '&:hover': {
     backgroundColor: '#fff',
     transform: 'scale(1.05)',
@@ -104,7 +118,11 @@ const Title = styled(Typography)(({ theme, compact }) => ({
 
 const Subtitle = styled(Typography)(({ theme, compact }) => ({
   fontSize: compact ? '0.75rem' : '0.8rem',
-  color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)',
+  color: theme.palette.mode === 'light' 
+    ? theme.palette.text.secondary
+    : theme.palette.mode === 'contrast'
+      ? alpha(theme.palette.common.white, 0.7)
+      : alpha(theme.palette.common.white, 0.6),
   lineHeight: 1.3,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -168,6 +186,8 @@ const MusicCard = ({
   loading = false,
   ...rest
 }) => {
+  const theme = useTheme();
+  const { themeSettings } = useContext(ThemeSettingsContext);
   
   if (loading) {
     return <MusicCardSkeleton compact={compact} />;

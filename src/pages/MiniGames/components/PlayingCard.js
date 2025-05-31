@@ -2,15 +2,15 @@ import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
-// Цвета для мастей
+
 const suitColors = {
-  hearts: '#ff5252',    // красный
-  diamonds: '#ff5252',  // красный
-  clubs: '#424242',     // черный
-  spades: '#424242'     // черный
+  hearts: '#ff5252',    
+  diamonds: '#ff5252',  
+  clubs: '#424242',     
+  spades: '#424242'     
 };
 
-// Символы мастей
+
 const suitSymbols = {
   hearts: '♥',
   diamonds: '♦',
@@ -18,7 +18,7 @@ const suitSymbols = {
   spades: '♠'
 };
 
-// Стилизованный компонент карты
+
 const CardContainer = styled(Box)(({ theme, suits, hidden }) => ({
   width: '120px',
   height: '180px',
@@ -39,14 +39,14 @@ const CardContainer = styled(Box)(({ theme, suits, hidden }) => ({
   }
 }));
 
-// Стилизованный символ масти
+
 const SuitSymbol = styled(Typography)(({ color }) => ({
   fontSize: '36px',
   color: color,
   lineHeight: 1
 }));
 
-// Стилизованный ранг карты
+
 const Rank = styled(Typography)(({ color }) => ({
   fontSize: '24px',
   fontWeight: 'bold',
@@ -54,7 +54,7 @@ const Rank = styled(Typography)(({ color }) => ({
   lineHeight: 1
 }));
 
-// Скрытая часть карты (рубашка)
+
 const CardBack = styled(Box)({
   width: '100%',
   height: '100%',
@@ -69,7 +69,7 @@ const CardBack = styled(Box)({
 });
 
 const PlayingCard = ({ rank, suit, hidden = false }) => {
-  // Если карта скрыта, показываем рубашку
+  
   if (hidden) {
     return (
       <CardContainer hidden={true}>
@@ -82,9 +82,9 @@ const PlayingCard = ({ rank, suit, hidden = false }) => {
     );
   }
 
-  // Получаем цвет масти
+  
   const color = suitColors[suit] || '#424242';
-  // Получаем символ масти
+  
   const suitSymbol = suitSymbols[suit] || '?';
 
   return (

@@ -1,5 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
+@font-face {
+  font-family: 'SF Pro Display';
+  src: url('/font/sf-pro-display-medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --primary: #D0BCFF;
   --primary-light: #E9DDFF;
@@ -20,7 +28,7 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -47,7 +55,7 @@ button {
 }
 
 input, textarea, select {
-  font-family: 'Inter', sans-serif;
+  font-family: 'SF Pro Display', sans-serif;
 }
 
 
@@ -95,4 +103,4 @@ input, textarea, select {
 
 .fullscreen-player-active #app-bottom-navigation {
   display: none !important;
-} 
+}

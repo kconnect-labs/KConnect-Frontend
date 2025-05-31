@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import DynamicIslandNotification from './DynamicIslandNotification';
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -42,11 +43,15 @@ class ErrorBoundary extends Component {
 
   // Обработчик события истекшей авторизации
   handleAuthError = (event) => {
-    // Обработка ошибки авторизации
+    const { message, shortMessage = "Сессия истекла", notificationType = "auth", animationType = "pill" } = event.detail;
+    
     this.addNotification({
       id: Date.now(),
       type: 'error',
-      message: event.detail.message,
+      message: message || "Сессия истекла, пожалуйста, войдите снова",
+      shortMessage: shortMessage,
+      notificationType: notificationType,
+      animationType: animationType,
       action: 'redirect',
       actionLabel: 'Войти',
       actionUrl: '/login'
@@ -55,10 +60,15 @@ class ErrorBoundary extends Component {
 
   // Обработчик события ошибки сети
   handleNetworkError = (event) => {
+    const { message, shortMessage = "Нет сети", notificationType = "error", animationType = "drop" } = event.detail;
+    
     this.addNotification({
       id: Date.now(),
       type: 'warning',
-      message: event.detail.message,
+      message: message || "Проблема с подключением к серверу",
+      shortMessage: shortMessage,
+      notificationType: notificationType,
+      animationType: animationType,
       action: 'retry',
       actionLabel: 'Повторить'
     });
@@ -66,34 +76,31 @@ class ErrorBoundary extends Component {
 
   // Обработчик события превышения лимита запросов
   handleRateLimitError = (event) => {
-    const { message, retryAfter } = event.detail;
-    
-    // Конвертируем retryAfter в человекочитаемый формат
-    let waitTime = 'некоторое время';
-    if (retryAfter) {
-      const seconds = parseInt(retryAfter, 10);
-      if (seconds < 60) {
-        waitTime = `${seconds} секунд`;
-      } else {
-        waitTime = `${Math.ceil(seconds / 60)} минут`;
-      }
-    }
+    const { message, shortMessage = "Подождите", notificationType = "warning", animationType = "bounce", retryAfter } = event.detail;
     
     this.addNotification({
       id: Date.now(),
       type: 'info',
-      message: `${message} Пожалуйста, подождите ${waitTime} и попробуйте снова.`,
+      message: message || "Слишком много запросов, пожалуйста, подождите",
+      shortMessage: shortMessage,
+      notificationType: notificationType,
+      animationType: animationType,
       autoHide: true,
-      hideAfter: 8000
+      hideAfter: 5000
     });
   }
 
   // Обработчик события отображения ошибки
   handleShowError = (event) => {
+    const { message, shortMessage = "Ошибка", notificationType = "error", animationType = "pill" } = event.detail;
+    
     this.addNotification({
       id: Date.now(),
       type: 'error',
-      message: event.detail.message,
+      message: message || "Произошла ошибка",
+      shortMessage: shortMessage,
+      notificationType: notificationType,
+      animationType: animationType,
       autoHide: true,
       hideAfter: 5000
     });
@@ -101,12 +108,19 @@ class ErrorBoundary extends Component {
 
   // Обработчик события повторной попытки запроса
   handleApiRetry = (event) => {
-    const { url, attempt, delay } = event.detail;
+    const { url, attempt, delay, message, shortMessage = `Попытка ${attempt || 1}`, notificationType = "info", animationType = "pulse" } = event.detail;
     
-    // Только для разработки показываем информацию о повторной попытке
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`Повторная попытка ${attempt} для ${url} через ${delay}мс`);
-    }
+    // Показываем динамическое уведомление о повторной попытке
+    this.addNotification({
+      id: Date.now(),
+      type: 'info',
+      message: message || `Повторная попытка ${attempt || 1}`,
+      shortMessage: shortMessage,
+      notificationType: notificationType,
+      animationType: animationType,
+      autoHide: true,
+      hideAfter: 3000
+    });
   }
 
   // Добавление уведомления в список
@@ -216,123 +230,34 @@ class ErrorBoundary extends Component {
       );
     }
 
-    // Показываем компоненты уведомлений, если они есть
+    // Показываем компоненты уведомлений, если они есть, используя Dynamic Island стиль
     return (
       <>
         {children}
         
-        {/* Список уведомлений */}
+        {/* Показываем динамические iOS уведомления */}
         {notifications.length > 0 && (
-          <div className="notifications-container">
-            {notifications.map(notification => (
-              <div
+          <>
+            {notifications.map((notification, index) => (
+              <DynamicIslandNotification
                 key={notification.id}
-                className={`notification notification-${notification.type}`}
-              >
-                <div className="notification-message">
-                  {notification.message}
-                </div>
-                
-                {notification.action && (
-                  <button
-                    className="notification-action"
-                    onClick={() => this.handleNotificationAction(notification)}
-                  >
-                    {notification.actionLabel || 'Действие'}
-                  </button>
-                )}
-                
-                <button
-                  className="notification-close"
-                  onClick={() => this.removeNotification(notification.id)}
-                >
-                  &times;
-                </button>
-              </div>
+                open={true}
+                message={notification.message}
+                shortMessage={notification.shortMessage}
+                notificationType={notification.notificationType}
+                animationType={notification.animationType}
+                autoHideDuration={notification.hideAfter || 5000}
+                onClose={() => {
+                  // Если есть действие, выполняем его
+                  if (notification.action) {
+                    this.handleNotificationAction(notification);
+                  } else {
+                    this.removeNotification(notification.id);
+                  }
+                }}
+              />
             ))}
-            
-            <style jsx>{`
-              .notifications-container {
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                max-width: 350px;
-                z-index: 9999;
-              }
-              
-              .notification {
-                margin-top: 10px;
-                padding: 12px;
-                border-radius: 4px;
-                box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
-                display: flex;
-                align-items: center;
-                animation: slide-in 0.3s ease-out;
-              }
-              
-              @keyframes slide-in {
-                from {
-                  transform: translateX(100%);
-                  opacity: 0;
-                }
-                to {
-                  transform: translateX(0);
-                  opacity: 1;
-                }
-              }
-              
-              .notification-error {
-                background-color: #f8d7da;
-                border: 1px solid #f5c6cb;
-                color: #721c24;
-              }
-              
-              .notification-warning {
-                background-color: #fff3cd;
-                border: 1px solid #ffeeba;
-                color: #856404;
-              }
-              
-              .notification-info {
-                background-color: #d1ecf1;
-                border: 1px solid #bee5eb;
-                color: #0c5460;
-              }
-              
-              .notification-message {
-                flex: 1;
-                margin-right: 10px;
-              }
-              
-              .notification-action {
-                background-color: rgba(0, 0, 0, 0.1);
-                border: none;
-                padding: 5px 10px;
-                border-radius: 3px;
-                cursor: pointer;
-                margin-right: 10px;
-                font-size: 12px;
-              }
-              
-              .notification-close {
-                background: none;
-                border: none;
-                font-size: 20px;
-                cursor: pointer;
-                padding: 0;
-                width: 24px;
-                height: 24px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                opacity: 0.5;
-              }
-              
-              .notification-close:hover {
-                opacity: 1;
-              }
-            `}</style>
-          </div>
+          </>
         )}
       </>
     );

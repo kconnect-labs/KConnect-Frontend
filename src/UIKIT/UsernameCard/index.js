@@ -189,7 +189,7 @@ const UsernameCard = ({ username, onClose, open }) => {
         
         if (response.data && response.data.success) {
           console.log('Получены данные истории юзернейма:', response.data);
-          historyData = response.data;
+          historyData = response.data.data;
           setHistory(historyData);
           
 
@@ -374,7 +374,7 @@ const UsernameCard = ({ username, onClose, open }) => {
             
             {history?.ownership_history?.length > 0 ? (
               <Box sx={{ mt: 1 }}>
-                {history.ownership_history.map((item, index) => (
+                {history.ownership_history.slice().reverse().map((item, index) => (
                   <HistoryItem key={index} elevation={0}>
                     <SwapHorizIcon sx={{ mr: 1.5, color: 'primary.main' }} />
                     <Box sx={{ flex: 1 }}>

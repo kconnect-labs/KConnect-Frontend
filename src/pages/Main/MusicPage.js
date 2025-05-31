@@ -61,7 +61,9 @@ import {
   Upload,
   Download,
   KeyboardArrowUp,
-  VerifiedUser
+  VerifiedUser,
+  Edit,
+  Delete
 } from '@mui/icons-material';
 import { useMusic } from '../../context/MusicContext';
 import { formatDuration } from '../../utils/formatters';
@@ -74,6 +76,8 @@ import { getCoverWithFallback } from '../../utils/imageUtils';
 import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import SEO from '../../components/SEO';
+import { PlaylistModal, PlaylistGrid } from '../../UIKIT';
+import PlaylistViewModal from '../../UIKIT/PlaylistViewModal';
 
 
 const debounce = (func, wait) => {
@@ -105,8 +109,8 @@ const CategoryCard = styled(Card, {
   cursor: 'pointer',
   height: '100%',
   background: active ? 
-    'linear-gradient(135deg, rgba(208, 188, 255, 0.6) 0%, rgba(208, 188, 255, 0.3) 100%)' : 
-    'linear-gradient(135deg, rgba(25,25,25,0.7) 0%, rgba(15,15,15,0.7) 100%)',
+    `linear-gradient(135deg, ${theme.palette.primary.main}33 0%, ${theme.palette.primary.main}1A 100%)` : 
+    `linear-gradient(135deg, ${theme.palette.mode === 'dark' ? 'rgba(25,25,25,0.7)' : 'rgba(240,240,240,0.7)'} 0%, ${theme.palette.mode === 'dark' ? 'rgba(15,15,15,0.7)' : 'rgba(250,250,250,0.7)'} 100%)`,
   backdropFilter: 'blur(8px)',
   borderRadius: 16,
   overflow: 'hidden',
@@ -115,11 +119,11 @@ const CategoryCard = styled(Card, {
   boxShadow: active ? 
     '0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)' : 
     '0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)',
-  border: active ? `1px solid rgb(208, 188, 255)` : '1px solid rgba(255,255,255,0.05)',
+  border: active ? `1px solid ${theme.palette.primary.main}` : `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
   '&:hover': {
     transform: 'scale(1.03)',
     boxShadow: '0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)',
-    border: `1px solid rgba(208, 188, 255, 0.3)`,
+    border: `1px solid ${theme.palette.primary.main}33`,
   }
 }));
 
@@ -130,8 +134,8 @@ const CategoryIcon = styled(Box)(({ theme }) => ({
   width: 60,
   height: 60,
   borderRadius: '50%',
-  background: 'linear-gradient(45deg, rgba(208, 188, 255, 0.2) 0%, rgba(25,25,25,0.2) 100%)',
-  border: '1px solid rgba(255,255,255,0.1)',
+  background: `linear-gradient(45deg, ${theme.palette.primary.main}33 0%, ${theme.palette.mode === 'dark' ? 'rgba(25,25,25,0.2)' : 'rgba(240,240,240,0.2)'} 100%)`,
+  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
   marginBottom: theme.spacing(1.5),
   boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
   '& svg': {
@@ -157,7 +161,9 @@ const SearchContainer = styled(Box)(({ theme, open }) => ({
   width: '100%',
   padding: open ? theme.spacing(2, 1) : theme.spacing(2, 2, 1),
   backdropFilter: 'blur(10px)',
-  backgroundColor: open ? 'rgba(18,18,18,0.9)' : 'rgba(18,18,18,0.6)',
+  backgroundColor: open 
+    ? theme.palette.mode === 'dark' ? 'rgba(18,18,18,0.9)' : 'rgba(250,250,250,0.9)'  
+    : theme.palette.mode === 'dark' ? 'rgba(18,18,18,0.6)' : 'rgba(250,250,250,0.6)',
   transition: 'all 0.3s ease',
   borderRadius: open ? 0 : '0 0 16px 16px',
   boxShadow: open ? 'none' : '0 4px 20px rgba(0,0,0,0.1)',
@@ -168,19 +174,21 @@ const StyledSearchInput = styled(Box)(({ theme, focused }) => ({
   alignItems: 'center',
   width: '100%',
   borderRadius: 24,
-  backgroundColor: focused ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.1)',
+  backgroundColor: focused 
+    ? theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)' 
+    : theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
   padding: theme.spacing(1, 2),
   transition: 'all 0.3s ease',
-  boxShadow: focused ? '0 0 0 2px rgba(55,120,255,0.4)' : 'none',
+  boxShadow: focused ? `0 0 0 2px ${theme.palette.primary.main}66` : 'none',
   '& input': {
     width: '100%',
     border: 'none',
     outline: 'none',
     background: 'transparent',
-    color: 'white',
+    color: theme.palette.text.primary,
     fontSize: '16px',
     '&::placeholder': {
-      color: 'rgba(255,255,255,0.5)',
+      color: theme.palette.text.secondary,
     }
   }
 }));
@@ -192,11 +200,11 @@ const TrackItem = styled(ListItem, {
   borderRadius: 8,
   cursor: 'pointer',
   marginBottom: 8,
-  backgroundColor: active ? 'rgba(208, 188, 255, 0.1)' : 'transparent',
+  backgroundColor: active ? `${theme.palette.primary.main}1A` : 'transparent',
   transition: 'transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease',
-  border: active ? '1px solid rgba(208, 188, 255, 0.2)' : '1px solid transparent',
+  border: active ? `1px solid ${theme.palette.primary.main}33` : '1px solid transparent',
   '&:hover': {
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
     transform: 'translateY(-2px)',
     boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
   }
@@ -205,7 +213,7 @@ const TrackItem = styled(ListItem, {
 const PlaylistTile = styled(Card)(({ theme }) => ({
   borderRadius: 12,
   overflow: 'hidden',
-  backgroundColor: 'rgba(25,25,25,0.6)',
+  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(25,25,25,0.6)' : 'rgba(250,250,250,0.6)',
   backdropFilter: 'blur(10px)',
   transition: 'all 0.3s ease',
   height: '100%',
@@ -232,10 +240,12 @@ const HeaderPaper = styled(Paper)(({ theme }) => ({
   borderRadius: '16px',
   padding: theme.spacing(2),
   marginBottom: theme.spacing(2),
-  background: 'linear-gradient(135deg, rgba(30,30,30,0.7) 0%, rgba(10,10,10,0.7) 100%)',
+  background: theme.palette.mode === 'dark' 
+    ? 'linear-gradient(135deg, rgba(30,30,30,0.7) 0%, rgba(10,10,10,0.7) 100%)'
+    : 'linear-gradient(135deg, rgba(250,250,250,0.7) 0%, rgba(240,240,240,0.7) 100%)',
   backdropFilter: 'blur(10px)',
   boxShadow: '0 4px 30px rgba(0,0,0,0.1)',
-  border: '1px solid rgba(255,255,255,0.05)',
+  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
 }));
 
 
@@ -293,7 +303,7 @@ const RecentTracksCard = styled(Card)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   borderRadius: 16,
-  backgroundColor: 'rgba(18,18,18,0.6)',
+  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(18,18,18,0.6)' : 'rgba(250,250,250,0.6)',
   backdropFilter: 'blur(10px)',
   transition: 'all 0.3s ease',
   cursor: 'pointer',
@@ -310,7 +320,7 @@ const CompactTrackItem = styled(Box)(({ theme }) => ({
   borderRadius: 8,
   transition: 'background-color 0.2s ease',
   '&:hover': {
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
   },
 }));
 
@@ -323,10 +333,10 @@ const MobileSearchContainer = styled(Box)(({ theme }) => ({
   width: '100%',
   height: 64, 
   padding: theme.spacing(0, 1.5),
-  background: 'rgba(18,18,18,0.95)',
+  background: theme.palette.mode === 'dark' ? 'rgba(18,18,18,0.95)' : 'rgba(250,250,250,0.95)',
   backdropFilter: 'blur(10px)',
   boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
-  borderBottom: '1px solid rgba(255,255,255,0.05)',
+  borderBottom: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
   display: 'flex',
   alignItems: 'center'
 }));
@@ -438,13 +448,14 @@ const MusicPage = React.memo(() => {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [mainTab, setMainTab] = useState(0);
+  const [mainTab, setMainTab] = useState(1); 
   const [playlists, setPlaylists] = useState([]);
   const [isPlaylistsLoading, setIsPlaylistsLoading] = useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
   const [playlistDialogOpen, setPlaylistDialogOpen] = useState(false);
   const [playlistTracksDialogOpen, setPlaylistTracksDialogOpen] = useState(false);
   const [localLoading, setLocalLoading] = useState(false);
+  const [loading, setLoading] = useState(false); 
   const [viewMode, setViewMode] = useState('categories'); 
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -453,7 +464,7 @@ const MusicPage = React.memo(() => {
   const [isMobileNavVisible, setIsMobileNavVisible] = useState(true);
   const [lastScrollTop, setLastScrollTop] = useState(0);
   const [searchLoading, setSearchLoading] = useState(false);
-  
+
   const [charts, setCharts] = useState({
     trending: [],
     most_played: [],
@@ -462,7 +473,15 @@ const MusicPage = React.memo(() => {
   });
   const [chartsLoading, setChartsLoading] = useState(true);
   
-
+  const [contextMenu, setContextMenu] = useState(null);
+  const [selectedTrack, setSelectedTrack] = useState(null);
+  
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
+  
   const [popularArtists, setPopularArtists] = useState([]);
   const [artistsLoading, setArtistsLoading] = useState(true);
   const [artistSearchQuery, setArtistSearchQuery] = useState('');
@@ -470,6 +489,21 @@ const MusicPage = React.memo(() => {
   const [isArtistSearching, setIsArtistSearching] = useState(false);
   
   
+  const [playlistModalOpen, setPlaylistModalOpen] = useState(false);
+  const [editingPlaylist, setEditingPlaylist] = useState(null);
+  const [playlistContextMenu, setPlaylistContextMenu] = useState({
+    open: false,
+    mouseX: null,
+    mouseY: null
+  });
+  const [selectedPlaylistForMenu, setSelectedPlaylistForMenu] = useState(null);
+  const [playlistBannerOpen, setPlaylistBannerOpen] = useState(true);
+
+  
+  const [playlistViewModalOpen, setPlaylistViewModalOpen] = useState(false);
+  const [viewingPlaylist, setViewingPlaylist] = useState(null);
+  const [playlistDetailsLoading, setPlaylistDetailsLoading] = useState(false);
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
@@ -480,17 +514,6 @@ const MusicPage = React.memo(() => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
-  
-  
-  const [contextMenu, setContextMenu] = useState(null);
-  const [selectedTrack, setSelectedTrack] = useState(null);
-  
-  
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: '',
-    severity: 'success'
-  });
   
   
   const musicContext = useMusic();
@@ -521,9 +544,6 @@ const MusicPage = React.memo(() => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const loaderRef = useRef(null);
   const prevTabValue = useRef(tabValue);
-  
-  
-  const [playlistBannerOpen, setPlaylistBannerOpen] = useState(true);
   
   
   useEffect(() => {
@@ -701,21 +721,135 @@ const MusicPage = React.memo(() => {
   }, [viewMode, tabValue, navigate]);
 
   
+  
+  const fetchPublicPlaylists = useCallback(async () => {
+    try {
+      console.log("Fetching public playlists");
+      
+      const response = await fetch('/api/music/playlists/public');
+      
+      if (!response.ok) {
+        console.error("Error fetching public playlists:", response.statusText);
+        return [];
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log("Public playlists fetched:", data.playlists.length);
+        return data.playlists;
+      } else {
+        console.error("Error fetching public playlists:", data);
+        return [];
+      }
+    } catch (error) {
+      console.error("Exception fetching public playlists:", error);
+      return [];
+    }
+  }, []);
+
+  
   const fetchUserPlaylists = useCallback(async () => {
     try {
       setIsPlaylistsLoading(true);
-      const response = await axios.get('/api/playlists');
-      if (response.data.success) {
-        setPlaylists(response.data.playlists);
-      } else {
-        console.error('Ошибка при получении плейлистов:', response.data.error);
+      console.log("Fetching user playlists");
+      
+      const response = await fetch('/api/music/playlists');
+      
+      if (!response.ok) {
+        console.error("Error fetching playlists:", response.statusText);
+        setIsPlaylistsLoading(false);
+        return;
       }
+      
+      const text = await response.text();
+      console.log("Raw playlist response:", text);
+      
+      
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Failed to parse playlists response as JSON", e);
+        setIsPlaylistsLoading(false);
+        return;
+      }
+      
+      let userPlaylists = [];
+      
+      if (data.success) {
+        console.log("User playlists fetched:", data.playlists.length);
+        
+        
+        userPlaylists = await Promise.all(data.playlists.map(async playlist => {
+          
+          let previewTracks = [];
+          try {
+            const detailResponse = await fetch(`/api/music/playlists/${playlist.id}`);
+            if (detailResponse.ok) {
+              const detailData = await detailResponse.json();
+              if (detailData.success && detailData.playlist && detailData.playlist.tracks) {
+                previewTracks = detailData.playlist.tracks.slice(0, 3).map(track => ({
+                  id: track.id,
+                  title: track.title,
+                  artist: track.artist,
+                  cover_path: track.cover_path
+                }));
+              }
+            }
+          } catch (error) {
+            console.error(`Error fetching preview tracks for playlist ${playlist.id}:`, error);
+          }
+          
+          return {
+            id: playlist.id,
+            name: playlist.name,
+            description: playlist.description || '',
+            is_public: playlist.is_public,
+            cover_image: playlist.cover_url || "/static/uploads/system/playlist_placeholder.jpg",
+            tracks_count: playlist.track_count || 0,
+            created_at: playlist.created_at,
+            updated_at: playlist.updated_at,
+            is_owner: true, 
+            preview_tracks: previewTracks
+          };
+        }));
+      } else {
+        console.error("Error fetching user playlists:", data);
+      }
+      
+      
+      const publicPlaylists = await fetchPublicPlaylists();
+      
+      
+      const mappedPublicPlaylists = publicPlaylists.map(playlist => ({
+        id: playlist.id,
+        name: playlist.name,
+        description: playlist.description || '',
+        is_public: true,
+        cover_image: playlist.cover_url || playlist.cover_image || "/static/uploads/system/playlist_placeholder.jpg",
+        tracks_count: playlist.tracks_count || 0,
+        created_at: playlist.created_at,
+        updated_at: playlist.updated_at,
+        owner: playlist.owner,
+        is_owner: false, 
+        preview_tracks: playlist.preview_tracks || []
+      }));
+      
+      
+      const publicPlaylistIds = new Set(mappedPublicPlaylists.map(p => p.id));
+      const uniqueUserPlaylists = userPlaylists.filter(p => !publicPlaylistIds.has(p.id) || p.is_owner);
+      
+      
+      setPlaylists([...uniqueUserPlaylists, ...mappedPublicPlaylists]);
+      
     } catch (error) {
-      console.error('Ошибка при получении плейлистов:', error);
+      console.error("Exception fetching playlists:", error);
+      setPlaylists([]);
     } finally {
       setIsPlaylistsLoading(false);
     }
-  }, []);
+  }, [fetchPublicPlaylists]);
 
   
   useEffect(() => {
@@ -725,228 +859,390 @@ const MusicPage = React.memo(() => {
   }, [mainTab, fetchUserPlaylists]);
 
   
+  
   const createPlaylist = async (playlistData) => {
+    setLoading(true);
     try {
-      const formData = new FormData();
-      for (const key in playlistData) {
-        if (key === 'cover_image' && playlistData[key] instanceof File) {
-          formData.append(key, playlistData[key]);
-        } else if (key === 'track_ids' && Array.isArray(playlistData[key])) {
-          formData.append(key, JSON.stringify(playlistData[key]));
-        } else {
-          formData.append(key, playlistData[key]);
+      console.log("Creating playlist with data:", playlistData);
+      
+      if (playlistData instanceof FormData) {
+        console.log("FormData entries:");
+        for (let [key, value] of playlistData.entries()) {
+          console.log(key, value);
         }
       }
-
-      const response = await axios.post('/api/playlists', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-
-      if (response.data.success) {
+      
+      const response = await fetch('/api/music/playlists', {
+        method: 'POST',
         
-        fetchUserPlaylists();
+        body: playlistData
+      });
+      
+      const text = await response.text();
+      console.log("Raw response:", text);
+      
+      
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Failed to parse response as JSON", e);
         setSnackbar({
           open: true,
-          message: 'Плейлист успешно создан',
-          severity: 'success'
-        });
-        return true;
-      } else {
-        setSnackbar({
-          open: true,
-          message: response.data.error || 'Ошибка при создании плейлиста',
+          message: "Error creating playlist: Server returned invalid response",
           severity: 'error'
         });
-        return false;
+        setLoading(false);
+        return { success: false };
+      }
+      
+      if (response.ok) {
+        console.log("Playlist created:", data);
+        setSnackbar({
+          open: true,
+          message: 'Playlist created successfully',
+          severity: 'success'
+        });
+        fetchUserPlaylists();
+        return { success: true, data };
+      } else {
+        console.error("Error creating playlist:", data);
+        setSnackbar({
+          open: true,
+          message: `Error creating playlist: ${data.error || response.statusText}`,
+          severity: 'error'
+        });
+        return { success: false };
       }
     } catch (error) {
-      console.error('Ошибка при создании плейлиста:', error);
+      console.error("Exception creating playlist:", error);
       setSnackbar({
         open: true,
-        message: 'Ошибка при создании плейлиста',
+        message: `Error creating playlist: ${error.message}`,
         severity: 'error'
       });
-      return false;
+      return { success: false };
+    } finally {
+      setLoading(false);
     }
   };
-
   
-  const updatePlaylist = async (playlistId, playlistData) => {
+  
+  const updatePlaylist = async (playlistData, playlistId) => {
+    setLoading(true);
     try {
-      const formData = new FormData();
-      for (const key in playlistData) {
-        if (key === 'cover_image' && playlistData[key] instanceof File) {
-          formData.append(key, playlistData[key]);
-        } else {
-          formData.append(key, playlistData[key]);
+      console.log(`Updating playlist ${playlistId} with data:`, playlistData);
+      
+      if (playlistData instanceof FormData) {
+        console.log("FormData entries:");
+        for (let [key, value] of playlistData.entries()) {
+          console.log(key, value);
         }
       }
-
-      const response = await axios.put(`/api/playlists/${playlistId}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      
+      const response = await fetch(`/api/music/playlists/${playlistId}`, {
+        method: 'PUT',
+        body: playlistData
       });
-
-      if (response.data.success) {
-        
-        fetchUserPlaylists();
+      
+      const text = await response.text();
+      console.log("Raw response:", text);
+      
+      
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Failed to parse response as JSON", e);
         setSnackbar({
           open: true,
-          message: 'Плейлист успешно обновлен',
-          severity: 'success'
-        });
-        return true;
-      } else {
-        setSnackbar({
-          open: true,
-          message: response.data.error || 'Ошибка при обновлении плейлиста',
+          message: "Error updating playlist: Server returned invalid response",
           severity: 'error'
         });
-        return false;
+        setLoading(false);
+        return { success: false };
+      }
+      
+      if (response.ok) {
+        console.log("Playlist updated:", data);
+        setSnackbar({
+          open: true,
+          message: 'Playlist updated successfully',
+          severity: 'success'
+        });
+        fetchUserPlaylists();
+        return { success: true, data };
+      } else {
+        console.error("Error updating playlist:", data);
+        setSnackbar({
+          open: true,
+          message: `Error updating playlist: ${data.error || response.statusText}`,
+          severity: 'error'
+        });
+        return { success: false };
       }
     } catch (error) {
-      console.error('Ошибка при обновлении плейлиста:', error);
+      console.error("Exception updating playlist:", error);
       setSnackbar({
         open: true,
-        message: 'Ошибка при обновлении плейлиста',
+        message: `Error updating playlist: ${error.message}`,
         severity: 'error'
       });
-      return false;
+      return { success: false };
+    } finally {
+      setLoading(false);
     }
   };
 
   
   const deletePlaylist = async (playlistId) => {
+    setLoading(true);
     try {
-      const response = await axios.delete(`/api/playlists/${playlistId}`);
-
-      if (response.data.success) {
-        
-        fetchUserPlaylists();
+      console.log(`Deleting playlist ${playlistId}`);
+      
+      const response = await fetch(`/api/music/playlists/${playlistId}`, {
+        method: 'DELETE'
+      });
+      
+      const text = await response.text();
+      console.log("Raw response:", text);
+      
+      
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Failed to parse response as JSON", e);
         setSnackbar({
           open: true,
-          message: 'Плейлист успешно удален',
-          severity: 'success'
-        });
-        return true;
-      } else {
-        setSnackbar({
-          open: true,
-          message: response.data.error || 'Ошибка при удалении плейлиста',
+          message: "Error deleting playlist: Server returned invalid response",
           severity: 'error'
         });
-        return false;
+        setLoading(false);
+        return { success: false };
+      }
+      
+      if (response.ok) {
+        console.log("Playlist deleted:", data);
+        setSnackbar({
+          open: true,
+          message: 'Playlist deleted successfully',
+          severity: 'success'
+        });
+        fetchUserPlaylists();
+        return { success: true };
+      } else {
+        console.error("Error deleting playlist:", data);
+        setSnackbar({
+          open: true,
+          message: `Error deleting playlist: ${data.error || response.statusText}`,
+          severity: 'error'
+        });
+        return { success: false };
       }
     } catch (error) {
-      console.error('Ошибка при удалении плейлиста:', error);
+      console.error("Exception deleting playlist:", error);
       setSnackbar({
         open: true,
-        message: 'Ошибка при удалении плейлиста',
+        message: `Error deleting playlist: ${error.message}`,
         severity: 'error'
       });
-      return false;
+      return { success: false };
+    } finally {
+      setLoading(false);
     }
   };
 
   
   const addTrackToPlaylist = async (playlistId, trackId) => {
+    setLoading(true);
     try {
-      const response = await axios.post(`/api/playlists/${playlistId}/tracks`, {
-        track_id: trackId
+      console.log(`Adding track ${trackId} to playlist ${playlistId}`);
+      
+      const response = await fetch(`/api/music/playlists/${playlistId}/tracks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ track_ids: [trackId] })
       });
-
-      if (response.data.success) {
+      
+      const text = await response.text();
+      console.log("Raw response:", text);
+      
+      
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Failed to parse response as JSON", e);
         setSnackbar({
           open: true,
-          message: 'Трек добавлен в плейлист',
-          severity: 'success'
-        });
-        return true;
-      } else {
-        setSnackbar({
-          open: true,
-          message: response.data.error || 'Ошибка при добавлении трека в плейлист',
+          message: "Error adding track: Server returned invalid response",
           severity: 'error'
         });
-        return false;
+        setLoading(false);
+        return { success: false };
+      }
+      
+      if (response.ok) {
+        console.log("Track added:", data);
+        setSnackbar({
+          open: true,
+          message: 'Track added to playlist successfully',
+          severity: 'success'
+        });
+        fetchUserPlaylists();
+        return { success: true };
+      } else {
+        console.error("Error adding track:", data);
+        setSnackbar({
+          open: true,
+          message: `Error adding track: ${data.error || response.statusText}`,
+          severity: 'error'
+        });
+        return { success: false };
       }
     } catch (error) {
-      console.error('Ошибка при добавлении трека в плейлист:', error);
+      console.error("Exception adding track to playlist:", error);
       setSnackbar({
         open: true,
-        message: 'Ошибка при добавлении трека в плейлист',
+        message: `Error adding track: ${error.message}`,
         severity: 'error'
       });
-      return false;
+      return { success: false };
+    } finally {
+      setLoading(false);
     }
   };
 
   
   const removeTrackFromPlaylist = async (playlistId, trackId) => {
+    setLoading(true);
     try {
-      const response = await axios.delete(`/api/playlists/${playlistId}/tracks/${trackId}`);
-
-      if (response.data.success) {
+      console.log(`Removing track ${trackId} from playlist ${playlistId}`);
+      
+      const response = await fetch(`/api/music/playlists/${playlistId}/tracks/${trackId}`, {
+        method: 'DELETE'
+      });
+      
+      const text = await response.text();
+      console.log("Raw response:", text);
+      
+      
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Failed to parse response as JSON", e);
         setSnackbar({
           open: true,
-          message: 'Трек удален из плейлиста',
-          severity: 'success'
-        });
-        return true;
-      } else {
-        setSnackbar({
-          open: true,
-          message: response.data.error || 'Ошибка при удалении трека из плейлиста',
+          message: "Error removing track: Server returned invalid response",
           severity: 'error'
         });
-        return false;
+        setLoading(false);
+        return { success: false };
+      }
+      
+      if (response.ok) {
+        console.log("Track removed:", data);
+        setSnackbar({
+          open: true,
+          message: 'Track removed from playlist successfully',
+          severity: 'success'
+        });
+        fetchUserPlaylists();
+        return { success: true };
+      } else {
+        console.error("Error removing track:", data);
+        setSnackbar({
+          open: true,
+          message: `Error removing track: ${data.error || response.statusText}`,
+          severity: 'error'
+        });
+        return { success: false };
       }
     } catch (error) {
-      console.error('Ошибка при удалении трека из плейлиста:', error);
+      console.error("Exception removing track from playlist:", error);
       setSnackbar({
         open: true,
-        message: 'Ошибка при удалении трека из плейлиста',
+        message: `Error removing track: ${error.message}`,
         severity: 'error'
       });
-      return false;
+      return { success: false };
+    } finally {
+      setLoading(false);
     }
   };
 
   
   const playPlaylist = useCallback(async (playlistId) => {
+    setLoading(true);
     try {
-      const response = await axios.get(`/api/playlists/${playlistId}`);
+      console.log(`Getting playlist ${playlistId} for playback`);
       
-      if (response.data.success && response.data.playlist.tracks.length > 0) {
+      const response = await fetch(`/api/music/playlists/${playlistId}`);
+      
+      const text = await response.text();
+      console.log("Raw response:", text);
+      
+      
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Failed to parse response as JSON", e);
+        setSnackbar({
+          open: true,
+          message: "Error playing playlist: Server returned invalid response",
+          severity: 'error'
+        });
+        setLoading(false);
+        return { success: false };
+      }
+      
+      if (response.ok && data.success && data.playlist.tracks.length > 0) {
+        console.log("Playing playlist:", data.playlist);
         
         const playlistSection = `playlist_${playlistId}`;
         setCurrentSection(playlistSection);
         
         
-        const firstTrack = response.data.playlist.tracks[0];
+        const firstTrack = data.playlist.tracks[0];
         playTrack(firstTrack, playlistSection);
         
         
         if (typeof musicContext.setPlaylistTracks === 'function') {
-          musicContext.setPlaylistTracks(response.data.playlist.tracks, playlistSection);
+          musicContext.setPlaylistTracks(data.playlist.tracks, playlistSection);
         }
         
-        return true;
-      } else {
+        return { success: true };
+      } else if (data.success && data.playlist.tracks.length === 0) {
         setSnackbar({
           open: true,
-          message: 'В плейлисте нет треков',
+          message: 'This playlist has no tracks',
           severity: 'info'
         });
-        return false;
+        return { success: false };
+      } else {
+        console.error("Error playing playlist:", data);
+        setSnackbar({
+          open: true,
+          message: `Error playing playlist: ${data.error || response.statusText}`,
+          severity: 'error'
+        });
+        return { success: false };
       }
     } catch (error) {
-      console.error('Ошибка при воспроизведении плейлиста:', error);
+      console.error("Exception playing playlist:", error);
       setSnackbar({
         open: true,
-        message: 'Ошибка при воспроизведении плейлиста',
+        message: `Error playing playlist: ${error.message}`,
         severity: 'error'
       });
-      return false;
+      return { success: false };
+    } finally {
+      setLoading(false);
     }
   }, [playTrack, setCurrentSection, musicContext]);
 
@@ -1807,6 +2103,296 @@ const MusicPage = React.memo(() => {
     navigate(`/artist/${artistId}`);
   };
 
+  
+  const handleOpenCreatePlaylist = useCallback(() => {
+    setEditingPlaylist(null);
+    setPlaylistModalOpen(true);
+  }, []);
+  
+  
+  const handleOpenEditPlaylist = useCallback((playlist) => {
+    setEditingPlaylist(playlist);
+    setPlaylistModalOpen(true);
+  }, []);
+  
+  
+  const handleClosePlaylistModal = useCallback(() => {
+    setPlaylistModalOpen(false);
+    setEditingPlaylist(null);
+  }, []);
+  
+  
+  const handleSavePlaylist = async (playlistData, playlistId) => {
+    if (playlistId) {
+      
+      const result = await updatePlaylist(playlistData, playlistId);
+      if (result.success) {
+        setPlaylistModalOpen(false);
+      }
+    } else {
+      
+      const result = await createPlaylist(playlistData);
+      if (result.success) {
+        setPlaylistModalOpen(false);
+      }
+    }
+  };
+  
+  
+  const handleAddTracksToPlaylist = useCallback(async (playlistId, trackIds) => {
+    setLocalLoading(true);
+    
+    try {
+      
+      const results = await Promise.all(
+        trackIds.map(trackId => addTrackToPlaylist(playlistId, trackId))
+      );
+      
+      const allSuccess = results.every(result => result === true);
+      
+      if (allSuccess) {
+        setSnackbar({
+          open: true,
+          message: `${trackIds.length} ${trackIds.length === 1 ? 'трек добавлен' : 'треков добавлено'} в плейлист`,
+          severity: 'success'
+        });
+        
+        
+        await fetchUserPlaylists();
+        
+        
+        if (editingPlaylist && editingPlaylist.id === playlistId) {
+          const response = await axios.get(`/api/music/playlists/${playlistId}`);
+          if (response.data.success) {
+            setEditingPlaylist(response.data.playlist);
+          }
+        }
+      }
+    } finally {
+      setLocalLoading(false);
+    }
+  }, [addTrackToPlaylist, fetchUserPlaylists, editingPlaylist]);
+  
+  
+  const handleRemoveTrackFromPlaylist = useCallback(async (playlistId, trackId) => {
+    setLocalLoading(true);
+    
+    try {
+      const success = await removeTrackFromPlaylist(playlistId, trackId);
+      
+      if (success) {
+        
+        await fetchUserPlaylists();
+        
+        
+        if (editingPlaylist && editingPlaylist.id === playlistId) {
+          const response = await axios.get(`/api/music/playlists/${playlistId}`);
+          if (response.data.success) {
+            setEditingPlaylist(response.data.playlist);
+          }
+        }
+      }
+    } finally {
+      setLocalLoading(false);
+    }
+  }, [removeTrackFromPlaylist, fetchUserPlaylists, editingPlaylist]);
+  
+  
+  const handleDeletePlaylist = useCallback(async (playlistId) => {
+    setLocalLoading(true);
+    
+    try {
+      const success = await deletePlaylist(playlistId);
+      
+      if (success) {
+        setPlaylistModalOpen(false);
+        setEditingPlaylist(null);
+        await fetchUserPlaylists();
+      }
+    } finally {
+      setLocalLoading(false);
+    }
+  }, [deletePlaylist, fetchUserPlaylists]);
+  
+  
+  const handlePlaylistMoreClick = useCallback((event, playlist) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setSelectedPlaylistForMenu(playlist);
+    setPlaylistContextMenu({
+      open: true,
+      mouseX: event.clientX - 2,
+      mouseY: event.clientY - 4,
+    });
+  }, []);
+  
+  
+  const handleClosePlaylistContextMenu = useCallback(() => {
+    setPlaylistContextMenu({
+      open: false,
+      mouseX: null,
+      mouseY: null
+    });
+  }, []);
+  
+  
+  const fetchPlaylistDetails = useCallback(async (playlistId) => {
+    setPlaylistDetailsLoading(true);
+    try {
+      const response = await fetch(`/api/music/playlists/${playlistId}`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch playlist: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log("Fetched playlist details:", data.playlist);
+        return data.playlist;
+      } else {
+        console.error("Error fetching playlist:", data.error);
+        setSnackbar({
+          open: true,
+          message: `Error fetching playlist: ${data.error}`,
+          severity: 'error'
+        });
+        return null;
+      }
+    } catch (error) {
+      console.error("Exception fetching playlist:", error);
+      setSnackbar({
+        open: true,
+        message: `Error: ${error.message}`,
+        severity: 'error'
+      });
+      return null;
+    } finally {
+      setPlaylistDetailsLoading(false);
+    }
+  }, []);
+  
+  
+  const handlePlaylistClick = useCallback(async (playlistId) => {
+    const playlistDetailsFromCache = playlists.find(p => p.id === playlistId);
+    
+    
+    setViewingPlaylist(playlistDetailsFromCache);
+    setPlaylistViewModalOpen(true);
+    
+    
+    try {
+      const fullDetails = await fetchPlaylistDetails(playlistId);
+      if (fullDetails) {
+        setViewingPlaylist(fullDetails);
+      }
+    } catch (error) {
+      console.error("Error loading playlist details:", error);
+    }
+  }, [playlists, fetchPlaylistDetails]);
+
+  
+  const handleEditFromView = useCallback((playlist) => {
+    setEditingPlaylist(playlist);
+    setPlaylistModalOpen(true);
+  }, []);
+
+  
+  const handleAddTrackToPlaylistMenu = useCallback((trackId) => {
+    if (!trackId) return;
+    
+    
+    handleCloseContextMenu();
+    
+    
+    if (playlists && playlists.length > 0) {
+      
+      
+      const playlistId = playlists[0].id;
+      addTrackToPlaylist(playlistId, trackId);
+    } else {
+      
+      setSnackbar({
+        open: true,
+        message: 'У вас ещё нет плейлистов. Создайте плейлист сначала.',
+        severity: 'info'
+      });
+      
+      
+      handleOpenCreatePlaylist();
+    }
+  }, [playlists, handleCloseContextMenu, addTrackToPlaylist, handleOpenCreatePlaylist]);
+
+  
+  const handlePlayTrackFromPlaylist = useCallback((track) => {
+    if (viewingPlaylist) {
+      
+      const playlistSection = `playlist_${viewingPlaylist.id}`;
+      setCurrentSection(playlistSection);
+      
+      
+      playTrack(track, playlistSection);
+      
+      
+      if (typeof musicContext.setPlaylistTracks === 'function' && viewingPlaylist.tracks) {
+        musicContext.setPlaylistTracks(viewingPlaylist.tracks, playlistSection);
+      }
+    }
+  }, [viewingPlaylist, setCurrentSection, playTrack, musicContext]);
+
+  
+  useEffect(() => {
+    const playlistId = searchParams.get('playlist');
+    if (playlistId) {
+      
+      const fetchPlaylist = async () => {
+        try {
+          const response = await fetch(`/api/music/playlists/${playlistId}`);
+          if (!response.ok) {
+            throw new Error('Failed to fetch playlist');
+          }
+          
+          const data = await response.json();
+          if (data.success && data.playlist) {
+            console.log('Opening playlist from URL parameter:', data.playlist);
+            handleOpenPlaylistTracksDialog(data.playlist);
+          }
+        } catch (error) {
+          console.error('Error opening playlist from URL:', error);
+          setSnackbar({
+            open: true,
+            message: 'Не удалось открыть плейлист',
+            severity: 'error'
+          });
+        }
+      };
+      
+      fetchPlaylist();
+    }
+  }, [searchParams, handleOpenPlaylistTracksDialog]);
+
+  
+
+  
+  const fetchPlaylists = useCallback(async () => {
+    try {
+      setPlaylistsLoading(true);
+      const response = await axios.get('/api/music/playlists');
+      if (response.data.success) {
+        
+        let playlists = response.data.playlists;
+        if (mainTab === 1) { 
+          playlists = playlists.filter(playlist => playlist.tracks_count > 0);
+        }
+        setPlaylists(playlists);
+      }
+      setPlaylistsLoading(false);
+    } catch (error) {
+      console.error('Error fetching playlists:', error);
+      setPlaylistsLoading(false);
+    }
+  }, [mainTab]);
+
   return (
     <MusicPageContainer 
       maxWidth="xl" 
@@ -2421,96 +3007,83 @@ const MusicPage = React.memo(() => {
                     mb: 2 
                   }}>
                     <Typography variant="h5" fontWeight="bold">
-                      Плейлисты
+                      Мои плейлисты
                     </Typography>
-                    <IconButton color="primary">
+                    <IconButton 
+                      color="primary" 
+                      onClick={handleOpenCreatePlaylist}
+                      aria-label="Создать плейлист"
+                    >
                       <Add />
                     </IconButton>
                   </Box>
                   
-                  {playlistBannerOpen && (
-                    <Alert 
-                      severity="info" 
-                      variant="filled"
-                      sx={{ 
-                        mb: 2, 
-                        borderRadius: 2,
-                        backgroundColor: 'rgba(208, 188, 255, 0.2)',
-                        border: '1px solid rgba(208, 188, 255, 0.3)',
-                        '& .MuiAlert-icon': { color: 'rgb(208, 188, 255)' }
-                      }}
-                      onClose={() => setPlaylistBannerOpen(false)}
-                    >
-                      Плейлисты будут доступны совсем скоро!
-                    </Alert>
-                  )}
+                  <PlaylistGrid
+                    playlists={playlists.filter(p => p.is_owner)}
+                    loading={isPlaylistsLoading}
+                    skeletonCount={4}
+                    onPlaylistClick={handlePlaylistClick}
+                    onPlaylistPlay={playPlaylist}
+                    onPlaylistMoreClick={handlePlaylistMoreClick}
+                  />
                   
-                  {isPlaylistsLoading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                      <CircularProgress size={30} />
+                  {!isPlaylistsLoading && playlists.filter(p => p.is_owner).length === 0 && (
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      py: 4,
+                      background: 'linear-gradient(135deg, rgba(208, 188, 255, 0.05) 0%, rgba(0,0,0,0.1) 100%)',
+                      borderRadius: 3,
+                      border: '1px dashed rgba(208, 188, 255, 0.2)',
+                    }}>
+                      <QueueMusic sx={{ fontSize: 48, color: 'rgb(208, 188, 255)', opacity: 0.6, mb: 2 }} />
+                      <Typography sx={{ color: 'rgb(208, 188, 255)', mb: 1, fontWeight: 500 }}>
+                        У вас пока нет плейлистов
+                      </Typography>
+                      <Typography color="text.secondary" align="center" sx={{ maxWidth: 400, px: 2, mb: 2 }}>
+                        Создавайте коллекции любимых треков и делитесь ими с друзьями
+                      </Typography>
+                      <ActionButton 
+                        color="primary" 
+                        startIcon={<Add />}
+                        onClick={handleOpenCreatePlaylist}
+                        sx={{ 
+                          background: 'linear-gradient(45deg, rgba(191, 164, 255, 1) 30%, rgba(208, 188, 255, 1) 90%)',
+                          boxShadow: '0 3px 12px rgba(208, 188, 255, 0.3)',
+                        }}
+                      >
+                        Создать плейлист
+                      </ActionButton>
                     </Box>
-                  ) : (
-                    <Grid container spacing={2}>
-                      {playlists && playlists.length > 0 ? playlists.map((playlist, index) => (
-                        <Grid item xs={6} sm={4} md={3} key={playlist.id}>
-                          <Zoom in={true} style={{ transitionDelay: `${150 * (index % 8)}ms` }}>
-                            <PlaylistTile>
-                              <CardMedia
-                                component="img"
-                                height={140}
-                                image={getCoverWithFallback(playlist.cover, "playlist")}
-                                alt={playlist.title}
-                              />
-                              <CardContent sx={{ p: 1.5, pb: 2 }}>
-                                <Typography variant="body2" fontWeight="500" noWrap>
-                                  {playlist.title}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  {playlist.tracks?.length || 0} {playlist.tracks?.length === 1 ? 'трек' : 
-                                  playlist.tracks?.length > 1 && playlist.tracks?.length < 5 ? 'трека' : 'треков'}
-                                </Typography>
-                              </CardContent>
-                            </PlaylistTile>
-                          </Zoom>
-                        </Grid>
-                      )) : (
-                        <Grid item xs={12}>
-                          <Box sx={{ 
-                            display: 'flex', 
-                            flexDirection: 'column', 
-                            alignItems: 'center', 
-                            justifyContent: 'center',
-                            py: 4,
-                            background: 'linear-gradient(135deg, rgba(208, 188, 255, 0.05) 0%, rgba(255,255,255,0.03) 100%)',
-                            borderRadius: 3,
-                            border: '1px dashed rgba(208, 188, 255, 0.2)',
-                          }}>
-                            <QueueMusic sx={{ fontSize: 48, color: 'rgb(208, 188, 255)', opacity: 0.6, mb: 2 }} />
-                            <Typography sx={{ color: 'rgb(208, 188, 255)', mb: 1, fontWeight: 500 }}>
-                              Плейлисты уже очень скоро!
-                            </Typography>
-                            <Typography color="text.secondary" align="center" sx={{ maxWidth: 400, px: 2, mb: 2 }}>
-                              Вы сможете создавать коллекции любимых треков и делиться ими с друзьями
-                            </Typography>
-                            <ActionButton 
-                              color="primary" 
-                              startIcon={<Add />}
-                              sx={{ 
-                                background: 'linear-gradient(45deg, rgba(191, 164, 255, 1) 30%, rgba(208, 188, 255, 1) 90%)',
-                                boxShadow: '0 3px 12px rgba(208, 188, 255, 0.3)',
-                              }}
-                            >
-                              Создать плейлист
-                            </ActionButton>
-                          </Box>
-                        </Grid>
-                      )}
-                    </Grid>
                   )}
                 </HeaderPaper>
                 
-                
-                
+                {/* Public Playlists */}
+                {playlists.filter(p => !p.is_owner).length > 0 && (
+                  <HeaderPaper elevation={0}>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center', 
+                      mb: 2 
+                    }}>
+                      <Typography variant="h5" fontWeight="bold">
+                        Публичные плейлисты
+                      </Typography>
+                    </Box>
+                    
+                    <PlaylistGrid
+                      playlists={playlists.filter(p => !p.is_owner)}
+                      loading={isPlaylistsLoading}
+                      skeletonCount={4}
+                      onPlaylistClick={handlePlaylistClick}
+                      onPlaylistPlay={playPlaylist}
+                      onPlaylistMoreClick={handlePlaylistMoreClick}
+                    />
+                  </HeaderPaper>
+                )}
               </Box>
             </Fade>
           )}
@@ -3303,6 +3876,167 @@ const MusicPage = React.memo(() => {
           </Button>
         </Box>
       )}
+      
+      {/* Playlist Modal for creating and editing playlists */}
+      <PlaylistModal
+        open={playlistModalOpen}
+        onClose={handleClosePlaylistModal}
+        playlist={editingPlaylist}
+        onSave={handleSavePlaylist}
+        onAddTracks={handleAddTracksToPlaylist}
+        onRemoveTrack={handleRemoveTrackFromPlaylist}
+        onDelete={handleDeletePlaylist}
+        isLoading={localLoading}
+        nowPlaying={currentTrack} 
+      />
+      
+      {/* Playlist Context Menu */}
+      <Menu
+        open={playlistContextMenu.open}
+        onClose={handleClosePlaylistContextMenu}
+        anchorReference="anchorPosition"
+        anchorPosition={
+          playlistContextMenu.mouseX !== null && playlistContextMenu.mouseY !== null
+            ? { top: playlistContextMenu.mouseY, left: playlistContextMenu.mouseX }
+            : undefined
+        }
+        elevation={3}
+        sx={{
+          '& .MuiPaper-root': {
+            backgroundColor: 'rgba(30, 30, 30, 0.95)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255,255,255,0.05)',
+            borderRadius: 2,
+            boxShadow: '0 8px 16px rgba(0,0,0,0.3)',
+          }
+        }}
+      >
+        {selectedPlaylistForMenu && (
+          <>
+            <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <Typography variant="body2" noWrap fontWeight="500">
+                {selectedPlaylistForMenu.name || 'Плейлист'}
+              </Typography>
+            </Box>
+            
+            <MenuItem 
+              onClick={() => {
+                playPlaylist(selectedPlaylistForMenu.id);
+                handleClosePlaylistContextMenu();
+              }}
+              sx={{ py: 1.5 }}
+            >
+              <ListItemAvatar sx={{ minWidth: 36 }}>
+                <PlayArrow fontSize="small" />
+              </ListItemAvatar>
+              <ListItemText 
+                primary="Воспроизвести" 
+                primaryTypographyProps={{ variant: 'body2' }}
+              />
+            </MenuItem>
+            
+            {selectedPlaylistForMenu.isOwner && (
+              <MenuItem 
+                onClick={() => {
+                  handleOpenEditPlaylist(selectedPlaylistForMenu);
+                  handleClosePlaylistContextMenu();
+                }}
+                sx={{ py: 1.5 }}
+              >
+                <ListItemAvatar sx={{ minWidth: 36 }}>
+                  <Edit fontSize="small" />
+                </ListItemAvatar>
+                <ListItemText 
+                  primary="Редактировать" 
+                  primaryTypographyProps={{ variant: 'body2' }}
+                />
+              </MenuItem>
+            )}
+            
+            <MenuItem 
+              onClick={() => {
+                
+                const playlistLink = `${window.location.origin}/music?playlist=${selectedPlaylistForMenu.id}`;
+                navigator.clipboard.writeText(playlistLink)
+                  .then(() => {
+                    setSnackbar({
+                      open: true,
+                      message: 'Ссылка на плейлист скопирована в буфер обмена',
+                      severity: 'success'
+                    });
+                  })
+                  .catch(err => {
+                    console.error('Не удалось скопировать ссылку:', err);
+                  });
+                handleClosePlaylistContextMenu();
+              }}
+              sx={{ py: 1.5 }}
+            >
+              <ListItemAvatar sx={{ minWidth: 36 }}>
+                <ContentCopy fontSize="small" />
+              </ListItemAvatar>
+              <ListItemText 
+                primary="Копировать ссылку" 
+                primaryTypographyProps={{ variant: 'body2' }}
+              />
+            </MenuItem>
+            
+            <MenuItem 
+              onClick={() => {
+                
+                const playlistLink = `${window.location.origin}/music?playlist=${selectedPlaylistForMenu.id}`;
+                navigator.clipboard.writeText(playlistLink)
+                  .then(() => {
+                    setSnackbar({
+                      open: true,
+                      message: 'Ссылка на плейлист скопирована для публикации',
+                      severity: 'success'
+                    });
+                  });
+                handleClosePlaylistContextMenu();
+              }}
+              sx={{ py: 1.5 }}
+            >
+              <ListItemAvatar sx={{ minWidth: 36 }}>
+                <Share fontSize="small" />
+              </ListItemAvatar>
+              <ListItemText 
+                primary="Поделиться" 
+                primaryTypographyProps={{ variant: 'body2' }}
+              />
+            </MenuItem>
+            
+            {selectedPlaylistForMenu.isOwner && (
+              <MenuItem 
+                onClick={() => {
+                  handleDeletePlaylist(selectedPlaylistForMenu.id);
+                  handleClosePlaylistContextMenu();
+                }}
+                sx={{ py: 1.5, color: 'error.main' }}
+              >
+                <ListItemAvatar sx={{ minWidth: 36 }}>
+                  <Delete fontSize="small" color="error" />
+                </ListItemAvatar>
+                <ListItemText 
+                  primary="Удалить" 
+                  primaryTypographyProps={{ variant: 'body2' }}
+                />
+              </MenuItem>
+            )}
+          </>
+        )}
+      </Menu>
+
+      {/* Add PlaylistViewModal near the end of the file, before PlaylistModal */}
+      <PlaylistViewModal
+        open={playlistViewModalOpen}
+        onClose={() => setPlaylistViewModalOpen(false)}
+        playlist={viewingPlaylist}
+        onEdit={handleEditFromView}
+        onPlayTrack={handlePlayTrackFromPlaylist}
+        isLoading={playlistDetailsLoading}
+        nowPlaying={currentTrack} 
+      />
     </MusicPageContainer>
   );
 });

@@ -62,18 +62,13 @@ import NotificationList from '../Notifications/NotificationList';
 import axios from 'axios';
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
-  backgroundColor: theme.palette.mode === 'rgb(18 18 18 / 81%)' 
-    ? alpha('#000000', 0.95) 
-    : alpha('#ffffff', 0.9),
-  backgroundImage: 'unset',
-  color: theme.palette.mode === 'dark' ? '#FFFFFF' : theme.palette.text.primary,
-  boxShadow: theme.palette.mode === 'dark' 
-    ? '0 1px 5px rgba(0,0,0,0.25)' 
-    : '0 1px 3px rgba(0,0,0,0.12)',
-  borderBottom: `1px solid ${theme.palette.mode === 'dark' 
-    ? alpha(theme.palette.divider, 0.2) 
-    : alpha(theme.palette.divider, 0.1)}`,
+  backgroundColor: '#1A1A1A',
+  backgroundImage: 'none',
+  color: '#FFFFFF',
+  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+  borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
   position: 'fixed',
+  backdropFilter: 'blur(10px)',
   borderRadius: '0 !important',
   zIndex: theme.zIndex.appBar,
   [theme.breakpoints.up('md')]: {
@@ -196,8 +191,9 @@ const SearchInputWrapper = styled(Box)(({ theme, fullWidth }) => ({
   position: 'relative',
   borderRadius: 16,
   backgroundColor: alpha(theme.palette.common.white, 0.1),
-  width: fullWidth ? '100%' : 'auto',
+  width: fullWidth ? '100%' : 280,
   display: 'flex',
+  transition: 'all 0.3s ease',
   [theme.breakpoints.down('md')]: {
     width: '100%',
   }
@@ -259,7 +255,6 @@ const Header = ({ toggleSidebar }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
-  const [userPoints, setUserPoints] = useState(0);
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [userChannels, setUserChannels] = useState([]);
   const [accounts, setAccounts] = useState({
@@ -324,19 +319,9 @@ const Header = ({ toggleSidebar }) => {
 
   useEffect(() => {
     if (user) {
-      fetchUserPoints();
       fetchUserChannels();
     }
   }, [user]);
-
-  const fetchUserPoints = async () => {
-    try {
-      const response = await axios.get('/api/user/points');
-      setUserPoints(response.data.points);
-    } catch (error) {
-      console.error('Error fetching user points:', error);
-    }
-  };
 
   const fetchUserChannels = async () => {
     try {
@@ -653,192 +638,188 @@ const Header = ({ toggleSidebar }) => {
       }}
     >
       <StyledToolbar>
-        
-        {isMobile && showSearch ? (
-          <SearchInputWrapper fullWidth>
-            <ClickAwayListener onClickAway={handleClickAway}>
-              <Box sx={{ width: '100%', position: 'relative' }}>
-                <StyledSearchInput
-                  placeholder="Поиск..."
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  onFocus={handleSearchFocus}
-                  inputRef={searchInputRef}
-                  variant="outlined"
-                  fullWidth
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
-                      </InputAdornment>
-                    ),
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton 
-                          size="small" 
-                          edge="end"
-                          onClick={toggleSearch}
-                          sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
-                        >
-                          <ClearIcon />
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-                
-                {showSearchResults && (
-                  <SearchResultsContainer>
-                    <SearchResultTabs
-                      value={searchTab}
-                      onChange={handleSearchTabChange}
-                      variant="fullWidth"
-                    >
-                      <SearchResultTab label="Все" />
-                      <SearchResultTab label="Каналы" />
-                    </SearchResultTabs>
-                    
-                    <Box sx={{ p: 1 }}>
-                      {searchLoading ? (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-                          <CircularProgress size={24} />
-                        </Box>
-                      ) : searchTab === 0 ? (
-                        
-                        <>
-                          {searchResults.users.length > 0 ? (
-                            <List sx={{ p: 0 }}>
-                              {searchResults.users.map(user => (
-                                <ListItem 
-                                  key={user.id} 
-                                  button 
-                                  onClick={() => handleSearchItemClick(`/profile/${user.username}`)}
-                                  sx={{ borderRadius: 1 }}
-                                >
-                                  <ListItemAvatar>
-                                    <Avatar 
-                                      src={user.photo ? `/static/uploads/avatar/${user.id}/${user.photo}` : '/static/uploads/avatar/system/avatar.png'} 
-                                      alt={user.name || user.username}
-                                    />
-                                  </ListItemAvatar>
-                                  <ListItemText 
-                                    primary={
-                                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                        {user.name}
-                                        {user.verification_status === 'verified' && (
-                                          <VerifiedIcon sx={{ fontSize: 14, ml: 0.5, color: '#D0BCFF' }} />
-                                        )}
-                                      </Box>
-                                    } 
-                                    secondary={`@${user.username}`} 
-                                  />
-                                </ListItem>
-                              ))}
-                            </List>
-                          ) : (
-                            <Box sx={{ p: 2, textAlign: 'center' }}>
-                              <Typography variant="body2" color="text.secondary">
-                                Пользователи не найдены
-                              </Typography>
-                            </Box>
-                          )}
-                        </>
-                      ) : (
-                        
-                        <>
-                          {searchResults.channels.length > 0 ? (
-                            <List sx={{ p: 0 }}>
-                              {searchResults.channels.map(channel => (
-                                <ListItem 
-                                  key={channel.id} 
-                                  button 
-                                  onClick={() => handleSearchItemClick(`/profile/${channel.username}`)}
-                                  sx={{ borderRadius: 1 }}
-                                >
-                                  <ListItemAvatar>
-                                    <Avatar 
-                                      src={channel.photo} 
-                                      alt={channel.name}
-                                      onError={(e) => {
-                                        e.target.onerror = null;
-                                        e.target.src = '/static/uploads/avatar/system/avatar.png';
-                                      }}
-                                    />
-                                  </ListItemAvatar>
-                                  <ListItemText 
-                                    primary={
-                                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                        {channel.name}
-                                        {channel.is_verified && (
-                                          <VerifiedIcon sx={{ fontSize: 14, ml: 0.5, color: '#D0BCFF' }} />
-                                        )}
-                                      </Box>
-                                    } 
-                                    secondary={`@${channel.username}`} 
-                                  />
-                                </ListItem>
-                              ))}
-                            </List>
-                          ) : (
-                            <Box sx={{ p: 2, textAlign: 'center' }}>
-                              <Typography variant="body2" color="text.secondary">
-                                Каналы не найдены
-                              </Typography>
-                            </Box>
-                          )}
-                        </>
-                      )}
-                      
-                      {(searchTab === 0 && searchResults.users.length > 0) || 
-                       (searchTab === 1 && searchResults.channels.length > 0) ? (
-                        <Box sx={{ p: 1, display: 'flex', justifyContent: 'center' }}>
-                          <Button 
-                            size="small" 
-                            onClick={handleViewAll}
-                            sx={{ 
-                              textTransform: 'none',
-                              color: '#D0BCFF',
-                              '&:hover': { backgroundColor: alpha('#D0BCFF', 0.1) }
-                            }}
-                          >
-                            Показать все
-                          </Button>
-                        </Box>
-                      ) : null}
-                    </Box>
-                  </SearchResultsContainer>
-                )}
-              </Box>
-            </ClickAwayListener>
-          </SearchInputWrapper>
-        ) : (
-          <>
-            
-            <LogoSection>
-              <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
-                <LogoSVG 
-                  style={{ 
-                    height: 32, 
-                    width: 'auto'
-                  }} 
-                />
-                {!isMobile && (
-                  <LogoText>
-                    <Box component="span" sx={{ color: 'primary.main' }}>K</Box>
-                    <Box component="span" sx={{ 
-                      color: theme.palette.mode === 'dark' ? 'white' : 'black', 
-                      opacity: 0.9 
-                    }}>-CONNECT</Box>
-                  </LogoText>
-                )}
-              </Link>
-            </LogoSection>
+        <LogoSection>
+          <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
+            <LogoSVG 
+              style={{ 
+                height: 32, 
+                width: 'auto'
+              }} 
+            />
+            {!isMobile && (
+              <LogoText>
+                <Box component="span" sx={{ color: 'primary.main' }}>K</Box>
+                <Box component="span" sx={{ 
+                  color: theme.palette.mode === 'dark' ? 'white' : 'black', 
+                  opacity: 0.9 
+                }}>-CONNECT</Box>
+              </LogoText>
+            )}
+          </Link>
+        </LogoSection>
 
-            
-            {currentTrack && (
-              <PlayerSection>
-                <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', flexGrow: 1 }}>
+          {showSearch ? (
+            <SearchInputWrapper>
+              <ClickAwayListener onClickAway={handleClickAway}>
+                <Box sx={{ width: '100%', position: 'relative' }}>
+                  <StyledSearchInput
+                    placeholder="Поиск..."
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    onFocus={handleSearchFocus}
+                    inputRef={searchInputRef}
+                    variant="outlined"
+                    fullWidth
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
+                        </InputAdornment>
+                      ),
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton 
+                            size="small" 
+                            edge="end"
+                            onClick={toggleSearch}
+                            sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
+                          >
+                            <ClearIcon />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
                   
+                  {showSearchResults && (
+                    <SearchResultsContainer>
+                      <SearchResultTabs
+                        value={searchTab}
+                        onChange={handleSearchTabChange}
+                        variant="fullWidth"
+                      >
+                        <SearchResultTab label="Все" />
+                        <SearchResultTab label="Каналы" />
+                      </SearchResultTabs>
+                      
+                      <Box sx={{ p: 1 }}>
+                        {searchLoading ? (
+                          <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                            <CircularProgress size={24} />
+                          </Box>
+                        ) : searchTab === 0 ? (
+                          
+                          <>
+                            {searchResults.users.length > 0 ? (
+                              <List sx={{ p: 0 }}>
+                                {searchResults.users.map(user => (
+                                  <ListItem 
+                                    key={user.id} 
+                                    button 
+                                    onClick={() => handleSearchItemClick(`/profile/${user.username}`)}
+                                    sx={{ borderRadius: 1 }}
+                                  >
+                                    <ListItemAvatar>
+                                      <Avatar 
+                                        src={user.photo ? `/static/uploads/avatar/${user.id}/${user.photo}` : '/static/uploads/avatar/system/avatar.png'} 
+                                        alt={user.name || user.username}
+                                      />
+                                    </ListItemAvatar>
+                                    <ListItemText 
+                                      primary={
+                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                          {user.name}
+                                          {user.verification_status === 'verified' && (
+                                            <VerifiedIcon sx={{ fontSize: 14, ml: 0.5, color: '#D0BCFF' }} />
+                                          )}
+                                        </Box>
+                                      } 
+                                      secondary={`@${user.username}`} 
+                                    />
+                                  </ListItem>
+                                ))}
+                              </List>
+                            ) : (
+                              <Box sx={{ p: 2, textAlign: 'center' }}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Пользователи не найдены
+                                </Typography>
+                              </Box>
+                            )}
+                          </>
+                        ) : (
+                          
+                          <>
+                            {searchResults.channels.length > 0 ? (
+                              <List sx={{ p: 0 }}>
+                                {searchResults.channels.map(channel => (
+                                  <ListItem 
+                                    key={channel.id} 
+                                    button 
+                                    onClick={() => handleSearchItemClick(`/profile/${channel.username}`)}
+                                    sx={{ borderRadius: 1 }}
+                                  >
+                                    <ListItemAvatar>
+                                      <Avatar 
+                                        src={channel.photo} 
+                                        alt={channel.name}
+                                        onError={(e) => {
+                                          e.target.onerror = null;
+                                          e.target.src = '/static/uploads/avatar/system/avatar.png';
+                                        }}
+                                      />
+                                    </ListItemAvatar>
+                                    <ListItemText 
+                                      primary={
+                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                          {channel.name}
+                                          {channel.is_verified && (
+                                            <VerifiedIcon sx={{ fontSize: 14, ml: 0.5, color: '#D0BCFF' }} />
+                                          )}
+                                        </Box>
+                                      } 
+                                      secondary={`@${channel.username}`} 
+                                    />
+                                  </ListItem>
+                                ))}
+                              </List>
+                            ) : (
+                              <Box sx={{ p: 2, textAlign: 'center' }}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Каналы не найдены
+                                </Typography>
+                              </Box>
+                            )}
+                          </>
+                        )}
+                        
+                        {(searchTab === 0 && searchResults.users.length > 0) || 
+                         (searchTab === 1 && searchResults.channels.length > 0) ? (
+                          <Box sx={{ p: 1, display: 'flex', justifyContent: 'center' }}>
+                            <Button 
+                              size="small" 
+                              onClick={handleViewAll}
+                              sx={{ 
+                                textTransform: 'none',
+                                color: '#D0BCFF',
+                                '&:hover': { backgroundColor: alpha('#D0BCFF', 0.1) }
+                              }}
+                            >
+                              Показать все
+                            </Button>
+                          </Box>
+                        ) : null}
+                      </Box>
+                    </SearchResultsContainer>
+                  )}
+                </Box>
+              </ClickAwayListener>
+            </SearchInputWrapper>
+          ) : (
+            <PlayerSection>
+              {currentTrack && (
+                <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
                   {/* Compact Track Info */}
                   <Box 
                     component={Link} 
@@ -915,68 +896,93 @@ const Header = ({ toggleSidebar }) => {
                     </VolumeControl>
                   </PlayerControls>
                 </Box>
-              </PlayerSection>
-            )}
-
-            
-            <ActionsSection>
-              {user && !isMobile && (
-                <Tooltip title="Ваши баллы">
-                  <PointsChip
-                    icon={
-                      <PointsIcon>
-                        <BallsSVG />
-                      </PointsIcon>
-                    }
-                    label={`${userPoints} баллов`}
-                    onClick={() => navigate('/balance')}
-                    clickable
-                  />
-                </Tooltip>
               )}
-              
-              <IconButton 
-                color="inherit" 
-                onClick={isMobile ? toggleSearch : () => navigate('/search')}
-                sx={{ 
-                  bgcolor: (isMobile && showSearch) || (!isMobile && location.pathname === '/search') 
-                    ? alpha(theme.palette.primary.main, 0.1) 
-                    : 'transparent',
-                  color: (isMobile && showSearch) || (!isMobile && location.pathname === '/search')
-                    ? 'primary.main' 
-                    : 'inherit',
+            </PlayerSection>
+          )}
+        </Box>
+
+        <ActionsSection>
+          {user && !isMobile && (
+            <Tooltip title="Кошелек">
+              <Chip
+                icon={
+                  <PointsIcon>
+                    <BallsSVG />
+                  </PointsIcon>
+                }
+                label="Кошелек"
+                onClick={() => navigate('/balance')}
+                clickable
+                sx={{
+                  borderRadius: 20,
+                  fontWeight: 'bold',
+                  background: `linear-gradient(45deg, #d0bcff 30%, ${alpha('#d0bcff', 0.8)} 90%)`,
+                  color: '#1a1a1a',
+                  border: 'none',
+                  boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+                  height: 32,
+                  '& .MuiChip-icon': {
+                    color: 'inherit',
+                  },
+                  [theme.breakpoints.down('md')]: {
+                    display: 'none',
+                  },
                 }}
-              >
-                <SearchIcon />
-              </IconButton>
-              
-              <NotificationList />
-              
-              <IconButton
-                edge="end"
-                aria-label="account"
-                aria-haspopup="true"
-                onClick={handleProfileMenuOpen}
-                color="inherit"
-                sx={{ ml: 0.5 }}
-              >
-                {user ? (
-                  <Avatar 
-                    src={user.photo ? `/static/uploads/avatar/${user.id}/${user.photo}` : '/static/uploads/avatar/system/avatar.png'} 
-                    alt={user.name || user.username} 
-                    sx={{ 
-                      width: 30, 
-                      height: 30,
-                      border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-                    }}
-                  />
-                ) : (
-                  <AccountCircleIcon />
-                )}
-              </IconButton>
-            </ActionsSection>
-          </>
-        )}
+              />
+            </Tooltip>
+          )}
+          
+          <IconButton 
+            color="inherit" 
+            onClick={toggleSearch}
+            sx={{ 
+              bgcolor: showSearch 
+                ? alpha(theme.palette.primary.main, 0.1) 
+                : 'transparent',
+              color: showSearch
+                ? 'primary.main' 
+                : 'inherit',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                bgcolor: alpha(theme.palette.primary.main, 0.08),
+                transform: 'scale(1.05)'
+              }
+            }}
+          >
+            <SearchIcon />
+          </IconButton>
+          
+          <NotificationList />
+          
+          <IconButton
+            edge="end"
+            aria-label="account"
+            aria-haspopup="true"
+            onClick={handleProfileMenuOpen}
+            color="inherit"
+            sx={{ 
+              ml: 0.5,
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                transform: 'scale(1.05)'
+              }
+            }}
+          >
+            {user ? (
+              <Avatar 
+                src={user.photo ? `/static/uploads/avatar/${user.id}/${user.photo}` : '/static/uploads/avatar/system/avatar.png'} 
+                alt={user.name || user.username} 
+                sx={{ 
+                  width: 30, 
+                  height: 30,
+                  border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                }}
+              />
+            ) : (
+              <AccountCircleIcon />
+            )}
+          </IconButton>
+        </ActionsSection>
       </StyledToolbar>
       {profileMenu}
     </StyledAppBar>

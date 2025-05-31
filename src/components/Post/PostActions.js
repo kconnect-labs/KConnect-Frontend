@@ -6,6 +6,8 @@ import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import ShareIcon from '@mui/icons-material/Share';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import ReportIcon from '@mui/icons-material/Report';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
@@ -24,7 +26,9 @@ const PostActions = ({
   showNumbers = true,
   color="primary",
   size="medium",
-  sx
+  sx,
+  viewsCount = 0,
+  onReportClick
 }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [shareLink, setShareLink] = useState('');
@@ -73,11 +77,17 @@ const PostActions = ({
       return;
     }
     
-    try {
-      await axios.post(`/api/posts/${post.id}/repost`);
-      if (onRepost) onRepost();
-    } catch (error) {
-      console.error('Error reposting:', error);
+    if (onRepost) {
+      onRepost();
+    } else {
+      try {
+        const response = await axios.post(`/api/posts/${post.id}/repost`, { text: '' });
+        if (response.data.success) {
+          alert('Репост успешно создан!');
+        }
+      } catch (error) {
+        console.error('Error reposting:', error);
+      }
     }
   };
 
@@ -163,6 +173,20 @@ const PostActions = ({
           <ListItemText>Копировать ссылку</ListItemText>
         </MenuItem>
       </Menu>
+
+      {onReportClick && (
+        <Tooltip title="Пожаловаться">
+          <IconButton onClick={onReportClick} size="small">
+            <ReportIcon />
+          </IconButton>
+        </Tooltip>
+      )}
+
+      {viewsCount > 0 && (
+        <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
+          {viewsCount}
+        </Typography>
+      )}
     </Box>
   );
 };

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
-import { IconButton, Slider, Tooltip } from '@mui/material';
-
+import { IconButton, Slider, Tooltip, Box } from '@mui/material';
 
 import { 
   IoPlayCircle, 
@@ -229,9 +228,8 @@ const PlayerControls = ({ dominantColor }) => {
             rail: styles.sliderRail,
             thumb: styles.sliderThumb
           }}
-          style={{
-
-            color: dominantColor ? `rgb(${dominantColor})` : '#ffffff'
+          sx={{
+            color: dominantColor ? `rgb(${dominantColor.r}, ${dominantColor.g}, ${dominantColor.b})` : '#d0bcff'
           }}
         />
         
@@ -240,102 +238,79 @@ const PlayerControls = ({ dominantColor }) => {
             {formatDuration(displayTime.current)}
           </span>
           <span className={styles.duration}>
-            {formatDuration(displayTime.duration)}
+            -{formatDuration(displayTime.duration - displayTime.current)}
           </span>
         </div>
       </div>
       
-      {/* Playback controls */}
-      <div className={styles.controlsContainer}>
-        {/* Secondary controls */}
-        <div className={styles.secondaryControls}>
-          <Tooltip title={shuffleMode ? "Перемешать: Вкл" : "Перемешать: Выкл"}>
-            <IconButton 
-              onClick={handleShuffleClick}
-              className={`${styles.controlButton} ${styles.secondaryButton} ${shuffleMode ? styles.active : ''}`}
-              style={{ 
-                color: shuffleMode ? (dominantColor ? getLightestShade(dominantColor) : '#ffffff') : undefined,
-                backgroundColor: 'transparent',
-                boxShadow: 'none'
-              }}
-            >
-              <IoShuffle size={24} />
-            </IconButton>
-          </Tooltip>
-          
-          <IconButton 
-            onClick={prevTrack}
-            className={`${styles.controlButton} ${styles.secondaryButton}`}
-            style={{ 
-              backgroundColor: 'transparent',
-              boxShadow: 'none',
-              color: dominantColor ? getLightestShade(dominantColor) : '#ffffff'
-            }}
-          >
-            <IoPlaySkipBack size={24} />
-          </IconButton>
-        </div>
-        
-        {/* Primary play/pause control */}
-        <IconButton
-          onClick={togglePlay}
-          className={`${styles.controlButton} ${styles.primaryButton}`}
-          style={{ 
-            backgroundColor: 'transparent',
-            boxShadow: 'none',
-            color: dominantColor ? getLightestShade(dominantColor) : '#ffffff'
+      {/* Playback controls - Apple Music style */}
+      <Box
+        className={styles.controlsContainer}
+        sx={{
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%'
+        }}
+      >
+        <IconButton 
+          onClick={handleShuffleClick}
+          className={`${styles.controlButton} ${styles.secondaryButton} ${shuffleMode ? styles.active : ''}`}
+          aria-label="shuffle"
+          sx={{
+            color: shuffleMode ? (dominantColor ? `rgb(${dominantColor.r}, ${dominantColor.g}, ${dominantColor.b})` : '#d0bcff') : 'rgba(255, 255, 255, 0.9)'
           }}
         >
-          {isPlaying ? 
-            <IoPauseCircle size={52} /> : 
-            <IoPlayCircle size={52} />
-          }
+          <IoShuffle />
         </IconButton>
         
-        {/* Secondary controls */}
-        <div className={styles.secondaryControls}>
-          <IconButton 
-            onClick={nextTrack}
-            className={`${styles.controlButton} ${styles.secondaryButton}`}
-            style={{ 
-              backgroundColor: 'transparent',
-              boxShadow: 'none',
-              color: dominantColor ? getLightestShade(dominantColor) : '#ffffff'
-            }}
-          >
-            <IoPlaySkipForward size={24} />
-          </IconButton>
-          
-          <Tooltip title={
-            repeatMode === 'off' ? "Повтор: Выкл" : 
-            repeatMode === 'all' ? "Повтор: Все" : "Повтор: Один"
-          }>
-            <IconButton 
-              onClick={handleRepeatClick}
-              className={`${styles.controlButton} ${styles.secondaryButton} ${repeatMode !== 'off' ? styles.active : ''}`}
-              style={{ 
-                color: repeatMode !== 'off' ? (dominantColor ? getLightestShade(dominantColor) : '#ffffff') : undefined,
-                backgroundColor: 'transparent',
-                boxShadow: 'none'
-              }}
-            >
-              {getRepeatIcon()}
-            </IconButton>
-          </Tooltip>
-        </div>
-      </div>
+        <IconButton 
+          onClick={prevTrack} 
+          className={`${styles.controlButton} ${styles.secondaryButton}`}
+          aria-label="previous track"
+        >
+          <IoPlaySkipBack />
+        </IconButton>
+        
+        <IconButton 
+          onClick={togglePlay} 
+          className={`${styles.controlButton} ${styles.primaryButton}`}
+          aria-label={isPlaying ? "pause" : "play"}
+          sx={{
+            color: '#fff'
+          }}
+        >
+          {isPlaying ? <IoPauseCircle /> : <IoPlayCircle />}
+        </IconButton>
+        
+        <IconButton 
+          onClick={nextTrack} 
+          className={`${styles.controlButton} ${styles.secondaryButton}`}
+          aria-label="next track"
+        >
+          <IoPlaySkipForward />
+        </IconButton>
+        
+        <IconButton 
+          onClick={handleRepeatClick}
+          className={`${styles.controlButton} ${styles.secondaryButton} ${repeatMode !== 'off' ? styles.active : ''}`}
+          aria-label="repeat"
+          sx={{
+            color: repeatMode !== 'off' ? (dominantColor ? `rgb(${dominantColor.r}, ${dominantColor.g}, ${dominantColor.b})` : '#d0bcff') : 'rgba(255, 255, 255, 0.9)'
+          }}
+        >
+          {getRepeatIcon()}
+        </IconButton>
+      </Box>
       
-      {/* Additional controls: Volume and like */}
-      <div className={styles.additionalControls}>
+      {/* Additional controls - like button, volume, etc. */}
+      <Box className={styles.additionalControls}>
         <div className={styles.volumeControl}>
           <IconButton 
             onClick={toggleMute}
             className={styles.volumeButton}
-            style={{ 
-              backgroundColor: 'transparent',
-              boxShadow: 'none',
-              color: dominantColor ? getLightestShade(dominantColor) : '#ffffff'
-            }}
+            aria-label={isMuted ? "unmute" : "mute"}
           >
             {getVolumeIcon()}
           </IconButton>
@@ -343,39 +318,32 @@ const PlayerControls = ({ dominantColor }) => {
           <Slider
             value={isMuted ? 0 : volume * 100}
             onChange={handleVolumeChange}
-            aria-label="Volume"
+            aria-labelledby="volume-slider"
             className={styles.volumeSlider}
             classes={{
               track: styles.sliderTrack,
               rail: styles.sliderRail,
               thumb: styles.sliderThumb
             }}
-            style={{
-              color: dominantColor ? getLightestShade(dominantColor) : '#ffffff'
+            sx={{
+              color: dominantColor ? `rgb(${dominantColor.r}, ${dominantColor.g}, ${dominantColor.b})` : '#d0bcff'
             }}
           />
         </div>
         
         <div className={styles.likeContainer}>
-          <Tooltip title={currentTrack?.is_liked ? "Убрать лайк" : "Нравится"}>
-            <IconButton 
-              onClick={handleToggleLike}
-              className={`${styles.likeButton}`}
-              style={{ 
-                backgroundColor: 'transparent',
-                boxShadow: 'none',
-                color: dominantColor ? getLightestShade(dominantColor) : '#ffffff'
-              }}
-            >
-              {currentTrack?.is_liked ? (
-                <IoHeart size={24} style={{ color: dominantColor ? getLightestShade(dominantColor) : '#ffffff' }} />
-              ) : (
-                <IoHeartOutline size={24} />
-              )}
-            </IconButton>
-          </Tooltip>
+          <IconButton
+            onClick={handleToggleLike}
+            className={`${styles.likeButton} ${currentTrack?.liked ? styles.likedIcon : ''}`}
+            aria-label={currentTrack?.liked ? "unlike" : "like"}
+            sx={{
+              color: currentTrack?.liked ? '#d0bcff' : 'rgba(255, 255, 255, 0.9)'
+            }}
+          >
+            {currentTrack?.liked ? <IoHeart /> : <IoHeartOutline />}
+          </IconButton>
         </div>
-      </div>
+      </Box>
     </div>
   );
 };

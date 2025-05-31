@@ -189,7 +189,6 @@ const MainLayout = ({ children }) => {
         </ContentContainer>
       </ContentWrapper>
       
-      
       {hasBottomPlayer && <MobilePlayer />}
       {hasDesktopPlayer && <DesktopPlayer />}
     </MainContainer>

@@ -9,13 +9,15 @@ const ImageContainer = styled(Box)(({ theme }) => ({
   height: '100%',
   borderRadius: '8px',
   overflow: 'hidden',
-  cursor: 'pointer',
+  cursor: 'zoom-in',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   backgroundColor: '#11111C',
   maxWidth: '100%',
+  transition: 'transform 0.2s ease',
   '&:hover': {
+    transform: 'scale(1.015)',
     '& .overlay': {
       opacity: 1,
     },
@@ -52,21 +54,33 @@ const ImageOverlay = styled(Box)({
   left: 0,
   right: 0,
   bottom: 0,
-  backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  backgroundColor: 'rgba(0, 0, 0, 0.2)',
   opacity: 0,
-  transition: 'opacity 0.2s ease',
+  transition: 'all 0.2s ease',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   zIndex: 3,
   className: 'overlay',
+  '&::after': {
+    content: '"🔍"',
+    fontSize: '24px',
+    opacity: 0.85,
+    filter: 'drop-shadow(0px 0px 4px rgba(0,0,0,0.5))',
+    transform: 'scale(0.8)',
+    transition: 'transform 0.2s ease',
+  },
+  '&:hover::after': {
+    transform: 'scale(1.0)',
+  }
 });
 
-const ImageGrid = ({ images, selectedImage = null, onImageClick, hideOverlay = false, miniMode = false, maxHeight = 400 }) => {
+const ImageGrid = ({ images, selectedImage = null, onImageClick, onImageError, hideOverlay = false, miniMode = false, maxHeight = 400 }) => {
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [optimizedImages, setOptimizedImages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [errorImages, setErrorImages] = useState({});
   
   const imageArray = Array.isArray(images) 
     ? images.filter(Boolean) 
@@ -247,15 +261,33 @@ const ImageGrid = ({ images, selectedImage = null, onImageClick, hideOverlay = f
     loadOptimizedImages();
   }, [images]);
 
-  const openLightbox = (index) => {
+  const getOptimizedImageUrl = (url, isSingle = false) => {
+    const width = isSingle ? 1200 : 600;
+    const height = isSingle ? 900 : 600;
+    
+    if (url.startsWith('http')) {
+      return url;
+    }
+    
+    if (url.includes('/static/uploads/')) {
+      return `${url}?width=${width}&height=${height}&optimize=true`;
+    }
+    
+    return url;
+  };
+
+  const openLightbox = (index, event) => {
+    
+    if (event) {
+      event.stopPropagation();
+    }
+    
     setSelectedIndex(index);
+    setLightboxOpen(true);
     
     if (onImageClick && typeof onImageClick === 'function') {
       onImageClick(index);
-      return;
     }
-    
-    setLightboxOpen(true);
   };
   
   const closeLightbox = () => {
@@ -304,6 +336,64 @@ const ImageGrid = ({ images, selectedImage = null, onImageClick, hideOverlay = f
     return '';
   };
 
+  const handleImageError = (url, index) => {
+    setErrorImages(prev => ({
+      ...prev,
+      [url]: true
+    }));
+    
+    if (onImageError && typeof onImageError === 'function') {
+      onImageError(url, index);
+    }
+  };
+
+  const renderImage = (image, index, isSingle) => {
+    const imageUrl = formatImageUrl(image);
+    const optimizedUrl = getOptimizedImageUrl(imageUrl, isSingle);
+    
+    const hasError = errorImages[imageUrl];
+    
+    if (hasError) {
+      return (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+            borderRadius: '8px',
+            color: 'rgba(255, 255, 255, 0.7)',
+            fontSize: '0.8rem',
+            padding: '10px',
+            textAlign: 'center'
+          }}
+        >
+          Ошибка при загрузке изображения
+        </Box>
+      );
+    }
+    
+    return (
+      <React.Fragment>
+        <BackgroundImage
+          style={{ backgroundImage: `url(${optimizedUrl})` }}
+        />
+        <Image
+          src={optimizedUrl}
+          alt={`Изображение ${index + 1}`}
+          loading="lazy"
+          isSingle={isSingle}
+          onError={() => handleImageError(imageUrl, index)}
+        />
+        {!hideOverlay && (
+          <ImageOverlay />
+        )}
+      </React.Fragment>
+    );
+  };
+
   if (loading) {
     return (
       <Box
@@ -328,93 +418,85 @@ const ImageGrid = ({ images, selectedImage = null, onImageClick, hideOverlay = f
     );
   }
 
+  if (limitedImages.length === 1) {
+    const singleImage = limitedImages[0];
+    return (
+      <Box sx={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', mb: 1 }}>
+        <ImageContainer
+          onClick={(event) => openLightbox(0, event)}
+          sx={{
+            height: miniMode ? '150px' : 'auto',
+            maxHeight: miniMode ? '150px' : maxHeight,
+          }}
+        >
+          {renderImage(singleImage, 0, true)}
+        </ImageContainer>
+        
+        {lightboxOpen && (
+          <SimpleImageViewer
+            src={formatImageUrl(limitedImages[selectedIndex])}
+            onClose={closeLightbox}
+            alt="Полноразмерное изображение"
+          />
+        )}
+      </Box>
+    );
+  }
+
+  const layoutProps = getGridLayout(limitedImages.length);
+  
   return (
-    <>
+    <Box sx={{ mb: 1 }}>
       <Box
         sx={{
           display: 'grid',
-          gap: 1,
-          ...getGridLayout(limitedImages.length),
-          maxWidth: '100%',
-          overflow: 'hidden',
+          gap: '4px',
+          ...layoutProps,
           borderRadius: '8px',
+          overflow: 'hidden'
         }}
       >
-        {optimizedImages.map((image, index) => {
-          const isLastWithMore = index === optimizedImages.length - 1 && remainingCount > 0;
-          const originalUrl = formatImageUrl(limitedImages[index]);
-          const isSingle = limitedImages.length === 1;
-          
-          return (
-            <ImageContainer
-              key={index}
-              onClick={(e) => openLightbox(index)}
-              sx={{
-                gridArea: getCellGridArea(index, limitedImages.length),
-                aspectRatio: isSingle ? 'auto' : '1/1',
-                height: isSingle ? 'auto' : '100%',
-                minHeight: isSingle ? 'auto' : '100%',
-                maxHeight: isSingle ? '300px' : '100%',
-              }}
-            >
-              <BackgroundImage 
-                style={{ 
-                  backgroundImage: `url(${originalUrl})` 
-                }} 
-              />
-              <picture>
-                {image.type === 'image/webp' && (
-                  <source srcSet={image.src} type="image/webp" />
-                )}
-                <Image
-                  src={image.originalSrc || originalUrl}
-                  alt={`Image ${index + 1}`}
-                  loading="lazy"
-                  isSingle={isSingle}
-                  onError={(e) => {
-                    console.error(`Failed to load image: ${originalUrl}`);
-                    if (e.target && e.target instanceof HTMLImageElement) {
-                      e.target.src = '/static/uploads/system/image_placeholder.jpg';
-                    }
-                  }}
-                />
-              </picture>
-              <ImageOverlay className="overlay">
-                {isLastWithMore && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'white',
-                      fontSize: '24px',
-                      fontWeight: 'bold',
-                    }}
-                  >
-                    +{remainingCount}
-                  </Box>
-                )}
-              </ImageOverlay>
-            </ImageContainer>
-          );
-        })}
+        {limitedImages.map((image, index) => (
+          <ImageContainer
+            key={`image-${index}`}
+            onClick={(event) => openLightbox(index, event)}
+            sx={{
+              gridArea: getCellGridArea(index, limitedImages.length),
+              cursor: 'pointer',
+              height: '100%',
+            }}
+          >
+            {renderImage(image, index, false)}
+          </ImageContainer>
+        ))}
+        
+        {remainingCount > 0 && (
+          <Box
+            sx={{
+              position: 'absolute',
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              color: '#fff',
+              padding: '4px 8px',
+              borderRadius: '8px 0 0 0',
+              fontSize: '0.8rem',
+              fontWeight: 'bold',
+            }}
+          >
+            +{remainingCount}
+          </Box>
+        )}
       </Box>
       
-      {!onImageClick && (
-        <SimpleImageViewer 
-          isOpen={lightboxOpen}
+      {lightboxOpen && (
+        <SimpleImageViewer
+          src={formatImageUrl(limitedImages[selectedIndex])}
           onClose={closeLightbox}
-          images={images.map(img => img.url || img)}
-          initialIndex={selectedIndex || 0}
+          alt="Полноразмерное изображение"
         />
       )}
-    </>
+    </Box>
   );
 };
 

@@ -40,6 +40,8 @@ export const MusicContext = createContext({
   searchTracks: () => Promise.resolve([]),
   getCurrentTimeRaw: () => 0,
   getDurationRaw: () => 0,
+  playlistTracks: {},
+  setPlaylistTracks: () => {},
 });
 
 
@@ -95,6 +97,8 @@ export const MusicProvider = ({ children }) => {
   
   const hasCheckedLikedTracksRef = useRef(false);
 
+  
+  const [playlistTracks, setPlaylistTracksState] = useState({});
   
   useEffect(() => {
     let isMounted = true;
@@ -226,23 +230,28 @@ export const MusicProvider = ({ children }) => {
           
 
           if (receivedTracks.length > 0) {
-
-            const prefetchCount = Math.min(3, receivedTracks.length);
-            console.log(`Pre-fetching lyrics for first ${prefetchCount} tracks...`);
             
-
-            Promise.all(
-              receivedTracks.slice(0, prefetchCount).map(async (track) => {
-                try {
-                  const lyricsData = await fetchLyricsForTrack(track.id);
-                  if (lyricsData) {
-                    track.lyricsData = lyricsData;
+            // Only prefetch lyrics if user is actively playing music
+            // or has played music in this session
+            if (isPlaying || currentTrack) {
+              const prefetchCount = Math.min(3, receivedTracks.length);
+              console.log(`Pre-fetching lyrics for first ${prefetchCount} tracks...`);
+              
+              Promise.all(
+                receivedTracks.slice(0, prefetchCount).map(async (track) => {
+                  try {
+                    const lyricsData = await fetchLyricsForTrack(track.id);
+                    if (lyricsData) {
+                      track.lyricsData = lyricsData;
+                    }
+                  } catch (err) {
+                    console.error(`Error pre-fetching lyrics for track ${track.id}:`, err);
                   }
-                } catch (err) {
-                  console.error(`Error pre-fetching lyrics for track ${track.id}:`, err);
-                }
-              })
-            ).catch(err => console.error('Error in lyrics pre-fetch batch:', err));
+                })
+              ).catch(err => console.error('Error in lyrics pre-fetch batch:', err));
+            } else {
+              console.log('Skipping lyrics prefetch since no music is playing');
+            }
           }
           
           if (currentSection === 'all') {
@@ -746,6 +755,29 @@ export const MusicProvider = ({ children }) => {
     try {
       if (!currentTrack) return null;
       
+      if (currentSection && currentSection.startsWith('playlist_')) {
+        const playlistId = currentSection;
+        const tracksInPlaylist = playlistTracks[playlistId] || [];
+        
+        if (tracksInPlaylist.length === 0) {
+          console.log('Playlist is empty, returning null');
+          return null;
+        }
+        
+        const currentIndex = tracksInPlaylist.findIndex(track => track.id === currentTrack.id);
+        
+        if (currentIndex === -1) {
+          console.log('Current track not found in playlist, returning first track');
+          return tracksInPlaylist[0];
+        }
+        
+        if (currentIndex < tracksInPlaylist.length - 1) {
+          return tracksInPlaylist[currentIndex + 1];
+        } else {
+          console.log('Last track in playlist, returning first track (loop)');
+          return tracksInPlaylist[0];
+        }
+      }
       
       let trackList;
       switch (currentSection) {
@@ -849,6 +881,29 @@ export const MusicProvider = ({ children }) => {
     try {
       if (!currentTrack) return null;
       
+      if (currentSection && currentSection.startsWith('playlist_')) {
+        const playlistId = currentSection;
+        const tracksInPlaylist = playlistTracks[playlistId] || [];
+        
+        if (tracksInPlaylist.length === 0) {
+          console.log('Playlist is empty, returning null');
+          return null;
+        }
+        
+        const currentIndex = tracksInPlaylist.findIndex(track => track.id === currentTrack.id);
+        
+        if (currentIndex === -1) {
+          console.log('Current track not found in playlist, returning last track');
+          return tracksInPlaylist[tracksInPlaylist.length - 1];
+        }
+        
+        if (currentIndex > 0) {
+          return tracksInPlaylist[currentIndex - 1];
+        } else {
+          console.log('First track in playlist, returning last track (loop)');
+          return tracksInPlaylist[tracksInPlaylist.length - 1];
+        }
+      }
       
       let trackList;
       switch (currentSection) {
@@ -1911,6 +1966,15 @@ export const MusicProvider = ({ children }) => {
   }, []);
 
   
+  const setPlaylistTracks = useCallback((tracks, playlistId) => {
+    console.log(`Setting ${tracks.length} tracks for playlist ${playlistId}`);
+    setPlaylistTracksState(prevState => ({
+      ...prevState,
+      [playlistId]: tracks
+    }));
+  }, []);
+
+  
   const musicContextValue = {
     tracks,
     popularTracks,
@@ -1950,6 +2014,8 @@ export const MusicProvider = ({ children }) => {
     searchTracks,
     getCurrentTimeRaw,
     getDurationRaw,
+    playlistTracks,
+    setPlaylistTracks,
   };
 
   return (

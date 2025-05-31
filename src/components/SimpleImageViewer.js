@@ -5,7 +5,7 @@ import Thumbnails from 'yet-another-react-lightbox/plugins/thumbnails';
 import 'yet-another-react-lightbox/styles.css';
 import 'yet-another-react-lightbox/plugins/thumbnails.css';
 
-// Стили для свайпа и анимации
+
 const customStyles = `
   .yarl__container {
     transition: transform 0.3s ease, opacity 0.3s ease !important;
@@ -32,12 +32,12 @@ const SimpleImageViewer = ({ isOpen, onClose, images, initialIndex = 0 }) => {
   const containerRef = useRef(null);
   const scrollPosRef = useRef(0);
   
-  // Преобразуем входной параметр images в массив
+  
   const imageArray = Array.isArray(images) 
     ? images.filter(Boolean)
     : (typeof images === 'string' && images ? [images] : []);
   
-  // Преобразуем массив изображений в нужный формат
+  
   const slides = imageArray.map(image => {
     if (typeof image === 'string') {
       return { src: image, alt: 'Image' };
@@ -50,7 +50,7 @@ const SimpleImageViewer = ({ isOpen, onClose, images, initialIndex = 0 }) => {
     return null;
   }).filter(Boolean);
 
-  // Настройки для зумирования
+  
   const zoomConfig = {
     maxZoomPixelRatio: 3,
     zoomInMultiplier: 1.5,
@@ -63,7 +63,7 @@ const SimpleImageViewer = ({ isOpen, onClose, images, initialIndex = 0 }) => {
     scrollToZoom: true
   };
 
-  // Настройки для миниатюр
+  
   const thumbnailsConfig = {
     position: "bottom",
     width: 80,
@@ -75,32 +75,32 @@ const SimpleImageViewer = ({ isOpen, onClose, images, initialIndex = 0 }) => {
     showToggle: false
   };
   
-  // Функция закрытия с сохранением позиции скролла
+  
   const handleClose = () => {
-    // Сохраняем текущую позицию скролла
+    
     const currentPos = window.scrollY;
     
-    // Закрываем просмотрщик
+    
     onClose();
     
-    // Восстанавливаем позицию скролла
+    
     setTimeout(() => {
       window.scrollTo(0, currentPos);
     }, 50);
   };
   
-  // Добавляем стили и инициализируем обработчики свайпа
+  
   useEffect(() => {
     if (isOpen) {
-      // Сохраняем текущую позицию скролла
+      
       scrollPosRef.current = window.scrollY;
       
-      // Добавляем стили для свайпа
+      
       const styleElement = document.createElement('style');
       styleElement.innerHTML = customStyles;
       document.head.appendChild(styleElement);
       
-      // Находим контейнер для применения классов анимации
+      
       const findContainer = () => {
         const container = document.querySelector('.yarl__container');
         if (container) {
@@ -108,10 +108,10 @@ const SimpleImageViewer = ({ isOpen, onClose, images, initialIndex = 0 }) => {
         }
       };
       
-      // Даем время на рендер
+      
       setTimeout(findContainer, 100);
       
-      // Обработчики касания
+      
       const handleTouchStart = (e) => {
         touchStartRef.current = {
           y: e.touches[0].clientY,
@@ -129,13 +129,13 @@ const SimpleImageViewer = ({ isOpen, onClose, images, initialIndex = 0 }) => {
         
         touchMoveRef.current = { y: touchY, x: touchX };
         
-        // Проверяем зум. Получаем текущее значение зума от элемента
+        
         const zoomElement = document.querySelector('.yarl__slide_image');
         const isZoomed = zoomElement && 
           window.getComputedStyle(zoomElement).transform !== 'none' && 
           window.getComputedStyle(zoomElement).transform !== 'matrix(1, 0, 0, 1, 0, 0)';
         
-        // Если движение вниз и не в режиме зума
+        
         if (deltaY > 20 && Math.abs(deltaY) > Math.abs(deltaX) && !isZoomed) {
           setIsSwipingDown(true);
           
@@ -152,7 +152,7 @@ const SimpleImageViewer = ({ isOpen, onClose, images, initialIndex = 0 }) => {
         
         const deltaY = touchMoveRef.current.y - touchStartRef.current.y;
         
-        // Если достаточный свайп вниз
+        
         if (deltaY > 80) {
           if (containerRef.current) {
             containerRef.current.classList.add('swiping-close');
@@ -174,13 +174,13 @@ const SimpleImageViewer = ({ isOpen, onClose, images, initialIndex = 0 }) => {
         }
       };
       
-      // Добавляем обработчики
+      
       document.addEventListener('touchstart', handleTouchStart, { passive: false });
       document.addEventListener('touchmove', handleTouchMove, { passive: false });
       document.addEventListener('touchend', handleTouchEnd, { passive: false });
       
       return () => {
-        // Удаляем стили и обработчики
+        
         styleElement.remove();
         document.removeEventListener('touchstart', handleTouchStart);
         document.removeEventListener('touchmove', handleTouchMove);
@@ -262,7 +262,7 @@ const SimpleImageViewer = ({ isOpen, onClose, images, initialIndex = 0 }) => {
           alignItems: "center",
           justifyContent: "center"
         },
-        // Стилизуем кнопку закрытия
+        
         buttonClose: {
           background: "rgba(30, 30, 30, 0.8)",
           borderRadius: "50%",

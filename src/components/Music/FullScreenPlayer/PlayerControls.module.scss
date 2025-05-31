@@ -1,4 +1,5 @@
 @use 'sass:color';
+@use 'sass:math';
 
 $apple-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
 $apple-progress-height: 5px;
@@ -15,6 +16,7 @@ $apple-secondary-button-size: 44px;
   margin-top: auto;
   margin-bottom: 20px;
   animation: scaleIn 0.4s ease-out forwards;
+  font-family: $apple-font;
   
   @media (min-width: 600px) {
     margin-bottom: 30px;
@@ -36,9 +38,10 @@ $apple-secondary-button-size: 44px;
 
 /* Apple Music styled slider */
 .progressSlider {
-  color: #a02dff;
-  height: 4px;
+  color: #d0bcff;
+  height: $apple-progress-height;
   padding: 12px 0;
+  cursor: pointer;
 
   &:hover {
     .sliderThumb {
@@ -49,25 +52,36 @@ $apple-secondary-button-size: 44px;
 }
 
 .sliderTrack {
-  height: 4px;
-  border-radius: 2px;
+  height: $apple-progress-height;
+  border-radius: calc($apple-progress-height / 2);
 }
 
 .sliderRail {
-  height: 4px;
-  border-radius: 2px;
+  height: $apple-progress-height;
+  border-radius: calc($apple-progress-height / 2);
   opacity: 0.3;
-  background-color: #aaa;
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
 .sliderThumb {
-  width: 12px;
-  height: 12px;
-  margin-top: -4px;
-  margin-left: -6px;
+  width: 16px;
+  height: 16px;
+  margin-top: -5.5px;
+  margin-left: -8px;
   transition: all 0.2s ease;
   opacity: 0;
   transform: scale(0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  background-color: #fff;
+  top: 40% !important;
+  
+  &:hover {
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
+  }
+  
+  &:active {
+    transform: scale(1.1);
+  }
 }
 
 /* Time display */
@@ -75,8 +89,10 @@ $apple-secondary-button-size: 44px;
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #888;
-  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 6px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
 .currentTime, .duration {
@@ -96,28 +112,46 @@ $apple-secondary-button-size: 44px;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 16px 0;
+  margin: 20px 0;
 }
 
 .controlButton {
   transition: all 0.2s ease;
+  color: #fff !important;
+  opacity: 0.9;
+  
+  &:hover {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
 .secondaryButton {
-  margin: 0 8px;
+  margin: 0 16px;
+  padding: 8px;
+  color: rgba(255, 255, 255, 0.9) !important;
+  
+  svg {
+    font-size: 28px;
+  }
 }
 
 .primaryButton {
-  margin: 0 12px;
-  padding: 12px;
-  font-size: 32px;
+  margin: 0 20px;
+  padding: 8px;
+  
   svg {
-    font-size: 32px;
+    font-size: 70px;
   }
 }
 
 .active {
   opacity: 1;
+  color: #d0bcff !important;
 }
 
 /* Volume control and additional controls */
@@ -127,6 +161,7 @@ $apple-secondary-button-size: 44px;
   justify-content: space-between;
   width: 100%;
   padding: 0 10px;
+  margin-top: 12px;
 }
 
 .volumeControl {
@@ -137,23 +172,26 @@ $apple-secondary-button-size: 44px;
 }
 
 .volumeButton {
-  color: rgba(255, 255, 255, 0.8) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
   padding: 8px !important;
 }
 
 .volumeSlider {
   width: 100% !important;
   margin-left: 8px !important;
-  height: 4px !important;
-  color: rgba(255, 255, 255, 0.7) !important;
+  height: $apple-progress-height !important;
+  color: #d0bcff !important;
   
   .sliderTrack {
-    height: 4px !important;
+    height: $apple-progress-height !important;
+    border-radius: calc($apple-progress-height / 2);
   }
   
   .sliderRail {
-    height: 4px !important;
+    height: $apple-progress-height !important;
     opacity: 0.3 !important;
+    border-radius: calc($apple-progress-height / 2);
+    background-color: rgba(255, 255, 255, 0.5);
   }
   
   .sliderThumb {
@@ -161,8 +199,8 @@ $apple-secondary-button-size: 44px;
     height: 0 !important;
     
     &:hover, &.Mui-active {
-      width: 10px !important;
-      height: 10px !important;
+      width: 14px !important;
+      height: 14px !important;
     }
   }
   
@@ -170,8 +208,9 @@ $apple-secondary-button-size: 44px;
     .sliderThumb {
       transform: scale(1) !important;
       opacity: 1 !important;
-      width: 10px !important;
-      height: 10px !important;
+      width: 14px !important;
+      height: 14px !important;
+      background-color: #fff;
     }
   }
 }
@@ -183,7 +222,7 @@ $apple-secondary-button-size: 44px;
 }
 
 .likeButton {
-  color: rgba(255, 255, 255, 0.8) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
   transition: all 0.2s ease !important;
   
   &:hover {
@@ -193,6 +232,7 @@ $apple-secondary-button-size: 44px;
 
 .likedIcon {
   animation: likeAnimation 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.49) forwards !important;
+  color: #d0bcff !important;
 }
 
 @keyframes likeAnimation {

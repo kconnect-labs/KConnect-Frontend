@@ -92,6 +92,7 @@ import AudiotrackIcon from '@mui/icons-material/Audiotrack';
 import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';
 import QueueMusicIcon from '@mui/icons-material/QueueMusic';
 import AddIcon from '@mui/icons-material/Add';
+import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
 
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
@@ -292,6 +293,12 @@ const ModeratorPage = () => {
     loading: true
   });
   
+  const [issueMedalDialogOpen, setIssueMedalDialogOpen] = useState(false);
+  const [medalUser, setMedalUser] = useState(null);
+  const [availableMedals, setAvailableMedals] = useState([]);
+  const [loadingMedals, setLoadingMedals] = useState(false);
+  const [selectedMedal, setSelectedMedal] = useState('');
+  const [medalDescription, setMedalDescription] = useState('');
   
   useEffect(() => {
     checkModeratorStatus();
@@ -1784,6 +1791,18 @@ const ModeratorPage = () => {
                           <BlockIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
+                      
+                      {permissions.manage_bug_reports && (
+                        <Tooltip title="Выдать медаль">
+                          <IconButton 
+                            color="primary" 
+                            onClick={() => openIssueMedalDialog(user)}
+                            size="small"
+                          >
+                            <EmojiEventsOutlinedIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                     </Box>
                   </TableCell>
                 </TableRow>
@@ -3936,6 +3955,58 @@ const ModeratorPage = () => {
     } else {
 
       setSelectedTracks(searchableTracksList.map(track => track.id));
+    }
+  };
+
+  const openIssueMedalDialog = (user) => {
+    setMedalUser(user);
+    setSelectedMedal('skibiwin');
+    setMedalDescription('Повелитель Шкибиди');
+    setIssueMedalDialogOpen(true);
+    fetchAvailableMedals();
+  };
+
+  const fetchAvailableMedals = async () => {
+    try {
+      setLoadingMedals(true);
+      const response = await axios.get('/api/moderator/medals/available');
+      
+      if (response.data.success) {
+        setAvailableMedals(response.data.medals);
+      } else {
+        throw new Error(response.data.error || 'Failed to fetch available medals');
+      }
+    } catch (error) {
+      console.error('Error fetching available medals:', error);
+      showNotification('error', 'Не удалось загрузить список доступных медалей');
+    } finally {
+      setLoadingMedals(false);
+    }
+  };
+
+  const handleIssueMedal = async () => {
+    if (!medalUser || !selectedMedal) return;
+    
+    try {
+      setLoading(true);
+      
+      const response = await axios.post('/api/moderator/medals/issue', {
+        user_id: medalUser.id,
+        medal_name: selectedMedal,
+        description: medalDescription
+      });
+      
+      if (response.data.success) {
+        showNotification('success', `Медаль "${selectedMedal}" успешно выдана пользователю ${medalUser.username}`);
+        setIssueMedalDialogOpen(false);
+      } else {
+        throw new Error(response.data.error || 'Failed to issue medal');
+      }
+    } catch (error) {
+      console.error('Error issuing medal:', error);
+      showNotification('error', error.response?.data?.error || 'Не удалось выдать медаль');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -6116,6 +6187,147 @@ const ModeratorPage = () => {
             variant="contained"
           >
             Закрыть
+          </Button>
+        </DialogActions>
+      </StyledDialog>
+      
+      {/* Medal issuing dialog */}
+      <StyledDialog 
+        open={issueMedalDialogOpen} 
+        onClose={() => setIssueMedalDialogOpen(false)} 
+        maxWidth="sm"
+        fullWidth
+      >
+        <Box 
+          sx={{
+            position: 'relative',
+            overflow: 'hidden',
+            p: 2,
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+            backgroundColor: 'rgba(25, 118, 210, 0.15)'
+          }}
+        >
+          <Box 
+            sx={{ 
+              position: 'absolute',
+              top: -30,
+              right: -30,
+              width: 120,
+              height: 120,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(25, 118, 210, 0.2) 0%, rgba(25, 118, 210, 0) 70%)',
+              zIndex: 0
+            }} 
+          />
+          <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center' }}>
+            <EmojiEventsOutlinedIcon color="primary" sx={{ mr: 1.5, fontSize: 24 }} />
+            <Typography variant="h6" fontWeight="bold" color="primary.light">
+              Выдача медали
+            </Typography>
+          </Box>
+        </Box>
+        
+        <DialogContent sx={{ p: 3, pt: 2.5, bgcolor: 'transparent' }}>
+          <Box 
+            sx={{ 
+              position: 'relative',
+              p: 2.5,
+              borderRadius: 2,
+              backgroundColor: 'rgba(25,118,210,0.05)',
+              border: '1px solid rgba(25,118,210,0.2)',
+              mb: 2
+            }}
+          >
+            {medalUser && (
+              <Grid container spacing={2}>
+                <Grid item xs={12} display="flex" alignItems="center" gap={2} mb={2}>
+                  <Avatar 
+                    src={medalUser.photo ? `/static/uploads/avatar/${medalUser.id}/${medalUser.photo}` : undefined}
+                    alt={medalUser.name}
+                    sx={{ width: 60, height: 60, border: '2px solid rgba(25,118,210,0.3)' }}
+                  />
+                  <Box>
+                    <Typography variant="subtitle1" color="rgba(255,255,255,0.87)" fontWeight="bold">
+                      {medalUser.name}
+                    </Typography>
+                    <Typography variant="body2" color="rgba(255,255,255,0.6)">
+                      @{medalUser.username}
+                    </Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+            )}
+          </Box>
+          
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="subtitle1" sx={{ mb: 2 }}>
+              Медаль для выдачи
+            </Typography>
+            
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+              <Card sx={{ width: 200, textAlign: 'center', p: 2, backgroundColor: 'rgba(0,0,0,0.2)' }}>
+                <CardMedia
+                  component="img"
+                  height="120"
+                  image="/static/medals/skibiwin.svg"
+                  alt="Повелитель Шкибиди"
+                  sx={{ objectFit: 'contain', mb: 1 }}
+                />
+                <Typography variant="body1" fontWeight="bold">
+                  Повелитель Шкибиди
+                </Typography>
+              </Card>
+            </Box>
+            
+            <TextField
+              fullWidth
+              label="Описание медали"
+              value={medalDescription}
+              onChange={(e) => setMedalDescription(e.target.value)}
+              margin="normal"
+              variant="outlined"
+              multiline
+              rows={2}
+            />
+          </Box>
+        </DialogContent>
+        
+        <DialogActions sx={{ p: 2, px: 3, justifyContent: 'space-between', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+          <Button 
+            onClick={() => setIssueMedalDialogOpen(false)} 
+            variant="outlined"
+            color="inherit"
+            sx={{ 
+              borderRadius: 8,
+              px: 3,
+              borderColor: 'rgba(255,255,255,0.2)',
+              color: 'rgba(255,255,255,0.7)',
+              '&:hover': {
+                borderColor: 'rgba(255,255,255,0.4)',
+                background: 'rgba(255,255,255,0.05)'
+              }
+            }}
+          >
+            Отмена
+          </Button>
+          <Button 
+            onClick={handleIssueMedal} 
+            color="primary" 
+            variant="contained"
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={20} /> : <EmojiEventsOutlinedIcon />}
+            sx={{ 
+              borderRadius: 8,
+              px: 4,
+              py: 0.75,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
+              background: 'linear-gradient(45deg, #1976d2 30%, #42a5f5 90%)',
+              '&:hover': {
+                boxShadow: '0 6px 16px rgba(0, 0, 0, 0.5)',
+              }
+            }}
+          >
+            Выдать медаль
           </Button>
         </DialogActions>
       </StyledDialog>

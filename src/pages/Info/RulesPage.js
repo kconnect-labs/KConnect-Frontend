@@ -104,6 +104,43 @@ const RuleListItem = styled(ListItem)(({ theme }) => ({
   },
 }));
 
+const NumberedRuleItem = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'flex-start',
+  marginBottom: theme.spacing(2),
+  borderRadius: theme.spacing(1),
+  padding: theme.spacing(1),
+  '&:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+}));
+
+const RuleNumber = styled(Typography)(({ theme }) => ({
+  minWidth: '40px',
+  fontWeight: 'bold',
+  color: theme.palette.primary.main,
+  marginRight: theme.spacing(2),
+}));
+
+const SubRuleNumber = styled(Typography)(({ theme }) => ({
+  minWidth: '50px',
+  fontWeight: 'bold',
+  color: theme.palette.primary.main,
+  marginRight: theme.spacing(2),
+}));
+
+const SubRuleItem = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'flex-start',
+  marginLeft: theme.spacing(4),
+  marginBottom: theme.spacing(1),
+  borderRadius: theme.spacing(1),
+  padding: theme.spacing(0.5, 1),
+  '&:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+  },
+}));
+
 const RuleAccordion = styled(Accordion)(({ theme }) => ({
   backgroundColor: 'rgba(255, 255, 255, 0.03)',
   boxShadow: 'none',
@@ -493,47 +530,101 @@ const RulesPage = () => {
               </RuleCardHeader>
               
               <RuleCardContent>
-                <List>
-                  <RuleListItem>
-                    <ListItemIcon>
-                      <CheckCircleOutlineIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Уважение к другим" 
-                      secondary="Пожалуйста, воздерживайтесь от оскорблений, дискриминации, угроз или травли. Конструктивная критика и дискуссии приветствуются."
-                    />
-                  </RuleListItem>
-                  
-                  <RuleListItem>
-                    <ListItemIcon>
-                      <CheckCircleOutlineIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Законопослушность" 
-                      secondary="Не публикуйте контент, нарушающий законы вашей страны (призывы к насилию, экстремизм и т.д.)."
-                    />
-                  </RuleListItem>
-                  
-                  <RuleListItem>
-                    <ListItemIcon>
-                      <CheckCircleOutlineIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Безопасность" 
-                      secondary="Не распространяйте личные данные других людей без их согласия, не угрожайте и не принуждайте к действиям."
-                    />
-                  </RuleListItem>
-                  
-                  <RuleListItem>
-                    <ListItemIcon>
-                      <CheckCircleOutlineIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Конфиденциальность" 
-                      secondary="Запрещено взламывать аккаунты, распространять спам или вредоносные ссылки."
-                    />
-                  </RuleListItem>
-                </List>
+                <NumberedRuleItem>
+                  <RuleNumber>1.1</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Уважение к другим пользователям</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Общайтесь с уважением, воздерживайтесь от оскорблений, дискриминации, угроз или травли.
+                      Конструктивная критика и дискуссии приветствуются, но должны оставаться в рамках уважительного общения.
+                    </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>1.1.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Запрещены любые формы унижения достоинства, высказывания, направленные на создание конфликтных ситуаций.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>1.1.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Запрещено целенаправленное преследование пользователей на платформе с целью причинения морального вреда.
+                        </Typography>
+                      </SubRuleItem>
+                    </Box>
+                  </Box>
+                </NumberedRuleItem>
+                
+                <NumberedRuleItem>
+                  <RuleNumber>1.2</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Законопослушность</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Запрещен контент, нарушающий законодательство Российской Федерации или страны проживания пользователя, 
+                      включая, но не ограничиваясь: призывы к насилию, экстремизму, терроризму, наркотикам.
+                    </Typography>
+                  </Box>
+                </NumberedRuleItem>
+                
+                <NumberedRuleItem>
+                  <RuleNumber>1.3</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Безопасность и приватность</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Запрещено распространение личных данных других людей без их согласия (доксинг), угрозы или принуждения к действиям.
+                    </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>1.3.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Запрещено публиковать любые персональные данные без согласия их владельца: номера телефонов, адреса проживания, паспортные данные и т.д.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>1.3.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Запрещены угрозы физической расправы, нанесения ущерба имуществу или репутации.
+                        </Typography>
+                      </SubRuleItem>
+                    </Box>
+                  </Box>
+                </NumberedRuleItem>
+                
+                <NumberedRuleItem>
+                  <RuleNumber>1.4</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Конфиденциальность и безопасность аккаунтов</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Запрещены попытки взлома аккаунтов, распространение вредоносного ПО, спама или фишинговых ссылок. 
+                      Каждый пользователь несёт ответственность за безопасность своего аккаунта.
+                    </Typography>
+                  </Box>
+                </NumberedRuleItem>
+                
+                <NumberedRuleItem>
+                  <RuleNumber>1.5</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Интеллектуальная собственность</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Уважайте авторские права. При использовании чужих материалов указывайте источник.
+                      Запрещено распространение пиратского контента, нелегальных копий программного обеспечения.
+                    </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>1.5.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          При публикации чужого контента необходимо указывать автора или источник.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>1.5.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Запрещено выдавать чужие работы за свои или публиковать их без разрешения автора.
+                        </Typography>
+                      </SubRuleItem>
+                    </Box>
+                  </Box>
+                </NumberedRuleItem>
               </RuleCardContent>
             </RuleCard>
           </RuleSection>
@@ -553,92 +644,164 @@ const RulesPage = () => {
                   Администрация удалит ваш контент (посты, комментарии, фото, видео, аватар, username), если он содержит:
                 </Typography>
                 
-                <RuleAccordion>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <ReportProblemIcon color="warning" sx={{ mr: 1.5 }} />
-                      <AccordionTitle>Насилие и опасные действия</AccordionTitle>
+                <NumberedRuleItem>
+                  <RuleNumber>2.1</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Насилие и опасные действия</Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>2.1.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Реалистичные сцены насилия, жестокости, инструкции по причинению вреда себе или другим.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>2.1.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Пропаганда суицида, терроризма, экстремизма.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>2.1.3</SubRuleNumber>
+                        <Typography variant="body2">
+                          Видео, изображения или текстовые описания пыток, увечий, убийств.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>2.1.4</SubRuleNumber>
+                        <Typography variant="body2">
+                          Инструкции по изготовлению оружия, взрывчатых веществ или других опасных предметов.
+                        </Typography>
+                      </SubRuleItem>
                     </Box>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <List dense>
-                      <ListItem>
-                        <ListItemText 
-                          primary="Реалистичные сцены насилия, жестокости, инструкции по причинению вреда себе или другим."
-                        />
-                      </ListItem>
-                      <ListItem>
-                        <ListItemText 
-                          primary="Пропаганда суицида, терроризма, экстремизма."
-                        />
-                      </ListItem>
-                    </List>
-                  </AccordionDetails>
-                </RuleAccordion>
+                  </Box>
+                </NumberedRuleItem>
                 
-                <RuleAccordion>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <ReportProblemIcon color="warning" sx={{ mr: 1.5 }} />
-                      <AccordionTitle>Порнография и сексуализированный контент</AccordionTitle>
+                <NumberedRuleItem>
+                  <RuleNumber>2.2</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Порнография и сексуализированный контент</Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>2.2.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Изображения/видео сексуального характера с участием несовершеннолетних.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>2.2.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Порнографический контент, включая изображения и видео интимного характера без согласия участников.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>2.2.3</SubRuleNumber>
+                        <Typography variant="body2">
+                          Материалы, изображающие сексуальное насилие или нарушение сексуального согласия.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>2.2.4</SubRuleNumber>
+                        <Typography variant="body2">
+                          Излишняя сексуализация, не соответствующая общим стандартам платформы.
+                        </Typography>
+                      </SubRuleItem>
                     </Box>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <List dense>
-                      <ListItem>
-                        <ListItemText 
-                          primary="Изображения/видео сексуального характера с участием несовершеннолетних или без согласия участников."
-                        />
-                      </ListItem>
-                      <ListItem>
-                        <ListItemText 
-                          primary="Контент, эксплуатирующий сексуальность в агрессивной форме."
-                        />
-                      </ListItem>
-                    </List>
-                  </AccordionDetails>
-                </RuleAccordion>
+                  </Box>
+                </NumberedRuleItem>
                 
-                <RuleAccordion>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <ReportProblemIcon color="warning" sx={{ mr: 1.5 }} />
-                      <AccordionTitle>Мошенничество и спам</AccordionTitle>
+                <NumberedRuleItem>
+                  <RuleNumber>2.3</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Мошенничество и спам</Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>2.3.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Фишинговые ссылки, финансовые пирамиды, обманные схемы заработка.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>2.3.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Массовая рассылка рекламы, спам, создание ботов и фейковых аккаунтов для манипуляций.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>2.3.3</SubRuleNumber>
+                        <Typography variant="body2">
+                          Схемы мошенничества, обещающие быстрый или нереалистичный доход.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>2.3.4</SubRuleNumber>
+                        <Typography variant="body2">
+                          Нецелевая реклама, не относящаяся к тематике обсуждения или сообщества.
+                        </Typography>
+                      </SubRuleItem>
                     </Box>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <List dense>
-                      <ListItem>
-                        <ListItemText 
-                          primary="Фишинговые ссылки, финансовые пирамиды, обманные схемы."
-                        />
-                      </ListItem>
-                      <ListItem>
-                        <ListItemText 
-                          primary="Массовая рассылка рекламы, ботов, фейковых аккаунтов."
-                        />
-                      </ListItem>
-                    </List>
-                  </AccordionDetails>
-                </RuleAccordion>
+                  </Box>
+                </NumberedRuleItem>
                 
-                <RuleAccordion>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <ReportProblemIcon color="warning" sx={{ mr: 1.5 }} />
-                      <AccordionTitle>Дезинформация</AccordionTitle>
+                <NumberedRuleItem>
+                  <RuleNumber>2.4</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Дезинформация и ложные сведения</Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>2.4.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Заведомо ложные новости, направленные на введение в заблуждение (например, о выборах, здоровье, стихийных бедствиях).
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>2.4.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Манипулирование фактами, искажение информации для провокации паники или беспорядков.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>2.4.3</SubRuleNumber>
+                        <Typography variant="body2">
+                          Распространение опасных медицинских мифов, способных нанести вред здоровью людей.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>2.4.4</SubRuleNumber>
+                        <Typography variant="body2">
+                          Клевета, распространение заведомо ложных обвинений в адрес конкретных лиц или организаций.
+                        </Typography>
+                      </SubRuleItem>
                     </Box>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <List dense>
-                      <ListItem>
-                        <ListItemText 
-                          primary="Фейковые новости, вводящие в заблуждение (например, о выборах, здоровье, стихийных бедствиях)."
-                        />
-                      </ListItem>
-                    </List>
-                  </AccordionDetails>
-                </RuleAccordion>
+                  </Box>
+                </NumberedRuleItem>
+                
+                <NumberedRuleItem>
+                  <RuleNumber>2.5</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Контент, связанный с наркотиками</Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>2.5.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Продажа, покупка или передача наркотических веществ или препаратов.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>2.5.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Пропаганда употребления наркотиков, инструкции по их изготовлению или использованию.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>2.5.3</SubRuleNumber>
+                        <Typography variant="body2">
+                          Романтизация наркотической зависимости или наркотического образа жизни.
+                        </Typography>
+                      </SubRuleItem>
+                    </Box>
+                  </Box>
+                </NumberedRuleItem>
                 
                 <Fade in={true}>
                   <Box sx={{ 
@@ -686,38 +849,114 @@ const RulesPage = () => {
                   alignItems: 'center',
                   flexDirection: { xs: 'column', sm: 'row' }
                 }}>
-                  <Box>
-                    <List>
-                      <RuleListItem>
-                        <ListItemIcon>
-                          <CheckCircleOutlineIcon color="primary" />
-                        </ListItemIcon>
-                        <ListItemText 
-                          primary="Возрастное ограничение"
-                          secondary="Регистрация разрешена с 12 лет (или 16 лет, в зависимости от законодательства вашей страны)."
-                        />
-                      </RuleListItem>
-                      
-                      <RuleListItem>
-                        <ListItemIcon>
-                          <CheckCircleOutlineIcon color="primary" />
-                        </ListItemIcon>
-                        <ListItemText 
-                          primary="Фейковые аккаунты"
-                          secondary="Запрещено создавать аккаунты от имени других лиц или организаций."
-                        />
-                      </RuleListItem>
-                      
-                      <RuleListItem>
-                        <ListItemIcon>
-                          <CheckCircleOutlineIcon color="primary" />
-                        </ListItemIcon>
-                        <ListItemText 
-                          primary="Мини-игры и читерство"
-                          secondary="Запрещено использовать сторонние программы, скрипты или любые методы для обхода механик игры, искусственного повышения результатов или получения нечестного преимущества перед другими игроками."
-                        />
-                      </RuleListItem>
-                    </List>
+                  <Box sx={{ width: '100%' }}>
+                    <NumberedRuleItem>
+                      <RuleNumber>3.1</RuleNumber>
+                      <Box>
+                        <Typography variant="subtitle1" fontWeight="500">Возрастное ограничение</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Регистрация разрешена с 12 лет (или 16 лет, в зависимости от законодательства вашей страны).
+                        </Typography>
+                        <Box sx={{ mt: 1 }}>
+                          <SubRuleItem>
+                            <SubRuleNumber>3.1.1</SubRuleNumber>
+                            <Typography variant="body2">
+                              Пользователям младше 18 лет запрещен доступ к контенту с маркировкой 18+.
+                            </Typography>
+                          </SubRuleItem>
+                          <SubRuleItem>
+                            <SubRuleNumber>3.1.2</SubRuleNumber>
+                            <Typography variant="body2">
+                              При обнаружении аккаунта пользователя младше минимального возраста, аккаунт будет заблокирован до достижения пользователем соответствующего возраста.
+                            </Typography>
+                          </SubRuleItem>
+                        </Box>
+                      </Box>
+                    </NumberedRuleItem>
+                    
+                    <NumberedRuleItem>
+                      <RuleNumber>3.2</RuleNumber>
+                      <Box>
+                        <Typography variant="subtitle1" fontWeight="500">Фейковые аккаунты и имперсонация</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Запрещено создавать аккаунты от имени других лиц или организаций.
+                        </Typography>
+                        <Box sx={{ mt: 1 }}>
+                          <SubRuleItem>
+                            <SubRuleNumber>3.2.1</SubRuleNumber>
+                            <Typography variant="body2">
+                              Запрещено выдавать себя за публичных лиц, знаменитостей, брендов или организаций.
+                            </Typography>
+                          </SubRuleItem>
+                          <SubRuleItem>
+                            <SubRuleNumber>3.2.2</SubRuleNumber>
+                            <Typography variant="body2">
+                              Запрещено использовать чужие фотографии в качестве аватара без разрешения.
+                            </Typography>
+                          </SubRuleItem>
+                          <SubRuleItem>
+                            <SubRuleNumber>3.2.3</SubRuleNumber>
+                            <Typography variant="body2">
+                              Запрещено создание аккаунтов для подмены личности и введения других пользователей в заблуждение.
+                            </Typography>
+                          </SubRuleItem>
+                        </Box>
+                      </Box>
+                    </NumberedRuleItem>
+                    
+                    <NumberedRuleItem>
+                      <RuleNumber>3.3</RuleNumber>
+                      <Box>
+                        <Typography variant="subtitle1" fontWeight="500">Мини-игры и честная игра</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Запрещено использовать сторонние программы, скрипты или любые методы для обхода механик игры, искусственного повышения результатов или получения нечестного преимущества перед другими игроками.
+                        </Typography>
+                        <Box sx={{ mt: 1 }}>
+                          <SubRuleItem>
+                            <SubRuleNumber>3.3.1</SubRuleNumber>
+                            <Typography variant="body2">
+                              Запрещено использование автокликеров, ботов и других автоматизированных средств.
+                            </Typography>
+                          </SubRuleItem>
+                          <SubRuleItem>
+                            <SubRuleNumber>3.3.2</SubRuleNumber>
+                            <Typography variant="body2">
+                              Запрещено использование уязвимостей и багов в мини-играх. При обнаружении таковых необходимо сообщить администрации.
+                            </Typography>
+                          </SubRuleItem>
+                          <SubRuleItem>
+                            <SubRuleNumber>3.3.3</SubRuleNumber>
+                            <Typography variant="body2">
+                              Запрещена передача аккаунтов другим лицам для накрутки результатов или создание множественных аккаунтов для этой цели.
+                            </Typography>
+                          </SubRuleItem>
+                        </Box>
+                      </Box>
+                    </NumberedRuleItem>
+                    
+                    <NumberedRuleItem>
+                      <RuleNumber>3.4</RuleNumber>
+                      <Box>
+                        <Typography variant="subtitle1" fontWeight="500">Многоаккаунтность</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Запрещено создавать множество аккаунтов в обход ограничений или для манипуляций системой.
+                        </Typography>
+                        <Box sx={{ mt: 1 }}>
+                          <SubRuleItem>
+                            <SubRuleNumber>3.4.1</SubRuleNumber>
+                            <Typography variant="body2">
+                              Запрещено использовать дополнительные аккаунты для обхода блокировок или ограничений.
+                            </Typography>
+                          </SubRuleItem>
+                          <SubRuleItem>
+                            <SubRuleNumber>3.4.2</SubRuleNumber>
+                            <Typography variant="body2">
+                              Запрещено использование множественных аккаунтов для искусственного увеличения рейтингов, голосований или статистики.
+                            </Typography>
+                          </SubRuleItem>
+                        </Box>
+                      </Box>
+                    </NumberedRuleItem>
                   </Box>
                   
                   <Fade in={true}>
@@ -764,59 +1003,122 @@ const RulesPage = () => {
               </RuleCardHeader>
               
               <RuleCardContent>
-                <List>
-                  <RuleListItem>
-                    <ListItemIcon>
-                      <CheckCircleOutlineIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Модерация" 
-                      secondary="Контент проверяется вручную. Администрация оставляет за собой право удалять материалы, нарушающие правила сообщества."
-                    />
-                  </RuleListItem>
-                  
-                  <RuleListItem>
-                    <ListItemIcon>
-                      <CheckCircleOutlineIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Санкции за нарушения"
-                    />
-                  </RuleListItem>
-                  <Box sx={{ pl: 7, mt: -1 }}>
-                    <List dense>
-                      <ListItem>
-                        <ListItemText secondary="Первое нарушение: предупреждение." />
-                      </ListItem>
-                      <ListItem>
-                        <ListItemText secondary="Повторное: временная блокировка аккаунта." />
-                      </ListItem>
-                      <ListItem>
-                        <ListItemText secondary="Систематические нарушения: пожизненный бан." />
-                      </ListItem>
-                    </List>
+                <NumberedRuleItem>
+                  <RuleNumber>4.1</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Модерация контента</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Контент проверяется вручную. Администрация оставляет за собой право удалять материалы, нарушающие правила сообщества без предварительного уведомления.
+                    </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>4.1.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Администрация может удалять контент, не соответствующий правилам, без предварительного уведомления пользователя.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>4.1.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          При многократных нарушениях на контент может быть наложено требование предварительной модерации перед публикацией.
+                        </Typography>
+                      </SubRuleItem>
+                    </Box>
                   </Box>
-                  
-                  <RuleListItem>
-                    <ListItemIcon>
-                      <CheckCircleOutlineIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Баланс баллов" 
-                      secondary="Ваш баланс баллов может изменяться (уменьшаться или увеличиваться) в зависимости от ситуации. Если администрация заметит накрутку или странное поведение в переводах, баллы будут аннулированы."
-                    />
-                  </RuleListItem>
-                  
-                  <RuleListItem>
-                    <ListItemIcon>
-                      <CheckCircleOutlineIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Обжалование" 
-                      secondary="Если вы не согласны с удалением контента, напишите в поддержку в течение 7 дней."
-                    />
-                  </RuleListItem>
-                </List>
+                </NumberedRuleItem>
+                
+                <NumberedRuleItem>
+                  <RuleNumber>4.2</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Санкции за нарушения</Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>4.2.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Первое нарушение: предупреждение с разъяснением нарушенного правила.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>4.2.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Повторное нарушение: временная блокировка аккаунта на срок от 24 часов до 30 дней в зависимости от тяжести нарушения.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>4.2.3</SubRuleNumber>
+                        <Typography variant="body2">
+                          Третье нарушение или серьезное нарушение: более длительная блокировка (от 30 до 90 дней) или ограничение возможностей аккаунта.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>4.2.4</SubRuleNumber>
+                        <Typography variant="body2">
+                          Систематические или особо тяжкие нарушения: пожизненная блокировка аккаунта без возможности восстановления.
+                        </Typography>
+                      </SubRuleItem>
+                    </Box>
+                  </Box>
+                </NumberedRuleItem>
+                
+                <NumberedRuleItem>
+                  <RuleNumber>4.3</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Система баллов и экономика</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Ваш баланс баллов может изменяться (уменьшаться или увеличиваться) в зависимости от ситуации. Администрация отслеживает подозрительную активность.
+                    </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>4.3.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Запрещена искусственная накрутка баллов с использованием ботов, скриптов или мультиаккаунтов.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>4.3.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Если администрация выявит накрутку или странное поведение в переводах, баллы будут аннулированы, а аккаунт может быть заблокирован.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>4.3.3</SubRuleNumber>
+                        <Typography variant="body2">
+                          Администрация оставляет за собой право корректировать баланс пользователя в случае технических сбоев или нарушений.
+                        </Typography>
+                      </SubRuleItem>
+                    </Box>
+                  </Box>
+                </NumberedRuleItem>
+                
+                <NumberedRuleItem>
+                  <RuleNumber>4.4</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Обжалование решений</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Если вы не согласны с удалением контента или блокировкой, напишите в поддержку в течение 7 дней.
+                    </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>4.4.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Обращение должно содержать чёткое объяснение вашей позиции и аргументы в пользу отмены решения модератора.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>4.4.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Все апелляции рассматриваются в индивидуальном порядке. Администрация оставляет за собой право отказать в восстановлении контента или разблокировке аккаунта.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>4.4.3</SubRuleNumber>
+                        <Typography variant="body2">
+                          По истечении 7 дней решение модерации считается финальным и не подлежит пересмотру.
+                        </Typography>
+                      </SubRuleItem>
+                    </Box>
+                  </Box>
+                </NumberedRuleItem>
               </RuleCardContent>
             </RuleCard>
           </RuleSection>
@@ -832,27 +1134,77 @@ const RulesPage = () => {
               </RuleCardHeader>
               
               <RuleCardContent>
-                <List>
-                  <RuleListItem>
-                    <ListItemIcon>
-                      <CheckCircleOutlineIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Ответственность за контент" 
-                      secondary="Вы несёте ответственность за весь контент, который публикуете, комментируете, лайкаете, репостите."
-                    />
-                  </RuleListItem>
-                  
-                  <RuleListItem>
-                    <ListItemIcon>
-                      <CheckCircleOutlineIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Сообщения о нарушениях" 
-                      secondary="Сообщайте о нарушениях, чтобы помочь нам улучшить платформу."
-                    />
-                  </RuleListItem>
-                </List>
+                <NumberedRuleItem>
+                  <RuleNumber>5.1</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Ответственность за контент</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Вы несёте ответственность за весь контент, который публикуете, комментируете, лайкаете, репостите.
+                    </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>5.1.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Пользователь несет полную ответственность за последствия публикации незаконного или неприемлемого контента.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>5.1.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Репост, лайк или положительный комментарий контента, нарушающего правила, также может расцениваться как нарушение.
+                        </Typography>
+                      </SubRuleItem>
+                    </Box>
+                  </Box>
+                </NumberedRuleItem>
+                
+                <NumberedRuleItem>
+                  <RuleNumber>5.2</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Сообщения о нарушениях</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Сообщайте о нарушениях, чтобы помочь нам улучшить платформу и обеспечить комфортную среду для всех пользователей.
+                    </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>5.2.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          При обнаружении контента, нарушающего правила, используйте функцию "Пожаловаться" для информирования модерации.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>5.2.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Ложные жалобы и массовые необоснованные жалобы могут привести к ограничению возможности подачи жалоб в будущем.
+                        </Typography>
+                      </SubRuleItem>
+                    </Box>
+                  </Box>
+                </NumberedRuleItem>
+                
+                <NumberedRuleItem>
+                  <RuleNumber>5.3</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Сохранение доступа к аккаунту</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Вы несёте ответственность за безопасность своего аккаунта и его доступность.
+                    </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>5.3.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Используйте надежный пароль
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>5.3.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Не передавайте данные для входа в аккаунт третьим лицам. Действия, совершенные с вашего аккаунта, считаются совершенными вами.
+                        </Typography>
+                      </SubRuleItem>
+                    </Box>
+                  </Box>
+                </NumberedRuleItem>
               </RuleCardContent>
             </RuleCard>
           </RuleSection>
@@ -873,88 +1225,111 @@ const RulesPage = () => {
                   их ценность и уникальность, пожалуйста, соблюдайте следующие правила:
                 </Typography>
                 
-                <List>
-                  <RuleListItem>
-                    <ListItemIcon>
-                      <CheckCircleOutlineIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Оригинальность контента" 
-                      secondary="Все бейджики должны быть оригинальными работами. Запрещено копирование, имитация или незначительная модификация существующих бейджиков."
-                    />
-                  </RuleListItem>
-                  
-                  <RuleListItem>
-                    <ListItemIcon>
-                      <CheckCircleOutlineIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Качество изображения" 
-                      secondary="Бейджики должны быть высокого качества, с четким изображением и хорошим разрешением. Размытые, пиксельные или визуально некачественные бейджики будут отклонены."
-                    />
-                  </RuleListItem>
-                  
-                  <RuleListItem>
-                    <ListItemIcon>
-                      <CheckCircleOutlineIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Запрет на дублирование" 
-                      secondary="Нельзя создавать множество похожих бейджиков с незначительными отличиями. Каждый бейджик должен иметь уникальную концепцию и дизайн."
-                    />
-                  </RuleListItem>
-                </List>
-                
-                <RuleAccordion>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <ReportProblemIcon color="warning" sx={{ mr: 1.5 }} />
-                      <AccordionTitle>Нарушения авторских прав</AccordionTitle>
+                <NumberedRuleItem>
+                  <RuleNumber>6.1</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Оригинальность контента</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Все бейджики должны быть оригинальными работами. Запрещено копирование, имитация или незначительная модификация существующих бейджиков.
+                    </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>6.1.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Каждый бейджик должен представлять собой уникальную авторскую работу.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>6.1.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Запрещено копирование существующих бейджиков с незначительными изменениями (цвет, размер и т.д.).
+                        </Typography>
+                      </SubRuleItem>
                     </Box>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <List dense>
-                      <ListItem>
-                        <ListItemText 
-                          primary="Запрещено использовать в бейджиках материалы, защищенные авторским правом, без соответствующего разрешения."
-                        />
-                      </ListItem>
-                      <ListItem>
-                        <ListItemText 
-                          primary="Бейджики не должны нарушать права интеллектуальной собственности третьих лиц, включая логотипы и товарные знаки без должной авторизации."
-                        />
-                      </ListItem>
-                    </List>
-                  </AccordionDetails>
-                </RuleAccordion>
+                  </Box>
+                </NumberedRuleItem>
                 
-                <RuleAccordion>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <ReportProblemIcon color="warning" sx={{ mr: 1.5 }} />
-                      <AccordionTitle>Модерация бейджиков</AccordionTitle>
+                <NumberedRuleItem>
+                  <RuleNumber>6.2</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Качество изображения</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Бейджики должны быть высокого качества, с четким изображением и хорошим разрешением. Размытые, пиксельные или визуально некачественные бейджики будут отклонены.
+                    </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>6.2.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Используйте только форматы SVG для создания бейджиков для обеспечения высокого качества при любом размере отображения.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>6.2.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Изображение должно быть четким, с хорошо различимыми деталями и без артефактов сжатия.
+                        </Typography>
+                      </SubRuleItem>
                     </Box>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <List dense>
-                      <ListItem>
-                        <ListItemText 
-                          primary="Все бейджики проходят модерацию перед публикацией."
-                        />
-                      </ListItem>
-                      <ListItem>
-                        <ListItemText 
-                          primary="Администрация оставляет за собой право отклонять бейджики, не соответствующие стандартам качества или нарушающие правила платформы."
-                        />
-                      </ListItem>
-                      <ListItem>
-                        <ListItemText 
-                          primary="В случае обнаружения нарушений после публикации, бейджик может быть удален без предупреждения."
-                        />
-                      </ListItem>
-                    </List>
-                  </AccordionDetails>
-                </RuleAccordion>
+                  </Box>
+                </NumberedRuleItem>
+                
+                <NumberedRuleItem>
+                  <RuleNumber>6.3</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Запрет на дублирование</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Нельзя создавать множество похожих бейджиков с незначительными отличиями. Каждый бейджик должен иметь уникальную концепцию и дизайн.
+                    </Typography>
+                  </Box>
+                </NumberedRuleItem>
+                
+                <NumberedRuleItem>
+                  <RuleNumber>6.4</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Нарушения авторских прав</Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>6.4.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Запрещено использовать в бейджиках материалы, защищенные авторским правом, без соответствующего разрешения.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>6.4.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Бейджики не должны нарушать права интеллектуальной собственности третьих лиц, включая логотипы и товарные знаки без должной авторизации.
+                        </Typography>
+                      </SubRuleItem>
+                    </Box>
+                  </Box>
+                </NumberedRuleItem>
+                
+                <NumberedRuleItem>
+                  <RuleNumber>6.5</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Модерация бейджиков</Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>6.5.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Все бейджики проходят модерацию перед публикацией.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>6.5.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Администрация оставляет за собой право отклонять бейджики, не соответствующие стандартам качества или нарушающие правила платформы.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>6.5.3</SubRuleNumber>
+                        <Typography variant="body2">
+                          В случае обнаружения нарушений после публикации, бейджик может быть удален без предупреждения.
+                        </Typography>
+                      </SubRuleItem>
+                    </Box>
+                  </Box>
+                </NumberedRuleItem>
                 
                 <Fade in={true}>
                   <Box sx={{ 
@@ -1002,98 +1377,137 @@ const RulesPage = () => {
                   однако следующие правила должны соблюдаться всеми каналами на платформе:
                 </Typography>
                 
-                <List>
-                  <RuleListItem>
-                    <ListItemIcon>
-                      <CheckCircleOutlineIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Запрет на шокирующий контент" 
-                      secondary="Запрещено публиковать изображения или видео с кровью, насилием, увечьями и другими шокирующими материалами."
-                    />
-                  </RuleListItem>
-                  
-                  <RuleListItem>
-                    <ListItemIcon>
-                      <CheckCircleOutlineIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Ограничение экстремального контента" 
-                      secondary="Контент, который может вызвать сильную негативную реакцию или психологический дискомфорт у пользователей (травмирующие аудио, видео и изображения), запрещен."
-                    />
-                  </RuleListItem>
-                  
-                  <RuleListItem>
-                    <ListItemIcon>
-                      <CheckCircleOutlineIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Свобода творчества" 
-                      secondary="За исключением указанных выше ограничений, каналы имеют свободу публиковать разнообразный контент, включая развлекательный, образовательный, дискуссионный и творческий материал."
-                    />
-                  </RuleListItem>
-                </List>
-                
-                <RuleAccordion>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <ReportProblemIcon color="warning" sx={{ mr: 1.5 }} />
-                      <AccordionTitle>Контентные ограничения</AccordionTitle>
+                <NumberedRuleItem>
+                  <RuleNumber>7.1</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Запрет на шокирующий контент</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Запрещено публиковать изображения или видео с кровью, насилием, увечьями и другими шокирующими материалами.
+                    </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>7.1.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Запрещены материалы, демонстрирующие реальное насилие, издевательства, травмы и раны.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>7.1.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Запрещены видеоролики и изображения казней, убийств, пыток и других аналогичных действий.
+                        </Typography>
+                      </SubRuleItem>
                     </Box>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <List dense>
-                      <ListItem>
-                        <ListItemText 
-                          primary="Контент, пропагандирующий опасные действия или самоповреждение."
-                        />
-                      </ListItem>
-                      <ListItem>
-                        <ListItemText 
-                          primary="Контент, демонстрирующий жестокое обращение с людьми или животными."
-                        />
-                      </ListItem>
-                      <ListItem>
-                        <ListItemText 
-                          primary="Экстремистский контент или контент, разжигающий ненависть по признаку расы, национальности, религии и т.д."
-                        />
-                      </ListItem>
-                      <ListItem>
-                        <ListItemText 
-                          primary="Контент, нарушающий законодательство."
-                        />
-                      </ListItem>
-                    </List>
-                  </AccordionDetails>
-                </RuleAccordion>
+                  </Box>
+                </NumberedRuleItem>
                 
-                <RuleAccordion>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <ReportProblemIcon color="warning" sx={{ mr: 1.5 }} />
-                      <AccordionTitle>Модерация каналов</AccordionTitle>
+                <NumberedRuleItem>
+                  <RuleNumber>7.2</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Ограничение экстремального контента</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Контент, который может вызвать сильную негативную реакцию или психологический дискомфорт у пользователей (травмирующие аудио, видео и изображения), запрещен.
+                    </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>7.2.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Запрещен контент с неожиданными громкими звуками, мигающими изображениями или другими эффектами, способными нанести вред или причинить дискомфорт.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>7.2.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Запрещены материалы, которые могут спровоцировать психологические расстройства или паническое состояние.
+                        </Typography>
+                      </SubRuleItem>
                     </Box>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <List dense>
-                      <ListItem>
-                        <ListItemText 
-                          primary="Каналы несут полную ответственность за весь публикуемый контент."
-                        />
-                      </ListItem>
-                      <ListItem>
-                        <ListItemText 
-                          primary="При первом нарушении канал получает предупреждение, при повторных нарушениях может быть временно или постоянно заблокирован."
-                        />
-                      </ListItem>
-                      <ListItem>
-                        <ListItemText 
-                          primary="Администрация имеет право без предупреждения удалять контент, нарушающий правила."
-                        />
-                      </ListItem>
-                    </List>
-                  </AccordionDetails>
-                </RuleAccordion>
+                  </Box>
+                </NumberedRuleItem>
+                
+                <NumberedRuleItem>
+                  <RuleNumber>7.3</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Свобода творчества</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      За исключением указанных выше ограничений, каналы имеют свободу публиковать разнообразный контент, включая развлекательный, образовательный, дискуссионный и творческий материал.
+                    </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>7.3.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Каналы могут самостоятельно определять тематическую направленность и стиль своего контента.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>7.3.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Поощряется оригинальность и авторский подход к созданию материалов, соблюдающих общие правила платформы.
+                        </Typography>
+                      </SubRuleItem>
+                    </Box>
+                  </Box>
+                </NumberedRuleItem>
+                
+                <NumberedRuleItem>
+                  <RuleNumber>7.4</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Контентные ограничения</Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>7.4.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Контент, пропагандирующий опасные действия или самоповреждение.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>7.4.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          Контент, демонстрирующий жестокое обращение с людьми или животными.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>7.4.3</SubRuleNumber>
+                        <Typography variant="body2">
+                          Экстремистский контент или контент, разжигающий ненависть по признаку расы, национальности, религии и т.д.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>7.4.4</SubRuleNumber>
+                        <Typography variant="body2">
+                          Контент, нарушающий законодательство.
+                        </Typography>
+                      </SubRuleItem>
+                    </Box>
+                  </Box>
+                </NumberedRuleItem>
+                
+                <NumberedRuleItem>
+                  <RuleNumber>7.5</RuleNumber>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="500">Модерация каналов</Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <SubRuleItem>
+                        <SubRuleNumber>7.5.1</SubRuleNumber>
+                        <Typography variant="body2">
+                          Каналы несут полную ответственность за весь публикуемый контент.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>7.5.2</SubRuleNumber>
+                        <Typography variant="body2">
+                          При первом нарушении канал получает предупреждение, при повторных нарушениях может быть временно или постоянно заблокирован.
+                        </Typography>
+                      </SubRuleItem>
+                      <SubRuleItem>
+                        <SubRuleNumber>7.5.3</SubRuleNumber>
+                        <Typography variant="body2">
+                          Администрация имеет право без предупреждения удалять контент, нарушающий правила.
+                        </Typography>
+                      </SubRuleItem>
+                    </Box>
+                  </Box>
+                </NumberedRuleItem>
                 
                 <Fade in={true}>
                   <Box sx={{ 
@@ -1160,7 +1574,7 @@ const RulesPage = () => {
                   </Typography>
                   
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                    Последнее обновление: 24 Апреля 2025
+                    Последнее обновление: 24 Мая 2025
                   </Typography>
                 </RuleCardContent>
               </RuleCard>

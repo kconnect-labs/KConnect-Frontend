@@ -95,6 +95,14 @@ const SidebarNavigation = memo(({
       />
       
       <NavButton
+        text="Мессенджер"
+        icon={<Icon icon={chatIcon} width="20" height="20" />}
+        path="/messenger"
+        active={isActive('/messenger')}
+        themeColor={primaryColor}
+      />
+      
+      <NavButton
         text="Музыка"
         icon={icons.music}
         path="/music"

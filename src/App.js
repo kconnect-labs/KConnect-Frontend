@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useContext, lazy, Suspense, useTransition, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useContext, lazy, Suspense, useTransition, useRef, useCallback } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -15,8 +15,8 @@ import { ErrorBoundary } from 'react-error-boundary';
 import ChannelsPage from './pages/Main/ChannelsPage';
 import MusicPlayerCore from './components/MusicPlayerCore';
 import { setSessionContext } from './services/ProfileService';
+import SkibidiAttack from './components/SkibidiAttack';
 
-// Create a new context for session management
 export const SessionContext = React.createContext({
   sessionActive: true,
   sessionExpired: false,
@@ -53,13 +53,14 @@ const RequireAuth = ({ children }) => {
 
 const Login = lazy(() => import('./pages/Auth/Login'));
 const Register = lazy(() => import('./pages/Auth/Register'));
+const ForgotPassword = lazy(() => import('./pages/Auth/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/Auth/ResetPassword'));
 const RegisterProfile = lazy(() => import('./pages/Auth/RegisterProfile'));
 const EmailConfirmation = lazy(() => import('./pages/Auth/EmailConfirmation'));
 const ElementAuth = lazy(() => import('./pages/Auth/ElementAuth'));
-
-
 const MainLayout = lazy(() => import('./components/Layout/MainLayout'));
 const ProfilePage = lazy(() => import('./pages/User/ProfilePage'));
+const ProfileV2 = lazy(() => import('./pages/User/ProfileV2'));
 const MainPage = lazy(() => import('./pages/Main/MainPage'));
 const PostDetailPage = lazy(() => import('./pages/Main/PostDetailPage'));
 const SettingsPage = lazy(() => import('./pages/User/SettingsPage'));
@@ -67,7 +68,7 @@ const NotificationsPage = lazy(() => import('./pages/Info/NotificationsPage'));
 const SearchPage = lazy(() => import('./pages/Main/SearchPage'));
 const MusicPage = lazy(() => import('./pages/Main/MusicPage'));
 const ArtistPage = lazy(() => import('./pages/Main/ArtistPage'));
-// const MessengerPage = lazy(() => import('./pages/Messenger/MessengerPage'));
+const MessengerPage = lazy(() => import('./pages/Messenger/MessengerPage'));
 const SubscriptionsPage = lazy(() => import('./pages/Economic/SubscriptionsPage'));
 const BugReportPage = lazy(() => import('./pages/BugPages/BugReportPage'));
 const LeaderboardPage = lazy(() => import('./pages/Main/LeaderboardPage'));
@@ -79,7 +80,6 @@ const NotFound = lazy(() => import('./pages/Info/NotFound'));
 const AdminPage = lazy(() => import('./pages/Admin/AdminPage'));
 const ModeratorPage = lazy(() => import('./pages/Admin/ModeratorPage'));
 const UpdatesPage = lazy(() => import('./pages/Main/UpdatesPage'));
-
 const SharePreviewTest = lazy(() => import('./components/SharePreviewTest'));
 const BadgeShopPage = lazy(() => import('./pages/Economic/BadgeShopPage'));
 const BalancePage = lazy(() => import('./pages/Economic/BalancePage'));
@@ -87,7 +87,7 @@ const UsernameAuctionPage = lazy(() => import('./pages/Economic/UsernameAuctionP
 const EconomicsPage = lazy(() => import('./pages/Economic/EconomicsPage'));
 const SimpleApiDocsPage = lazy(() => import('./pages/Info/SimpleApiDocsPage'));
 const SubPlanes = lazy(() => import('./pages/Economic/SubPlanes'));
-
+const TestNotifications = lazy(() => import('./components/TestNotifications'));
 const MiniGamesPage = lazy(() => import('./pages/MiniGames/MiniGamesPage'));
 const CupsGamePage = lazy(() => import('./pages/MiniGames/CupsGamePage'));
 const LuckyNumberGame = lazy(() => import('./pages/MiniGames/LuckyNumberGame'));
@@ -187,7 +187,6 @@ const isAboutSubdomain = () => {
   return hostname === 'about.k-connect.ru';
 };
 
-// Функция для проверки поддомена share
 const isShareSubdomain = () => {
   const hostname = window.location.hostname;
   return hostname === 'share.k-connect.ru';
@@ -241,9 +240,20 @@ const AppRoutes = () => {
   
   useEffect(() => {
     
-    const isAuthPage = ['/login', '/register', '/register/profile', '/confirm-email', '/auth_elem', '/about'].some(
+    
+    const isResetPasswordWithToken = location.pathname === '/reset-password' && 
+                                   (location.search.includes('token=') || 
+                                    window.location.hash.includes('/reset-password?token='));
+    
+    const isAuthPage = ['/login', '/register', '/register/profile', '/confirm-email', '/auth_elem', '/about', '/forgot-password'].some(
       path => location.pathname.startsWith(path)
-    );
+    ) || location.pathname.startsWith('/reset-password');
+    
+    
+    console.log('Current path:', location.pathname, 
+                'Reset password with token:', isResetPasswordWithToken,
+                'Search params:', location.search,
+                'Hash:', window.location.hash);
     
     const hasSavedLoginError = !!localStorage.getItem('login_error');
     const authSuccessFlag = localStorage.getItem('auth_success') === 'true';
@@ -259,7 +269,7 @@ const AppRoutes = () => {
       return;
     }
     
-    if (!isAuthPage && !error && !hasSavedLoginError) {
+    if (!isAuthPage && !isResetPasswordWithToken && !error && !hasSavedLoginError) {
       console.log('Проверка авторизации при загрузке страницы...');
       const initAuth = async () => {
         
@@ -269,40 +279,41 @@ const AppRoutes = () => {
       };
       
       initAuth();
-    } else if (isAuthPage) {
-      console.log('Пропускаем проверку авторизации на странице авторизации:', location.pathname);
+    } else if (isAuthPage || isResetPasswordWithToken) {
+      console.log('Пропускаем проверку авторизации на странице авторизации:', location.pathname, isResetPasswordWithToken ? '(сброс пароля с токеном)' : '');
     } else if (error) {
       console.log('Пропускаем проверку авторизации из-за наличия ошибки:', error);
     } else if (hasSavedLoginError) {
       console.log('Пропускаем проверку авторизации из-за наличия сохраненной ошибки входа');
     }
     
-  }, [location.pathname]); 
+  }, [location.pathname, location.search, window.location.hash]); 
   
   
   
   const currentPath = location.pathname;
   const isLoginPage = currentPath === '/login';
   const isRegisterPage = currentPath === '/register';
+  const isPasswordRecoveryPage = currentPath === '/forgot-password' || currentPath === '/reset-password';
   const isElementAuthPage = currentPath.startsWith('/auth_elem') || currentPath === '/element-auth';
   
   
   
-  if (isLoginPage || isRegisterPage) {
+  if (isLoginPage || isRegisterPage || isPasswordRecoveryPage) {
     return (
       <Box sx={{ minHeight: '100vh', background: theme.palette.background.default, display: 'flex', flexDirection: 'column' }}>
         <Suspense fallback={<SuspenseFallback />}>
           <Routes location={location}>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register setUser={setUser} />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </Suspense>
       </Box>
     );
   }
-  
-  
   if (isElementAuthPage) {
     return (
       <Box sx={{ minHeight: '100vh', background: theme.palette.background.default, display: 'flex', flexDirection: 'column' }}>
@@ -326,21 +337,16 @@ const AppRoutes = () => {
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/terms-of-service" element={<TermsOfServicePage />} />
           <Route path="/about" element={<AboutPage />} />
-          
-          
           <Route path="/register/profile" element={<RegisterProfile setUser={setUser} />} />
           <Route path="/register/channel" element={<RegisterChannel />} />
-          <Route path="/confirm-email/:token" element={<EmailConfirmation />} />
-          
-          
+          <Route path="/confirm-email/:token" element={<EmailConfirmation />} />                    
           <Route path="/" element={isAuthenticated ? <MainPage /> : <Navigate to="/login" replace />} />
           <Route path="/feed" element={<Navigate to="/" replace />} />
-          <Route path="/main" element={<Navigate to="/" replace />} />
-          
-          
+          <Route path="/main" element={<Navigate to="/" replace />} />                  
           <Route path="/post/:postId" element={<PostDetailPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/:username" element={<ProfilePage />} />
+          <Route path="/pv2/:username" element={<ProfileV2 />} />
           <Route path="/profile/:username/followers" element={isAuthenticated ? <SubscriptionsPage tabIndex={0} /> : <Navigate to="/login" replace />} />
           <Route path="/profile/:username/following" element={isAuthenticated ? <SubscriptionsPage tabIndex={1} /> : <Navigate to="/login" replace />} />
           <Route path="/subscriptions" element={isAuthenticated ? <SubscriptionsPage /> : <Navigate to="/login" replace />} />
@@ -349,17 +355,15 @@ const AppRoutes = () => {
           <Route path="/search" element={isAuthenticated ? <SearchPage /> : <Navigate to="/login" replace />} />
           <Route path="/music" element={isAuthenticated ? <MusicPage /> : <Navigate to="/login" replace />} />
           <Route path="/artist/:artistParam" element={isAuthenticated ? <ArtistPage /> : <Navigate to="/login" replace />} />
+          <Route path="/messenger" element={isAuthenticated ? <MessengerPage /> : <Navigate to="/login" replace />} />
           <Route path="/bugs" element={<BugReportPage />} />
-          <Route path="/leaderboard" element={<RequireAuth><LeaderboardPage /></RequireAuth>} />
-
-          
+          <Route path="/leaderboard" element={<RequireAuth><LeaderboardPage /></RequireAuth>} />          
           <Route path="/share-preview-test" element={isAuthenticated ? <SharePreviewTest /> : <Navigate to="/login" replace />} />
           <Route path="/more" element={isAuthenticated ? <MorePage /> : <Navigate to="/login" replace />} />
           <Route path="/admin" element={isAuthenticated ? <AdminPage /> : <Navigate to="/login" replace />} />
           <Route path="/moderator" element={isAuthenticated ? <ModeratorPage /> : <Navigate to="/login" replace />} />
           <Route path="/badge-shop" element={isAuthenticated ? <BadgeShopPage /> : <Navigate to="/login" replace />} />
-          <Route path="/username-auction" element={isAuthenticated ? <UsernameAuctionPage /> : <Navigate to="/login" replace />} />
-          
+          <Route path="/username-auction" element={isAuthenticated ? <UsernameAuctionPage /> : <Navigate to="/login" replace />} />         
           <Route path="/minigames" element={isAuthenticated ? <MiniGamesPage /> : <Navigate to="/login" replace />} />
           <Route path="/minigames/cups" element={isAuthenticated ? <CupsGamePage /> : <Navigate to="/login" replace />} />
           <Route path="/minigames/lucky-number" element={isAuthenticated ? <LuckyNumberGame /> : <Navigate to="/login" replace />} />
@@ -371,10 +375,9 @@ const AppRoutes = () => {
           <Route path="/channels" element={<RequireAuth><ChannelsPage /></RequireAuth>} />
           <Route path="/economics" element={isAuthenticated ? <EconomicsPage /> : <Navigate to="/login" replace />} />
           <Route path="/updates" element={<UpdatesPage />} />
+          <Route path="/test-notifications" element={<TestNotifications />} />
           <Route path="*" element={<NotFound />} />
-        </Routes>
-        
-        
+        </Routes>                
         {background && (
           <Routes>
             <Route 
@@ -388,13 +391,8 @@ const AppRoutes = () => {
     </MainLayout>
   );
 };
-
-
 const MemoizedAppRoutes = React.memo(AppRoutes);
-
-
-const preloadMusicImages = () => {
-  
+const preloadMusicImages = () => { 
   const basePaths = [
     '/static/uploads/system',
     '/uploads/system'
@@ -406,9 +404,7 @@ const preloadMusicImages = () => {
     'random_tracks.jpg',
     'album_placeholder.jpg',
     'playlist_placeholder.jpg'
-  ];
-  
-  
+  ];  
   basePaths.forEach(basePath => {
     imageFiles.forEach(file => {
       const path = `${basePath}/${file}`;
@@ -420,15 +416,30 @@ const preloadMusicImages = () => {
     });
   });
 };
-
-
 const DefaultSEO = () => {
+  
+  const currentUrl = typeof window !== 'undefined' 
+    ? window.location.href
+    : 'https://k-connect.ru';
+    
+  
+  const getPageType = () => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname;
+      if (path.includes('/post/')) return 'article';
+      if (path.includes('/profile/')) return 'profile';
+      if (path.includes('/music/')) return 'music';
+    }
+    return 'website';
+  };
+  
   return (
     <SEO 
       title="К-Коннект" 
       description="К-Коннект - социальная сеть от независимого разработчика с функциями для общения, публикации постов, музыки и многого другого."
       image="/icon-512.png"
-      type="website"
+      url={currentUrl}
+      type={getPageType()}
       meta={{
         keywords: "социальная сеть, к-коннект, общение, музыка, лента, сообщения",
         viewport: "width=device-width, initial-scale=1, maximum-scale=5"
@@ -436,24 +447,20 @@ const DefaultSEO = () => {
     />
   );
 };
-
-// Add SessionProvider component
 const SessionProvider = ({ children }) => {
   const [sessionActive, setSessionActive] = useState(true);
   const [sessionExpired, setSessionExpired] = useState(false);
   const sessionStartTime = useRef(Date.now());
   const lastFetchTime = useRef(null);
   const broadcastChannel = useRef(null);
-  const SESSION_TIMEOUT = 60 * 60 * 1000; // 1 hour in milliseconds
-  const MIN_UPDATE_INTERVAL = 15000; // Minimum 15 seconds between updates across tabs
+  const SESSION_TIMEOUT = 60 * 60 * 1000;
+  const MIN_UPDATE_INTERVAL = 15000;
 
-  // Initialize broadcast channel for cross-tab communication
   useEffect(() => {
     if (typeof BroadcastChannel !== 'undefined') {
       try {
         broadcastChannel.current = new BroadcastChannel('k_connect_app_channel');
         
-        // Listen for messages from other tabs
         broadcastChannel.current.onmessage = (event) => {
           const { type, data, timestamp } = event.data;
           
@@ -468,8 +475,7 @@ const SessionProvider = ({ children }) => {
       } catch (error) {
         console.error('BroadcastChannel initialization error:', error);
       }
-    }
-    
+    }    
     return () => {
       if (broadcastChannel.current) {
         try {
@@ -481,7 +487,6 @@ const SessionProvider = ({ children }) => {
     };
   }, []);
 
-  // Check session status periodically
   useEffect(() => {
     const checkSessionExpiration = () => {
       const currentTime = Date.now();
@@ -491,15 +496,11 @@ const SessionProvider = ({ children }) => {
         setSessionExpired(true);
         setSessionActive(false);
       }
-    };
-    
-    // Check every minute
-    const expirationInterval = setInterval(checkSessionExpiration, 60000);
-    
+    };    
+    const expirationInterval = setInterval(checkSessionExpiration, 60000);    
     return () => clearInterval(expirationInterval);
   }, [sessionExpired]);
 
-  // Function to broadcast updates to other tabs
   const broadcastUpdate = (type, data) => {
     if (broadcastChannel.current) {
       try {
@@ -513,26 +514,20 @@ const SessionProvider = ({ children }) => {
       }
     }
   };
-
-  // Function to check if fetching is allowed
   const checkSessionStatus = () => {
-    // Don't fetch if session is expired
     if (sessionExpired) return false;
     
-    // Check if another tab fetched recently
     const currentTime = Date.now();
     if (lastFetchTime.current && (currentTime - lastFetchTime.current) < MIN_UPDATE_INTERVAL) {
       return false;
     }
     
-    // Update last fetch time
     lastFetchTime.current = currentTime;
     broadcastUpdate('last_fetch_update', null);
     
     return true;
   };
 
-  // Function to refresh the session
   const refreshSession = () => {
     const currentTime = Date.now();
     sessionStartTime.current = currentTime;
@@ -550,9 +545,7 @@ const SessionProvider = ({ children }) => {
     refreshSession
   };
 
-  // In the SessionProvider component, add this effect to set the context for services
   useEffect(() => {
-    // Make the session context available to services
     setSessionContext({
       checkSessionStatus,
       sessionActive,
@@ -562,11 +555,9 @@ const SessionProvider = ({ children }) => {
     });
   }, [sessionActive, sessionExpired]);
 
-  // Add an effect to handle visibility changes
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        // Update the last fetch time when tab becomes visible to avoid immediate refetching
         const currentTime = Date.now();
         lastFetchTime.current = currentTime;
         broadcastUpdate('last_fetch_update', null);
@@ -587,7 +578,6 @@ const SessionProvider = ({ children }) => {
   );
 };
 
-// Create a session expiration alert component
 const SessionExpirationAlert = () => {
   const { sessionExpired, refreshSession } = useContext(SessionContext);
   const theme = useTheme();
@@ -629,7 +619,7 @@ const SessionExpirationAlert = () => {
         }
       >
         <Typography variant="body1" fontWeight="medium">
-          Требуется обновление страницы для получения актуальных данных
+          Требуется обновление страницы
         </Typography>
       </Alert>
     </Box>
@@ -639,37 +629,150 @@ const SessionExpirationAlert = () => {
 function App() {
   const [isPending, startTransition] = useTransition();
   const [themeSettings, setThemeSettings] = useState(() => {
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    const savedThemeMode = localStorage.getItem('themeMode') || savedTheme; 
+    
+    const getStoredValue = (key, defaultValue) => {
+      
+      const sessionValue = sessionStorage.getItem(key);
+      if (sessionValue) return sessionValue;
+      
+      
+      const localValue = localStorage.getItem(key);
+      if (localValue) return localValue;
+      
+      
+      const cookieValue = getCookie(key);
+      if (cookieValue) return cookieValue;
+      
+      
+      try {
+        const themeData = JSON.parse(localStorage.getItem('themeData') || '{}');
+        if (themeData[key]) return themeData[key];
+      } catch (e) {
+        console.warn('Error parsing theme data JSON:', e);
+      }
+      
+      return defaultValue;
+    };
+    
+    
+    const sessionTheme = sessionStorage.getItem('themeMode');
+    const localTheme = localStorage.getItem('theme') || localStorage.getItem('themeMode');
+    const cookieTheme = getCookie('themeMode') || getCookie('theme');
+    
+    
+    const savedThemeMode = sessionTheme || localTheme || cookieTheme || 'dark';
+    
+    
+    if (savedThemeMode) {
+      localStorage.setItem('theme', savedThemeMode);
+      localStorage.setItem('themeMode', savedThemeMode);
+      sessionStorage.setItem('theme', savedThemeMode);
+      sessionStorage.setItem('themeMode', savedThemeMode);
+      setCookie('theme', savedThemeMode);
+      setCookie('themeMode', savedThemeMode);
+    }
     
     return {
       mode: savedThemeMode,
-      backgroundColor: localStorage.getItem('backgroundColor') || 
-                      (savedThemeMode === 'light' ? '#f5f5f5' : '#131313'),
-      paperColor: localStorage.getItem('paperColor') || 
-                 (savedThemeMode === 'light' ? '#ffffff' : '#1A1A1A'),
-      headerColor: localStorage.getItem('headerColor') || 
-                  (savedThemeMode === 'light' ? '#ffffff' : '#121212'),
-      bottomNavColor: localStorage.getItem('bottomNavColor') || 
-                     (savedThemeMode === 'light' ? '#ffffff' : '#1A1A1A'),
-      contentColor: localStorage.getItem('contentColor') || 
-                   (savedThemeMode === 'light' ? '#ffffff' : '#1A1A1A'),
-      primaryColor: localStorage.getItem('primaryColor') || 
-                   (savedThemeMode === 'light' ? '#8c52ff' : '#D0BCFF'),
-      textColor: localStorage.getItem('textColor') || 
-                (savedThemeMode === 'light' ? '#121212' : '#FFFFFF'),
+      backgroundColor: getStoredValue('backgroundColor', 
+                      (savedThemeMode === 'light' ? '#f5f5f5' : savedThemeMode === 'contrast' ? '#080808' : '#131313')),
+      paperColor: getStoredValue('paperColor', 
+                 (savedThemeMode === 'light' ? '#ffffff' : savedThemeMode === 'contrast' ? '#101010' : '#1A1A1A')),
+      headerColor: getStoredValue('headerColor', 
+                  (savedThemeMode === 'light' ? '#ffffff' : savedThemeMode === 'contrast' ? '#101010' : '#121212')),
+      bottomNavColor: getStoredValue('bottomNavColor', 
+                     (savedThemeMode === 'light' ? '#ffffff' : savedThemeMode === 'contrast' ? '#101010' : '#1A1A1A')),
+      contentColor: getStoredValue('contentColor', 
+                   (savedThemeMode === 'light' ? '#ffffff' : savedThemeMode === 'contrast' ? '#101010' : '#1A1A1A')),
+      primaryColor: getStoredValue('primaryColor', 
+                   (savedThemeMode === 'light' ? '#8c52ff' : savedThemeMode === 'contrast' ? '#7B46E3' : '#D0BCFF')),
+      textColor: getStoredValue('textColor', 
+                (savedThemeMode === 'light' ? '#121212' : '#FFFFFF')),
     };
   });
   
   
+  const recoverThemeSettings = useCallback(() => {
+    console.log('Running theme recovery check...');
+    
+    
+    const currentMode = themeSettings.mode;
+    
+    
+    const sessionTheme = sessionStorage.getItem('themeMode');
+    const localTheme = localStorage.getItem('themeMode');
+    const cookieTheme = getCookie('themeMode');
+    
+    
+    if (!sessionTheme || !localTheme || !cookieTheme) {
+      console.log('Theme storage inconsistency detected, restoring...');
+      
+      
+      saveThemeSettings('theme', currentMode);
+      saveThemeSettings('themeMode', currentMode);
+      
+      
+      Object.entries(themeSettings).forEach(([key, value]) => {
+        if (key !== 'mode' && value) {
+          saveThemeSettings(key, value);
+        }
+      });
+      
+      
+      try {
+        const themeData = {};
+        Object.entries(themeSettings).forEach(([key, value]) => {
+          if (value) {
+            themeData[key] = value;
+            if (key === 'mode') {
+              themeData['theme'] = value;
+              themeData['themeMode'] = value;
+            }
+          }
+        });
+        localStorage.setItem('themeData', JSON.stringify(themeData));
+        sessionStorage.setItem('themeData', JSON.stringify(themeData));
+      } catch (e) {
+        console.error('Error creating theme data backup:', e);
+      }
+    }
+  }, [themeSettings]);
+  
+  
+  useEffect(() => {
+    
+    recoverThemeSettings();
+    
+    
+    const recoveryInterval = setInterval(recoverThemeSettings, 30000);
+    
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        recoverThemeSettings();
+      }
+    };
+    
+    const handleFocus = () => {
+      recoverThemeSettings();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      clearInterval(recoveryInterval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [recoverThemeSettings]);
+  
   const onAboutSubdomain = useMemo(() => isAboutSubdomain(), []);
   const onShareSubdomain = useMemo(() => isShareSubdomain(), []);
   
-  // Перенаправление для поддомена share (только для реальных пользователей, не ботов)
   useEffect(() => {
     if (onShareSubdomain) {
-      // Боты получат статический HTML из share.html,
-      // а настоящие пользователи будут перенаправлены через JS в share.html
+
       console.log('Share subdomain detected, user will be redirected via share.html');
     }
   }, [onShareSubdomain]);
@@ -680,34 +783,26 @@ function App() {
 
   
   const getContrastTextColor = (hexColor) => {
-    
-    if (themeSettings.mode === 'dark') {
+    if (themeSettings.mode === 'dark' || themeSettings.mode === 'contrast') {
       return '#FFFFFF';
     }
-    
-    
     
     if (!hexColor || typeof hexColor !== 'string') {
       return '#000000'; 
     }
     
-    
     const color = hexColor.charAt(0) === '#' ? hexColor.substring(1) : hexColor;
-    
     
     if (!/^[0-9A-Fa-f]{6}$/.test(color)) {
       console.warn('Invalid hex color provided to getContrastTextColor:', hexColor);
       return '#000000';
     }
     
-    
     const r = parseInt(color.substr(0, 2), 16);
     const g = parseInt(color.substr(2, 2), 16);
     const b = parseInt(color.substr(4, 2), 16);
     
-    
     const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    
     
     return luminance > 0.6 ? '#000000' : '#FFFFFF';
   };
@@ -838,16 +933,16 @@ function App() {
       
       
       if (newSettings.mode) {
-        localStorage.setItem('theme', newSettings.mode);
-        localStorage.setItem('themeMode', newSettings.mode); 
+        saveThemeSettings('theme', newSettings.mode);
+        saveThemeSettings('themeMode', newSettings.mode);
       }
-      if (newSettings.backgroundColor) localStorage.setItem('backgroundColor', newSettings.backgroundColor);
-      if (newSettings.paperColor) localStorage.setItem('paperColor', newSettings.paperColor);
-      if (newSettings.headerColor) localStorage.setItem('headerColor', newSettings.headerColor);
-      if (newSettings.bottomNavColor) localStorage.setItem('bottomNavColor', newSettings.bottomNavColor);
-      if (newSettings.contentColor) localStorage.setItem('contentColor', newSettings.contentColor);
-      if (newSettings.primaryColor) localStorage.setItem('primaryColor', newSettings.primaryColor);
-      if (newSettings.textColor) localStorage.setItem('textColor', newSettings.textColor);
+      if (newSettings.backgroundColor) saveThemeSettings('backgroundColor', newSettings.backgroundColor);
+      if (newSettings.paperColor) saveThemeSettings('paperColor', newSettings.paperColor);
+      if (newSettings.headerColor) saveThemeSettings('headerColor', newSettings.headerColor);
+      if (newSettings.bottomNavColor) saveThemeSettings('bottomNavColor', newSettings.bottomNavColor);
+      if (newSettings.contentColor) saveThemeSettings('contentColor', newSettings.contentColor);
+      if (newSettings.primaryColor) saveThemeSettings('primaryColor', newSettings.primaryColor);
+      if (newSettings.textColor) saveThemeSettings('textColor', newSettings.textColor);
       
       return updated;
     });
@@ -892,7 +987,7 @@ function App() {
         },
       },
       typography: {
-        fontFamily: '"Roboto", "Arial", sans-serif',
+        fontFamily: '"SF Pro Display", "Roboto", "Arial", sans-serif',
         h1: { fontSize: '2.5rem', fontWeight: 700 },
         h2: { fontSize: '2rem', fontWeight: 700 },
         h3: { fontSize: '1.8rem', fontWeight: 600 },
@@ -918,7 +1013,12 @@ function App() {
             body: {
               lineHeight: 1,
               backgroundColor: themeSettings.backgroundColor || '#131313',
-              color: themeSettings.textColor || (themeSettings.mode === 'light' ? '#121212' : '#FFFFFF'),
+              color: themeSettings.mode === 'contrast' 
+                ? '#FFFFFF' 
+                : (themeSettings.textColor || (themeSettings.mode === 'light' ? '#121212' : '#FFFFFF')),
+              '& *': themeSettings.mode === 'contrast' 
+                ? { color: 'inherit' }
+                : {},
             },
           },
         },
@@ -928,6 +1028,9 @@ function App() {
               borderRadius: '15px', 
               overflow: 'hidden',
               backgroundColor: themeSettings.contentColor || themeSettings.paperColor || '#1A1A1A',
+              color: themeSettings.mode === 'dark' || themeSettings.mode === 'contrast' 
+                ? '#FFFFFF' 
+                : themeSettings.contentTextColor || getContrastTextColor(themeSettings.contentColor || '#1A1A1A'),
             },
           },
         },
@@ -936,6 +1039,9 @@ function App() {
             root: {
               borderRadius: '12px', 
               backgroundColor: themeSettings.paperColor || '#1A1A1A',
+              color: themeSettings.mode === 'dark' || themeSettings.mode === 'contrast' 
+                ? '#FFFFFF' 
+                : themeSettings.contentTextColor || getContrastTextColor(themeSettings.paperColor || '#1A1A1A'),
             },
           },
         },
@@ -957,7 +1063,9 @@ function App() {
         MuiBottomNavigationAction: {
           styleOverrides: {
             root: {
-              color: themeSettings.mode === 'dark' ? '#FFFFFF' : themeSettings.bottomNavTextColor || getContrastTextColor(themeSettings.bottomNavColor || '#1A1A1A'),
+              color: themeSettings.mode === 'dark' || themeSettings.mode === 'contrast' 
+                ? '#FFFFFF' 
+                : themeSettings.bottomNavTextColor || getContrastTextColor(themeSettings.bottomNavColor || '#1A1A1A'),
               '&.Mui-selected': {
                 color: themeSettings.primaryColor || '#D0BCFF',
               },
@@ -1093,12 +1201,186 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    const handleStorageChange = (event) => {
+      if (event.key && (
+          event.key === 'theme' ||
+          event.key === 'themeMode' ||
+          event.key === 'backgroundColor' ||
+          event.key === 'paperColor' ||
+          event.key === 'headerColor' ||
+          event.key === 'bottomNavColor' ||
+          event.key === 'contentColor' ||
+          event.key === 'primaryColor' ||
+          event.key === 'textColor'
+        )) {
+        console.log(`Storage change detected for ${event.key}:`, event.newValue);
+        
+        const settingUpdate = {};
+        
+        if (event.key === 'theme' || event.key === 'themeMode') {
+          settingUpdate.mode = event.newValue;
+        } else {
+          const stateKey = event.key.charAt(0).toLowerCase() + event.key.slice(1);
+          settingUpdate[stateKey] = event.newValue;
+        }
+        
+        setThemeSettings(prev => ({
+          ...prev,
+          ...settingUpdate
+        }));
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    const handlePageFocus = () => {
+      const sessionTheme = sessionStorage.getItem('themeMode');
+      
+      if (!sessionTheme && localStorage.getItem('themeMode')) {
+        const modeFromLocal = localStorage.getItem('themeMode');
+        sessionStorage.setItem('themeMode', modeFromLocal);
+        sessionStorage.setItem('theme', modeFromLocal);
+        
+        ['backgroundColor', 'paperColor', 'headerColor', 'bottomNavColor', 
+         'contentColor', 'primaryColor', 'textColor'].forEach(key => {
+          const value = localStorage.getItem(key);
+          if (value) {
+            sessionStorage.setItem(key, value);
+          }
+        });
+        
+        updateThemeSettings({ mode: modeFromLocal });
+      }
+    };
+    
+    window.addEventListener('focus', handlePageFocus);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('focus', handlePageFocus);
+    };
+  }, []);
+
+  useEffect(() => {
+    const applyThemeToDocument = () => {
+      const mode = sessionStorage.getItem('themeMode') || localStorage.getItem('themeMode') || getCookie('themeMode') || 'dark';
+      document.documentElement.setAttribute('data-theme', mode);
+      document.documentElement.classList.add(`theme-${mode}`);
+      
+      
+      document.querySelector('html').setAttribute('data-theme', mode);
+      
+      
+      let metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (!metaTheme) {
+        metaTheme = document.createElement('meta');
+        metaTheme.setAttribute('name', 'theme-color');
+        document.head.appendChild(metaTheme);
+      }
+      
+      
+      if (mode === 'light') {
+        metaTheme.setAttribute('content', '#ffffff');
+      } else if (mode === 'contrast') {
+        metaTheme.setAttribute('content', '#080808');
+      } else {
+        metaTheme.setAttribute('content', '#131313');
+      }
+      
+      const themeVars = {
+        backgroundColor: sessionStorage.getItem('backgroundColor') || localStorage.getItem('backgroundColor') || getCookie('backgroundColor'),
+        paperColor: sessionStorage.getItem('paperColor') || localStorage.getItem('paperColor') || getCookie('paperColor'),
+        headerColor: sessionStorage.getItem('headerColor') || localStorage.getItem('headerColor') || getCookie('headerColor'),
+        bottomNavColor: sessionStorage.getItem('bottomNavColor') || localStorage.getItem('bottomNavColor') || getCookie('bottomNavColor'),
+        contentColor: sessionStorage.getItem('contentColor') || localStorage.getItem('contentColor') || getCookie('contentColor'),
+        primaryColor: sessionStorage.getItem('primaryColor') || localStorage.getItem('primaryColor') || getCookie('primaryColor'),
+        textColor: sessionStorage.getItem('textColor') || localStorage.getItem('textColor') || getCookie('textColor')
+      };
+      
+      Object.entries(themeVars).forEach(([key, value]) => {
+        if (value) {
+          const cssKey = key.replace(/([A-Z])/g, '-$1').toLowerCase();
+          document.documentElement.style.setProperty(`--${cssKey}`, value);
+        }
+      });
+      
+      
+      try {
+        const themeData = JSON.parse(localStorage.getItem('themeData') || sessionStorage.getItem('themeData') || '{}');
+        Object.entries(themeData).forEach(([key, value]) => {
+          if (value && key !== 'mode' && key !== 'theme' && key !== 'themeMode') {
+            const cssKey = key.replace(/([A-Z])/g, '-$1').toLowerCase();
+            document.documentElement.style.setProperty(`--${cssKey}`, value);
+          }
+        });
+      } catch (e) {
+        console.warn('Error applying theme data from JSON backup:', e);
+      }
+    };
+    
+    applyThemeToDocument();
+    
+    if (document.readyState === 'complete') {
+      applyThemeToDocument();
+    } else {
+      window.addEventListener('load', applyThemeToDocument);
+      return () => window.removeEventListener('load', applyThemeToDocument);
+    }
+  }, []);
+
   return (
     <HelmetProvider>
       <AuthProvider>
         <ThemeSettingsContext.Provider value={themeContextValue}>
           <ThemeProvider theme={theme}>
             <CssBaseline />
+            {themeSettings.mode === 'contrast' && (
+              <style dangerouslySetInnerHTML={{
+                __html: `
+                  .MuiListItemText-primary, 
+                  .MuiListItemText-secondary,
+                  .MuiTypography-root,
+                  .MuiInputBase-input,
+                  .MuiInputLabel-root,
+                  .MuiFormHelperText-root,
+                  .MuiMenuItem-root,
+                  .MuiButton-root,
+                  .MuiLink-root:not(a),
+                  .MuiChip-label,
+                  .MuiTab-root,
+                  .MuiTableCell-root,
+                  [class*="css-"],
+                  /* Additional text selectors */
+                  span:not(.MuiIcon-root):not(.material-icons),
+                  p,
+                  h1, h2, h3, h4, h5, h6,
+                  label,
+                  div:not(.MuiAvatar-root):not(.MuiSwitch-thumb):not(.MuiSwitch-track):not([role="progressbar"]) {
+                    color: #FFFFFF !important;
+                  }
+                  
+                  .MuiChip-root.status-online *,
+                  .MuiChip-root[color="success"] *,
+                  .MuiChip-root[color="error"] *,
+                  .MuiChip-root[color="warning"] *,
+                  .MuiChip-root[color="info"] *,
+                  a.MuiLink-root,
+                  .MuiButton-containedPrimary,
+                  .Mui-selected,
+                  .MuiSwitch-thumb,
+                  .MuiSwitch-track,
+                  .MuiIcon-root,
+                  .material-icons,
+                  svg,
+                  .MuiAvatar-root *,
+                  img,
+                  [role="progressbar"] * {
+                    color: inherit !important;
+                  }
+                `
+              }}/>
+            )}
             <SessionProvider>
               <MusicProvider>
                 <PostDetailProvider>
@@ -1114,6 +1396,7 @@ function App() {
                         <AppRoutes />
                         <MusicPlayerCore />
                         <SessionExpirationAlert />
+                        <SkibidiAttack />
                       </Suspense>
                     </Box>
                   </ErrorBoundary>
@@ -1129,11 +1412,63 @@ function App() {
 
 export default App;
 
-// Create a custom hook for easy access to session context
 export const useSession = () => {
   const context = useContext(SessionContext);
   if (!context) {
-    throw new Error('useSession must be used within a SessionProvider');
+    throw new Error('useSession Используйте SessionProvider для доступа к сессии');
   }
   return context;
+};
+
+const setCookie = (name, value, days = 365) => {
+  try {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+  } catch (error) {
+    console.error(`Ошибка при установке cookie ${name}:`, error);
+  }
+};
+
+const getCookie = (name) => {
+  try {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+      if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+  } catch (error) {
+    console.error(`Ошибка при получении cookie ${name}:`, error);
+  }
+  return null;
+};
+
+const saveThemeSettings = (key, value) => {
+  try {
+    localStorage.setItem(key, value);
+    
+    sessionStorage.setItem(key, value);
+    
+    setCookie(key, value, 365);
+    
+    if (key === 'themeMode' || key === 'theme') {
+      document.documentElement.setAttribute('data-theme', value);
+    } else {
+      const cssVarKey = key.replace(/([A-Z])/g, '-$1').toLowerCase();
+      document.documentElement.style.setProperty(`--${cssVarKey}`, value);
+    }
+    
+    try {
+      const currentThemeData = JSON.parse(localStorage.getItem('themeData') || '{}');
+      currentThemeData[key] = value;
+      localStorage.setItem('themeData', JSON.stringify(currentThemeData));
+      sessionStorage.setItem('themeData', JSON.stringify(currentThemeData));
+    } catch (e) {
+      console.error('Error saving theme data JSON:', e);
+    }
+  } catch (error) {
+    console.error(`Error saving theme setting ${key}:`, error);
+  }
 };

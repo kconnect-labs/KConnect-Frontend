@@ -49,6 +49,7 @@ import VideoPlayer from '../VideoPlayer';
 import { optimizeImage } from '../../utils/imageUtils';
 import { linkRenderers, URL_REGEX, USERNAME_MENTION_REGEX, HASHTAG_REGEX, processTextWithLinks } from '../../utils/LinkUtils';
 import { Icon } from '@iconify/react';
+import Lottie from 'lottie-react'; 
 
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -80,6 +81,9 @@ import VideocamIcon from '@mui/icons-material/Videocam';
 import { usePostDetail } from '../../context/PostDetailContext';
 
 import { ContextMenu, useContextMenu } from '../../UIKIT';
+import RepostImageGrid from './RepostImageGrid';  
+import MusicTrack from './MusicTrack';
+import { VerificationBadge } from '../../UIKIT';
 
 const PostCard = styled(Card)(({ theme }) => ({
   marginBottom: 10,
@@ -228,24 +232,6 @@ const ActionButtonContainer = styled(Box)(({ theme }) => ({
     zIndex: 1
   }
 }));
-
-const MusicTrack = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  padding: theme.spacing(1, 1.5),
-  borderRadius: '12px',
-  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-  marginBottom: theme.spacing(0.3),
-  border: '1px solid rgba(255, 255, 255, 0.07)',
-  cursor: 'pointer',
-  transition: 'all 0.2s ease',
-  '&:hover': {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    transform: 'translateY(-2px)',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)'
-  }
-}));
-
 
 const SharePill = styled(motion.div)(({ theme }) => ({
   display: 'flex',
@@ -440,6 +426,34 @@ const HeartAnimation = styled(motion.div)(({ theme }) => ({
   pointerEvents: 'none',
 }));
 
+
+const MediaErrorContainer = styled(Box)(({ theme }) => ({
+  height: '220px',
+  position: 'relative',
+  width: '100%',
+  aspectRatio: '16/9',
+  borderRadius: '24px',
+  overflow: 'hidden',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'linear-gradient(327deg, rgb(206 188 255 / 77%) 0%, rgb(97 76 147) 100%)',
+  backdropFilter: 'blur(20px)',
+  boxShadow: 'inset 0 0 0 1px rgba(206, 188, 255, 0.2)',
+  padding: theme.spacing(2),
+  textAlign: 'center',
+  color: 'rgba(255, 255, 255, 0.9)',
+}));
+
+const LottieWrapper = styled(Box)(({ theme }) => ({
+  width: '100%',
+  maxWidth: '150px', 
+  height: '150px', 
+  marginBottom: theme.spacing(1),
+  opacity: 0.8,
+}));
+
 const Post = ({ post, onDelete, onOpenLightbox }) => {
   if (!post || typeof post !== 'object') {
     console.error('Post component received invalid post data:', post);
@@ -461,6 +475,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("Ссылка скопирована в буфер обмена");
   const [lastLikedUsers, setLastLikedUsers] = useState([]);
+  const [reposted, setReposted] = useState(post?.is_reposted || false);
   
   const [musicTracks, setMusicTracks] = useState([]);
   
@@ -520,11 +535,14 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     "Другое"
   ];
   
+  const [mediaError, setMediaError] = useState({ type: null, url: null }); 
+  
   useEffect(() => {
     if (post) {
       setLiked(post.user_liked || post.is_liked || false);
       setLikesCount(post.likes_count || 0);
       setViewsCount(post.views_count || 0);
+      setReposted(post.is_reposted || false);
       
       setIsExpanded(false);
       
@@ -622,6 +640,12 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     const remainingSeconds = Math.floor(seconds % 60);
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
+
+  
+  const truncateText = (text, maxLength = 500) => {
+    if (!text || text.length <= maxLength) return text;
+    return text.slice(0, maxLength) + '...';
+  };
   
   const handleTrackPlay = (track, event) => {
     if (event) event.stopPropagation(); 
@@ -708,6 +732,10 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   const processImages = () => {
+    if (mediaError.type === 'image') {
+      return []; 
+    }
+    
     if (post?.images && Array.isArray(post.images) && post.images.length > 0) {
       return post.images;
     }
@@ -744,7 +772,12 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
   const videoUrl = hasVideo() ? formatVideoUrl(post.video) : null;
   
   const handleOpenImage = async (index) => {
+    
+    if (window.event) {
+      window.event.stopPropagation();
+    }
 
+    
     if (onOpenLightbox && typeof onOpenLightbox === 'function') {
       const allImages = processImages();
       if (allImages.length > 0) {
@@ -753,10 +786,9 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
       return;
     }
     
-
+    
     const allImages = processImages();
     if (allImages.length > 0) {
-
       try {
         const currentImageUrl = allImages[index];
         setCurrentImageIndex(index);
@@ -821,11 +853,16 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
           }
         }
         
-        setSnackbar({
-          open: true,
-          message: errorMessage,
-          severity: 'warning'
-        });
+        
+        window.dispatchEvent(new CustomEvent('rate-limit-error', { 
+          detail: { 
+            message: errorMessage,
+            shortMessage: "Лимит лайков",
+            notificationType: "warning",
+            animationType: "bounce", 
+            retryAfter: rateLimit?.reset ? Math.round((new Date(rateLimit.reset * 1000) - new Date()) / 1000) : 60
+          } 
+        }));
       }
     }
   };
@@ -1036,7 +1073,6 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
   const handleRepostClick = (e) => {
     e.stopPropagation();
     if (!currentUser) {
-      
       navigate('/login');
       return;
     }
@@ -1057,24 +1093,18 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
   
   
   const renderRepostInputWithMentions = () => {
-    
     if (!repostText) return null;
-    
     
     const parts = [];
     let lastIndex = 0;
     
-    
     USERNAME_MENTION_REGEX.lastIndex = 0;
-    
     
     let match;
     while ((match = USERNAME_MENTION_REGEX.exec(repostText)) !== null) {
-      
       if (match.index > lastIndex) {
         parts.push(<span key={`text-${lastIndex}`}>{repostText.substring(lastIndex, match.index)}</span>);
       }
-      
       
       parts.push(
         <span 
@@ -1093,7 +1123,6 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
       
       lastIndex = match.index + match[0].length;
     }
-    
     
     if (lastIndex < repostText.length) {
       parts.push(<span key={`text-end`}>{repostText.substring(lastIndex)}</span>);
@@ -1119,7 +1148,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
       </Box>
     );
   };
-  
+
   
   const handleCreateRepost = async () => {
     
@@ -1135,12 +1164,22 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
       
       if (response.data.success) {
         
-        setSnackbarMessage('Пост успешно добавлен в вашу ленту');
-        setSnackbarOpen(true);
-        
-        
         setRepostModalOpen(false);
-        setRepostText('');
+        setReposted(true);
+        
+        
+        window.dispatchEvent(new CustomEvent('show-error', { 
+          detail: { 
+            message: 'Пост успешно добавлен в вашу ленту',
+            shortMessage: "Репост создан",
+            notificationType: "success",
+            animationType: "pill"
+          } 
+        }));
+        
+        if (onDelete) {
+          onDelete(post.id, null, 'repost');
+        }
       } else {
         
         setSnackbarMessage(response.data.error || 'Произошла ошибка при репосте');
@@ -1162,6 +1201,9 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     e.preventDefault();
     e.stopPropagation();
     console.log("Comment button clicked, opening overlay for post ID:", post.id);
+    
+    
+    
     openPostDetail(post.id, e);
   };
   
@@ -1171,34 +1213,63 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     const postUrl = `${window.location.origin}/post/${post.id}`;
     navigator.clipboard.writeText(postUrl)
       .then(() => {
-        setSnackbarMessage("Ссылка скопирована в буфер обмена");
-        setSnackbarOpen(true);
+        window.dispatchEvent(new CustomEvent('show-error', { 
+          detail: { 
+            message: "Ссылка скопирована в буфер обмена",
+            shortMessage: "Ссылка скопирована",
+            notificationType: "success",
+            animationType: "pill"
+          } 
+        }));
       })
       .catch(err => {
         console.error('Не удалось скопировать ссылку:', err);
-        setSnackbarMessage("Не удалось скопировать ссылку");
-        setSnackbarOpen(true);
+        window.dispatchEvent(new CustomEvent('show-error', { 
+          detail: { 
+            message: "Не удалось скопировать ссылку",
+            shortMessage: "Ошибка",
+            notificationType: "error",
+            animationType: "pill"
+          } 
+        }));
       });
   };
 
   
   const handleCopyLink = () => {
-    const postUrl = `${window.location.origin}/post/${post.id}`;
-    navigator.clipboard.writeText(postUrl)
-      .then(() => {
-        setSnackbarMessage("Ссылка скопирована в буфер обмена");
-        setSnackbarOpen(true);
-      })
-      .catch(err => {
-        console.error('Не удалось скопировать ссылку:', err);
-        setSnackbarMessage("Не удалось скопировать ссылку");
-        setSnackbarOpen(true);
-      });
+    try {
+      const linkToCopy = `https://k-connect.ru/post/${post.id}`;
+      navigator.clipboard.writeText(linkToCopy);
+      
+      
+      window.dispatchEvent(new CustomEvent('show-error', { 
+        detail: { 
+          message: "Ссылка скопирована в буфер обмена",
+          shortMessage: "Ссылка скопирована",
+          notificationType: "success",
+          animationType: "pill"
+        } 
+      }));
+      
+    } catch (error) {
+      console.error('Ошибка при копировании ссылки:', error);
+      
+      
+      window.dispatchEvent(new CustomEvent('show-error', { 
+        detail: { 
+          message: "Не удалось скопировать ссылку",
+          shortMessage: "Ошибка копирования",
+          notificationType: "error",
+          animationType: "pill"
+        } 
+      }));
+    }
   };
 
   
   const handleOpenPostFromMenu = () => {
-    console.log("Opening post from context menu, ID:", post.id);
+    console.log("Opening post comments from context menu, ID:", post.id);
+    
     
     openPostDetail(post.id);
   };
@@ -1386,7 +1457,11 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
   const { openPostDetail } = usePostDetail();
   
   const handlePostClick = (e) => {
-    e.stopPropagation();
+    if (e.target.closest('a, button')) return; 
+    
+    
+    
+    incrementViewCount();
   };
   
   const { contextMenuState, handleContextMenu, closeContextMenu } = useContextMenu();
@@ -1586,6 +1661,60 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
   };
   
   
+  
+  const handleImageError = (url) => {
+    console.log('Ошибка загрузки изображения:', url);
+    setMediaError({ type: 'image', url });
+  };
+
+  
+  const handleVideoError = (url) => {
+    console.log('Ошибка загрузки видео:', url);
+    setMediaError({ type: 'video', url });
+  };
+
+  
+  const MediaErrorDisplay = ({ type }) => {
+    const [spiderAnimation, setSpiderAnimation] = useState(null);
+    
+    useEffect(() => {
+      
+      const loadSpiderAnimation = async () => {
+        try {
+          const response = await fetch('/static/json/error/spider.json?_nocache=' + Date.now());
+          const animationData = await response.json();
+          setSpiderAnimation(animationData);
+        } catch (error) {
+          console.error('Ошибка загрузки анимации:', error);
+        }
+      };
+      
+      loadSpiderAnimation();
+    }, []);
+    
+    return (
+      <MediaErrorContainer>
+        {spiderAnimation && (
+          <LottieWrapper>
+            <Lottie 
+              animationData={spiderAnimation} 
+              loop 
+              autoplay
+            />
+          </LottieWrapper>
+        )}
+        <Typography variant="h6" gutterBottom>
+          {type === 'image' ? 'Не удалось загрузить изображение' : 'Не удалось загрузить видео'}
+        </Typography>
+        <Typography variant="body2">
+          {type === 'image' 
+            ? 'Файл был удален или недоступен.' 
+            : 'Видео не найдено или формат не поддерживается вашим браузером.'}
+        </Typography>
+      </MediaErrorContainer>
+    );
+  };
+  
   return (
     <>
       <svg style={{ position: 'absolute', width: 0, height: 0 }}>
@@ -1615,7 +1744,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
           bgcolor: 'background.paper',
           border: post.type === 'stena' ? `1px solid ${theme.palette.primary.main}40` : '1px solid',
           borderColor: post.type === 'stena' ? 'primary.main' : 'divider',
-          cursor: 'default',
+          cursor: 'auto',
           position: 'relative',
         }}
       >
@@ -1706,18 +1835,9 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                         }} 
                       />
                     ) : (
-                      <CheckCircleIcon 
-                        sx={{ 
-                          color: post.user.verification.status === 1 ? '#9e9e9e' : 
-                                 post.user.verification.status === 2 ? '#d67270' : 
-                                 post.user.verification.status === 3 ? '#b39ddb' :
-                                 post.user.verification.status === 4 ? '#ff9800' : 
-                                 post.user.verification.status === 5 ? '#4caf50' :
-                                 'primary.main',
-                          ml: 0.5,
-                          width: 20,
-                          height: 20
-                        }} 
+                      <VerificationBadge 
+                        status={post.user.verification.status} 
+                        size="small" 
                       />
                     )
                   )}
@@ -1799,23 +1919,253 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             )}
           </Box>
           
+          {/* Отображение репоста (пост внутри поста) */}
+          {post.type === 'repost' && post.original_post && (
+            <Box 
+              sx={{ 
+                mb: 2, 
+                mt: 1,
+                px: 2, 
+                py: 1.5, 
+                borderRadius: '12px', 
+                border: theme => `1px solid ${theme.palette.mode === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.1)' 
+                  : 'rgba(0, 0, 0, 0.12)'}`,
+                backgroundColor: theme => theme.palette.mode === 'dark'
+                  ? 'rgba(255, 255, 255, 0.03)'
+                  : 'rgba(0, 0, 0, 0.03)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  backgroundColor: theme => theme.palette.mode === 'dark'
+                    ? 'rgba(255, 255, 255, 0.05)'
+                    : 'rgba(0, 0, 0, 0.05)',
+                  borderColor: theme => theme.palette.mode === 'dark'
+                    ? 'rgba(255, 255, 255, 0.15)'
+                    : 'rgba(0, 0, 0, 0.2)'
+                }
+              }}
+            >
+              {/* Заголовок с информацией о репосте */}
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+                <RepeatIcon sx={{ fontSize: 16, mr: 0.5, color: theme.palette.primary.main }} />
+                <Typography 
+                  variant="caption" 
+                  color="text.secondary"
+                  component={Link}
+                  to={`/profile/${post.original_post.user?.username}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                  sx={{ 
+                    textDecoration: 'none',
+                    '&:hover': {
+                      color: 'primary.main',
+                      textDecoration: 'underline'
+                    }
+                  }}
+                >
+                  Репост от
+                </Typography>
+                <Avatar
+                  src={post.original_post.user?.photo && post.original_post.user?.photo !== 'avatar.png'
+                    ? post.original_post.user?.avatar_url
+                    : `/static/uploads/avatar/system/avatar.png`}
+                  alt={post.original_post.user?.name || "User"}
+                  component={Link}
+                  to={`/profile/${post.original_post.user?.username}`}
+                  onClick={(e) => e.stopPropagation()}
+                  sx={{ 
+                    width: 18, 
+                    height: 18, 
+                    ml: 0.5,
+                    mr: 0.5,
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                  }}
+                />
+                <Typography 
+                  variant="caption" 
+                  color="text.primary"
+                  component={Link}
+                  to={`/profile/${post.original_post.user?.username}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                  sx={{ 
+                    fontWeight: 'medium',
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    '&:hover': {
+                      color: 'primary.main',
+                      textDecoration: 'underline'
+                    }
+                  }}
+                >
+                  {post.original_post.user?.name || 'Unknown'}
+                  {post.original_post.user?.verification && post.original_post.user?.verification.status > 0 && (
+                    <VerificationBadge 
+                      status={post.original_post.user?.verification.status} 
+                      size="small" 
+                    />
+                  )}
+                </Typography>
+              </Box>
+              
+              {/* Контент оригинального поста */}
+              <Box 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  
+                  openPostDetail(post.original_post.id);
+                }}
+                sx={{ 
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  display: 'block',
+                  cursor: 'pointer',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.03)'
+                  }
+                }}
+              >
+                {post.original_post.content && (
+                  <Typography variant="body2" sx={{ mb: 1, color: 'text.primary', fontSize: '0.9rem', whiteSpace: 'pre-wrap' }}>
+                    {truncateText(post.original_post.content, 500)}
+                    {post.original_post.content.length > 500 && (
+                      <Box 
+                        component="span" 
+                        sx={{ 
+                          color: 'primary.main', 
+                          cursor: 'pointer',
+                          display: 'inline-block',
+                          fontSize: '0.85rem',
+                          ml: 0.5
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openPostDetail(post.original_post.id);
+                        }}
+                      >
+                        Читать далее
+                      </Box>
+                    )}
+                  </Typography>
+                )}
+                
+                {/* Replacing the single image with our new RepostImageGrid component */}
+                {post.original_post.image && (
+                  <Box sx={{ mb: 1 }}>
+                    <RepostImageGrid 
+                      images={post.original_post.images || [post.original_post.image]} 
+                      onImageClick={(index) => {
+                        setCurrentImageIndex(index);
+                        setLightboxImages(post.original_post.images || [post.original_post.image]);
+                        setLightboxOpen(true);
+                      }}
+                    />
+                  </Box>
+                )}
+                
+                {/* Видео оригинального поста (если есть) */}
+                {post.original_post.video && (
+                  <Box sx={{ mt: 1 }}>
+                    <VideoPlayer 
+                      videoUrl={post.original_post.video} 
+                      sx={{ maxHeight: '200px' }}
+                      onError={() => {
+                        console.error("Repost video failed to load:", post.original_post.video);
+                      }}
+                    />
+                  </Box>
+                )}
+                
+                {/* Статистика оригинального поста */}
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between',
+                  mt: 1,
+                  pt: 1,
+                  borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+                  opacity: 0.7
+                }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                    {formatTimeAgo(post.original_post.timestamp)}
+                  </Typography>
+                  
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <FavoriteBorderIcon sx={{ fontSize: 12, mr: 0.5, color: 'text.secondary' }} />
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                        {post.original_post.likes_count || 0}
+                      </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <ChatBubbleOutlineIcon sx={{ fontSize: 12, mr: 0.5, color: 'text.secondary' }} />
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                        {post.original_post.comments_count || 0}
+                      </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <VisibilityIcon sx={{ fontSize: 12, mr: 0.5, color: 'text.secondary' }} />
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                        {post.original_post.views_count || 0}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          )}
           
-          {videoUrl && (
-            <Box sx={{ mb: 2 }}>
+          {videoUrl && mediaError.type !== 'video' ? (
+            <Box sx={{ 
+              mb: 2,
+              position: 'relative',
+              borderRadius: '8px',
+              overflow: 'hidden',
+              transition: 'transform 0.2s ease',
+              '&:hover': {
+                transform: 'scale(1.01)',
+              }
+            }}
+            data-no-navigate
+            >
               <VideoPlayer 
                 videoUrl={videoUrl} 
                 poster={images.length > 0 ? formatVideoUrl(images[0]) : undefined}
+                onError={() => handleVideoError(videoUrl)}
               />
+            </Box>
+          ) : mediaError.type === 'video' && (
+            <Box sx={{ mb: 2 }}>
+              <MediaErrorDisplay type="video" />
             </Box>
           )}
           
           
-          {images.length > 0 && (
-            <Box sx={{ px: { xs: 1.5, sm: 2 }, mb: 2 }}>
+          {images.length > 0 && mediaError.type !== 'image' ? (
+            <Box sx={{ 
+              mb: 2, 
+              width: '100%', 
+              position: 'relative',
+              '&:hover::after': {
+                opacity: 0.7,
+              }
+            }}
+            data-no-navigate
+            >
               <ImageGrid 
-                images={images} 
-                onImageClick={(index) => handleOpenImage(index)}
+                images={images}
+                onImageClick={handleOpenImage}
+                onImageError={handleImageError}
               />
+            </Box>
+          ) : mediaError.type === 'image' && (
+            <Box sx={{ mb: 2 }}>
+              <MediaErrorDisplay type="image" />
             </Box>
           )}
           
@@ -2005,6 +2355,19 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                 <ActionItem
                   onClick={handleCommentClick}
                   islike={false}
+                  sx={{
+                    position: 'relative',
+                    '&:hover': {
+                      bgcolor: 'rgba(140, 82, 255, 0.08)',
+                      '& .MuiSvgIcon-root': {
+                        color: 'primary.main',
+                      },
+                      '& .MuiTypography-root': {
+                        color: 'primary.main',
+                      }
+                    },
+                    transition: 'all 0.2s ease',
+                  }}
                 >
                   {post?.total_comments_count > 0 || post?.comments_count > 0 ? (
                     <ChatBubbleIcon 
@@ -2041,7 +2404,27 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                 </ActionItem>
               </ActionsPill>
               
+              {/* Кнопка репоста */}
+              <SharePill 
+                onClick={handleRepostClick}
+                component={motion.div}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                sx={{ 
+                  mr: 1,
+                  bgcolor: reposted ? 'rgba(140, 82, 255, 0.08)' : 'rgba(40, 40, 50, 0.4)',
+                  borderColor: reposted ? 'rgba(140, 82, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)'
+                }}
+              >
+                <RepeatIcon sx={{ 
+                  fontSize: { xs: 16, sm: 19 },
+                  color: reposted ? 'primary.main' : 'text.secondary',
+                  position: 'relative',
+                  zIndex: 2
+                }} />
+              </SharePill>
               
+              {/* Кнопка шаринга */}
               <SharePill 
                 onClick={handleShare}
                 component={motion.div}
@@ -2188,6 +2571,24 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
           Поделиться постом
         </DialogTitle>
         <DialogContent sx={{ pt: 3, px: 3 }}>
+          {post.type === 'repost' && (
+            <Box sx={{ 
+              mb: 2,
+              p: 1.5, 
+              borderRadius: '8px',
+              bgcolor: 'rgba(123, 104, 238, 0.08)',
+              border: '1px solid rgba(123, 104, 238, 0.15)',
+              fontSize: '0.85rem',
+              color: 'rgba(255, 255, 255, 0.85)',
+              display: 'flex',
+              alignItems: 'flex-start'
+            }}>
+              <RepeatIcon sx={{ mr: 1, fontSize: '18px', color: '#7B68EE', mt: '2px' }} />
+              <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
+                Репост будет ссылаться на оригинальный пост, а не на этот репост.
+              </Typography>
+            </Box>
+          )}
           <Box sx={{ position: 'relative' }}>
             <TextField
               autoFocus

@@ -66,8 +66,8 @@ const BlackjackPage = () => {
   
 
   const startNewGame = async () => {
-    if (betAmount < 10 || betAmount > 2000) {
-      setError('Ставка должна быть от 10 до 2000');
+    if (betAmount < 10 || betAmount > 1000000) {
+      setError('Ставка должна быть от 10 до 1000000');
       return;
     }
     
@@ -305,7 +305,8 @@ const BlackjackPage = () => {
       position: 'relative',
       minHeight: 'calc(100vh - 64px)',
       background: 'linear-gradient(to bottom, #121212, #000000)',
-      color: '#ffffff'
+      color: '#ffffff',
+      marginBottom: '100px'
     }}>
       <SEO title="21 | Мини-игры | К-Коннект" description="Игра 21 (блэкджек) - наберите 21 очко или больше чем у дилера, не перебрав!" />
       
@@ -358,7 +359,7 @@ const BlackjackPage = () => {
               type="number"
               value={betAmount}
               onChange={(e) => setBetAmount(parseInt(e.target.value) || 0)}
-              inputProps={{ min: 10, max: 2000 }}
+              inputProps={{ min: 10, max: 1000000 }}
               sx={{ 
                 width: '150px', 
                 mr: 2,
@@ -396,7 +397,7 @@ const BlackjackPage = () => {
           </Box>
           
           <Typography variant="caption" color="text.secondary">
-            Минимальная ставка: 10 | Максимальная ставка: 2000
+            Минимальная ставка: 10 | Максимальная ставка: 1000000
           </Typography>
         </StyledPaper>
       ) : (

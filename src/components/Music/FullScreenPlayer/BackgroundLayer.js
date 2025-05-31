@@ -1,34 +1,47 @@
-import React, { memo } from 'react';
-import { Box } from '@mui/material';
+import React from 'react';
 import styles from './BackgroundLayer.module.scss';
 
 const BackgroundLayer = ({ cover, dominantColor }) => {
-  const defaultCover = '/static/uploads/system/album_placeholder.jpg';
+  const backgroundColor = dominantColor 
+    ? `rgb(${dominantColor.r}, ${dominantColor.g}, ${dominantColor.b})`
+    : 'rgb(25, 20, 20)';
+  
+  const gradientOverlay = `linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.5) 0%,
+    rgba(0, 0, 0, 0.7) 100%
+  )`;
   
   return (
-    <div className={styles.backgroundContainer}>
-      {/* Main blurred album artwork */}
+    <div className={styles.container}>
+      {/* Primary background color based on album art */}
       <div 
-        className={styles.albumBackground}
-        style={{ 
-          backgroundImage: `url(${cover || defaultCover})`
-        }}
+        className={styles.baseBackground}
+        style={{ backgroundColor }}
       />
       
-      {/* Gradient overlay */}
+      {/* Image layer - blurred album art */}
+      {cover && (
+        <div className={styles.imageContainer}>
+          <div 
+            className={styles.imageLayer}
+            style={{ 
+              backgroundImage: `url(${cover})`,
+            }}
+          />
       <div 
-        className={styles.gradientOverlay} 
+            className={styles.imageOverlay}
         style={{
-          background: dominantColor
-            ? `linear-gradient(145deg, rgba(${dominantColor}, 0.1) 0%, rgba(16, 16, 16, 0.85) 70%, rgba(10, 10, 10, 0.95) 100%)`
-            : 'linear-gradient(145deg, rgba(45, 45, 45, 0.1) 0%, rgba(16, 16, 16, 0.85) 70%, rgba(10, 10, 10, 0.95) 100%)'
+              backgroundImage: gradientOverlay 
         }}
       />
+        </div>
+      )}
       
-      {/* Apple Music has a subtle noise texture */}
-      <div className={styles.noiseTexture} />
+      {/* Glass effect overlay */}
+      <div className={styles.glassOverlay} />
     </div>
   );
 };
 
-export default memo(BackgroundLayer); 
+export default BackgroundLayer; 

@@ -44,6 +44,10 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import SwipeIcon from '@mui/icons-material/Swipe';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import BugReportIcon from '@mui/icons-material/BugReport';
+import ShareIcon from '@mui/icons-material/Share';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import StarIcon from '@mui/icons-material/Star';
+import ChatIcon from '@mui/icons-material/Chat';
 
 const MotionBox = motion(Box);
 const MotionTypography = motion(Typography);
@@ -70,6 +74,12 @@ const FeatureCard = ({ icon, title, description, delay }) => {
           bgcolor: alpha(theme.palette.background.paper, 0.5),
           backdropFilter: 'blur(10px)',
           border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            transform: 'translateY(-5px)',
+            boxShadow: `0 10px 20px ${alpha(theme.palette.primary.main, 0.2)}`,
+            borderColor: alpha(theme.palette.primary.main, 0.3),
+          }
         }}
       >
         <CardContent sx={{ flexGrow: 1, p: 3 }}>
@@ -77,10 +87,15 @@ const FeatureCard = ({ icon, title, description, delay }) => {
             <Box 
               sx={{ 
                 bgcolor: alpha(theme.palette.primary.main, 0.1), 
-                p: 1, 
+                p: 1.5, 
                 borderRadius: 2,
                 color: theme.palette.primary.main,
-                mr: 2
+                mr: 2,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'scale(1.1)',
+                  bgcolor: alpha(theme.palette.primary.main, 0.2),
+                }
               }}
             >
               {icon}
@@ -114,6 +129,10 @@ const TeamMember = ({ name, role, avatar, delay, description, username }) => {
           alignItems: 'center',
           textAlign: 'center',
           p: 3,
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            transform: 'translateY(-5px)',
+          }
         }}
       >
         <Avatar 
@@ -124,7 +143,12 @@ const TeamMember = ({ name, role, avatar, delay, description, username }) => {
             height: 120, 
             mb: 2,
             boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.3)}`,
-            border: `3px solid ${alpha(theme.palette.primary.main, 0.7)}`
+            border: `3px solid ${alpha(theme.palette.primary.main, 0.7)}`,
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              transform: 'scale(1.05)',
+              boxShadow: `0 8px 30px ${alpha(theme.palette.primary.main, 0.4)}`,
+            }
           }}
         />
         <Typography variant="h6" component="h3" fontWeight="bold">
@@ -137,7 +161,18 @@ const TeamMember = ({ name, role, avatar, delay, description, username }) => {
           {description}
         </Typography>
         {username && (
-          <Typography variant="body2" color="text.secondary">
+          <Typography 
+            variant="body2" 
+            color="text.secondary"
+            sx={{
+              mt: 1,
+              opacity: 0.8,
+              '&:hover': {
+                opacity: 1,
+                color: theme.palette.primary.main,
+              }
+            }}
+          >
             {username}
           </Typography>
         )}
@@ -277,13 +312,11 @@ const AboutPage = () => {
       title: "Каналы",
       description: "Создавайте свои каналы для публикации тематического контента и общения с аудиторией",
       icon: <GroupIcon fontSize="large" />,
-      highlight: true
     },
     {
       title: "Система верификации",
       description: "Подтвердите свою личность или бренд и получите статус верифицированного пользователя",
       icon: <ShieldIcon fontSize="large" />,
-      highlight: true
     },
     {
       title: "Интеграция музыки",
@@ -299,19 +332,16 @@ const AboutPage = () => {
       title: "Экономическая система",
       description: "Зарабатывайте баллы за социальную активность и используйте их для покупок и переводов",
       icon: <MonetizationOnIcon fontSize="large" />,
-      highlight: true
     },
     {
       title: "Маркетплейс баллов",
       description: "Покупайте бейджики, уникальные имена пользователей и другие цифровые товары за заработанные баллы",
       icon: <AccountBalanceWalletIcon fontSize="large" />,
-      highlight: true
     },
     {
       title: "Еженедельные награды",
       description: "Автоматическое получение баллов каждое воскресенье на основе вашей активности на платформе",
       icon: <LocalAtmIcon fontSize="large" />,
-      highlight: true
     },
     {
       title: "Мини-игры",
@@ -337,23 +367,55 @@ const AboutPage = () => {
       title: "Тёмная тема",
       description: "Комфортный тёмный режим для снижения нагрузки на глаза при использовании ночью",
       icon: <DarkModeIcon fontSize="large" />
+    },
+    {
+      title: "Система репостов",
+      description: "Делитесь интересными постами с вашими подписчиками, сохраняя связь с оригинальным контентом",
+      icon: <ShareIcon fontSize="large" />,
+      highlight: true
+    },
+    {
+      title: "Удобные чеки",
+      description: "Создавайте и отправляйте чеки для быстрых и безопасных переводов между пользователями",
+      icon: <ReceiptIcon fontSize="large" />,
+      highlight: true
+    },
+    {
+      title: "Подписки",
+      description: "Получайте дополнительные возможности и привилегии с системой подписок",
+      icon: <StarIcon fontSize="large" />,
+      highlight: true
+    },
+    {
+      title: "Мессенджер",
+      description: "Современный мессенджер с поддержкой медиа, стикеров и групповых чатов",
+      icon: <ChatIcon fontSize="large" />,
+      highlight: true
     }
   ];
   
   
   const teamMembers = [
     {
-      name: "Ян Брагин",
+      name: "амир",
       role: "Founder & Developer",
       avatar: "https://k-connect.ru/static/uploads/avatar/3/bo4hc37yKu.jpg", 
-      description: "Created K-Connect as a modern social network focused on uniting people through creative content."
+      description: "Created K-Connect as a modern social network focused on uniting people through creative content.",
+      username: "@qsoul"
     },
     {
       name: "алинк",
       role: "Designer",
-      avatar: "https://about.k-connect.ru/static/uploads/avatar/9/9tGEbQE29B.jpeg", 
+      avatar: "https://k-connect.ru/static/uploads/avatar/9/9tGEbQE29B.jpeg", 
       description: "Responsible for the visual aesthetics and user experience of K-Connect.",
       username: "@yalinks"
+    },
+    {
+      name: "Liquides",
+      role: "React Native Разработчик",
+      avatar: "/static/moderators/lix.jpg", 
+      description: "Разработчик Android приложения",
+      username: "@liquides"
     }
   ];
   
@@ -392,10 +454,20 @@ const AboutPage = () => {
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundImage: `linear-gradient(to bottom, ${alpha(theme.palette.primary.dark, 0.8)}, ${alpha(theme.palette.background.default, 0.9)})`,
+          backgroundImage: `linear-gradient(135deg, ${alpha(theme.palette.primary.dark, 0.9)}, ${alpha(theme.palette.background.default, 0.95)})`,
           color: '#fff',
           textAlign: 'center',
-          p: 3
+          p: 3,
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'radial-gradient(circle at center, rgba(208, 188, 255, 0.1) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }
         }}
       >
         <Container maxWidth="md">
@@ -406,7 +478,7 @@ const AboutPage = () => {
               fontWeight: 800, 
               fontSize: { xs: '3rem', sm: '4rem', md: '5rem' },
               mb: 2,
-              textShadow: '0 4px 8px rgba(0,0,0,0.3)'
+              textShadow: '0 4px 8px rgba(0,0,0,0.3)',
             }}
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
@@ -421,7 +493,8 @@ const AboutPage = () => {
               fontWeight: 400, 
               mb: 4,
               opacity: 0.9,
-              fontSize: { xs: '1.2rem', sm: '1.5rem', md: '1.75rem' }
+              fontSize: { xs: '1.2rem', sm: '1.5rem', md: '1.75rem' },
+              textShadow: '0 2px 4px rgba(0,0,0,0.2)'
             }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -447,7 +520,8 @@ const AboutPage = () => {
                 boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
                 '&:hover': { 
                   transform: 'translateY(-3px)',
-                  boxShadow: '0 8px 25px rgba(0,0,0,0.4)'
+                  boxShadow: '0 8px 25px rgba(0,0,0,0.4)',
+                  backgroundColor: theme.palette.primary.dark,
                 },
                 transition: 'all 0.3s'
               }}
@@ -458,7 +532,6 @@ const AboutPage = () => {
           </MotionBox>
         </Container>
         
-        
         <MotionBox
           sx={{
             position: 'absolute',
@@ -468,7 +541,11 @@ const AboutPage = () => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            opacity: 0.8,
+            '&:hover': {
+              opacity: 1,
+            }
           }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -476,7 +553,7 @@ const AboutPage = () => {
           onClick={() => scrollToNextSection(featuresRef)}
           whileHover={{ scale: 1.1 }}
         >
-          <Typography variant="body2" sx={{ mb: 1, opacity: 0.8 }}>
+          <Typography variant="body2" sx={{ mb: 1 }}>
             {isMobile ? 'Свайп вниз' : 'Прокрути вниз'}
           </Typography>
           
@@ -485,15 +562,15 @@ const AboutPage = () => {
               animate={{ y: [0, 10, 0] }}
               transition={{ duration: 1.5, repeat: Infinity, repeatType: 'loop' }}
             >
-              <SwipeIcon sx={{ fontSize: '2rem', opacity: 0.9 }} />
+              <SwipeIcon sx={{ fontSize: '2rem' }} />
             </MotionBox>
           ) : (
             <MotionBox
               animate={{ y: [0, 10, 0] }}
               transition={{ duration: 1.5, repeat: Infinity, repeatType: 'loop' }}
             >
-              <MouseIcon sx={{ fontSize: '2rem', opacity: 0.9 }} />
-              <KeyboardArrowDownIcon sx={{ fontSize: '1.5rem', opacity: 0.9 }} />
+              <MouseIcon sx={{ fontSize: '2rem' }} />
+              <KeyboardArrowDownIcon sx={{ fontSize: '1.5rem' }} />
             </MotionBox>
           )}
         </MotionBox>
@@ -572,8 +649,8 @@ const AboutPage = () => {
                     <Box 
                       sx={{ 
                         position: 'absolute',
-                        top: 12,
-                        right: 12,
+                        top: 24,
+                        right: 24,
                         bgcolor: alpha(theme.palette.primary.main, 0.1),
                         color: theme.palette.primary.main,
                         borderRadius: '12px',
@@ -794,11 +871,13 @@ const AboutPage = () => {
             viewport={{ once: true }}
           >
             {[
-              { name: "Арбуз", avatar: "/static/moderators/arb.jpg" },
+              
               { name: "ʙʟxꜱꜱxᴅ ₁₈₆", avatar: "/static/moderators/bxx.jpg" },
-              // { name: "revexed", avatar: "/static/moderators/rev.jpg" },
+              { name: "кам", avatar: "/static/moderators/kam.jpg" },
               { name: "Liquides", avatar: "/static/moderators/lix.jpg" },
-              // { name: "nepravel", avatar: "/static/moderators/nep.jpg" }
+              { name: "IMarandici", avatar: "/static/moderators/lmar.jpg" },
+
+              
             ].map((moderator, index) => (
               <MotionGrid item xs={6} sm={4} md={3} key={index} variants={itemVariants}>
                 <MotionBox

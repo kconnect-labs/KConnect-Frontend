@@ -582,6 +582,7 @@ const CreatePost = ({ onPostCreated }) => {
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [mediaNotification, setMediaNotification] = useState({ open: false, message: '' });
   
   
   const [musicSelectOpen, setMusicSelectOpen] = useState(false);
@@ -655,51 +656,36 @@ const CreatePost = ({ onPostCreated }) => {
   
   const processFiles = (files) => {
     if (!files.length) return;
-    
-    
-    setMediaFiles([]);
-    setMediaPreview([]);
-    setMediaType('');
-    
-    
-    if (files.length > 1) {
-      
-      const allImages = files.every(file => file.type.startsWith('image/'));
-      
-      if (allImages) {
-        setMediaFiles(files);
-        setMediaType('images');
-        
-        
-        files.forEach(file => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setMediaPreview(prevPreviews => [...prevPreviews, reader.result]);
-          };
-          reader.readAsDataURL(file);
-        });
-        return;
-      }
-    }
-    
-    
+
     const file = files[0];
-    
-    
     const isImage = file.type.startsWith('image/');
     const isVideo = file.type.startsWith('video/');
-    
-    if (isImage || isVideo) {
-      setMediaFiles([file]);
-      setMediaType(isImage ? 'image' : 'video');
-      
-      
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setMediaPreview([reader.result]);
-      };
-      reader.readAsDataURL(file);
+
+    if (!isImage && !isVideo) {
+      setMediaNotification({
+        open: true,
+        message: 'Поддерживаются только изображения и видео'
+      });
+      return;
     }
+
+    
+    if (mediaType && ((isImage && mediaType === 'video') || (isVideo && mediaType === 'image'))) {
+      setMediaNotification({
+        open: true,
+        message: 'Нельзя прикрепить фото и видео одновременно'
+      });
+      return;
+    }
+
+    setMediaFiles([file]);
+    setMediaType(isImage ? 'image' : 'video');
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setMediaPreview([reader.result]);
+    };
+    reader.readAsDataURL(file);
   };
   
   const handleRemoveMedia = () => {
@@ -874,6 +860,41 @@ const CreatePost = ({ onPostCreated }) => {
     }
   };
   
+  const handlePaste = (e) => {
+    const clipboardData = e.clipboardData;
+    if (clipboardData.items) {
+      const items = clipboardData.items;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          e.preventDefault();  
+          const file = items[i].getAsFile();
+          if (file) {
+            
+            if (mediaType && mediaType === 'video') {
+              setMediaNotification({
+                open: true,
+                message: 'Нельзя прикрепить фото и видео одновременно'
+              });
+              return;
+            }
+
+            
+            setMediaFiles(prev => [...prev, file]);
+            setMediaType('image');
+            
+            
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              setMediaPreview(prev => [...prev, reader.result]);
+            };
+            reader.readAsDataURL(file);
+            break;
+          }
+        }
+      }
+    }
+  };
+  
   if (!user) return null;
   
   return (
@@ -966,6 +987,21 @@ const CreatePost = ({ onPostCreated }) => {
         </Box>
       </Dialog>
       
+      <Snackbar
+        open={mediaNotification.open}
+        autoHideDuration={3000}
+        onClose={() => setMediaNotification({ ...mediaNotification, open: false })}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setMediaNotification({ ...mediaNotification, open: false })} 
+          severity="warning"
+          sx={{ width: '100%' }}
+        >
+          {mediaNotification.message}
+        </Alert>
+      </Snackbar>
+      
       <Box 
         component="form" 
         onSubmit={(e) => {
@@ -1031,6 +1067,7 @@ const CreatePost = ({ onPostCreated }) => {
               maxRows={6}
               value={content}
               onChange={(e) => setContent(e.target.value)}
+              onPaste={handlePaste}
               fullWidth
             />
           </Box>
@@ -1038,45 +1075,103 @@ const CreatePost = ({ onPostCreated }) => {
           
           {mediaPreview.length > 0 && (
             <Box sx={{ position: 'relative', mb: 2 }}>
-              {mediaType === 'images' && mediaPreview.length > 1 ? (
-                <ImageList sx={{ width: '100%', height: 'auto', maxHeight: 500 }} cols={mediaPreview.length > 3 ? 3 : 2} rowHeight={164}>
-                  {mediaPreview.map((preview, index) => (
-                    <ImageListItem key={index}>
-                      <img
-                        src={preview}
-                        alt={`Preview ${index + 1}`}
-                        style={{ objectFit: 'cover', height: '100%', width: '100%' }}
-                      />
-                    </ImageListItem>
-                  ))}
-                </ImageList>
-              ) : (
-                <img
-                  src={mediaPreview[0]}
-                  alt="Preview"
-                  style={{ 
-                    width: '100%', 
-                    borderRadius: '8px',
-                    maxHeight: '300px',
-                    objectFit: mediaType === 'image' ? 'contain' : 'cover'
-                  }}
-                />
-              )}
-              <IconButton
-                onClick={handleRemoveMedia}
-                sx={{
-                  position: 'absolute',
-                  top: 8,
-                  right: 8,
-                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                  color: 'white',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                  },
-                }}
-              >
-                <CloseIcon fontSize="small" />
-              </IconButton>
+              <Box sx={{ 
+                position: 'relative',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: 'rgba(0, 0, 0, 0.2)'
+              }}>
+                {mediaType === 'image' ? (
+                  <ImageList 
+                    sx={{ 
+                      width: '100%', 
+                      height: 'auto',
+                      maxHeight: 500,
+                      margin: 0,
+                      padding: 1
+                    }} 
+                    cols={mediaPreview.length > 3 ? 3 : mediaPreview.length} 
+                    rowHeight={164}
+                    gap={8}
+                  >
+                    {mediaPreview.map((preview, index) => (
+                      <ImageListItem 
+                        key={index}
+                        sx={{
+                          position: 'relative',
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                          border: '1px solid rgba(255, 255, 255, 0.1)'
+                        }}
+                      >
+                        <img
+                          src={preview}
+                          alt={`Preview ${index + 1}`}
+                          style={{ 
+                            objectFit: 'cover',
+                            height: '100%',
+                            width: '100%',
+                            borderRadius: '8px'
+                          }}
+                        />
+                        <IconButton
+                          onClick={() => {
+                            setMediaFiles(prev => prev.filter((_, i) => i !== index));
+                            setMediaPreview(prev => prev.filter((_, i) => i !== index));
+                            if (mediaPreview.length === 1) {
+                              setMediaType('');
+                            }
+                          }}
+                          sx={{
+                            position: 'absolute',
+                            top: 4,
+                            right: 4,
+                            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                            color: 'white',
+                            padding: '4px',
+                            '&:hover': {
+                              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            },
+                            backdropFilter: 'blur(4px)'
+                          }}
+                        >
+                          <CloseIcon fontSize="small" />
+                        </IconButton>
+                      </ImageListItem>
+                    ))}
+                  </ImageList>
+                ) : (
+                  <video
+                    src={mediaPreview[0]}
+                    controls
+                    style={{ 
+                      width: '100%', 
+                      maxHeight: '300px',
+                      borderRadius: '12px'
+                    }}
+                  />
+                )}
+                {mediaType === 'video' && (
+                  <IconButton
+                    onClick={handleRemoveMedia}
+                    sx={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                      color: 'white',
+                      '&:hover': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                      },
+                      padding: '8px',
+                      backdropFilter: 'blur(4px)'
+                    }}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                )}
+              </Box>
             </Box>
           )}
           
