@@ -52,7 +52,14 @@
       body {
         touch-action: pan-x pan-y;
         -webkit-touch-callout: none;
+        text-size-adjust: 100%;
+        -webkit-text-size-adjust: 100%;
+      }
 
+      /* Prevent zoom on inputs */
+      input, textarea, select {
+        font-size: 16px !important;
+        touch-action: manipulation;
       }
       
       p, h1, h2, h3, h4, h5, h6, span, div, article, section {
@@ -86,6 +93,15 @@
         }
         lastTap = currentTime;
       });
+      
+      // Prevent zoom on input focus
+      document.addEventListener('focus', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+          // Prevent iOS zoom
+          document.body.style.touchAction = 'manipulation';
+          document.documentElement.style.touchAction = 'manipulation';
+        }
+      }, true);
     </script>
 
   </head>
