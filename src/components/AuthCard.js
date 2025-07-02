@@ -4,7 +4,7 @@ import { styled } from '@mui/material/styles';
 import { motion } from 'framer-motion';
 
 
-const StyledCard = styled(motion(Card))(({ theme }) => ({
+const StyledCard = styled(motion.create(Card))(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   borderRadius: theme.shape.borderRadius * 2,
   padding: theme.spacing(4),

@@ -1,0 +1,930 @@
+{
+  "comment": {
+    "form": {
+      "placeholder": "Написать комментарий..."
+    },
+    "reply_form": {
+      "placeholder": "Написать ответ..."
+    },
+    "section": {
+      "title": "Комментарии",
+      "empty": "Комментариев пока нет. Будьте первым!"
+    },
+    "menu": {
+      "reply": "Ответить",
+      "delete": "Удалить"
+    },
+    "media": {
+      "error": "Ошибка загрузки медиа",
+      "duplicate_path": "Ошибка в пути к файлу (дублирование)",
+      "url_unavailable": "URL недоступен"
+    },
+    "dialog": {
+      "delete": {
+        "title": "Удаление комментария",
+        "message": "Вы уверены, что хотите удалить этот комментарий? Это действие нельзя отменить.",
+        "cancel": "Отмена",
+        "confirm": "Удалить"
+      },
+      "delete_reply": {
+        "title": "Удаление ответа",
+        "message": "Вы уверены, что хотите удалить этот ответ? Это действие нельзя отменить.",
+        "cancel": "Отмена",
+        "confirm": "Удалить"
+      }
+    }
+  },
+  "balance": {
+    "tabs": {
+      "history": "История",
+      "assets": "Активы",
+      "subscription": "Подписка"
+    },
+    "current_balance": {
+      "title": "Баланс",
+      "points_suffix": "баллов"
+    },
+    "weekly_forecast": {
+      "date_range": "{start} — {end}",
+      "points": "+{amount} баллов",
+      "description": "Это прогноз баллов, которые вы получите в конце недели за вашу активность. Обновляется раз в час.",
+      "how_to_earn": {
+        "title": "Как начисляются баллы?",
+        "tooltip": "Подробнее о начислении баллов",
+        "description": "Баллы начисляются за активность на платформе:",
+        "details": "Подробную информацию о системе начисления баллов можно найти в разделе рейтинга."
+      }
+    },
+    "actions": {
+      "pay": "Оплатить",
+      "topup": "Пополнить",
+      "transfer": "Перевести",
+      "activate_key": "Активировать ключ"
+    },
+    "points": {
+      "title": "Баллы",
+      "weekly_estimate": "Примерно за неделю",
+      "earning_methods": {
+        "title": "Как заработать баллы:",
+        "posts": "Создание постов и историй",
+        "likes": "Получение лайков и комментариев",
+        "replies": "Ответы на комментарии",
+        "reposts": "Репосты и просмотры",
+        "reactions": "Реакции на истории"
+      }
+    },
+    "transactions": {
+      "badge_purchase": "Покупка бейджика",
+      "royalty_from_purchase": "Роялти от покупки",
+      "clicker_withdrawal": "Вывод из кликера",
+      "clicker_withdrawal_message": "Вывод баллов из кликера",
+      "clicker_points": "Баллы из кликера",
+      "transfer": "Исходящий перевод",
+      "deposit": "Входящий перевод",
+      "username_purchase": "Покупка юзернейма",
+      "weekly_points": "Еженедельные баллы",
+      "activity_reward": "Начисление за активность",
+      "transaction": "Транзакция",
+      "blackjack_win": "Выигрыш в игре \"21\"",
+      "blackjack_tie": "Ничья в игре \"21\"",
+      "blackjack_lose": "Проигрыш в игре \"21\"",
+      "minigame_bet": "Ставка в мини-игре",
+      "game_transaction": "Транзакция в мини-игре",
+      "withdrawal": "Вывод заработанных баллов",
+      "no_history": "У вас пока нет истории транзакций",
+      "load_more": "Следующая страница",
+      "success": {
+        "title": "Перевод выполнен успешно",
+        "subtitle": "Средства успешно переведены",
+        "amount_sent": "Вы перевели {amount} баллов пользователю {username}",
+        "receipt_info": "Вы можете скачать справку о переводе в формате PDF",
+        "open_receipt": "Открыть справку",
+        "receipt_error": "Не удалось открыть PDF. Попробуйте позже."
+      }
+    },
+    "transfer": {
+      "errors": {
+        "enter_username": "Введите имя пользователя",
+        "user_not_found": "Пользователь не найден",
+        "enter_amount": "Введите сумму перевода",
+        "positive_amount": "Сумма должна быть положительным числом",
+        "insufficient_points": "Недостаточно баллов для перевода"
+      },
+      "success": {
+        "title": "Перевод выполнен",
+        "subtitle": "Средства переведены",
+        "details": "Перевод {amount} баллов пользователю {username}"
+      },
+      "receipt": {
+        "download": "Скачать чек",
+        "view": "Посмотреть чек",
+        "error": "Ошибка при открытии чека"
+      }
+    },
+    "assets": {
+      "badges": {
+        "no_description": "Без описания",
+        "purchases": {
+          "title": "Покупки ({count})",
+          "date": "Приобретен: {date}",
+          "none": "Пока нет покупок этого бейджика",
+          "count": "Покупки ({count})"
+        },
+        "points_cost": "{amount} баллов",
+        "purchased_on": "Приобретен"
+      },
+      "usernames": {
+        "title": "Юзернеймы",
+        "active": "Активный",
+        "purchased_on": "Приобретен",
+        "length": "Длина",
+        "section_title": "@ Юзернеймы"
+      },
+      "empty": {
+        "title": "У вас пока нет активов",
+        "description": "Создавайте бейджики или приобретайте уникальные юзернеймы, чтобы они отображались здесь",
+        "username_auction": "Аукцион юзернеймов",
+        "badge_shop": "Магазин бейджиков"
+      }
+    },
+    "subscription": {
+      "active": {
+        "title": "Активная подписка",
+        "type": "Тип",
+        "expires": "Истекает",
+        "days_left": "осталось {days} дней",
+        "features": {
+          "title": "Возможности подписки",
+          "basic": {
+            "monthly_points": "X2 К баллам Активности",
+            "no_ads": "Отсутствие рекламы",
+            "badge_limit": "Создание до 5 бейджиков",
+            "username_limit": "Покупка до 5 Юзернеймов"
+          },
+          "premium": {
+            "monthly_points": "X4 К баллам Активности",
+            "features": "Расширенные функции платформы",
+            "support": "Приоритетная поддержка",
+            "badge_limit": "Создание до 8 бейджиков",
+            "username_limit": "Покупка до 8 Юзернеймов"
+          },
+          "ultimate": {
+            "premium_benefits": "Все преимущества Premium",
+            "monthly_points": "X8 К баллам Активности",
+            "animated_badges": "Создание Анимированных бейджиков",
+            "unlimited_badges": "Безлимитное создание бейджиков",
+            "unlimited_usernames": "Покупка неограниченного количества Юзернеймов"
+          }
+        }
+      },
+      "inactive": {
+        "title": "У вас нет активной подписки",
+        "description": "Активируйте подписку, чтобы получить доступ к расширенным возможностям платформы"
+      },
+      "types": {
+        "basic": "Базовая",
+        "premium": "Премиум",
+        "ultimate": "Ultimate"
+      },
+      "duration": {
+        "unlimited": "Бессрочно"
+      },
+      "status": {
+        "active": "Активная",
+        "inactive": "Неактивная"
+      },
+      "period": {
+        "days_left": "дней",
+        "expires_at": "до"
+      },
+      "features": {
+        "title": "Возможности",
+        "list": {
+          "points": "Ежемесячное пополнение на {amount} баллов",
+          "no_ads": "Отсутствие рекламы",
+          "badges": "Создание до {count} бейджиков",
+          "usernames": "Покупка до {count} юзернеймов",
+          "unlimited_badges": "Безлимитное создание бейджиков",
+          "unlimited_usernames": "Покупка неограниченного количества юзернеймов",
+          "animated_badges": "Создание анимированных бейджиков",
+          "extended_features": "Расширенные функции платформы",
+          "priority_support": "Приоритетная поддержка"
+        }
+      }
+    },
+    "topup": {
+      "title": "Пополнение баланса",
+      "tabs": {
+        "key": "У меня есть ключ",
+        "donate": "Донат"
+      },
+      "key": {
+        "enter": "Введите ключ активации для пополнения баланса:",
+        "placeholder": "XXXX-XXXX-XXXX-XXXX",
+        "label": "Ключ активации",
+        "hint": "Ключ активации можно получить в результате покупки на нашем сайте или от администратора.",
+        "activate": "Активировать",
+        "process": "Активация...",
+        "success": {
+          "title": "Ключ успешно активирован!",
+          "new_balance": "Новый баланс:",
+          "subscription_activated": "Активирована подписка:",
+          "expires_at": "Срок действия до: {date}",
+          "duration": "Длительность: {days} дней",
+          "points": "баллов"
+        }
+      },
+      "donate": {
+        "title": "Пополнение через донат",
+        "description": "Вы можете пополнить баланс рублями через Boosty.",
+        "rate": "1 рубль = 250 баллов",
+        "button": "Перейти к пополнению"
+      }
+    },
+    "transaction_details": {
+      "id": "ID транзакции",
+      "type": "Тип",
+      "source": "Источник",
+      "operation_type": "Тип операции",
+      "sender": "Отправитель",
+      "recipient": "Получатель",
+      "message": "Сообщение",
+      "amount": "Сумма",
+      "date": "Дата",
+      "description": "Описание",
+      "download_receipt": "Скачать чек",
+      "payment_receipt": "Чек выплаты",
+      "close": "Закрыть",
+      "status": {
+        "completed": "Выполнен"
+      },
+      "types": {
+        "clicker_withdrawal": "Вывод из кликера",
+        "outgoing_transfer": "Исходящий перевод",
+        "incoming_transfer": "Входящий перевод",
+        "badge_purchase": "Покупка бейджика",
+        "badge_royalty": "Роялти от бейджика",
+        "weekly_points": "Еженедельное начисление",
+        "username_purchase": "Покупка юзернейма",
+        "game_transaction": "Транзакция в мини-игре",
+        "transaction": "Транзакция"
+      },
+      "badge": {
+        "name": "Название бейджика",
+        "description": "Описание"
+      },
+      "operation": {
+        "type": "Тип операции",
+        "description": "Описание",
+        "date": "Дата начисления",
+        "amount": "Сумма"
+      },
+      "points": {
+        "source": "Баллы из кликера",
+        "withdrawal": "Вывод баллов"
+      },
+      "username": {
+        "label": "Юзернейм",
+        "prefix": "@"
+      },
+      "game": {
+        "operation": "Тип операции",
+        "description": "Описание"
+      },
+      "receipt": {
+        "download": "Скачать чек",
+        "payment": "Чек выплаты",
+        "close": "Закрыть"
+      },
+      "weekly_activity": {
+        "description": "Баллы начислены за вашу активность на платформе за прошедшую неделю."
+      }
+    },
+    "buttons": {
+      "cancel": "Отмена",
+      "activate": "Активировать ключ",
+      "activating": "Активация...",
+      "done": "Готово",
+      "close": "Закрыть"
+    },
+    "errors": {
+      "receipt_generation": "Не удалось сгенерировать чек на сервере",
+      "receipt_creation": "Ошибка при создании чека для транзакции",
+      "points_loading": "Ошибка при загрузке баллов",
+      "points_forecast": "Ошибка при загрузке прогноза",
+      "purchase_history": "Ошибка при загрузке истории покупок",
+      "royalty_history": "Ошибка при загрузке истории роялти",
+      "badges_loading": "Ошибка при загрузке созданных бейджиков",
+      "transfer_history": "Ошибка при получении истории переводов",
+      "username_history": "Ошибка при получении истории покупок юзернеймов",
+      "game_history": "Ошибка при получении истории игровых транзакций",
+      "subscription": "Ошибка при получении статуса подписки",
+      "invalid_subscription": "Некорректный ответ о статусе подписки",
+      "pdf_open": "Ошибка при открытии PDF"
+    },
+    "key": {
+      "activation": {
+        "title": "Активация ключа",
+        "process": "Активация...",
+        "success": "Ключ активирован",
+        "error": "Ошибка активации",
+        "info": "Ключ активации можно получить в результате покупки на нашем сайте или от администратора."
+      },
+      "balance": {
+        "new": "Новый баланс:",
+        "points": "баллов"
+      },
+      "subscription": {
+        "activated": "Активирована подписка:",
+        "period": "Длительность {duration} дней",
+        "expires_at": "Срок действия до: {date}"
+      }
+    },
+    "subscription_types": {
+      "basic": "Basic",
+      "premium": "Premium",
+      "ultimate": "Ultimate"
+    },
+    "common": {
+      "loading": "Загрузка...",
+      "done": "Готово",
+      "error": "Ошибка",
+      "success": "Успешно",
+      "close": "Закрыть",
+      "cancel": "Отмена",
+      "save": "Сохранить",
+      "edit": "Редактировать",
+      "delete": "Удалить",
+      "confirm": "Подтвердить"
+    },
+    "badges": {
+      "points_cost": "{amount} баллов",
+      "no_description": "Без описания",
+      "purchases": {
+        "title": "Покупки ({count})",
+        "date": "Приобретен: {date}",
+        "none": "Пока нет покупок этого бейджика"
+      }
+    },
+    "usernames": {
+      "section_title": "@ Юзернеймы"
+    },
+    "transfer_menu": {
+      "title": "Перевод баллов",
+      "subtitle": "Мгновенный перевод баллов другому пользователю платформы",
+      "available": "Доступно для перевода",
+      "points_suffix": "баллов",
+      "recipient": {
+        "label": "Получатель",
+        "placeholder": "Введите имя пользователя",
+        "similar_users": "Похожие пользователи",
+        "confirmed": "Получатель подтвержден:",
+        "decoration_alt": "декорация"
+      },
+      "amount": {
+        "label": "Сумма перевода",
+        "details": "Детали перевода:",
+        "transfer_amount": "Сумма перевода:",
+        "commission": "Комиссия (10%):",
+        "recipient_gets": "Получатель получит:",
+        "your_balance": "Ваш баланс после перевода:"
+      },
+      "message": {
+        "label": "Сообщение (необязательно)",
+        "placeholder": "Введите сообщение для получателя"
+      },
+      "buttons": {
+        "cancel": "Отмена",
+        "transfer": "Перевести безопасно",
+        "processing": "Выполнение перевода...",
+        "close": "Закрыть"
+      },
+      "success": {
+        "title": "Перевод выполнен",
+        "subtitle": "Баллы успешно переведены пользователю {recipient}",
+        "details": {
+          "title": "Детали транзакции",
+          "amount": "Сумма перевода",
+          "recipient": "Получатель",
+          "balance": {
+            "title": "Баланс после операции",
+            "before": "До перевода",
+            "after": "После перевода"
+          }
+        },
+        "receipt": {
+          "download": "Скачать квитанцию"
+        }
+      }
+    }
+  },
+  "header": {
+    "search": {
+      "placeholder": "Поиск...",
+      "tabs": {
+        "all": "Все",
+        "channels": "Каналы"
+      },
+      "no_results": {
+        "users": "Пользователи не найдены",
+        "channels": "Каналы не найдены"
+      },
+      "view_all": "Показать все"
+    },
+    "profile_menu": {
+      "my_profile": "Мой профиль",
+      "settings": "Настройки",
+      "search": "Поиск",
+      "subscriptions": "Друзья",
+      "channels": "Каналы",
+      "rating": "Рейтинг",
+      "create_channel": "Создать канал",
+      "main_account": "Основной аккаунт",
+      "my_channels": "Мои каналы",
+      "language": "Язык",
+      "select_language": "Выберите язык",
+      "logout": "Выйти",
+      "channel_label": "Канал",
+      "wallet": "Кошелек",
+      "shop": "Магазин",
+      "languages": {
+        "ru": "Русский",
+        "en": "English",
+        "jp": "日本語"
+      }
+    },
+    "notifications": {
+      "new": "Новое уведомление"
+    },
+    "tooltips": {
+      "wallet": "Кошелек"
+    },
+    "logo": {
+      "text": "К-КОННЕКТ"
+    }
+  },
+  "sidebar": {
+    "profile": {
+      "default_name": "Пользователь",
+      "default_username": "username"
+    },
+    "navigation": {
+      "my_profile": "Мой профиль",
+      "feed": "Лента",
+      "messenger": "Мессенджер",
+      "music": "Музыка",
+      "subscriptions": "Друзья",
+      "channels": "Каналы",
+      "search": "Поиск",
+      "management": "Управление",
+      "admin_panel": "Админ Панель",
+      "moderate": "Модерировать",
+      "shops": {
+        "title": "Экономика",
+        "badge_shop": "Бейджики",
+        "username_auction": "Юзернеймы"
+      },
+      "minigames": "Мини-игры",
+      "subscription_plans": "Планы подписок",
+      "more": {
+        "title": "Еще",
+        "leaderboard": "Лидерборд",
+        "bug_reports": "Баг-репорты",
+        "rules": "Правила",
+        "api_docs": "API",
+        "about": "О платформе"
+      }
+    },
+    "footer": {
+      "version": "К-Коннект",
+      "copyright": "Правообладателям",
+      "email": "verif@k-connect.ru"
+    }
+  },
+  "notifications": {
+    "title": "Уведомления",
+    "empty": {
+      "no_notifications": "Нет новых уведомлений",
+      "description": "Здесь будут отображаться ваши уведомления"
+    },
+    "tooltips": {
+      "notifications": "Уведомления",
+      "clear_all": "Очистить все уведомления",
+      "mark_all_read": "Отметить все как прочитанные",
+      "close": "Закрыть"
+    },
+    "time": {
+      "just_now": "Только что",
+      "recently": "Недавно",
+      "minute": "минуту",
+      "minutes": "минуты",
+      "minutes_many": "минут",
+      "hour": "час",
+      "hours": "часа",
+      "hours_many": "часов",
+      "day": "день",
+      "days": "дня",
+      "days_many": "дней",
+      "ago": "назад"
+    },
+    "context": {
+      "post": "Публикация:",
+      "comment": "Комментарий:",
+      "reply": "Ответ:",
+      "profile": "Профиль",
+      "default_post": "публикацию",
+      "default_comment": "комментарий",
+      "default_reply": "ответ на комментарий",
+      "default_profile": "профиль"
+    },
+    "user": {
+      "default": "Пользователь"
+    },
+    "types": {
+      "like": "лайк",
+      "likes": "лайков",
+      "comment": "комментарий",
+      "comments": "комментариев",
+      "follow": "подписка",
+      "follows": "подписок",
+      "transfer": "перевод",
+      "transfers": "переводов",
+      "notifications": "уведомлений"
+    },
+    "points": {
+      "label": "{count} баллов"
+    },
+    "error": {
+      "load_failed": "Не удалось загрузить уведомления"
+    },
+    "messages": {
+      "post_like": "лайкнул ваш пост",
+      "post_comment": "оставил комментарий под вашим постом",
+      "comment_like": "лайкнул ваш комментарий",
+      "post_repost": "репостнул ваш пост",
+      "points_transfer": "перевел вам {points} баллов",
+      "badge_purchase": "купил ваш бейджик «{badge}» за {price} баллов (+{royalty} баллов роялти)",
+      "wall_post": "оставил(а) запись на вашей стене",
+      "comment_reply": "{username} ответил на ваш комментарий",
+      "with_message": "с сообщением:"
+    }
+  },
+  "profile": {
+    "tabs": {
+      "posts": "Публикации",
+      "wall": "Стена",
+      "media": "Медиа",
+      "about": "Инфо"
+    },
+    "create_post": {
+      "placeholder": "Что у вас нового?",
+      "wall_placeholder": "Написать на стене...",
+      "drag_drop": "Перетащите файлы сюда или нажмите для загрузки",
+      "add_media": "Добавить медиа",
+      "add_music": "Добавить музыку",
+      "publish": "Опубликовать",
+      "cancel": "Отмена",
+      "media": "Медиа",
+      "files_count": "Файлы ({count})",
+      "music": "Музыка",
+      "music_count": "Музыка ({count})"
+    },
+    "actions": {
+      "follow": "Подписаться",
+      "unfollow": "Отписаться",
+      "message": "Сообщение",
+      "edit": "Редактировать"
+    },
+    "stats": {
+      "followers": "подписчиков",
+      "following": "подписок",
+      "posts": "публикаций",
+      "likes": "лайков"
+    },
+    "status": {
+      "online": "В сети",
+      "offline": "Не в сети",
+      "last_seen": "Был(а) в сети"
+    },
+    "subscription": {
+      "subscriber": "Подписчик",
+      "days_left": "месяцев",
+      "expired": "Подписка истекла",
+      "channel": "Канал",
+      "pick_me": "Пикми",
+      "active": "Подписка {type} активна до {date}"
+    },
+    "medals": {
+      "title": "Медали",
+      "empty": "Нет медалей"
+    },
+    "errors": {
+      "not_found": "Пользователь не найден",
+      "load_failed": "Не удалось загрузить профиль",
+      "follow_failed": "Не удалось подписаться",
+      "unfollow_failed": "Не удалось отписаться"
+    },
+    "ban": {
+      "banned": "В бане",
+      "scam": "SCAM",
+      "reason": "Причина: {{reason}}",
+      "ends": "До {{endDate}}",
+      "days_left": "осталось {{days}} дн.",
+      "auto_ban": "{{admin}}",
+      "admin": "Бан выдан администрацией",
+      "start": "Начало бана: {{startDate}}",
+      "details": "Детали: {{details}}"
+    },
+    "also_follows": "А также:",
+    "and_more": "и ещё {count}",
+    "followers": "Подписчики",
+    "no_followers": "Нет подписчиков",
+    "subscriptions": "Подписки",
+    "show_all_followers": "Показать всех подписчиков",
+    "show_all_following": "Показать всех",
+    "no_following": "Нет подписок",
+    "days": "дней",
+    "location": "Местоположение",
+    "website": "Веб-сайт",
+    "birthday": "Дата рождения",
+    "registration_date": "Дата регистрации",
+    "not_available": "Недоступно",
+    "usernames": "Юзернеймы",
+    "awarded_on": "Выдана: {{date}}",
+    "awarded_by": "Кем: {{by}}",
+    "feed": {
+      "wall": {
+        "loading_error": "Произошла ошибка при загрузке записей стены",
+        "empty": "На стене пока нет записей",
+        "all_loaded": "Все записи стены загружены"
+      },
+      "posts": {
+        "loading_error": "Произошла ошибка при загрузке постов",
+        "auth_required": "Для просмотра постов необходима авторизация",
+        "auth_required_description": "Войдите в аккаунт, чтобы просматривать посты пользователей",
+        "empty": "Здесь пока пусто",
+        "empty_description": "Пользователь еще не создал ни одного поста",
+        "error_title": "Произошла ошибка",
+        "all_loaded": "Все посты загружены"
+      }
+    }
+  },
+  "post": {
+    "time": {
+      "just_now": "Только что",
+      "recently": "Недавно",
+      "minute": "минуту",
+      "minutes": "минуты",
+      "minutes_many": "минут",
+      "hour": "час",
+      "hours": "часа",
+      "hours_many": "часов",
+      "day": "день",
+      "days": "дня",
+      "days_many": "дней",
+      "ago": "назад"
+    },
+    "like": "Нравится",
+    "unlike": "Не нравится",
+    "likes_count": "{count}",
+    "comment_item": "Комментировать",
+    "comments_count": "{count}",
+    "repost": "Репост",
+    "reposted": "Репостнуто",
+    "share": "Поделиться",
+    "views": "Просмотры",
+    "views_count": "{count}",
+    "menu_title": "Меню",
+    "menu_actions": {
+      "edit": "Редактировать",
+      "delete": "Удалить",
+      "pin": "Закрепить",
+      "unpin": "Открепить",
+      "copy_link": "Копировать ссылку",
+      "report": "Пожаловаться"
+    },
+    "edit_dialog": {
+      "title": "Редактировать пост",
+      "time_limit": "Редактирование доступно только в течение 3 часов после публикации",
+      "post_text": "Текст поста",
+      "current_images": "Текущие изображения",
+      "image_alt": "Изображение {number}",
+      "post_image_alt": "Изображение поста",
+      "delete_current_images": "Удалить существующие изображения",
+      "current_video": "Текущее видео",
+      "delete_current_video": "Удалить существующее видео",
+      "current_audio": "Текущие аудиотреки",
+      "delete_music": "Удалить музыку",
+      "add_images": "Добавить изображения",
+      "add_video": "Добавить видео",
+      "new_video_selected": "Новое видео выбрано: {name}",
+      "cancel": "Отмена",
+      "saving": "Сохранение...",
+      "save_changes": "Сохранить изменения",
+      "save": "Сохранить"
+    },
+    "context_menu": {
+      "copy_link": "Копировать ссылку",
+      "comment": "Комментировать",
+      "edit": "Редактировать",
+      "delete": "Удалить",
+      "report": "Пожаловаться"
+    },
+    "delete_dialog": {
+      "title": "Удаление поста",
+      "confirmation": "Вы уверены, что хотите удалить этот пост? Это действие нельзя отменить.",
+      "cancel": "Отмена",
+      "delete": "Удалить",
+      "deleting": "Удаление...",
+      "success_title": "Пост удален",
+      "success_message": "Пост был успешно удален"
+    },
+    "report_dialog": {
+      "title": "Пожаловаться на пост",
+      "description": "Выберите причину жалобы, и наши модераторы рассмотрят этот пост. Спасибо за помощь в поддержании порядка!",
+      "success_title": "Жалоба отправлена",
+      "success_message": "Спасибо за вашу бдительность! Модераторы рассмотрят вашу жалобу.",
+      "post_by_user": "Пост пользователя {username}",
+      "submitting": "Отправка...",
+      "submit": "Отправить жалобу",
+      "cancel": "Отмена"
+    },
+    "repost_dialog": {
+      "title": "Поделиться постом",
+      "comment_placeholder": "Добавьте комментарий к репосту...",
+      "mention_helper": "Используйте @ для упоминания пользователей",
+      "original_post_notice": "Вы делаете репост оригинального поста",
+      "repost_button": "Репостнуть"
+    },
+    "media_error": {
+      "animation_load_error": "Ошибка загрузки анимации",
+      "image_load_error": "Не удалось загрузить изображение",
+      "video_load_error": "Не удалось загрузить видео",
+      "image_deleted": "Файл был удален или недоступен",
+      "video_format": "Видео не найдено или формат не поддерживается вашим браузером"
+    },
+    "pin": {
+      "pinned": "Пост закреплен в профиле",
+      "unpinned": "Пост откреплен из профиля",
+      "pinned_short": "Закреплено",
+      "unpinned_short": "Откреплено",
+      "error": "Не удалось изменить состояние закрепления поста",
+      "error_short": "Ошибка",
+      "pin_error": "Ошибка при закреплении/откреплении поста",
+      "tooltip": "Закрепленный пост"
+    },
+    "channel": {
+      "label": "Канал"
+    },
+    "media": {
+      "post_image_alt": "Изображение поста"
+    },
+    "dialog": {
+      "cancel": "Отмена"
+    },
+    "report": {
+      "reasons": {
+        "spam": "Спам",
+        "insult": "Оскорбление",
+        "inappropriate_content": "Неприемлемый контент",
+        "violation": "Нарушение правил",
+        "misinformation": "Дезинформация",
+        "harmful_content": "Вредоносный контент",
+        "other": "Другое"
+      },
+      "placeholder": "Укажите причину жалобы"
+    },
+    "comments": "Комментарии",
+    "writeComment": "Написать комментарий...",
+    "reply": "Ответить",
+    "delete": "Удалить",
+    "commentDeleted": "Комментарий удален",
+    "replyDeleted": "Ответ удален",
+    "noComments": "Комментариев пока нет. Будьте первым!",
+    "loginToComment": "Войдите",
+    "added": "Комментарий добавлен",
+    "deleted": "Комментарий был успешно удален",
+    "replyAdded": "Ответ добавлен",
+    "replyDeletedSuccess": "Ответ был успешно удален",
+    "cancel": "Отмена",
+    "confirmDelete": "Удаление комментария",
+    "confirmDeleteReply": "Удаление ответа",
+    "sureDelete": "Вы уверены, что хотите удалить этот комментарий? Это действие нельзя отменить.",
+    "sureDeleteReply": "Вы уверены, что хотите удалить этот ответ? Это действие нельзя отменить.",
+    "deleteInProgress": "Удаление...",
+    "firstComment": "Комментариев пока нет. Будьте первым!",
+    "post": "Пост",
+    "back": "Назад",
+    "loading": "Загрузка...",
+    "error": "Ошибка",
+    "errorAddComment": "Ошибка при добавлении комментария",
+    "errorAddReply": "Ошибка при добавлении ответа",
+    "errorDeleteComment": "Ошибка при удалении комментария",
+    "errorDeleteReply": "Ошибка при удалении ответа",
+    "replyFor": "Ответ для",
+    "errorImage": "Ошибка загрузки медиа",
+    "errorReplyImage": "Ошибка загрузки медиа",
+    "errorBadge": "Ошибка картинки",
+    "errorReplyBadge": "Ошибка картинки",
+    "errorLike": "Ошибка лайка",
+    "errorLikeReply": "Ошибка лайка ответа",
+    "errorDelete": "Ошибка удаления",
+    "errorDeleteReply": "Ошибка удаления ответа",
+    "errorRefresh": "Ошибка обновления",
+    "errorRefreshReply": "Ошибка обновления ответа",
+    "errorView": "Ошибка просмотра",
+    "errorTooFrequent": "Превышен лимит комментариев. ",
+    "wait": "Пожалуйста, повторите попытку позже."
+  },
+  "main_page": {
+    "loading": "Загрузка...",
+    "online_count": "{count} онлайн",
+    "follow": {
+      "follow": "Подписаться",
+      "unfollow": "Отписаться"
+    },
+    "media": {
+      "video_size_error": "Размер видео превышает лимит в 150МБ",
+      "image_size_error": "Размер изображения превышает лимит в 50МБ",
+      "unsupported_format": "Поддерживаются только изображения и видео",
+      "mixed_content_error": "Нельзя прикрепить фото и видео одновременно"
+    },
+    "post": {
+      "create": {
+        "placeholder": "Что у вас нового?",
+        "media": "Медиа",
+        "media_count": "Файлы ({count})",
+        "music": "Музыка",
+        "music_count": "Музыка ({count})",
+        "publish": "Опубликовать",
+        "drag_files": "Перетащите файлы сюда",
+        "error": {
+          "title": "Пожалуйста, подождите",
+          "understand": "Понятно",
+          "file_size": "Ошибка размера файла"
+        }
+      }
+    },
+    "feed": {
+      "tabs": {
+        "all": "Все",
+        "following": "Подписки",
+        "recommended": "Рекомендации"
+      },
+      "empty": "Нет постов для отображения. Подпишитесь на пользователей, чтобы видеть их публикации в ленте.",
+      "end": "Вы просмотрели все посты"
+    },
+    "recommendations": {
+      "empty": {
+        "title": "Нет активных каналов",
+        "description": "Создайте первый канал или подпишитесь на существующие каналы"
+      }
+    }
+  },
+  "more_page": {
+    "points": "баллов",
+    "shop": "Магазин",
+    "settings": "Настройки",
+    "banner_alt": "Баннер",
+    "default_user": "Пользователь",
+    "default_username": "username",
+    "errors": {
+      "banner_load_error": "Ошибка загрузки баннера",
+      "avatar_load_error": "Ошибка загрузки аватара"
+    },
+    "sections": {
+      "social": {
+        "title": "Социальное",
+        "search": "Поиск",
+        "subscriptions": "Подписки",
+        "channels": "Каналы",
+        "rating": "Рейтинг"
+      },
+      "entertainment": {
+        "title": "Развлечения",
+        "minigames": "Мини-игры",
+        "username_auction": "Аукцион юзернеймов",
+        "subscription_plans": "Планы подписок",
+        "new_badge": "Новое"
+      },
+      "administration": {
+        "title": "Администрирование",
+        "moderation": "Модерация",
+        "admin_panel": "Админ-панель"
+      },
+      "platform": {
+        "title": "Платформа",
+        "bug_reports": "Баг-репорты",
+        "about": "О платформе",
+        "rules": "Правила",
+        "messenger": "Мессенджер",
+        "api_docs": "API Документация",
+        "logout": "Выйти"
+      }
+    },
+    "footer": {
+      "version": "К-Коннект v2.9",
+      "email": "verif@k-connect.ru"
+    }
+  }
+}

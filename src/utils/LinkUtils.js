@@ -3,7 +3,8 @@ import {
   Box,
   Paper,
   Typography,
-  Skeleton
+  Skeleton,
+  useTheme
 } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
 import axios from 'axios';
@@ -11,28 +12,22 @@ import axios from 'axios';
 // Глобальный флаг для отключения превью ссылок
 export const DISABLE_LINK_PREVIEWS = false;
 
-// Супер-универсальное регулярное выражение для поиска URL
-// Находит:
-// - URL с http/https и без них
-// - URL с www и без
-// - Международные доменные имена
-// - URL с параметрами запроса и фрагментами
-// - URL с номерами портов
-// - URL с разными доменами верхнего уровня
-// - URL со спецсимволами
-export const URL_REGEX = /\b((?:https?:\/\/)?(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,63}\b(?:[-a-zA-Z0-9()@:%_+.~#?&//=]*)|(?:www\.)?(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?::\d{1,5})?(?:[/?#]\S*)?|(?:@)?\b(?:donationalerts\.[a-zA-Z]{2,6})\/\S+\b)/gi;
+// Обновленная регулярка для URL - ищет только ссылки с http:// или https://
+// Больше не будет ложных срабатываний на текст типа "as.34"
+export const URL_REGEX = /https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,63}\b(?:[-a-zA-Z0-9()@:%_+.~#?&//=]*)/gi;
 
-// Регулярка для @упоминаний пользователей
-export const USERNAME_MENTION_REGEX = /(?<!\w)@(\w+)/g;
+// Регулярка для @упоминаний пользователей - Safari-совместимая версия
+export const USERNAME_MENTION_REGEX = /(^|[^a-zA-Z0-9_])@(\w+)/g;
 
-// Регулярка для #хештегов (поддерживает латиницу и кириллицу)
-export const HASHTAG_REGEX = /(?<![а-яА-Яa-zA-Z0-9_])#([а-яА-Яa-zA-Z0-9_]+)/g;
+// Регулярка для #хештегов (поддерживает латиницу и кириллицу) - Safari-совместимая версия
+export const HASHTAG_REGEX = /(^|[^а-яА-Яa-zA-Z0-9_])#([а-яА-Яa-zA-Z0-9_]+)/g;
 
 // Компонент предпросмотра ссылки, который можно использовать везде
 export const LinkPreview = ({ url }) => {
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const theme = useTheme();
 
   useEffect(() => {
     const fetchPreview = async () => {
@@ -84,8 +79,8 @@ export const LinkPreview = ({ url }) => {
         mb: 1,
         overflow: 'hidden',
         borderRadius: '8px',
-        backgroundColor: 'rgba(140, 82, 255, 0.03)',
-        border: '1px solid rgba(140, 82, 255, 0.1)',
+        backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.main + '08' : theme.palette.primary.main + '08',
+        border: `1px solid ${theme.palette.primary.main}1A`,
         display: 'flex',
         flexDirection: { xs: 'row' },
         cursor: 'pointer',
@@ -93,7 +88,7 @@ export const LinkPreview = ({ url }) => {
         position: 'relative',
         height: '90px',
         '&:hover': {
-          backgroundColor: 'rgba(140, 82, 255, 0.06)',
+          backgroundColor: theme.palette.primary.main + '18',
           transform: 'translateY(-2px)',
           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
         },
@@ -104,7 +99,7 @@ export const LinkPreview = ({ url }) => {
           top: 0,
           height: '100%',
           width: '3px',
-          backgroundColor: '#9E77ED',
+          backgroundColor: theme.palette.primary.main,
           borderRadius: '2px',
         }
       }}
@@ -151,34 +146,20 @@ export const LinkPreview = ({ url }) => {
             backgroundColor: 'rgba(0, 0, 0, 0.02)'
           }}>
             <Typography 
-              variant="subtitle2" 
+              variant="body2" 
               sx={{ 
                 margin: 0,
                 fontFamily: '"SF Pro Display", "Roboto", "Arial", sans-serif',
                 fontWeight: 500,
                 fontSize: '0.85rem',
                 lineHeight: 1.57,
-                color: '#f0f0f0',
+                color: theme.palette.text.primary,
                 display: 'flex',
                 alignItems: 'center',
                 mb: 0.5,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-                '&.MuiTypography-root': {
-                  margin: 0,
-                  fontFamily: '"SF Pro Display", "Roboto", "Arial", sans-serif',
-                  fontWeight: 500,
-                  fontSize: '0.85rem',
-                  lineHeight: 1.57,
-                  color: '#f0f0f0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  mb: 0.5,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }
               }}
             >
               {(preview?.title || getDomainName(url)).length > 35 
@@ -191,7 +172,7 @@ export const LinkPreview = ({ url }) => {
                 sx={{
                   margin: 0,
                   fontFamily: '"SF Pro Display", "Roboto", "Arial", sans-serif',
-                  color: 'rgba(255, 255, 255, 0.7)',
+                  color: theme.palette.text.secondary,
                   fontSize: '0.75rem',
                   lineHeight: 1.4,
                   overflow: 'hidden',
@@ -208,36 +189,25 @@ export const LinkPreview = ({ url }) => {
             <Box sx={{ 
               display: 'flex', 
               alignItems: 'center',
-              backgroundColor: 'rgba(0, 0, 0, 0.1)',
+              backgroundColor: theme.palette.primary.main + '10',
               py: 0.25,
               px: 0.75,
               borderRadius: '4px',
               width: 'fit-content'
             }}>
-              <LinkIcon fontSize="small" sx={{ color: '#9E77ED', mr: 0.5, fontSize: '0.75rem' }} />
+              <LinkIcon fontSize="small" sx={{ color: theme.palette.primary.main, mr: 0.5, fontSize: '0.75rem' }} />
               <Typography 
                 variant="caption" 
                 sx={{ 
                   margin: 0,
                   fontFamily: '"SF Pro Display", "Roboto", "Arial", sans-serif',
-                  color: 'rgba(255, 255, 255, 0.7)',
+                  color: theme.palette.text.secondary,
                   fontWeight: 500,
                   fontSize: '0.7rem',
                   lineHeight: 1.57,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  '&.MuiTypography-root': {
-                    margin: 0,
-                    fontFamily: '"SF Pro Display", "Roboto", "Arial", sans-serif',
-                    color: 'rgba(255, 255, 255, 0.7)',
-                    fontWeight: 500,
-                    fontSize: '0.7rem',
-                    lineHeight: 1.57,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                  }
                 }} 
                 noWrap
               >
@@ -252,9 +222,8 @@ export const LinkPreview = ({ url }) => {
 };
 
 
-export const processTextWithLinks = (text) => {
+export const processTextWithLinks = (text, theme) => {
   if (!text) return null;
-  
   const parts = [];
   const urls = new Set();
   let lastIndex = 0;
@@ -278,24 +247,38 @@ export const processTextWithLinks = (text) => {
   
   USERNAME_MENTION_REGEX.lastIndex = 0;
   while ((match = USERNAME_MENTION_REGEX.exec(text)) !== null) {
+    const prefix = match[1];
+    const username = match[2];
+    const fullMatch = match[0];
+    
+    const adjustedIndex = prefix ? match.index + prefix.length : match.index;
+    const adjustedMatch = prefix ? fullMatch.substring(prefix.length) : fullMatch;
+    
     combinedMatches.push({
       type: 'mention',
-      match: match[0],
-      username: match[1],
-      index: match.index,
-      length: match[0].length
+      match: adjustedMatch,
+      username: username,
+      index: adjustedIndex,
+      length: adjustedMatch.length
     });
   }
   
   
   HASHTAG_REGEX.lastIndex = 0;
   while ((match = HASHTAG_REGEX.exec(text)) !== null) {
+    const prefix = match[1];
+    const hashtag = match[2];
+    const fullMatch = match[0];
+    
+    const adjustedIndex = prefix ? match.index + prefix.length : match.index;
+    const adjustedMatch = prefix ? fullMatch.substring(prefix.length) : fullMatch;
+    
     combinedMatches.push({
       type: 'hashtag',
-      match: match[0],
-      hashtag: match[1],
-      index: match.index,
-      length: match[0].length
+      match: adjustedMatch,
+      hashtag: hashtag,
+      index: adjustedIndex,
+      length: adjustedMatch.length
     });
   }
   
@@ -320,7 +303,7 @@ export const processTextWithLinks = (text) => {
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
           style={{ 
-            color: '#9E77ED', 
+            color: theme ? theme.palette.primary.main : '#9E77ED',
             textDecoration: 'none', 
             fontWeight: 'medium',
             wordBreak: 'break-word'
@@ -340,7 +323,7 @@ export const processTextWithLinks = (text) => {
             window.location.href = `/profile/${item.username}`;
           }}
           style={{ 
-            color: '#9E77ED', 
+            color: theme ? theme.palette.primary.main : '#9E77ED',
             textDecoration: 'none',
             fontWeight: 'medium'
           }}
@@ -359,7 +342,7 @@ export const processTextWithLinks = (text) => {
             window.location.href = `https://k-connect.ru/search?q=${encodeURIComponent(item.hashtag)}&type=posts`;
           }}
           style={{ 
-            color: '#9E77ED', 
+            color: theme ? theme.palette.primary.main : '#9E77ED',
             textDecoration: 'none',
             fontWeight: 'medium'
           }}
@@ -386,29 +369,35 @@ export const processTextWithLinks = (text) => {
 
 export const linkRenderers = {
   p: ({ children }) => {
+    const theme = useTheme();
     if (typeof children === 'string') {
-      
-      const { parts, urls } = processTextWithLinks(children);
-      
+      const { parts, urls } = processTextWithLinks(children, theme);
       return (
         <>
           <Typography component="p" variant="body1" sx={{ mb: 1 }}>
             {parts}
           </Typography>
-          
-          
           {urls.length > 0 && !DISABLE_LINK_PREVIEWS && urls.map((url, index) => (
             <LinkPreview key={`preview-${index}`} url={url} />
           ))}
         </>
       );
     }
-    
+    if (Array.isArray(children) && children.some(child => {
+      if (!child || typeof child !== 'object') return false;
+      const type = child.type;
+      return (
+        type === 'h1' || type === 'h2' || type === 'h3' || type === 'h4' || type === 'h5' || type === 'h6' ||
+        type === 'ul' || type === 'ol' || type === 'pre' || type === 'blockquote' || type === 'table'
+      );
+    })) {
+      return <>{children}</>;
+    }
     return <Typography component="p" variant="body1" sx={{ mb: 1 }}>{children}</Typography>;
   },
   
   a: ({ node, children, href }) => {
-    
+    const theme = useTheme();
     if (href.startsWith('/profile/')) {
       const username = href.substring('/profile/'.length);
       return (
@@ -421,7 +410,7 @@ export const linkRenderers = {
             window.location.href = href;
           }}
           style={{ 
-            color: '#7B68EE', 
+            color: theme ? theme.palette.primary.main : '#7B68EE',
             fontWeight: 'bold',
             textDecoration: 'none',
             background: 'rgba(123, 104, 238, 0.08)',
@@ -447,7 +436,7 @@ export const linkRenderers = {
             window.location.href = href;
           }}
           style={{ 
-            color: '#7B68EE', 
+            color: theme ? theme.palette.primary.main : '#7B68EE',
             fontWeight: 'bold',
             textDecoration: 'none',
             background: 'rgba(123, 104, 238, 0.08)',
@@ -474,7 +463,7 @@ export const linkRenderers = {
             window.open(enhancedHref, '_blank');
           }}
           style={{ 
-            color: '#9E77ED', 
+            color: theme ? theme.palette.primary.main : '#9E77ED',
             fontWeight: 'bold',
             textDecoration: 'underline', 
             wordBreak: 'break-all'
@@ -491,7 +480,8 @@ export const linkRenderers = {
 
 // Компонент для отображения текста с ссылками - для использования везде, где не используется ReactMarkdown
 export const TextWithLinks = ({ text }) => {
-  const { parts, urls } = processTextWithLinks(text);
+  const theme = useTheme();
+  const { parts, urls } = processTextWithLinks(text, theme);
   
   return (
     <>

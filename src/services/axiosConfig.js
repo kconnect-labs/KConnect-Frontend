@@ -19,7 +19,7 @@ const requestCache = {
   },
   
 
-  set(key, data, ttlSeconds = 180) {
+  set(key, data, ttlSeconds = 15) {
     const expiry = ttlSeconds > 0 ? Date.now() + (ttlSeconds * 1000) : null;
     this.cache.set(key, { data, expiry });
   },
@@ -38,7 +38,8 @@ const requestCache = {
 
   clearByUrlPrefix(urlPrefix) {
     for (const [key] of this.cache.entries()) {
-      if (key.includes(`:${urlPrefix}`)) {
+      const [method, url] = key.split(':');
+      if (url && url.startsWith(urlPrefix)) {
         this.cache.delete(key);
       }
     }
@@ -49,7 +50,13 @@ const requestCache = {
     const prefixesToClear = [
       '/api/posts',
       '/api/feed',
-      '/api/profile'
+      '/api/profile',
+      '/api/profile/posts',
+      '/api/profile/wall',
+      '/api/profile/pinned_post',
+      '/api/users',
+      '/api/reposts',
+      '/api/stories'
     ];
     
     for (const prefix of prefixesToClear) {
@@ -99,7 +106,7 @@ const RETRY_DELAY = 1000;
 
 
 const instance = axios.create({
-  baseURL: 'https://k-connect.ru',
+  baseURL: process.env.NODE_ENV === 'development' ? '' : 'https://k-connect.ru',
   withCredentials: true,
   timeout: 30000,
   headers: {
@@ -121,24 +128,33 @@ const STATE_CHANGING_PATTERNS = [
   { method: 'post', urlPattern: '/api/posts/*/dislike' },
   { method: 'post', urlPattern: '/api/comments/create' },
   { method: 'post', urlPattern: '/api/comments/*/like' },
+  { method: 'post', urlPattern: '/api/posts/*/edit' },
 ];
 
 
 instance.interceptors.request.use(
   (config) => {
-
     config.requestId = Math.random().toString(36).substring(2, 9);
     
-
     if (config.method === 'get' && config.cache !== false) {
+      // Disable caching for all post-related requests
+      if (config.url && (
+        config.url.includes('/api/posts') ||
+        config.url.includes('/api/feed') ||
+        config.url.includes('/api/profile/posts') ||
+        config.url.includes('/api/profile/wall') ||
+        config.url.includes('/api/profile/pinned_post')
+      )) {
+        config.cache = false;
+        return config;
+      }
+
       const cacheKey = requestCache.generateKey(config);
       const cachedData = requestCache.get(cacheKey);
       
-
       const forceRefresh = config.forceRefresh === true;
       
       if (cachedData && !forceRefresh) {
-
         const source = axios.CancelToken.source();
         setTimeout(() => {
           source.cancel(JSON.stringify({
@@ -152,24 +168,38 @@ instance.interceptors.request.use(
         return config;
       }
       
-
       config._cacheKey = cacheKey;
     }
     
-
     if (config.method !== 'get') {
       const url = config.url || '';
       for (const pattern of STATE_CHANGING_PATTERNS) {
-        if (config.method === pattern.method && 
-            (url.includes(pattern.urlPattern) || url.match(new RegExp(pattern.urlPattern.replace('*', '.*'))))) {
-
-          config._invalidatesCache = true;
-          break;
+        if (config.method === pattern.method) {
+          // Более безопасная логика для совместимости с Safari
+          const urlPattern = pattern.urlPattern;
+          let matches = false;
+          
+          try {
+            // Простая проверка без сложных regex конструкций
+            if (urlPattern.includes('*')) {
+              const simplePattern = urlPattern.replace(/\*/g, '');
+              matches = url.includes(simplePattern);
+            } else {
+              matches = url.includes(urlPattern);
+            }
+          } catch (e) {
+            // Fallback для очень старых браузеров
+            matches = url.indexOf(urlPattern.replace(/\*/g, '')) !== -1;
+          }
+          
+          if (matches) {
+            config._invalidatesCache = true;
+            break;
+          }
         }
       }
     }
     
-
     const url = config.url?.split('?')[0] || 'unknown';
     loadingManager.startRequest(url);
     
@@ -221,26 +251,7 @@ instance.interceptors.response.use(
 
 
 
-      let ttl = 180;
-      
-
-      if (response.headers['x-cache-ttl']) {
-        ttl = parseInt(response.headers['x-cache-ttl'], 10);
-      } 
-
-      else if (response.config.cacheTTL) {
-        ttl = response.config.cacheTTL;
-      }
-      
-
-      if (response.config.url.includes('/api/posts/feed') || 
-          response.config.url.includes('/api/profile') ||
-          response.config.url.includes('/api/users/online')) {
-        ttl = 60;
-      }
-      
-
-      requestCache.set(response.config._cacheKey, response.data, ttl);
+      requestCache.set(response.config._cacheKey, response.data, 15);
     }
     
 

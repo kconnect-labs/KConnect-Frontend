@@ -2,10 +2,10 @@ import axios from './axiosConfig';
 import AuthService from './AuthService';
 
 const PostService = {
-    getFeed: async (page = 1, limit = 10, forceRefresh = false) => {
+    getFeed: async (page = 1, limit = 10) => {
     try {
       const response = await axios.get(`/api/posts/feed?page=${page}&limit=${limit}`, {
-        forceRefresh
+        forceRefresh: true
       });
       return response.data;
     } catch (error) {
@@ -14,10 +14,10 @@ const PostService = {
     }
   },
 
-    getPost: async (postId, forceRefresh = false) => {
+    getPost: async (postId) => {
     try {
       const response = await axios.get(`/api/posts/${postId}`, {
-        forceRefresh
+        forceRefresh: true
       });
       return response.data;
     } catch (error) {
@@ -70,14 +70,13 @@ const PostService = {
         const response = await axios.post('/api/posts/create', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
-          }
+          },
+          _invalidatesCache: true
         });
         console.log('POST success:', response.data);
         
-
         axios.cache.clearPostsCache();
         
-
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('post-created', {
             detail: { post: response.data.post }
@@ -93,14 +92,13 @@ const PostService = {
           const putResponse = await axios.put('/api/posts', formData, {
             headers: {
               'Content-Type': 'multipart/form-data'
-            }
+            },
+            _invalidatesCache: true
           });
           console.log('PUT success:', putResponse.data);
           
-
           axios.cache.clearPostsCache();
           
-
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('post-created', {
               detail: { post: putResponse.data.post }
@@ -256,6 +254,70 @@ const PostService = {
     }
   },
 
+    editPost: async (postId, postData) => {
+    try {
+      const formData = postData instanceof FormData 
+        ? postData 
+        : new FormData();
+      
+      if (!(postData instanceof FormData) && typeof postData === 'object') {
+        if (postData.content) {
+          formData.append('content', postData.content);
+        }
+        
+        if (Array.isArray(postData.images)) {
+          postData.images.forEach((image, index) => {
+            formData.append(`images[${index}]`, image);
+          });
+        }
+        
+        if (postData.image && postData.image instanceof File) {
+          formData.append('image', postData.image);
+        }
+        
+        if (postData.video && postData.video instanceof File) {
+          formData.append('video', postData.video);
+        }
+        
+        if (postData.music && Array.isArray(postData.music) && postData.music.length > 0) {
+          formData.append('music', JSON.stringify(postData.music));
+        }
+        
+        if (postData.deleteImages) {
+          formData.append('delete_images', 'true');
+        }
+        
+        if (postData.deleteVideo) {
+          formData.append('delete_video', 'true');
+        }
+        
+        if (postData.deleteMusic) {
+          formData.append('delete_music', 'true');
+        }
+      }
+      
+      const response = await axios.put(`/api/posts/${postId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        _invalidatesCache: true // Mark this request as cache-invalidating
+      });
+      
+      // Clear cache for posts and feed
+      axios.cache.clearPostsCache();
+      
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('post-updated', {
+          detail: { postId, post: response.data.post }
+        }));
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error editing post:', error);
+      throw error;
+    }
+  },
 
   refreshFeed: async () => {
     try {

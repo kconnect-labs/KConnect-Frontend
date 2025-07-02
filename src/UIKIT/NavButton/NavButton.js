@@ -13,39 +13,44 @@ import { Link as RouterLink } from 'react-router-dom';
 const NavItemStyled = styled(ListItem)(({ theme, active, isspecial, themecolor }) => ({
   borderRadius: theme.spacing(1.5),
   marginBottom: theme.spacing(0.5),
-  padding: theme.spacing(0.7, 1.3),
+  padding: theme.spacing(0.8, 1.4),
   backgroundColor: active ? 
-    'rgba(255, 255, 255, 0.08)' : 
+    'rgba(255, 255, 255, 0.1)' : 
     'transparent',
   position: 'relative',
   overflow: 'hidden',
-  transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  cursor: 'pointer',
   '&:hover': {
     backgroundColor: active ? 
-      'rgba(255, 255, 255, 0.12)' : 
-      'rgba(255, 255, 255, 0.05)',
-    transform: 'translateX(2px)',
+      'rgba(255, 255, 255, 0.15)' : 
+      'rgba(255, 255, 255, 0.08)',
+    transform: 'translateX(3px) scale(1.02)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
   },
   '&::before': {
     content: '""',
     position: 'absolute',
     left: 0,
-    top: '30%',
-    height: '40%',
-    width: active ? '2px' : '0px',
+    top: '25%',
+    height: '50%',
+    width: active ? '3px' : '0px',
     backgroundColor: isspecial ? '#f44336' : (themecolor || theme.palette.primary.main),
-    borderRadius: '0 2px 2px 0',
-    transition: 'width 0.2s ease',
+    borderRadius: '0 3px 3px 0',
+    transition: 'width 0.3s ease, height 0.3s ease',
+    boxShadow: active ? '0 0 8px rgba(0, 0, 0, 0.3)' : 'none',
   },
   '&:hover::before': {
-    width: active ? '2px' : '1px',
+    width: active ? '3px' : '2px',
+    height: '60%',
+    top: '20%',
   },
   [theme.breakpoints.down('lg')]: {
-    padding: theme.spacing(0.6, 1.1),
+    padding: theme.spacing(0.7, 1.2),
     marginBottom: theme.spacing(0.4),
   },
   [theme.breakpoints.down('md')]: {
-    padding: theme.spacing(0.5, 1),
+    padding: theme.spacing(0.6, 1.1),
     marginBottom: theme.spacing(0.3),
   }
 }));
@@ -55,31 +60,32 @@ const NavIconStyled = styled(ListItemIcon)(({ theme, active, isspecial, themecol
   minWidth: '32px',
   color: active ? 
     (isspecial ? '#f44336' : themecolor || theme.palette.primary.main) : 
-    (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'),
-  transition: 'all 0.25s ease',
+    (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.75)' : 'rgba(0, 0, 0, 0.75)'),
+  transition: 'all 0.3s ease',
   '& .MuiSvgIcon-root': {
-    fontSize: '1.15rem',
-    transition: 'transform 0.25s ease',
-    filter: active ? 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))' : 'none',
+    fontSize: '1.2rem',
+    filter: active ? 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))' : 'none',
+    transition: 'all 0.3s ease',
   },
   '.MuiListItem-root:hover &': {
     color: active ? 
       (isspecial ? '#f44336' : themecolor || theme.palette.primary.main) : 
-      (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'),
+      (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.95)'),
     '& .MuiSvgIcon-root': {
-      transform: 'scale(1.12)',
+      transform: 'scale(1.15)',
+      filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15))',
     }
   },
   [theme.breakpoints.down('lg')]: {
     minWidth: '30px',
     '& .MuiSvgIcon-root': {
-      fontSize: '1.1rem',
+      fontSize: '1.15rem',
     },
   },
   [theme.breakpoints.down('md')]: {
-    minWidth: '26px',
+    minWidth: '28px',
     '& .MuiSvgIcon-root': {
-      fontSize: '1rem',
+      fontSize: '1.1rem',
     },
   }
 }));
@@ -87,27 +93,28 @@ const NavIconStyled = styled(ListItemIcon)(({ theme, active, isspecial, themecol
 
 const NavTextStyled = styled(ListItemText)(({ theme, active, isspecial, themecolor }) => ({
   '& .MuiListItemText-primary': {
-    fontWeight: active ? 500 : 400,
-    fontSize: '0.85rem',
+    fontWeight: active ? 600 : 500,
+    fontSize: '0.9rem',
     color: active 
       ? (isspecial ? '#f44336' : themecolor || theme.palette.primary.main) 
-      : (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.85)'),
-    letterSpacing: active ? '0.3px' : '0.2px',
-    transition: 'all 0.25s ease',
-    textShadow: active ? '0 1px 2px rgba(0, 0, 0, 0.1)' : 'none',
+      : (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'),
+    letterSpacing: active ? '0.4px' : '0.25px',
+    transition: 'all 0.3s ease',
+    textShadow: active ? '0 1px 3px rgba(0, 0, 0, 0.2)' : 'none',
   },
   '.MuiListItem-root:hover & .MuiListItemText-primary': {
-    letterSpacing: '0.3px',
+    letterSpacing: '0.4px',
+    fontWeight: 600,
   },
   [theme.breakpoints.down('lg')]: {
     '& .MuiListItemText-primary': {
-      fontSize: '0.8rem',
-      letterSpacing: active ? '0.25px' : '0.15px',
+      fontSize: '0.85rem',
+      letterSpacing: active ? '0.35px' : '0.2px',
     }
   },
   [theme.breakpoints.down('md')]: {
     '& .MuiListItemText-primary': {
-      fontSize: '0.75rem',
+      fontSize: '0.8rem',
     }
   }
 }));

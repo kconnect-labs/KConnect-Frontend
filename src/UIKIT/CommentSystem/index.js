@@ -15,6 +15,7 @@ import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SimpleImageViewer from '../../components/SimpleImageViewer';
+import { useLanguage } from '../../context/LanguageContext';
 
 import CommentItem from './CommentItem';
 import ReplyItem from './ReplyItem';
@@ -117,6 +118,7 @@ const CommentSystem = ({
   useParentDialogs = false,
   sanitizeImagePath = (imagePath) => imagePath
 }) => {
+  const { t } = useLanguage();
   const [replyText, setReplyText] = useState('');
   const [replyFormOpen, setReplyFormOpen] = useState(false);
   const [activeComment, setActiveComment] = useState(null);
@@ -240,6 +242,8 @@ const CommentSystem = ({
 
   return (
     <Box>
+      {/* Image lightbox is handled by parent when useParentDialogs is true */}
+
       {/* Comment form */}
       <Box sx={{ mb: 3 }}>
         <CommentForm 
@@ -262,7 +266,7 @@ const CommentSystem = ({
       {/* Comments section header */}
       <CommentSectionHeader>
         <ChatBubbleOutlineIcon sx={{ fontSize: { xs: 20, sm: 24 } }} />
-        Комментарии 
+        {t('comment.section.title')}
         <Box 
           component="span" 
           sx={{ 
@@ -343,7 +347,7 @@ const CommentSystem = ({
                             reply={reply}
                             comment={comment}
                             parentReply={parentReply}
-                            onLike={() => onLikeReply(comment.id, reply.id)}
+                            onLike={() => onLikeReply(reply.id)}
                             onReply={(replyObj) => {
                               setReplyingToReply(replyObj);
                               setReplyFormOpen(true);
@@ -397,7 +401,7 @@ const CommentSystem = ({
         <EmptyCommentsContainer>
           <ChatBubbleOutlineIcon sx={{ fontSize: { xs: 32, sm: 40 }, color: 'text.secondary', mb: { xs: 1, sm: 2 }, opacity: 0.6 }} />
           <Typography variant="body1" color="text.secondary" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-            Комментариев пока нет. Будьте первым!
+            {t('comment.section.empty')}
           </Typography>
         </EmptyCommentsContainer>
       )}
@@ -433,10 +437,10 @@ const CommentSystem = ({
                   alignItems: 'center'
                 }}
               >
-                <DeleteIcon sx={{ mr: 1 }} /> Удаление комментария
+                <DeleteIcon sx={{ mr: 1 }} /> {t('comment.dialog.delete.title')}
               </Typography>
               <Typography sx={{ mb: 3, color: 'rgba(255, 255, 255, 0.7)' }}>
-                Вы уверены, что хотите удалить этот комментарий? Это действие нельзя отменить.
+                {t('comment.dialog.delete.message')}
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
                 <Button 
@@ -452,7 +456,7 @@ const CommentSystem = ({
                     }
                   }}
                 >
-                  Отмена
+                  {t('comment.dialog.delete.cancel')}
                 </Button>
                 <Button 
                   onClick={confirmDeleteComment}
@@ -462,11 +466,9 @@ const CommentSystem = ({
                   sx={{ 
                     borderRadius: '10px',
                     boxShadow: 'none',
-                    px: 2
                   }}
-                  endIcon={commentDeleteDialog.deleting ? <CircularProgress size={16} color="inherit" /> : null}
                 >
-                  {commentDeleteDialog.deleting ? 'Удаление...' : 'Удалить'}
+                  {t('comment.dialog.delete.confirm')}
                 </Button>
               </Box>
             </>
@@ -546,18 +548,6 @@ const CommentSystem = ({
         </Box>
       </StyledDialog>
       
-      {/* Image lightbox */}
-      {!useParentDialogs && lightboxOpen && currentLightboxImage && (
-        <SimpleImageViewer
-          isOpen={lightboxOpen}
-          onClose={() => {
-            setLightboxOpen(false);
-            setCurrentLightboxImage('');
-          }}
-          images={[sanitizeImagePath(currentLightboxImage)]}
-          initialIndex={0}
-        />
-      )}
     </Box>
   );
 };

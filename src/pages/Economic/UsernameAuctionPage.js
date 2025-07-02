@@ -520,8 +520,8 @@ const UsernameAuctionPage = () => {
       errors.min_price = 'Введите минимальную цену';
     } else if (isNaN(newAuctionData.min_price) || parseInt(newAuctionData.min_price) <= 0) {
       errors.min_price = 'Цена должна быть положительным числом';
-    } else if (parseInt(newAuctionData.min_price) > 15000) {
-      errors.min_price = 'Максимальная начальная цена: 15 000 баллов';
+    } else if (parseInt(newAuctionData.min_price) > 15000000) {
+      errors.min_price = 'Максимальная начальная цена: 15 000 000 баллов';
     }
     
     if (Object.keys(errors).length > 0) {
@@ -1507,7 +1507,7 @@ const UsernameAuctionPage = () => {
               value={newAuctionData.min_price}
               onChange={(e) => setNewAuctionData({...newAuctionData, min_price: e.target.value})}
               error={!!errors.min_price}
-              helperText={errors.min_price || "Максимальная начальная цена: 15 000 баллов"}
+              helperText={errors.min_price || "Максимальная начальная цена: 15 000 000 баллов"}
               margin="normal"
               variant="outlined"
               InputProps={{ 

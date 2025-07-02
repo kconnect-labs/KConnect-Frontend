@@ -57,6 +57,7 @@ const VideoPlayer = ({ videoUrl, poster, options = {} }) => {
       'current-time',
       'mute',
       ...(isMobile ? [] : ['volume']), 
+      'settings',
       'captions',
       'fullscreen'
     ];

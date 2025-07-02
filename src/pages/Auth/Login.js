@@ -14,7 +14,11 @@ import {
   useMediaQuery,
   Container,
   Paper,
-  Fade
+  Fade,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
@@ -35,6 +39,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [banInfo, setBanInfo] = useState(null);
   const [redirectPath, setRedirectPath] = useState('/');
+  const [showBanModal, setShowBanModal] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isAuthenticated, error: contextError, checkAuth } = useContext(AuthContext);
@@ -120,8 +125,9 @@ const Login = () => {
   useEffect(() => {
     if (contextError) {
       if (contextError.ban_info) {
-        
+        // Показываем модалку с информацией о бане
         setBanInfo(contextError.ban_info);
+        setShowBanModal(true);
         
         localStorage.setItem('login_error', JSON.stringify(contextError));
       } else {
@@ -194,55 +200,7 @@ const Login = () => {
     };
   }, [navigate, redirectPath]);
 
-  
-  const handleElementLogin = () => {
-    
-    const elementAuthHandler = (event) => {
-      try {
-        
-        const elemPattern = /^https?:\/\/(.*\.)?elemsocial\.com(\/.*)?$/;
-        if (!elemPattern.test(event.origin)) {
-          console.warn("Получено сообщение с неизвестного источника:", event.origin);
-          return;
-        }
 
-        
-        if (event.data && typeof event.data === 'string') {
-          console.log("Получено сообщение от Element:", event.data);
-          
-          
-          window.removeEventListener('message', elementAuthHandler);
-          
-          let token = null;
-          
-          
-          if (event.data.includes('/auth_elem/')) {
-            token = event.data.split('/auth_elem/')[1];
-          } else if (event.data.includes('/auth/element/')) {
-            token = event.data.split('/auth/element/')[1];
-          } else if (event.data.includes('.')) {
-            
-            token = event.data;
-          }
-          
-          if (token) {
-            console.log("Извлечён токен авторизации Element:", token);
-            
-            window.location.href = `/auth_elem/direct/${token}`;
-          }
-        }
-      } catch (err) {
-        console.error("Ошибка при обработке сообщения от Element:", err);
-      }
-    };
-
-    
-    window.addEventListener('message', elementAuthHandler);
-    
-    
-    window.location.href = "https://elemsocial.com/connect_app/0195a00f-826a-7a34-85f1-45065c8c727d";
-  };
-  
   
   const handleTelegramLogin = () => {
     
@@ -308,11 +266,12 @@ const Login = () => {
       
       if (result && !result.success) {
         if (result.ban_info) {
-          
+          // Показываем модалку с информацией о бане
           setBanInfo(result.ban_info);
+          setShowBanModal(true);
           localStorage.setItem('login_error', JSON.stringify(result));
         } else if (result.error) {
-          
+          // Обычная ошибка
           let errorMsg;
           if (result.error.includes('не верифицирован')) {
             errorMsg = 'Ваша почта не подтверждена. Пожалуйста, проверьте вашу электронную почту и перейдите по ссылке в письме для подтверждения аккаунта.';
@@ -394,108 +353,6 @@ const Login = () => {
     }
   };
 
-  
-  if (banInfo) {
-    return (
-      <Container 
-        maxWidth={false} 
-        disableGutters
-        sx={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
-          width: '100%'
-        }}
-      >
-        <Fade in={true} timeout={800}>
-          <Paper 
-            elevation={6}
-            sx={{ 
-              p: isMobile ? 3 : 4, 
-              width: '90%',
-              maxWidth: '480px',
-              borderRadius: 4,
-              background: 'rgba(30, 30, 40, 0.9)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-            }}
-          >
-            <Box sx={{ textAlign: 'center', mb: 4 }}>
-              <img 
-                src="/static/icons/clear-logonew.svg" 
-                alt="К-Коннект Лого" 
-                style={{ width: isMobile ? 80 : 100, marginBottom: 16 }}
-              />
-              <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
-                Аккаунт заблокирован
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Вход в аккаунт временно ограничен
-              </Typography>
-            </Box>
-            
-            <Paper 
-              elevation={0}
-              sx={{ 
-                p: 3, 
-                mb: 3, 
-                width: '100%', 
-                backgroundColor: 'rgba(211, 47, 47, 0.1)', 
-                border: '1px solid rgba(211, 47, 47, 0.3)',
-                borderRadius: 3
-              }}
-            >
-              <Typography variant="h6" sx={{ color: '#d32f2f', mb: 1 }}>
-                Ваш аккаунт временно заблокирован
-              </Typography>
-              
-              <Typography variant="body1" sx={{ mb: 2 }}>
-                Причина: {banInfo.reason}
-              </Typography>
-              
-              <Typography variant="body1" sx={{ mb: 1 }}>
-                Бан истечет: {banInfo.formatted_end_date}
-              </Typography>
-              
-              <Typography variant="body1" sx={{ mb: 1 }}>
-                Осталось дней: {banInfo.remaining_days}
-              </Typography>
-              
-              {banInfo.is_auto_ban && (
-                <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>
-                  Блокировка выдана автоматически за получение 3 предупреждений от модераторов.
-                </Typography>
-              )}
-            </Paper>
-            
-            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-              <Button
-                component={RouterLink}
-                to="/"
-                variant="outlined"
-                sx={{ 
-                  mt: 2,
-                  py: 1.5,
-                  borderRadius: 2,
-                  borderColor: '#D0BCFF',
-                  color: '#D0BCFF',
-                  '&:hover': {
-                    borderColor: '#B69DF8',
-                    backgroundColor: 'rgba(208, 188, 255, 0.04)'
-                  }
-                }}
-              >
-                Вернуться на главную
-              </Button>
-            </Box>
-          </Paper>
-        </Fade>
-      </Container>
-    );
-  }
-
   return (
     <Container 
       disableGutters
@@ -508,7 +365,90 @@ const Login = () => {
         position: 'relative',
       }}
     >
-      
+      {/* Модалка с информацией о блокировке */}
+      <Dialog
+        open={showBanModal}
+        onClose={() => setShowBanModal(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            background: 'rgba(30, 30, 40, 0.95)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          textAlign: 'center', 
+          color: '#D0BCFF',
+          fontWeight: 700,
+          fontSize: '1.5rem',
+          pb: 1
+        }}>
+          Аккаунт заблокирован
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          {banInfo && (
+            <Box sx={{ textAlign: 'center' }}>
+              <Box sx={{ 
+                p: 3, 
+                mb: 3, 
+                backgroundColor: 'rgba(211, 47, 47, 0.1)', 
+                border: '1px solid rgba(211, 47, 47, 0.3)',
+                borderRadius: 3
+              }}>
+                <Typography variant="h6" sx={{ color: '#d32f2f', mb: 2 }}>
+                  Ваш аккаунт временно заблокирован
+                </Typography>
+                
+                <Typography variant="body1" sx={{ mb: 2 }}>
+                  Причина: {banInfo.reason}
+                </Typography>
+                
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  Бан истечет: {banInfo.formatted_end_date}
+                </Typography>
+                
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  Осталось дней: {banInfo.remaining_days}
+                </Typography>
+                
+                {banInfo.is_auto_ban && (
+                  <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>
+                    Блокировка выдана автоматически за получение 3 предупреждений от модераторов.
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ 
+          justifyContent: 'center', 
+          pb: 3,
+          px: 3
+        }}>
+          <Button
+            onClick={() => setShowBanModal(false)}
+            variant="outlined"
+            sx={{ 
+              py: 1.5,
+              px: 4,
+              borderRadius: 2,
+              borderColor: '#D0BCFF',
+              color: '#D0BCFF',
+              '&:hover': {
+                borderColor: '#B69DF8',
+                backgroundColor: 'rgba(208, 188, 255, 0.04)'
+              }
+            }}
+          >
+            Понятно
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {!isMobile && (
         <Box 
           sx={{ 
@@ -555,9 +495,24 @@ const Login = () => {
             <Typography variant="h3" sx={{ fontWeight: 700, mb: 2 }}>
               <span style={{ color: '#D0BCFF' }}>К</span>-КОННЕКТ
             </Typography>
-            <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 400 }}>
+            <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 400, mb: 3 }}>
               Присоединяйтесь к нашему сообществу и открывайте новые возможности
             </Typography>
+            <Button
+              component={RouterLink}
+              to="/about"
+              variant="outlined"
+              sx={{ 
+                color: '#D0BCFF',
+                borderColor: '#D0BCFF',
+                '&:hover': {
+                  borderColor: '#B69DF8',
+                  backgroundColor: 'rgba(208, 188, 255, 0.04)'
+                }
+              }}
+            >
+              Узнать больше о К-Коннект
+            </Button>
           </motion.div>
           
           
@@ -617,19 +572,44 @@ const Login = () => {
           {isMobile && (
             <Box sx={{ 
               position: 'absolute',
-              top: '32px',
+              top: '24px',
               left: 0,
               width: '100%',
-              textAlign: 'center'
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 0
             }}>
-              <img 
-                src="/static/icons/clear-logonew.svg" 
-                alt="К-Коннект Лого" 
-                style={{ width: 90, marginBottom: 16 }} 
-              />
-              <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
-                <span style={{ color: '#D0BCFF' }}>К</span>-КОННЕКТ
-              </Typography>
+              <Box sx={{ 
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 1.5
+              }}>
+                <img 
+                  src="/static/icons/clear-logonew.svg" 
+                  alt="К-Коннект Лого" 
+                  style={{ width: 30, height: 30 }} 
+                />
+                <Typography variant="h6" component="h1" sx={{ fontWeight: 700 }}>
+                  <span style={{ color: '#D0BCFF' }}>К</span>-КОННЕКТ
+                </Typography>
+              </Box>
+              <Button
+                component={RouterLink}
+                to="/about"
+                variant="text"
+                sx={{ 
+                  color: '#D0BCFF',
+                  fontSize: '0.75rem',
+                  padding: '0px 8px',
+                  '&:hover': {
+                    backgroundColor: 'rgba(208, 188, 255, 0.04)'
+                  }
+                }}
+              >
+                О К-Коннект
+              </Button>
             </Box>
           )}
 
@@ -643,7 +623,7 @@ const Login = () => {
               background: isMobile ? 'transparent' : 'rgba(30, 30, 40, 0.85)',
               backdropFilter: 'blur(10px)',
               border: isMobile ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
-              mt: isMobile ? '120px' : 0
+              mt: isMobile ? '70px' : 0
             }}
           >
             <Typography variant="h5" component="h2" sx={{ mb: 1, fontWeight: 600 }}>
@@ -675,7 +655,7 @@ const Login = () => {
                 onChange={handleChange}
                 error={!!error}
                 disabled={loading}
-                sx={{ mb: 2 }}
+                sx={{ mb: 2}}
               />
               <TextField
                 fullWidth
@@ -748,34 +728,7 @@ const Login = () => {
             </Divider>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              
-              <Button
-                fullWidth
-                variant="outlined"
-                size="large"
-                startIcon={
-                  <svg width="24" height="24" viewBox="0 0 27 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M10.2194 5.27527C7.49181 5.62505 4.98695 6.93564 3.17176 8.96273C1.35657 10.9898 0.354917 13.5951 0.353516 16.2929C0.353608 19.2413 1.54789 22.0688 3.67364 24.1536C5.79939 26.2384 8.68251 27.4096 11.6888 27.4097C14.6951 27.4096 17.5782 26.2384 19.7039 24.1536C21.8297 22.0688 23.024 19.2413 23.024 16.2929C23.0242 15.9984 23.0124 15.704 22.9887 15.4105C21.6194 16.2335 20.045 16.6699 18.4391 16.6714C16.1259 16.6713 13.9075 15.7701 12.2719 14.166C10.6362 12.5619 9.71732 10.3862 9.71728 8.11768C9.71938 7.14916 9.88917 6.18803 10.2194 5.27527Z" fill="#D0BCFF"/>
-                    <path d="M18.4401 15.9104C22.8285 15.9104 26.386 12.4214 26.386 8.11756C26.386 3.81372 22.8285 0.324768 18.4401 0.324768C14.0517 0.324768 10.4941 3.81372 10.4941 8.11756C10.4941 12.4214 14.0517 15.9104 18.4401 15.9104Z" fill="#D0BCFF"/>
-                  </svg>
-                }
-                onClick={handleElementLogin}
-                sx={{ 
-                  py: 1.25,
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  borderColor: '#D0BCFF',
-                  color: '#D0BCFF',
-                  '&:hover': {
-                    borderColor: '#B69DF8',
-                    backgroundColor: 'rgba(208, 188, 255, 0.04)'
-                  }
-                }}
-              >
-                Войти через Element
-              </Button>
-              
-              
+
               <Button
                 fullWidth
                 variant="outlined"

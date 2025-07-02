@@ -1,7 +1,10 @@
 import React from 'react';
+
 import { createRoot } from 'react-dom/client';
 
 import './utils/ensure-global-functions';
+import './utils/createSvgIcon';
+import './utils/consoleFilter';
 
 import indexedDbCache from './utils/indexedDbCache';
 
@@ -63,14 +66,6 @@ async function setupCaching() {
       options.headers['Pragma'] = 'no-cache';
       options.headers['Expires'] = '0';
       
-      if (typeof url === 'string' && 
-          (url.includes('/static/') || url.includes('/api/') || 
-           url.includes('/media/') || url.includes('/uploads/'))) {
-        const separator = url.includes('?') ? '&' : '?';
-        const modifiedUrl = `${url}${separator}_nocache=${Date.now()}`;
-        return originalFetch(modifiedUrl, options);
-      }
-      
       return originalFetch(resource, options);
     };
     
@@ -83,15 +78,7 @@ async function setupCaching() {
       
       this.setRequestHeader = this.setRequestHeader || function() {};
       
-      let modifiedUrl = url;
-      if (typeof url === 'string' && 
-          (url.includes('/static/') || url.includes('/api/') || 
-           url.includes('/media/') || url.includes('/uploads/'))) {
-        const separator = url.includes('?') ? '&' : '?';
-        modifiedUrl = `${url}${separator}_nocache=${Date.now()}`;
-      }
-      
-      originalXhrOpen.call(this, method, modifiedUrl, ...rest);
+      originalXhrOpen.call(this, method, url, ...rest);
       
       const originalSetRequestHeader = this.setRequestHeader;
       this.setRequestHeader = function(header, value) {

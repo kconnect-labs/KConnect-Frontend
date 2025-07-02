@@ -1,30 +1,32 @@
 import React, { useState, useEffect, useContext, memo } from 'react';
 import { Box, styled, useMediaQuery, useTheme, CssBaseline } from '@mui/material';
-import Header from './Header';
-import Sidebar from './Sidebar';
+import Header from './Header/Header';
+import Sidebar from './Sidebar/Sidebar';
 import { Navigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { ThemeSettingsContext } from '../../App';
 import { MobilePlayer, DesktopPlayer } from '../Music';
 import { useMusic } from '../../context/MusicContext';
+import LanguageSwitcher from '../LanguageSwitcher';
 
 
 const MainContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
-  minHeight: '100vh',
+  height: '100vh',
   backgroundColor: theme.palette.background.default,
   backgroundSize: 'cover',
   backgroundPosition: 'center',
   backgroundAttachment: 'fixed',
-  color: theme.palette.text.primary
+  color: theme.palette.text.primary,
+  overflow: 'auto'
 }));
 
 
-const ContentWrapper = styled(Box)(({ theme }) => ({
+const ContentWrapper = styled(Box)(({ theme, isMusicPage, isMobile }) => ({
   display: 'flex',
   flexGrow: 1,
-  paddingTop: 64, 
+  paddingTop: isMusicPage && isMobile ? 0 : 40, 
 }));
 
 
@@ -92,16 +94,14 @@ const MemoizedSidebar = memo(({ open, onClose }) => (
 
 const MainLayout = ({ children }) => {
   const theme = useTheme();
-  const { themeSettings } = useContext(ThemeSettingsContext);
+  const { themeSettings, profileBackground } = useContext(ThemeSettingsContext);
   const { user, isLoading } = useContext(AuthContext);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
   const { currentTrack } = useMusic();
   
-  
   const sidebarWidth = 280;
-  
   
   useEffect(() => {
     if (isMobile) {
@@ -116,32 +116,28 @@ const MainLayout = ({ children }) => {
   const closeSidebar = () => {
     setSidebarOpen(false);
   };
-
   
   const authPages = ['/login', '/register', '/register/profile', '/confirm-email'];
   const isAuthPage = authPages.some(path => location.pathname.startsWith(path));
   
-  
   const isMusicPage = location.pathname.startsWith('/music');
   const hasBottomPlayer = isMobile && currentTrack && isMusicPage;
   const hasDesktopPlayer = !isMobile && currentTrack && isMusicPage;
-
   
-  const isBanned = user && user.ban === 0;
+  const isBanned = user && user.ban === 1;
   const isOnBanPage = location.pathname === '/ban';
   
-  
-  const shouldShowFullLayout = !isBanned || !isOnBanPage;
+  const shouldShowFullLayout = !isBanned && !isOnBanPage;
 
-  
   if (isAuthPage) {
     return (
       <Box sx={{ 
         backgroundColor: themeSettings?.backgroundColor || theme.palette.background.default,
         color: themeSettings?.textColor || theme.palette.text.primary,
-        minHeight: '100vh',
+        height: '100vh',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        overflow: 'auto'
       }}>
         {children}
       </Box>
@@ -152,16 +148,18 @@ const MainLayout = ({ children }) => {
     <MainContainer 
       sx={{
         backgroundColor: themeSettings?.backgroundColor || theme.palette.background.default,
-        backgroundImage: themeSettings?.backgroundImage 
-          ? `url(${themeSettings.backgroundImage})` 
-          : 'none',
+        backgroundImage: profileBackground
+          ? `url(${profileBackground})`
+          : (themeSettings?.backgroundImage 
+            ? `url(${themeSettings.backgroundImage})` 
+            : 'none'),
         color: themeSettings?.textColor || theme.palette.text.primary
       }}
     >
       <CssBaseline />
       {shouldShowFullLayout && <MemoizedHeader toggleSidebar={toggleSidebar} isMobile={isMobile} />}
       
-      <ContentWrapper>
+      <ContentWrapper isMusicPage={isMusicPage} isMobile={isMobile}>
         <Overlay 
           className={sidebarOpen ? 'active' : ''} 
           onClick={closeSidebar}

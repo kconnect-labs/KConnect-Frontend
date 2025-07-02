@@ -3,6 +3,7 @@ import NavButton, { MoreButton, NavItemStyled, NavIconStyled, NavTextStyled } fr
 import UsernameCard from './UsernameCard';
 import SessionManager from './SessionManager';
 import PlaylistModal from './PlaylistModal';
+import PlaylistViewModal from './PlaylistViewModal';
 import PlaylistCard, { PlaylistCardSkeleton } from './PlaylistCard';
 import PlaylistGrid from './PlaylistGrid';
 import VerificationBadge from './VerificationBadge';
@@ -21,6 +22,7 @@ export {
   UsernameCard,
   SessionManager,
   PlaylistModal,
+  PlaylistViewModal,
   PlaylistCard,
   PlaylistCardSkeleton,
   PlaylistGrid,

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useContext, useRef } from 'react';
 import { 
   Box, 
   Typography, 
@@ -69,11 +69,11 @@ import { useMusic } from '../../context/MusicContext';
 import { formatDuration } from '../../utils/formatters';
 import { useContext } from 'react';
 import { ThemeSettingsContext } from '../../App';
-import FullScreenPlayer from '../../components/Music/FullScreenPlayer/index.js';
+import FullScreenPlayer from '../../components/Music';
 import MobilePlayer from '../../components/Music/MobilePlayer';
 import MusicUploadDialog from '../../components/Music/MusicUploadDialog';
 import { getCoverWithFallback } from '../../utils/imageUtils';
-import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
+import { useLocation, useSearchParams, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import SEO from '../../components/SEO';
 import { PlaylistModal, PlaylistGrid } from '../../UIKIT';
@@ -444,11 +444,10 @@ const MusicCategoryGrid = styled(Grid)(({ theme }) => ({
 
 const MusicPage = React.memo(() => {
   const [tabValue, setTabValue] = useState(0);
-  const [fullScreenPlayerOpen, setFullScreenPlayerOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [mainTab, setMainTab] = useState(1); 
+  const [mainTab, setMainTab] = useState(1);
   const [playlists, setPlaylists] = useState([]);
   const [isPlaylistsLoading, setIsPlaylistsLoading] = useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
@@ -464,6 +463,12 @@ const MusicPage = React.memo(() => {
   const [isMobileNavVisible, setIsMobileNavVisible] = useState(true);
   const [lastScrollTop, setLastScrollTop] = useState(0);
   const [searchLoading, setSearchLoading] = useState(false);
+  
+  // Refs для управления поиском
+  const searchTimeoutRef = useRef(null);
+  const abortControllerRef = useRef(null);
+  
+  const { section } = useParams();
 
   const [charts, setCharts] = useState({
     trending: [],
@@ -521,7 +526,8 @@ const MusicPage = React.memo(() => {
     tracks, 
     likedTracks, 
     newTracks, 
-    randomTracks, 
+    randomTracks,
+    popularTracks, 
     currentTrack, 
     isPlaying, 
     togglePlay, 
@@ -533,7 +539,10 @@ const MusicPage = React.memo(() => {
     playTrack,
     likeTrack,
     setRandomTracks,
-    setTracks
+    setTracks,
+    openFullScreenPlayer,
+    closeFullScreenPlayer,
+    isFullScreenPlayerOpen
   } = musicContext;
 
   
@@ -580,77 +589,42 @@ const MusicPage = React.memo(() => {
   
   
   useEffect(() => {
-    
     const loadInitialData = async () => {
       if (typeof setCurrentSection === 'function') {
         console.log('Инициализация страницы музыки');
         
-        
         try {
+          // Загружаем все треки
           console.log('Загрузка всех треков при открытии страницы музыки');
-          
           setCurrentSection('all');
           if (musicContext.resetPagination) {
-            
             await musicContext.resetPagination('all', true);
-            console.log('Все треки загружены успешно в случайном порядке');
           }
+
+          // Загружаем понравившиеся треки
+          console.log('Загрузка понравившихся треков');
+          setCurrentSection('liked');
+          if (musicContext.resetPagination) {
+            await musicContext.resetPagination('liked');
+          }
+
+          // Возвращаемся к начальной секции
+          const initialSection = section || 'categories';
+          setCurrentSection(initialSection === 'categories' ? 'all' : initialSection);
         } catch (error) {
           console.error('Ошибка при загрузке треков:', error);
         }
-        
-        
-        console.log('Устанавливаем секцию "liked"');
-        setCurrentSection('liked');
-        
-        
-        try {
-          console.log('Загрузка лайкнутых треков при открытии страницы музыки');
-          if (musicContext.resetPagination) {
-            await musicContext.resetPagination('liked');
-            console.log('Лайкнутые треки загружены успешно');
-          }
-        } catch (error) {
-          console.error('Ошибка при загрузке лайкнутых треков:', error);
-        }
       }
-      
-      
-      const mode = searchParams.get('mode');
-      const tab = searchParams.get('tab');
-      
-      if (mode) {
-        setViewMode(mode);
-      }
-      
-      if (tab) {
-        const tabNum = parseInt(tab, 10) || 0;
-        setTabValue(tabNum);
-        
-        
-        const tabToType = {
-          0: 'liked',
-          1: 'all'
-        };
-        
-        if (musicContext.setCurrentSection) {
-          musicContext.setCurrentSection(tabToType[tabNum] || 'liked');
-        }
-      }
-      
-      
-      fetchCharts();
-      
-
-      fetchPopularArtists();
     };
     
-    
     loadInitialData();
-  }, []);
+    // Загружаем чарты и артистов только при монтировании
+    fetchCharts();
+    fetchPopularArtists();
+  }, []); // Пустой массив зависимостей для выполнения только при монтировании
   
   
-  const fetchCharts = async () => {
+  const fetchCharts = useCallback(async () => {
     try {
       setChartsLoading(true);
       const response = await axios.get('/api/music/charts');
@@ -709,16 +683,31 @@ const MusicPage = React.memo(() => {
     } finally {
       setChartsLoading(false);
     }
-  };
+  }, [likedTracks]); // Нам нужны только likedTracks для проверки лайков
   
   
   useEffect(() => {
-    const params = new URLSearchParams();
-    params.set('mode', viewMode);
-    params.set('tab', tabValue.toString());
-    
-    navigate(`?${params.toString()}`, { replace: true });
-  }, [viewMode, tabValue, navigate]);
+    const handleUrlSync = () => {
+      const currentSection = section || 'categories';
+      const targetSection = viewMode === 'categories' ? 'categories' : 
+                          tabValue === 0 ? 'liked' : 'all';
+
+      // Если текущий раздел совпадает с целевым, ничего не делаем
+      if (currentSection === targetSection) return;
+
+      // Если URL не соответствует состоянию, обновляем URL
+      if (viewMode === 'categories' && currentSection !== 'categories') {
+        navigate('/music/categories', { replace: true });
+      } else if (viewMode === 'tracks') {
+        const section = tabValue === 0 ? 'liked' : 'all';
+        if (currentSection !== section) {
+          navigate(`/music/${section}`, { replace: true });
+        }
+      }
+    };
+
+    handleUrlSync();
+  }, [viewMode, tabValue, section, navigate]);
 
   
   
@@ -1314,19 +1303,23 @@ const MusicPage = React.memo(() => {
       likedTracks, tracks, setLocalLoading]);
 
   const handleTrackClick = useCallback((track) => {
-    playTrack(track);
-  }, [playTrack]);
+    // Определяем секцию на основе текущей вкладки
+    let section = 'all';
+    if (tabValue === 0) {
+      section = 'liked';
+    } else if (searchQuery.trim()) {
+      section = 'search';
+    }
+    playTrack(track, section);
+  }, [playTrack, tabValue, searchQuery]);
 
   const handleOpenFullScreenPlayer = useCallback(() => {
-    setFullScreenPlayerOpen(true);
-  }, []);
+    openFullScreenPlayer();
+  }, [openFullScreenPlayer]);
 
   const handleCloseFullScreenPlayer = useCallback(() => {
-    setFullScreenPlayerOpen(false);
-    
-    document.body.style.overflow = '';
-    document.body.style.touchAction = '';
-  }, []);
+    closeFullScreenPlayer();
+  }, [closeFullScreenPlayer]);
 
   const handleOpenUploadDialog = useCallback(() => {
     setUploadDialogOpen(true);
@@ -1374,56 +1367,82 @@ const MusicPage = React.memo(() => {
   }, [tabValue, tracks, likedTracks, searchQuery, searchResults]);
 
   
-  const debouncedSearch = useCallback(
-    debounce((query) => {
-      if (query.trim()) {
-        setSearchLoading(true);
-        
-        
-        musicContext.searchTracks(query)
-          .then((results) => {
-            setSearchResults(results || []);
-            setSearchLoading(false);
-            
-            if (results.length === 0) {
-              setSnackbar({
-                open: true,
-                message: 'По вашему запросу ничего не найдено',
-                severity: 'info'
-              });
-            }
-          })
-          .catch((error) => {
-            console.error('Error searching tracks:', error);
-            setSearchLoading(false);
-            
-            setSnackbar({
-              open: true,
-              message: 'Ошибка при поиске. Попробуйте позже.',
-              severity: 'error'
-            });
-          });
-      } else {
-        setSearchResults([]);
+  // Стабильная функция поиска
+  const performSearch = useCallback(async (query) => {
+    // Отменяем предыдущий запрос если он еще выполняется
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Проверяем минимальную длину запроса
+    if (!query.trim() || query.trim().length < 2) {
+      console.log('[MusicPage] Запрос слишком короткий:', query);
+      return;
+    }
+    
+    console.log('[MusicPage] Выполняем поиск для:', query);
+    setSearchLoading(true);
+    
+    // Создаем новый AbortController для этого запроса
+    abortControllerRef.current = new AbortController();
+    
+    try {
+      const results = await musicContext.searchTracks(query);
+      console.log('[MusicPage] Результаты поиска:', results);
+      
+      if (results.length === 0) {
+        setSnackbar({
+          open: true,
+          message: 'По вашему запросу ничего не найдено',
+          severity: 'info'
+        });
       }
-    }, 500),
-    [setSnackbar, musicContext.searchTracks]
-  );
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('[MusicPage] Ошибка поиска:', error);
+        setSnackbar({
+          open: true,
+          message: 'Ошибка при поиске. Попробуйте позже.',
+          severity: 'error'
+        });
+      }
+    } finally {
+      setSearchLoading(false);
+      abortControllerRef.current = null;
+    }
+  }, [musicContext.searchTracks, setSnackbar]);
 
   
   const handleSearchChange = (e) => {
     const query = e.target.value;
     setSearchQuery(query);
     
+    console.log('[MusicPage] Изменение поискового запроса:', query);
     
+    // Отменяем предыдущий таймер
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // Если запрос пустой, очищаем поиск
     if (!query.trim()) {
-      
       clearSearch();
       return;
     }
     
+    // Отменяем активный поиск если запрос слишком короткий
+    if (query.trim().length < 2) {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        setSearchLoading(false);
+      }
+      return;
+    }
     
-    debouncedSearch(query);
+    // Устанавливаем новый таймер для debounce
+    searchTimeoutRef.current = setTimeout(() => {
+      performSearch(query.trim());
+    }, 1200); // 1.2 секунды debounce
   };
   
   const handleSearchFocus = () => {
@@ -1438,9 +1457,22 @@ const MusicPage = React.memo(() => {
 
   
   const clearSearch = () => {
+    console.log('[MusicPage] Очистка поиска');
     setSearchQuery('');
     if (searchInputRef.current) {
       searchInputRef.current.value = '';
+    }
+    
+    // Отменяем активный поиск
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      setSearchLoading(false);
+    }
+    
+    // Отменяем таймер debounce
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+      searchTimeoutRef.current = null;
     }
     
     
@@ -1456,8 +1488,6 @@ const MusicPage = React.memo(() => {
     if (musicContext.resetPagination) {
       musicContext.resetPagination(currentType);
     }
-    
-    console.log('Поисковый запрос очищен');
   };
 
   
@@ -1469,6 +1499,22 @@ const MusicPage = React.memo(() => {
   const effectiveLoading = useMemo(() => {
     return isLoading || localLoading;
   }, [isLoading, localLoading]);
+
+  // Очистка при размонтировании компонента
+  useEffect(() => {
+    return () => {
+      console.log('[MusicPage] Размонтирование - очищаем ресурсы поиска');
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+      // Очистка стилей body
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, []);
 
   
   useEffect(() => {
@@ -1666,7 +1712,7 @@ const MusicPage = React.memo(() => {
       event.stopPropagation();
     }
     
-    const trackLink = `${window.location.origin}/music?track=${track.id}`;
+    const trackLink = `${window.location.origin}/music/track/${track.id}`;
     navigator.clipboard.writeText(trackLink)
       .then(() => {
         setSnackbar({
@@ -1727,7 +1773,8 @@ const MusicPage = React.memo(() => {
   
   
   useEffect(() => {
-    const trackId = searchParams.get('track');
+    const pathParts = location.pathname.split('/');
+    const trackId = pathParts[pathParts.length - 2] === 'track' ? pathParts[pathParts.length - 1] : null;
     if (trackId) {
       
       const playTrackFromUrl = async () => {
@@ -1742,9 +1789,9 @@ const MusicPage = React.memo(() => {
           if (data.success && data.track) {
             console.log('Playing track from URL parameter:', data.track);
             
-            playTrack(data.track);
+            playTrack(data.track, 'url'); // Передаем секцию 'url' для треков из URL
             
-            setFullScreenPlayerOpen(true);
+            openFullScreenPlayer();
           }
         } catch (error) {
           console.error('Error playing track from URL:', error);
@@ -1759,11 +1806,14 @@ const MusicPage = React.memo(() => {
   const handleSwitchToTracks = useCallback((index) => {
     setTabValue(index);
     setViewMode('tracks');
-  }, []);
+    const section = index === 0 ? 'liked' : 'all';
+    navigate(`/music/${section}`);
+  }, [navigate]);
   
   const handleBackToCategories = useCallback(() => {
     setViewMode('categories');
-  }, []);
+    navigate('/music/categories');
+  }, [navigate]);
   
   const scrollToTop = useCallback(() => {
     window.scrollTo({
@@ -2000,7 +2050,7 @@ const MusicPage = React.memo(() => {
   };
 
 
-  const fetchPopularArtists = async () => {
+  const fetchPopularArtists = useCallback(async () => {
     try {
       setArtistsLoading(true);
       
@@ -2017,7 +2067,7 @@ const MusicPage = React.memo(() => {
     } finally {
       setArtistsLoading(false);
     }
-  };
+  }, []);
   
 
   const searchArtists = async (query) => {
@@ -2392,6 +2442,29 @@ const MusicPage = React.memo(() => {
       setPlaylistsLoading(false);
     }
   }, [mainTab]);
+
+  // Начальная инициализация состояния из URL
+  useEffect(() => {
+    if (!section) return;
+
+    // Устанавливаем начальное состояние только один раз при монтировании
+    const initialSection = section;
+    switch(initialSection) {
+      case 'liked':
+        setTabValue(0);
+        setViewMode('tracks');
+        break;
+      case 'all':
+        setTabValue(1);
+        setViewMode('tracks');
+        break;
+      case 'categories':
+        setViewMode('categories');
+        break;
+      default:
+        navigate('/music/categories', { replace: true });
+    }
+  }, [section, navigate]); // Зависимости для правильной инициализации
 
   return (
     <MusicPageContainer 
@@ -3641,7 +3714,7 @@ const MusicPage = React.memo(() => {
       
       
       <FullScreenPlayer 
-        open={fullScreenPlayerOpen} 
+        open={isFullScreenPlayerOpen} 
         onClose={handleCloseFullScreenPlayer} 
       />
 

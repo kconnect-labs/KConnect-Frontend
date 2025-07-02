@@ -1,0 +1,870 @@
+{
+  "comment": {
+    "form": {
+      "placeholder": "Write a comment..."
+    },
+    "reply_form": {
+      "placeholder": "Write a reply..."
+    },
+    "section": {
+      "title": "Comments",
+      "empty": "No comments yet. Be the first!"
+    },
+    "menu": {
+      "reply": "Reply",
+      "delete": "Delete"
+    },
+    "media": {
+      "error": "Media loading error",
+      "duplicate_path": "File path error (duplicate)",
+      "url_unavailable": "URL unavailable"
+    },
+    "dialog": {
+      "delete": {
+        "title": "Delete Comment",
+        "message": "Are you sure you want to delete this comment? This action cannot be undone.",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      },
+      "delete_reply": {
+        "title": "Delete Reply",
+        "message": "Are you sure you want to delete this reply? This action cannot be undone.",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      }
+    }
+  },
+  "balance": {
+    "key": {
+      "activation": {
+        "title": "Key Activation",
+        "process": "Activating...",
+        "success": "Key Activated",
+        "error": "Activation Error",
+        "info": "You can get an activation key by making a purchase on our website or from an administrator."
+      },
+      "balance": {
+        "new": "New Balance:",
+        "points": "points"
+      },
+      "subscription": {
+        "activated": "Subscription Activated:",
+        "period": "Duration {duration} days",
+        "expires_at": "Valid until: {date}"
+      }
+    },
+    "tabs": {
+      "history": "History",
+      "assets": "Assets",
+      "subscription": "Subscription"
+    },
+    "current_balance": {
+      "title": "Balance",
+      "points_suffix": "points"
+    },
+    "weekly_forecast": {
+      "date_range": "{start} — {end}",
+      "points": "+{amount} points",
+      "description": "This is a forecast of points you will receive at the end of the week for your activity. Updates every hour.",
+      "how_to_earn": {
+        "title": "How to earn points?",
+        "tooltip": "More about earning points",
+        "description": "Points are awarded for platform activity:",
+        "details": "See detailed information about the points system in the rating section."
+      }
+    },
+    "actions": {
+      "pay": "Pay",
+      "topup": "Top Up",
+      "transfer": "Transfer",
+      "activate_key": "Activate Key"
+    },
+    "points": {
+      "title": "Points",
+      "weekly_estimate": "Estimated per week",
+      "earning_methods": {
+        "title": "How to earn points:",
+        "posts": "Create posts and stories",
+        "likes": "Get likes and comments",
+        "replies": "Reply to comments",
+        "reposts": "Reposts and views",
+        "reactions": "Story reactions"
+      }
+    },
+    "transactions": {
+      "badge_purchase": "Badge Purchase",
+      "royalty_from_purchase": "Royalty from Purchase",
+      "clicker_withdrawal": "Clicker Withdrawal",
+      "clicker_withdrawal_message": "Withdrawal of points from clicker",
+      "clicker_points": "Points from Clicker",
+      "transfer": "Outgoing Transfer",
+      "deposit": "Incoming Transfer",
+      "username_purchase": "Username Purchase",
+      "weekly_points": "Weekly Points",
+      "activity_reward": "Activity Reward",
+      "transaction": "Transaction",
+      "blackjack_win": "Blackjack Win",
+      "blackjack_tie": "Blackjack Tie",
+      "blackjack_lose": "Blackjack Loss",
+      "minigame_bet": "Minigame Bet",
+      "game_transaction": "Game Transaction",
+      "withdrawal": "Points Withdrawal",
+      "no_history": "You don't have any transaction history yet",
+      "load_more": "Next Page",
+      "success": {
+        "title": "Transfer Successful",
+        "subtitle": "Funds Successfully Transferred",
+        "amount_sent": "You have transferred {amount} points to user {username}",
+        "receipt_info": "You can download a PDF receipt for this transfer",
+        "open_receipt": "Open Receipt",
+        "receipt_error": "Failed to open PDF. Please try again later."
+      }
+    },
+    "transfer": {
+      "errors": {
+        "enter_username": "Enter username",
+        "user_not_found": "User not found",
+        "enter_amount": "Enter transfer amount",
+        "positive_amount": "Amount must be a positive number",
+        "insufficient_points": "Insufficient points for transfer"
+      }
+    },
+    "assets": {
+      "badges": {
+        "no_description": "No description",
+        "purchases": {
+          "title": "Purchases ({count})",
+          "date": "Purchased: {date}",
+          "none": "No purchases of this badge yet",
+          "count": "Purchases ({count})"
+        },
+        "points_cost": "{amount} points",
+        "purchased_on": "Purchased on"
+      },
+      "usernames": {
+        "title": "Usernames",
+        "active": "Active",
+        "purchased_on": "Purchased on",
+        "length": "Length",
+        "section_title": "@ Usernames"
+      },
+      "empty": {
+        "title": "You don't have any assets yet",
+        "description": "Create badges or purchase unique usernames to see them here",
+        "username_auction": "Username Auction",
+        "badge_shop": "Badge Shop"
+      }
+    },
+    "subscription": {
+      "active": {
+        "title": "Active Subscription",
+        "type": "Type",
+        "expires": "Expires",
+        "days_left": "{days} days left",
+        "features": {
+          "title": "Subscription Features",
+          "basic": {
+            "monthly_points": "Monthly top-up of 10,000 points",
+            "no_ads": "No advertisements",
+            "badge_limit": "Create up to 5 badges",
+            "username_limit": "Purchase up to 5 usernames"
+          },
+          "premium": {
+            "monthly_points": "Monthly top-up of 35.000 points",
+            "features": "Extended platform features",
+            "support": "Priority support",
+            "badge_limit": "Create up to 8 badges",
+            "username_limit": "Purchase up to 8 usernames"
+          },
+          "ultimate": {
+            "premium_benefits": "All Premium benefits",
+            "monthly_points": "Monthly top-up of 75,000 points",
+            "animated_badges": "Create Animated badges",
+            "unlimited_badges": "Unlimited badge creation",
+            "unlimited_usernames": "Purchase unlimited usernames"
+          }
+        }
+      },
+      "inactive": {
+        "title": "You don't have an active subscription",
+        "description": "Activate a subscription to access extended platform features"
+      },
+      "types": {
+        "basic": "Basic",
+        "premium": "Premium",
+        "ultimate": "Ultimate"
+      },
+      "duration": {
+        "unlimited": "Unlimited"
+      }
+    },
+    "topup": {
+      "title": "Top Up Balance",
+      "tabs": {
+        "key": "I have a key",
+        "donate": "Donate"
+      },
+      "key": {
+        "enter": "Enter activation key to top up your balance:",
+        "placeholder": "XXXX-XXXX-XXXX-XXXX",
+        "label": "Activation Key",
+        "hint": "You can get an activation key by making a purchase on our website or from an administrator.",
+        "activate": "Activate",
+        "process": "Activating...",
+        "success": {
+          "title": "Key Successfully Activated!",
+          "new_balance": "New Balance:",
+          "subscription_activated": "Subscription Activated:",
+          "expires_at": "Valid until: {date}",
+          "duration": "Duration: {days} days",
+          "points": "points"
+        }
+      },
+      "donate": {
+        "title": "Top up with donation",
+        "description": "You can top up your balance with rubles through Boosty.",
+        "rate": "1 ruble = 5 points",
+        "button": "Proceed to top up"
+      }
+    },
+    "transaction_details": {
+      "id": "Transaction ID",
+      "type": "Type",
+      "source": "Source",
+      "operation_type": "Operation Type",
+      "sender": "Sender",
+      "recipient": "Recipient",
+      "message": "Message",
+      "amount": "Amount",
+      "date": "Date",
+      "description": "Description",
+      "download_receipt": "Download Receipt",
+      "payment_receipt": "Payment Receipt",
+      "close": "Close",
+      "status": {
+        "completed": "Completed"
+      },
+      "types": {
+        "clicker_withdrawal": "Clicker Withdrawal",
+        "outgoing_transfer": "Outgoing Transfer",
+        "incoming_transfer": "Incoming Transfer",
+        "badge_purchase": "Badge Purchase",
+        "badge_royalty": "Badge Royalty",
+        "weekly_points": "Weekly Points",
+        "username_purchase": "Username Purchase",
+        "game_transaction": "Game Transaction",
+        "transaction": "Transaction"
+      },
+      "badge": {
+        "name": "Badge Name",
+        "description": "Description"
+      },
+      "operation": {
+        "type": "Operation Type",
+        "description": "Description",
+        "date": "Credit Date",
+        "amount": "Amount"
+      },
+      "points": {
+        "source": "Points from Clicker",
+        "withdrawal": "Points Withdrawal"
+      },
+      "username": {
+        "value": "Username",
+        "label": "Username",
+        "prefix": "@"
+      },
+      "game": {
+        "operation": "Operation Type",
+        "description": "Description"
+      },
+      "receipt": {
+        "download": "Download Receipt",
+        "payment": "Payment Receipt",
+        "close": "Close"
+      },
+      "weekly_activity": {
+        "description": "Points credited for your platform activity over the past week."
+      }
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "activate": "Activate Key",
+      "activating": "Activating...",
+      "done": "Done",
+      "close": "Close"
+    },
+    "errors": {
+      "receipt_generation": "Failed to generate receipt on server",
+      "receipt_creation": "Error creating receipt for transaction",
+      "points_loading": "Error loading points",
+      "points_forecast": "Error loading forecast",
+      "purchase_history": "Error loading purchase history",
+      "royalty_history": "Error loading royalty history",
+      "badges_loading": "Error loading created badges",
+      "transfer_history": "Error loading transfer history",
+      "username_history": "Error loading username purchase history",
+      "game_history": "Error loading game transaction history",
+      "subscription": "Error getting subscription status",
+      "invalid_subscription": "Invalid subscription status response",
+      "pdf_open": "Error opening PDF"
+    },
+    "subscription_types": {
+      "basic": "Basic",
+      "premium": "Premium",
+      "ultimate": "Ultimate"
+    },
+    "common": {
+      "loading": "Loading...",
+      "error": "Error",
+      "success": "Success",
+      "close": "Close",
+      "cancel": "Cancel",
+      "save": "Save",
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirm": "Confirm"
+    },
+    "transfer_menu": {
+      "title": "Transfer Points",
+      "subtitle": "Instant points transfer to another platform user",
+      "available": "Available for transfer",
+      "points_suffix": "points",
+      "recipient": {
+        "label": "Recipient",
+        "placeholder": "Enter username",
+        "similar_users": "Similar users",
+        "confirmed": "Recipient confirmed:",
+        "decoration_alt": "decoration"
+      },
+      "amount": {
+        "label": "Transfer amount",
+        "details": "Transfer details:",
+        "transfer_amount": "Transfer amount:",
+        "commission": "Commission (10%):",
+        "recipient_gets": "Recipient gets:",
+        "your_balance": "Your balance after transfer:"
+      },
+      "message": {
+        "label": "Message (optional)",
+        "placeholder": "Enter message for recipient"
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "transfer": "Transfer Securely",
+        "processing": "Processing transfer...",
+        "close": "Close"
+      },
+      "success": {
+        "title": "Transfer Complete",
+        "subtitle": "Points successfully transferred to {recipient}",
+        "details": {
+          "title": "Transaction Details",
+          "amount": "Transfer amount",
+          "recipient": "Recipient",
+          "balance": {
+            "title": "Balance after operation",
+            "before": "Before transfer",
+            "after": "After transfer"
+          }
+        },
+        "receipt": {
+          "download": "Download Receipt"
+        }
+      }
+    }
+  },
+  "header": {
+    "search": {
+      "placeholder": "Search...",
+      "tabs": {
+        "all": "All",
+        "channels": "Channels"
+      },
+      "no_results": {
+        "users": "No users found",
+        "channels": "No channels found"
+      },
+      "view_all": "View all"
+    },
+    "profile_menu": {
+      "my_profile": "My Profile",
+      "settings": "Settings",
+      "search": "Search",
+      "subscriptions": "Subscriptions",
+      "channels": "Channels",
+      "rating": "Rating",
+      "create_channel": "Create Channel",
+      "main_account": "Main Account",
+      "my_channels": "My Channels",
+      "language": "Language",
+      "select_language": "Select Language",
+      "logout": "Logout",
+      "channel_label": "Channel",
+      "wallet": "Wallet",
+      "shop": "Shop"
+    },
+    "notifications": {
+      "new": "New notification"
+    },
+    "tooltips": {
+      "wallet": "Wallet"
+    },
+    "logo": {
+      "text": "K-CONNECT"
+    }
+  },
+  "sidebar": {
+    "profile": {
+      "default_name": "User",
+      "default_username": "username"
+    },
+    "navigation": {
+      "my_profile": "My Profile",
+      "feed": "Feed",
+      "messenger": "Messenger",
+      "music": "Music",
+      "subscriptions": "Subscriptions",
+      "channels": "Channels",
+      "search": "Search",
+      "management": "Management",
+      "admin_panel": "Admin Panel",
+      "moderate": "Moderate",
+      "shops": {
+        "title": "Shops",
+        "badge_shop": "Badge Shop",
+        "username_auction": "Username Auction"
+      },
+      "minigames": "Mini-games",
+      "subscription_plans": "Subscription Plans",
+      "more": {
+        "title": "More",
+        "leaderboard": "Leaderboard",
+        "bug_reports": "Bug Reports",
+        "rules": "Rules",
+        "api_docs": "API Documentation",
+        "about": "About Platform"
+      }
+    },
+    "footer": {
+      "version": "K-Connect v2.8",
+      "copyright": "Copyright Holders",
+      "email": "verif@k-connect.ru"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": {
+      "no_notifications": "No new notifications",
+      "description": "Your notifications will appear here"
+    },
+    "tooltips": {
+      "notifications": "Notifications",
+      "clear_all": "Clear all notifications",
+      "mark_all_read": "Mark all as read",
+      "close": "Close"
+    },
+    "time": {
+      "just_now": "Just now",
+      "recently": "Recently",
+      "minute": "minute",
+      "minutes": "minutes",
+      "minutes_many": "minutes",
+      "hour": "hour",
+      "hours": "hours",
+      "hours_many": "hours",
+      "day": "day",
+      "days": "days",
+      "days_many": "days",
+      "ago": "ago"
+    },
+    "context": {
+      "post": "Post:",
+      "comment": "Comment:",
+      "reply": "Reply:",
+      "profile": "Profile",
+      "default_post": "post",
+      "default_comment": "comment",
+      "default_reply": "comment reply",
+      "default_profile": "profile"
+    },
+    "user": {
+      "default": "User"
+    },
+    "points": {
+      "label": "{count} points"
+    },
+    "error": {
+      "load_failed": "Failed to load notifications"
+    },
+    "messages": {
+      "post_like": "liked your post",
+      "post_comment": "commented on your post",
+      "comment_like": "liked your comment",
+      "post_repost": "reposted your post",
+      "points_transfer": "transferred {points} points to you",
+      "badge_purchase": "bought your \"{badge}\" badge for {price} points (+{royalty} points royalty)",
+      "wall_post": "posted on your wall",
+      "comment_reply": "{username} replied to your comment",
+      "with_message": "with message:"
+    }
+  },
+  "profile": {
+    "tabs": {
+      "posts": "Posts",
+      "wall": "Wall",
+      "media": "Media",
+      "about": "About"
+    },
+    "create_post": {
+      "placeholder": "What's new?",
+      "wall_placeholder": "Write on wall...",
+      "drag_drop": "Drag and drop files here or click to upload",
+      "add_media": "Add media",
+      "add_music": "Add music",
+      "publish": "Publish",
+      "cancel": "Cancel",
+      "media": "Media",
+      "files_count": "Files ({count})",
+      "music": "Music",
+      "music_count": "Music ({count})"
+    },
+    "actions": {
+      "follow": "Follow",
+      "unfollow": "Unfollow",
+      "message": "Message",
+      "edit": "Edit"
+    },
+    "stats": {
+      "followers": "followers",
+      "following": "following",
+      "posts": "posts",
+      "likes": "likes"
+    },
+    "status": {
+      "online": "Online",
+      "offline": "Offline",
+      "last_seen": "Last seen"
+    },
+    "subscription": {
+      "subscriber": "Subscriber",
+      "days_left": "months",
+      "expired": "Subscription expired",
+      "channel": "Channel",
+      "pick_me": "Pick Me",
+      "active": "{type} subscription active until {date}"
+    },
+    "medals": {
+      "title": "Medals",
+      "empty": "No medals"
+    },
+    "errors": {
+      "not_found": "User not found",
+      "load_failed": "Failed to load profile",
+      "follow_failed": "Failed to follow",
+      "unfollow_failed": "Failed to unfollow"
+    },
+    "ban": {
+      "banned": "Banned",
+      "scam": "SCAM",
+      "reason": "Reason: {{reason}}",
+      "ends": "Until {{endDate}}",
+      "days_left": "{{days}} days left",
+      "auto_ban": "{{admin}}",
+      "admin": "Banned by administration",
+      "start": "Ban start: {{startDate}}",
+      "details": "Details: {{details}}"
+    },
+    "also_follows": "Also follows:",
+    "and_more": "and {count} more",
+    "followers": "Followers",
+    "no_followers": "No followers",
+    "subscriptions": "Following",
+    "show_all_followers": "Show all followers",
+    "show_all_following": "Show all",
+    "no_following": "Not following anyone",
+    "days": "days",
+    "location": "Location",
+    "website": "Website",
+    "birthday": "Birthday",
+    "registration_date": "Registration date",
+    "not_available": "Not available",
+    "usernames": "Usernames",
+    "awarded_on": "Awarded on: {{date}}",
+    "awarded_by": "By: {{by}}",
+    "feed": {
+      "wall": {
+        "loading_error": "Error loading wall posts",
+        "empty": "No posts on the wall yet",
+        "all_loaded": "All wall posts loaded"
+      },
+      "posts": {
+        "loading_error": "Error loading posts",
+        "auth_required": "Authentication required to view posts",
+        "auth_required_description": "Please sign in to view user posts",
+        "empty": "Nothing here yet",
+        "empty_description": "User hasn't created any posts yet",
+        "error_title": "An error occurred",
+        "all_loaded": "All posts loaded"
+      }
+    }
+  },
+  "post": {
+    "time": {
+      "just_now": "Just now",
+      "recently": "Recently",
+      "minute": "minute",
+      "minutes": "minutes",
+      "minutes_many": "minutes",
+      "hour": "hour",
+      "hours": "hours",
+      "hours_many": "hours",
+      "day": "day",
+      "days": "days",
+      "days_many": "days",
+      "ago": "ago"
+    },
+    "like": "Like",
+    "unlike": "Unlike",
+    "likes_count": "{count}",
+    "comment_item": "Comment",
+    "comments_count": "{count}",
+    "repost": "Repost",
+    "reposted": "Reposted",
+    "share": "Share",
+    "views": "Views",
+    "views_count": "{count}",
+    "menu_title": "Menu",
+    "menu_actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "pin": "Pin",
+      "unpin": "Unpin",
+      "copy_link": "Copy link",
+      "report": "Report"
+    },
+    "edit_dialog": {
+      "title": "Edit post",
+      "time_limit": "Editing is only available for 3 hours after posting",
+      "post_text": "Post text",
+      "current_images": "Current images",
+      "image_alt": "Image {number}",
+      "post_image_alt": "Post image",
+      "delete_current_images": "Delete current images",
+      "current_video": "Current video",
+      "delete_current_video": "Delete current video",
+      "current_audio": "Current audio tracks",
+      "delete_music": "Delete music",
+      "add_images": "Add images",
+      "add_video": "Add video",
+      "new_video_selected": "New video selected: {name}",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "save_changes": "Save changes",
+      "save": "Save"
+    },
+    "context_menu": {
+      "copy_link": "Copy link",
+      "comment": "Comment",
+      "edit": "Edit",
+      "delete": "Delete",
+      "report": "Report"
+    },
+    "delete_dialog": {
+      "title": "Delete post",
+      "confirmation": "Are you sure you want to delete this post? This action cannot be undone.",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "deleting": "Deleting...",
+      "success_title": "Post deleted",
+      "success_message": "The post has been successfully deleted"
+    },
+    "report_dialog": {
+      "title": "Report post",
+      "description": "Choose a reason for reporting, and our moderators will review this post. Thank you for helping maintain order!",
+      "success_title": "Report submitted",
+      "success_message": "Thank you for your vigilance! Moderators will review your report.",
+      "post_by_user": "Post by user {username}",
+      "submitting": "Submitting...",
+      "submit": "Submit Report",
+      "cancel": "Cancel"
+    },
+    "repost_dialog": {
+      "title": "Share Post",
+      "comment_placeholder": "Add a comment to your repost...",
+      "mention_helper": "Use @ to mention users",
+      "original_post_notice": "You are reposting the original post",
+      "repost_button": "Repost"
+    },
+    "media_error": {
+      "animation_load_error": "Error loading animation",
+      "image_load_error": "Failed to load image",
+      "video_load_error": "Failed to load video",
+      "image_deleted": "File was deleted or is unavailable",
+      "video_format": "Video not found or format is not supported by your browser"
+    },
+    "pin": {
+      "pinned": "Post pinned to profile",
+      "unpinned": "Post unpinned from profile",
+      "pinned_short": "Pinned",
+      "unpinned_short": "Unpinned",
+      "error": "Failed to change post pin state",
+      "error_short": "Error",
+      "pin_error": "Error while pinning/unpinning post",
+      "tooltip": "Pinned post"
+    },
+    "channel": {
+      "label": "Channel"
+    },
+    "media": {
+      "post_image_alt": "Post image"
+    },
+    "dialog": {
+      "cancel": "Cancel"
+    },
+    "report": {
+      "reasons": {
+        "spam": "Spam",
+        "insult": "Insult",
+        "inappropriate_content": "Inappropriate content",
+        "violation": "Violation",
+        "misinformation": "Misinformation",
+        "harmful_content": "Harmful content",
+        "other": "Other"
+      },
+      "placeholder": "Specify the reason for your report"
+    },
+    "comments": "Comments",
+    "writeComment": "Write a comment...",
+    "reply": "Reply",
+    "delete": "Delete",
+    "commentDeleted": "Comment deleted",
+    "replyDeleted": "Reply deleted",
+    "noComments": "No comments yet. Be the first!",
+    "loginToComment": "Log in",
+    "added": "Comment added",
+    "deleted": "Comment was successfully deleted",
+    "replyAdded": "Reply added",
+    "replyDeletedSuccess": "Reply was successfully deleted",
+    "cancel": "Cancel",
+    "confirmDelete": "Delete comment",
+    "confirmDeleteReply": "Delete reply",
+    "sureDelete": "Are you sure you want to delete this comment? This action cannot be undone.",
+    "sureDeleteReply": "Are you sure you want to delete this reply? This action cannot be undone.",
+    "deleteInProgress": "Deleting...",
+    "firstComment": "No comments yet. Be the first!",
+    "post": "Post",
+    "back": "Back",
+    "loading": "Loading...",
+    "error": "Error",
+    "errorAddComment": "Error adding comment",
+    "errorAddReply": "Error adding reply",
+    "errorDeleteComment": "Error deleting comment",
+    "errorDeleteReply": "Error deleting reply",
+    "replyFor": "Reply for",
+    "errorImage": "Media loading error",
+    "errorReplyImage": "Media loading error",
+    "errorBadge": "Image error",
+    "errorReplyBadge": "Image error",
+    "errorLike": "Like error",
+    "errorLikeReply": "Reply like error",
+    "errorDelete": "Delete error",
+    "errorDeleteReply": "Reply delete error",
+    "errorRefresh": "Refresh error",
+    "errorRefreshReply": "Reply refresh error",
+    "errorView": "View error",
+    "errorTooFrequent": "Comment limit exceeded. ",
+    "wait": "Please try again later."
+  },
+  "main_page": {
+    "loading": "Loading...",
+    "online_count": "{count} online",
+    "follow": {
+      "follow": "Follow",
+      "unfollow": "Unfollow"
+    },
+    "media": {
+      "video_size_error": "Video size exceeds 150MB limit",
+      "image_size_error": "Image size exceeds 50MB limit",
+      "unsupported_format": "Only images and videos are supported",
+      "mixed_content_error": "Cannot attach both photos and videos"
+    },
+    "post": {
+      "create": {
+        "placeholder": "What's new?",
+        "media": "Media",
+        "media_count": "Files ({count})",
+        "music": "Music",
+        "music_count": "Music ({count})",
+        "publish": "Publish",
+        "drag_files": "Drag files here",
+        "error": {
+          "title": "Please wait",
+          "understand": "Got it",
+          "file_size": "File size error"
+        }
+      }
+    },
+    "feed": {
+      "tabs": {
+        "all": "All",
+        "following": "Following",
+        "recommended": "Recommended"
+      },
+      "empty": "No posts to display. Follow users to see their posts in your feed.",
+      "end": "You've seen all posts"
+    },
+    "recommendations": {
+      "empty": {
+        "title": "No active channels",
+        "description": "Create your first channel or follow existing channels"
+      }
+    }
+  },
+  "more_page": {
+    "points": "points",
+    "shop": "Shop",
+    "settings": "Settings",
+    "banner_alt": "Banner",
+    "default_user": "User",
+    "default_username": "username",
+    "errors": {
+      "banner_load_error": "Failed to load banner",
+      "avatar_load_error": "Failed to load avatar"
+    },
+    "sections": {
+      "social": {
+        "title": "Social",
+        "search": "Search",
+        "subscriptions": "Subscriptions",
+        "channels": "Channels",
+        "rating": "Rating"
+      },
+      "entertainment": {
+        "title": "Entertainment",
+        "minigames": "Mini-games",
+        "username_auction": "Username Auction",
+        "subscription_plans": "Subscription Plans",
+        "new_badge": "New"
+      },
+      "administration": {
+        "title": "Administration",
+        "moderation": "Moderation",
+        "admin_panel": "Admin Panel"
+      },
+      "platform": {
+        "title": "Platform",
+        "bug_reports": "Bug Reports",
+        "about": "About Platform",
+        "rules": "Rules",
+        "messenger": "Messenger",
+        "api_docs": "API Documentation",
+        "logout": "Logout"
+      }
+    },
+    "footer": {
+      "version": "K-Connect v2.8",
+      "email": "verif@k-connect.ru"
+    }
+  }
+}

@@ -11,6 +11,7 @@ import { styled } from '@mui/material/styles';
 import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
 import ImageIcon from '@mui/icons-material/Image';
+import { useLanguage } from '../../context/LanguageContext';
 
 const QuotedMessage = styled(Box)(({ theme }) => ({
   backgroundColor: 'rgba(255, 255, 255, 0.03)',
@@ -65,6 +66,7 @@ const ReplyForm = ({
   commentId,
   replyId,
 }) => {
+  const { t } = useLanguage();
   return (
     <Box sx={{ 
       mt: 1, 
@@ -120,7 +122,7 @@ const ReplyForm = ({
       <StyledTextField
         fullWidth
         size="small"
-        placeholder="Написать ответ..."
+        placeholder={t('comment.reply_form.placeholder')}
         value={replyText || ''}
         onChange={(e) => typeof onReplyTextChange === 'function' ? onReplyTextChange(e.target.value) : null}
         disabled={isSubmitting || disabled}

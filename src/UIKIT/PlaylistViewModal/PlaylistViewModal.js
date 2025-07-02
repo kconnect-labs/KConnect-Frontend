@@ -50,13 +50,11 @@ const ViewDialog = styled(Dialog)(({ theme }) => ({
         height: '80vh !important',
         margin: '40px auto !important',
       },
-      backgroundColor: theme.palette.mode === 'light'
-        ? theme.palette.background.paper
-        : theme.palette.mode === 'contrast'
-          ? '#101010'
-          : '#121212',
+      backgroundColor: 'rgba(255, 255, 255, 0.03) !important',
+      backdropFilter: 'blur(20px) !important',
       backgroundImage: 'none !important',
       overflow: 'hidden !important',
+      border: '1px solid rgba(255, 255, 255, 0.1) !important',
     }
   }
 }));
@@ -66,13 +64,10 @@ const DialogHeader = styled(DialogTitle)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'space-between',
   padding: theme.spacing(2, 3),
-  borderBottom: `1px solid ${theme.palette.divider}`,
-  backgroundColor: theme.palette.mode === 'light'
-    ? theme.palette.background.paper
-    : theme.palette.mode === 'contrast'
-      ? '#101010'
-      : '#1A1A1A',
-  color: theme.palette.mode === 'light' ? theme.palette.text.primary : '#fff',
+  borderBottom: `1px solid rgba(255, 255, 255, 0.1)`,
+  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+  backdropFilter: 'blur(20px)',
+  color: '#fff',
 }));
 
 const CoverImage = styled(Box)(({ theme }) => ({

@@ -28,6 +28,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
  * @param {Array} props.fixes - Массив с исправлениями
  * @param {string} props.title - Заголовок обновления (опционально)
  * @param {boolean} props.showAllUpdatesButton - Показывать ли кнопку "Все обновления" (по умолчанию true)
+ * @param {boolean} props.hideHeader - Скрыть ли заголовок с версией (по умолчанию false)
  */
 const UpdateInfo = ({ 
   version = "2.5", 
@@ -35,7 +36,8 @@ const UpdateInfo = ({
   updates = [], 
   fixes = [],
   title = "Обновление системы",
-  showAllUpdatesButton = true
+  showAllUpdatesButton = true,
+  hideHeader = false
 }) => {
   const navigate = useNavigate();
   
@@ -46,11 +48,9 @@ const UpdateInfo = ({
   return (
     <Paper sx={{ 
       p: 0, 
-      borderRadius: '16px',
-      background: theme => theme.palette.mode === 'dark' 
-        ? 'linear-gradient(145deg, #222222, #1c1c1c)'
-        : theme.palette.background.paper,
-      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+      borderRadius: '12px',
+      background: 'rgba(255, 255, 255, 0.03)',
+      backdropFilter: 'blur(20px)',
       border: theme => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'}`,
       overflow: 'hidden',
       transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
@@ -59,40 +59,42 @@ const UpdateInfo = ({
       }
     }}>
       {/* Заголовок секции */}
-      <Box sx={{ 
-        background: theme => theme.palette.mode === 'dark' 
-          ? 'linear-gradient(90deg, rgba(208, 188, 255, 0.08), rgba(208, 188, 255, 0.02))'
-          : 'linear-gradient(90deg, rgba(140, 82, 255, 0.05), rgba(140, 82, 255, 0.01))', 
-        p: 2,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between'
-      }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <NewReleasesIcon sx={{ mr: 1, color: 'primary.main' }} />
-          <Typography 
-            variant="h6" 
+      {!hideHeader && (
+        <Box sx={{ 
+          background: theme => theme.palette.mode === 'dark' 
+            ? 'linear-gradient(90deg, rgba(208, 188, 255, 0.08), rgba(208, 188, 255, 0.02))'
+            : 'linear-gradient(90deg, rgba(140, 82, 255, 0.05), rgba(140, 82, 255, 0.01))', 
+          p: 2,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <NewReleasesIcon sx={{ mr: 1, color: 'primary.main' }} />
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontWeight: 600,
+                fontSize: '1.1rem',
+                color: theme => theme.palette.text.primary,
+                letterSpacing: '0.2px'
+              }}
+            >
+              {title}
+            </Typography>
+          </Box>
+          <Chip
+            label={`v${version}`}
+            size="small"
             sx={{ 
-              fontWeight: 600,
-              fontSize: '1.1rem',
-              color: theme => theme.palette.text.primary,
-              letterSpacing: '0.2px'
+              backgroundColor: 'rgba(208, 188, 255, 0.1)',
+              color: 'primary.main',
+              fontWeight: 'medium',
+              border: '1px solid rgba(208, 188, 255, 0.2)'
             }}
-          >
-            {title}
-          </Typography>
+          />
         </Box>
-        <Chip
-          label={`v${version}`}
-          size="small"
-          sx={{ 
-            backgroundColor: 'rgba(208, 188, 255, 0.1)',
-            color: 'primary.main',
-            fontWeight: 'medium',
-            border: '1px solid rgba(208, 188, 255, 0.2)'
-          }}
-        />
-      </Box>
+      )}
       
       {/* Содержимое обновления */}
       <Box sx={{ p: 2 }}>

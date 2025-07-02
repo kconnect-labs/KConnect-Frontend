@@ -286,14 +286,17 @@ const RegisterProfile = ({ setUser }) => {
               top: '24px',
               left: 0,
               width: '100%',
-              textAlign: 'center'
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 1.5
             }}>
               <img 
                 src="/static/icons/clear-logonew.svg" 
                 alt="К-Коннект Лого" 
-                style={{ width: 80, marginBottom: 12 }} 
+                style={{ width: 30, height: 30 }} 
               />
-              <Typography variant="h5" component="h1" sx={{ fontWeight: 700 }}>
+              <Typography variant="h6" component="h1" sx={{ fontWeight: 700 }}>
                 <span style={{ color: '#D0BCFF' }}>К</span>-КОННЕКТ
               </Typography>
             </Box>
@@ -309,7 +312,7 @@ const RegisterProfile = ({ setUser }) => {
               background: isMobile ? 'transparent' : 'rgba(30, 30, 40, 0.85)',
               backdropFilter: 'blur(10px)',
               border: isMobile ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
-              mt: isMobile ? '140px' : 0,
+              mt: isMobile ? '70px' : 0,
               overflowY: 'auto',
               maxHeight: isMobile ? 'calc(100vh - 200px)' : '80vh',
               display: 'flex',

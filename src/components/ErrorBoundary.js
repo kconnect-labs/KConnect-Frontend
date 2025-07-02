@@ -13,18 +13,18 @@ class ErrorBoundary extends Component {
   }
 
   static getDerivedStateFromError(error) {
-    // Обновляем состояние, чтобы следующий рендер показал запасной UI
+    // Update state so the next render will show the fallback UI
     return { hasError: true, error };
   }
 
   componentDidCatch(error, errorInfo) {
-    // Можно также отправить отчет об ошибке в сервис аналитики
-    console.error('Ошибка в компоненте:', error, errorInfo);
+    // You can also log the error to an error reporting service
+    console.error('Error in component:', error, errorInfo);
     this.setState({ errorInfo });
   }
 
   componentDidMount() {
-    // Слушаем события ошибок от API
+    // Listen for error events from API
     window.addEventListener('auth-error', this.handleAuthError);
     window.addEventListener('network-error', this.handleNetworkError);
     window.addEventListener('rate-limit-error', this.handleRateLimitError);
@@ -33,7 +33,7 @@ class ErrorBoundary extends Component {
   }
 
   componentWillUnmount() {
-    // Убираем слушатели событий при размонтировании
+    // Remove event listeners on unmount
     window.removeEventListener('auth-error', this.handleAuthError);
     window.removeEventListener('network-error', this.handleNetworkError);
     window.removeEventListener('rate-limit-error', this.handleRateLimitError);
@@ -41,47 +41,47 @@ class ErrorBoundary extends Component {
     window.removeEventListener('api-retry', this.handleApiRetry);
   }
 
-  // Обработчик события истекшей авторизации
+  // Handle auth error event
   handleAuthError = (event) => {
-    const { message, shortMessage = "Сессия истекла", notificationType = "auth", animationType = "pill" } = event.detail;
+    const { message, shortMessage = "Session expired", notificationType = "auth", animationType = "pill" } = event.detail;
     
     this.addNotification({
       id: Date.now(),
       type: 'error',
-      message: message || "Сессия истекла, пожалуйста, войдите снова",
+      message: message || "Session expired, please log in again",
       shortMessage: shortMessage,
       notificationType: notificationType,
       animationType: animationType,
       action: 'redirect',
-      actionLabel: 'Войти',
+      actionLabel: 'Login',
       actionUrl: '/login'
     });
   }
 
-  // Обработчик события ошибки сети
+  // Handle network error event
   handleNetworkError = (event) => {
-    const { message, shortMessage = "Нет сети", notificationType = "error", animationType = "drop" } = event.detail;
+    const { message, shortMessage = "No network", notificationType = "error", animationType = "drop" } = event.detail;
     
     this.addNotification({
       id: Date.now(),
       type: 'warning',
-      message: message || "Проблема с подключением к серверу",
+      message: message || "Problem connecting to server",
       shortMessage: shortMessage,
       notificationType: notificationType,
       animationType: animationType,
       action: 'retry',
-      actionLabel: 'Повторить'
+      actionLabel: 'Retry'
     });
   }
 
-  // Обработчик события превышения лимита запросов
+  // Handle rate limit error event
   handleRateLimitError = (event) => {
-    const { message, shortMessage = "Подождите", notificationType = "warning", animationType = "bounce", retryAfter } = event.detail;
+    const { message, shortMessage = "Please wait", notificationType = "warning", animationType = "bounce", retryAfter } = event.detail;
     
     this.addNotification({
       id: Date.now(),
       type: 'info',
-      message: message || "Слишком много запросов, пожалуйста, подождите",
+      message: message || "Too many requests, please wait",
       shortMessage: shortMessage,
       notificationType: notificationType,
       animationType: animationType,
@@ -90,14 +90,14 @@ class ErrorBoundary extends Component {
     });
   }
 
-  // Обработчик события отображения ошибки
+  // Handle show error event
   handleShowError = (event) => {
-    const { message, shortMessage = "Ошибка", notificationType = "error", animationType = "pill" } = event.detail;
+    const { message, shortMessage = "Error", notificationType = "error", animationType = "pill" } = event.detail;
     
     this.addNotification({
       id: Date.now(),
       type: 'error',
-      message: message || "Произошла ошибка",
+      message: message || "An error occurred",
       shortMessage: shortMessage,
       notificationType: notificationType,
       animationType: animationType,
@@ -106,15 +106,15 @@ class ErrorBoundary extends Component {
     });
   }
 
-  // Обработчик события повторной попытки запроса
+  // Handle API retry event
   handleApiRetry = (event) => {
-    const { url, attempt, delay, message, shortMessage = `Попытка ${attempt || 1}`, notificationType = "info", animationType = "pulse" } = event.detail;
+    const { url, attempt, delay, message, shortMessage = `Attempt ${attempt || 1}`, notificationType = "info", animationType = "pulse" } = event.detail;
     
-    // Показываем динамическое уведомление о повторной попытке
+    // Show dynamic notification for retry attempt
     this.addNotification({
       id: Date.now(),
       type: 'info',
-      message: message || `Повторная попытка ${attempt || 1}`,
+      message: message || `Retry attempt ${attempt || 1}`,
       shortMessage: shortMessage,
       notificationType: notificationType,
       animationType: animationType,
@@ -123,13 +123,13 @@ class ErrorBoundary extends Component {
     });
   }
 
-  // Добавление уведомления в список
+  // Add notification to list
   addNotification = (notification) => {
     this.setState(prevState => ({
       notifications: [...prevState.notifications, notification]
     }));
 
-    // Если уведомление должно автоматически скрываться
+    // If notification should auto-hide
     if (notification.autoHide) {
       setTimeout(() => {
         this.removeNotification(notification.id);
@@ -137,14 +137,14 @@ class ErrorBoundary extends Component {
     }
   }
 
-  // Удаление уведомления из списка
+  // Remove notification from list
   removeNotification = (id) => {
     this.setState(prevState => ({
       notifications: prevState.notifications.filter(n => n.id !== id)
     }));
   }
 
-  // Обработка действия уведомления
+  // Handle notification action
   handleNotificationAction = (notification) => {
     if (notification.action === 'redirect' && notification.actionUrl) {
       window.location.href = notification.actionUrl;
@@ -161,28 +161,28 @@ class ErrorBoundary extends Component {
     const { hasError, error, errorInfo, notifications } = this.state;
     const { children, fallback } = this.props;
 
-    // Если произошла ошибка и есть запасной UI, показываем его
+    // If there's an error and a fallback UI is provided, show it
     if (hasError && fallback) {
       return fallback(error, errorInfo);
     }
 
-    // Если произошла ошибка и нет запасного UI, показываем стандартное сообщение
+    // If there's an error and no fallback UI, show default message
     if (hasError) {
       return (
         <div className="error-boundary">
-          <h2>Что-то пошло не так :(</h2>
-          <p>Произошла ошибка при отображении этого раздела.</p>
+          <h2>Something went wrong :(</h2>
+          <p>An error occurred while displaying this section.</p>
           <button 
             onClick={() => window.location.reload()}
             className="error-boundary-button"
           >
-            Обновить страницу
+            Refresh page
           </button>
           
-          {/* В режиме разработки показываем детали ошибки */}
+          {/* Show error details in development mode */}
           {process.env.NODE_ENV === 'development' && (
             <details className="error-details">
-              <summary>Детали ошибки</summary>
+              <summary>Error details</summary>
               <pre>{error && error.toString()}</pre>
               <pre>{errorInfo && errorInfo.componentStack}</pre>
             </details>
@@ -230,12 +230,12 @@ class ErrorBoundary extends Component {
       );
     }
 
-    // Показываем компоненты уведомлений, если они есть, используя Dynamic Island стиль
+    // Show notification components if any, using Dynamic Island style
     return (
       <>
         {children}
         
-        {/* Показываем динамические iOS уведомления */}
+        {/* Show dynamic iOS notifications */}
         {notifications.length > 0 && (
           <>
             {notifications.map((notification, index) => (
@@ -248,13 +248,14 @@ class ErrorBoundary extends Component {
                 animationType={notification.animationType}
                 autoHideDuration={notification.hideAfter || 5000}
                 onClose={() => {
-                  // Если есть действие, выполняем его
+                  // If there's an action, handle it
                   if (notification.action) {
                     this.handleNotificationAction(notification);
                   } else {
                     this.removeNotification(notification.id);
                   }
                 }}
+                notificationData={null} // Don't use translation features when language context might not be available
               />
             ))}
           </>

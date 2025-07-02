@@ -49,11 +49,12 @@ const BadgeShopBottomNavigation = ({ tabValue, onTabChange }) => {
         display: { xs: 'block', md: 'none' },
         zIndex: 1000,
         borderTop: `1px solid ${borderColor}`,
-        backgroundColor: getBackgroundColor(),
-        backgroundImage: 'unset',
-        backdropFilter: 'blur(10px)'
+        background: 'rgba(0, 0, 0, 0.5)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        boxShadow: '0 5px 15px rgba(0, 0, 0, 0.2)'
       }} 
-      elevation={3}
+      elevation={0}
     >
       <BottomNavigation
         value={tabValue}

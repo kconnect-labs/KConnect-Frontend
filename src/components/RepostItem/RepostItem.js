@@ -29,6 +29,7 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ReportIcon from '@mui/icons-material/Report';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import { handleImageError as safeImageError } from '../../utils/imageUtils';
 
 
 const RepostCard = styled(Card)(({ theme, background }) => ({
@@ -199,7 +200,7 @@ const RepostItem = ({ repost, onDelete, onOpenLightbox }) => {
     if (currentTrack && currentTrack.id === track.id) {
       togglePlay(); 
     } else {
-      playTrack(track); 
+      playTrack(track, 'repost');
     }
   };
   
@@ -395,9 +396,7 @@ const RepostItem = ({ repost, onDelete, onOpenLightbox }) => {
                         } 
                         alt={track.title}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        onError={(e) => {
-                          e.target.src = '/uploads/system/album_placeholder.jpg';
-                        }}
+                        onError={safeImageError}
                       />
                       <Box
                         sx={{

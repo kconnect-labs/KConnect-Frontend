@@ -1,0 +1,776 @@
+{
+  "comment": {
+    "form": {
+      "placeholder": "コメントを書く..."
+    },
+    "reply_form": {
+      "placeholder": "返信を書く..."
+    },
+    "section": {
+      "title": "コメント",
+      "empty": "まだコメントはありません。最初のコメントを書きましょう！"
+    },
+    "menu": {
+      "reply": "返信",
+      "delete": "削除"
+    },
+    "media": {
+      "error": "メディアの読み込みエラー",
+      "duplicate_path": "ファイルパスエラー（重複）",
+      "url_unavailable": "URLが利用できません"
+    },
+    "dialog": {
+      "delete": {
+        "title": "コメントの削除",
+        "message": "このコメントを削除してもよろしいですか？この操作は取り消せません。",
+        "cancel": "キャンセル",
+        "confirm": "削除"
+      },
+      "delete_reply": {
+        "title": "返信の削除",
+        "message": "この返信を削除してもよろしいですか？この操作は取り消せません。",
+        "cancel": "キャンセル",
+        "confirm": "削除"
+      }
+    }
+  },
+  "header": {
+    "search": {
+      "placeholder": "検索...",
+      "tabs": {
+        "all": "すべて",
+        "channels": "チャンネル"
+      },
+      "no_results": {
+        "users": "ユーザーが見つかりません",
+        "channels": "チャンネルが見つかりません"
+      },
+      "view_all": "すべて表示"
+    },
+    "profile_menu": {
+      "my_profile": "マイプロフィール",
+      "settings": "設定",
+      "search": "検索",
+      "subscriptions": "購読",
+      "channels": "チャンネル",
+      "rating": "ランキング",
+      "create_channel": "チャンネルを作成",
+      "main_account": "メインアカウント",
+      "my_channels": "マイチャンネル",
+      "language": "言語",
+      "select_language": "言語を選択",
+      "logout": "ログアウト",
+      "channel_label": "チャンネル",
+      "wallet": "ウォレット",
+      "shop": "ショップ",
+      "languages": {
+        "ru": "Русский",
+        "en": "English",
+        "jp": "日本語"
+      }
+    },
+    "notifications": {
+      "new": "新しい通知"
+    },
+    "tooltips": {
+      "wallet": "ウォレット"
+    },
+    "logo": {
+      "text": "き-接続"
+    }
+  },
+  "main_page": {
+    "loading": "読み込み中...",
+    "online_count": "{count}人オンライン",
+    "follow": {
+      "follow": "フォロー",
+      "unfollow": "フォロー解除"
+    },
+    "media": {
+      "video_size_error": "動画サイズは150MB以下にしてください",
+      "image_size_error": "画像サイズは50MB以下にしてください",
+      "unsupported_format": "画像または動画のみ対応しています",
+      "mixed_content_error": "画像と動画を同時に添付することはできません"
+    },
+    "post": {
+      "create": {
+        "placeholder": "何か新しいことは？",
+        "media": "メディア",
+        "media_count": "ファイル ({count})",
+        "music": "音楽",
+        "music_count": "音楽 ({count})",
+        "publish": "投稿",
+        "drag_files": "ファイルをドラッグ＆ドロップ",
+        "error": {
+          "title": "お待ちください",
+          "understand": "了解",
+          "file_size": "ファイルサイズエラー"
+        }
+      }
+    },
+    "feed": {
+      "tabs": {
+        "all": "すべて",
+        "following": "フォロー中",
+        "recommended": "おすすめ"
+      },
+      "empty": "表示する投稿がありません。ユーザーをフォローして投稿を見てみましょう。",
+      "end": "すべての投稿を表示しました"
+    },
+    "recommendations": {
+      "empty": {
+        "title": "アクティブなチャンネルがありません",
+        "description": "最初のチャンネルを作成するか、既存のチャンネルをフォローしてください"
+      }
+    }
+  },
+  "balance": {
+    "tabs": {
+      "history": "履歴",
+      "assets": "資産",
+      "subscription": "サブスクリプション"
+    },
+    "subscription_types": {
+      "basic": "ベーシック",
+      "premium": "プレミアム",
+      "ultimate": "アルティメット"
+    },
+    "current_balance": {
+      "title": "残高",
+      "points_suffix": "ポイント"
+    },
+    "weekly_forecast": {
+      "date_range": "{start} — {end}",
+      "points": "+{amount}ポイント",
+      "description": "今週の活動に基づく予想ポイントです。1時間ごとに更新されます。",
+      "how_to_earn": {
+        "title": "ポイントの獲得方法",
+        "tooltip": "ポイント獲得の詳細",
+        "description": "プラットフォームでの活動でポイントを獲得できます：",
+        "details": "ポイントシステムの詳細はランキングセクションでご確認いただけます。"
+      }
+    },
+    "actions": {
+      "pay": "支払う",
+      "topup": "チャージ",
+      "transfer": "送金",
+      "activate_key": "キーを有効化"
+    },
+    "points": {
+      "title": "ポイント",
+      "weekly_estimate": "週間予測",
+      "earning_methods": {
+        "title": "ポイントの獲得方法：",
+        "posts": "投稿とストーリーの作成",
+        "likes": "いいねとコメントの獲得",
+        "replies": "コメントへの返信",
+        "reposts": "リポストと閲覧数",
+        "reactions": "ストーリーへのリアクション"
+      }
+    },
+    "transactions": {
+      "badge_purchase": "バッジの購入",
+      "royalty_from_purchase": "購入からのロイヤリティ",
+      "clicker_withdrawal": "クリッカーからの出金",
+      "clicker_withdrawal_message": "クリッカーポイントの出金",
+      "clicker_points": "クリッカーポイント",
+      "transfer": "送金",
+      "deposit": "入金",
+      "username_purchase": "ユーザーネームの購入",
+      "weekly_points": "週間ポイント",
+      "activity_reward": "活動報酬",
+      "transaction": "取引",
+      "blackjack_win": "ブラックジャックの勝利",
+      "blackjack_tie": "ブラックジャックの引き分け",
+      "blackjack_lose": "ブラックジャックの敗北",
+      "minigame_bet": "ミニゲームの賭け",
+      "game_transaction": "ゲーム取引",
+      "withdrawal": "獲得ポイントの出金",
+      "no_history": "取引履歴はありません",
+      "load_more": "もっと見る",
+      "success": {
+        "title": "送金が完了しました",
+        "subtitle": "送金が正常に完了しました",
+        "amount_sent": "{username}さんに{amount}ポイントを送金しました",
+        "receipt_info": "送金明細をPDFでダウンロードできます",
+        "open_receipt": "明細を開く",
+        "receipt_error": "PDFを開けませんでした。後でもう一度お試しください。"
+      }
+    },
+    "transfer": {
+      "errors": {
+        "enter_username": "ユーザー名を入力してください",
+        "user_not_found": "ユーザーが見つかりません",
+        "enter_amount": "金額を入力してください",
+        "positive_amount": "金額は正の数である必要があります",
+        "insufficient_points": "ポイントが不足しています"
+      },
+      "success": {
+        "title": "送金完了",
+        "subtitle": "送金が完了しました",
+        "details": "{username}さんに{amount}ポイントを送金しました"
+      },
+      "receipt": {
+        "download": "明細をダウンロード",
+        "view": "明細を表示",
+        "error": "明細を開けませんでした"
+      }
+    },
+    "assets": {
+      "badges": {
+        "no_description": "説明なし",
+        "purchases": {
+          "title": "購入履歴 ({count})",
+          "date": "購入日: {date}",
+          "none": "このバッジの購入履歴はありません",
+          "count": "購入 ({count})"
+        },
+        "points_cost": "{amount}ポイント",
+        "purchased_on": "購入日"
+      },
+      "usernames": {
+        "title": "ユーザーネーム",
+        "active": "アクティブ",
+        "purchased_on": "購入日",
+        "length": "文字数",
+        "section_title": "@ ユーザーネーム"
+      },
+      "empty": {
+        "title": "資産がありません",
+        "description": "バッジを作成するか、ユニークなユーザーネームを購入すると、ここに表示されます",
+        "username_auction": "ユーザーネームオークション",
+        "badge_shop": "バッジショップ"
+      }
+    },
+    "subscription": {
+      "active": {
+        "title": "アクティブなサブスクリプション",
+        "type": "タイプ",
+        "expires": "有効期限",
+        "days_left": "残り{days}日",
+        "features": {
+          "title": "サブスクリプション特典",
+          "basic": {
+            "monthly_points": "毎月10,000ポイントの付与",
+            "no_ads": "広告非表示",
+            "badge_limit": "バッジ作成上限5個",
+            "username_limit": "ユーザーネーム購入上限5個"
+          },
+          "premium": {
+            "monthly_points": "毎月35.000ポイントの付与",
+            "features": "プラットフォームの拡張機能",
+            "support": "優先サポート",
+            "badge_limit": "バッジ作成上限8個",
+            "username_limit": "ユーザーネーム購入上限8個"
+          },
+          "ultimate": {
+            "premium_benefits": "プレミアムの全特典",
+            "monthly_points": "毎月75,000ポイントの付与",
+            "animated_badges": "アニメーションバッジの作成",
+            "unlimited_badges": "無制限のバッジ作成",
+            "unlimited_usernames": "無制限のユーザーネーム購入"
+          }
+        }
+      },
+      "inactive": {
+        "title": "アクティブなサブスクリプションはありません",
+        "description": "サブスクリプションを有効化して、プラットフォームの拡張機能にアクセスしましょう"
+      },
+      "types": {
+        "basic": "ベーシック",
+        "premium": "プレミアム",
+        "ultimate": "アルティメット"
+      },
+      "duration": {
+        "unlimited": "無期限"
+      },
+      "status": {
+        "active": "アクティブ",
+        "inactive": "非アクティブ"
+      },
+      "period": {
+        "days_left": "日",
+        "expires_at": "まで"
+      },
+      "features": {
+        "title": "機能",
+        "list": {
+          "points": "毎月{amount}ポイントの付与",
+          "no_ads": "広告非表示",
+          "badges": "バッジ作成上限{count}個",
+          "usernames": "ユーザーネーム購入上限{count}個",
+          "unlimited_badges": "無制限のバッジ作成",
+          "unlimited_usernames": "無制限のユーザーネーム購入",
+          "animated_badges": "アニメーションバッジの作成",
+          "extended_features": "プラットフォームの拡張機能",
+          "priority_support": "優先サポート"
+        }
+      }
+    },
+    "topup": {
+      "title": "チャージ",
+      "tabs": {
+        "key": "アクティベーションキー",
+        "donate": "寄付"
+      },
+      "key": {
+        "enter": "アクティベーションキーを入力してチャージ：",
+        "placeholder": "XXXX-XXXX-XXXX-XXXX",
+        "label": "アクティベーションキー",
+        "hint": "アクティベーションキーは当サイトでの購入または管理者から取得できます。",
+        "activate": "有効化",
+        "process": "処理中...",
+        "success": {
+          "title": "キーが有効化されました！",
+          "new_balance": "新しい残高：",
+          "subscription_activated": "有効化されたサブスクリプション：",
+          "expires_at": "有効期限: {date}",
+          "duration": "期間: {days}日",
+          "points": "ポイント"
+        }
+      },
+      "donate": {
+        "title": "寄付でチャージ",
+        "description": "Boostyを通じて寄付でポイントをチャージできます。",
+        "rate": "1円 = 5ポイント",
+        "button": "チャージへ"
+      }
+    },
+    "transaction_details": {
+      "id": "取引ID",
+      "type": "タイプ",
+      "source": "ソース",
+      "operation_type": "取引タイプ",
+      "sender": "送信者",
+      "recipient": "受信者",
+      "message": "メッセージ",
+      "amount": "金額",
+      "date": "日付",
+      "description": "説明",
+      "download_receipt": "明細をダウンロード",
+      "payment_receipt": "支払い明細",
+      "close": "閉じる",
+      "status": {
+        "completed": "完了"
+      },
+      "types": {
+        "clicker_withdrawal": "クリッカーからの出金",
+        "outgoing_transfer": "送金",
+        "incoming_transfer": "入金",
+        "badge_purchase": "バッジの購入",
+        "badge_royalty": "バッジのロイヤリティ",
+        "weekly_points": "週間ポイント",
+        "username_purchase": "ユーザーネームの購入",
+        "game_transaction": "ゲーム取引",
+        "transaction": "取引"
+      },
+      "badge": {
+        "name": "バッジ名",
+        "description": "説明"
+      },
+      "operation": {
+        "type": "取引タイプ",
+        "description": "説明",
+        "date": "付与日",
+        "amount": "金額"
+      },
+      "points": {
+        "source": "クリッカーポイント",
+        "withdrawal": "ポイント出金"
+      }
+    }
+  },
+  "notifications": {
+    "title": "通知",
+    "empty": {
+      "no_notifications": "新しい通知はありません",
+      "description": "ここに通知が表示されます"
+    },
+    "tooltips": {
+      "notifications": "通知",
+      "clear_all": "すべての通知を消去",
+      "mark_all_read": "すべて既読にする",
+      "close": "閉じる"
+    },
+    "time": {
+      "just_now": "たった今",
+      "recently": "最近",
+      "minute": "分",
+      "minutes": "分",
+      "minutes_many": "分",
+      "hour": "時間",
+      "hours": "時間",
+      "hours_many": "時間",
+      "day": "日",
+      "days": "日",
+      "days_many": "日",
+      "ago": "前"
+    },
+    "context": {
+      "post": "投稿：",
+      "comment": "コメント：",
+      "reply": "返信：",
+      "profile": "プロフィール",
+      "default_post": "投稿",
+      "default_comment": "コメント",
+      "default_reply": "コメントへの返信",
+      "default_profile": "プロフィール"
+    },
+    "user": {
+      "default": "ユーザー"
+    },
+    "points": {
+      "label": "{count}ポイント"
+    },
+    "error": {
+      "load_failed": "通知を読み込めませんでした"
+    },
+    "messages": {
+      "post_like": "があなたの投稿にいいねしました",
+      "post_comment": "があなたの投稿にコメントしました",
+      "comment_like": "があなたのコメントにいいねしました",
+      "post_repost": "があなたの投稿をリポストしました",
+      "points_transfer": "が{points}ポイントを送金しました",
+      "badge_purchase": "があなたのバッジ「{badge}」を{price}ポイントで購入しました（+{royalty}ポイントのロイヤリティ）",
+      "wall_post": "があなたの壁に投稿しました",
+      "comment_reply": "{username}があなたのコメントに返信しました",
+      "with_message": "メッセージ："
+    }
+  },
+  "profile": {
+    "tabs": {
+      "posts": "投稿",
+      "wall": "ウォール",
+      "media": "メディア",
+      "about": "プロフィール"
+    },
+    "create_post": {
+      "placeholder": "何か新しいことは？",
+      "wall_placeholder": "壁に書き込む...",
+      "drag_drop": "ファイルをドラッグ＆ドロップまたはクリックしてアップロード",
+      "add_media": "メディアを追加",
+      "add_music": "音楽を追加",
+      "publish": "投稿",
+      "cancel": "キャンセル",
+      "media": "メディア",
+      "files_count": "ファイル ({count})",
+      "music": "音楽",
+      "music_count": "音楽 ({count})",
+      "drag_files": "ファイルをドラッグ＆ドロップ"
+    },
+    "actions": {
+      "follow": "フォロー",
+      "unfollow": "フォロー解除",
+      "message": "メッセージ",
+      "edit": "編集"
+    },
+    "stats": {
+      "followers": "フォロワー",
+      "following": "フォロー中",
+      "posts": "投稿",
+      "likes": "いいね"
+    },
+    "status": {
+      "online": "オンライン",
+      "offline": "オフライン",
+      "last_seen": "最終オンライン"
+    },
+    "subscription": {
+      "subscriber": "購読者",
+      "days_left": "日残り",
+      "expired": "期限切れ",
+      "channel": "チャンネル",
+      "pick_me": "ピックミー",
+      "active": "サブスクリプション{type}は{date}まで有効"
+    },
+    "medals": {
+      "title": "メダル",
+      "empty": "メダルなし"
+    },
+    "errors": {
+      "not_found": "ユーザーが見つかりません",
+      "load_failed": "プロフィールを読み込めませんでした",
+      "follow_failed": "フォローできませんでした",
+      "unfollow_failed": "フォロー解除できませんでした"
+    },
+    "ban": {
+      "banned": "BAN中",
+      "scam": "SCAM",
+      "reason": "理由: {{reason}}",
+      "ends": "{{endDate}}まで",
+      "days_left": "残り{{days}}日",
+      "auto_ban": "{{admin}}",
+      "admin": "管理者によるBAN",
+      "start": "BAN開始日: {{startDate}}",
+      "details": "詳細: {{details}}"
+    },
+    "also_follows": "フォロー中：",
+    "and_more": "他{count}人",
+    "followers": "フォロワー",
+    "no_followers": "フォロワーはいません",
+    "subscriptions": "購読",
+    "show_all_followers": "すべてのフォロワーを表示",
+    "show_all_following": "すべて表示",
+    "no_following": "フォロー中のユーザーはいません",
+    "days": "日",
+    "location": "場所",
+    "website": "ウェブサイト",
+    "birthday": "誕生日",
+    "registration_date": "登録日",
+    "not_available": "利用不可",
+    "usernames": "ユーザーネーム",
+    "awarded_on": "獲得日: {{date}}",
+    "awarded_by": "授与者: {{by}}"
+  },
+  "post": {
+    "time": {
+      "just_now": "たった今",
+      "recently": "最近",
+      "minute": "分",
+      "minutes": "分",
+      "minutes_many": "分",
+      "hour": "時間",
+      "hours": "時間",
+      "hours_many": "時間",
+      "day": "日",
+      "days": "日",
+      "days_many": "日",
+      "ago": "前"
+    },
+    "like": "いいね",
+    "unlike": "いいね解除",
+    "likes_count": "{count}",
+    "comment_item": "コメント",
+    "comments_count": "{count}",
+    "repost": "リポスト",
+    "reposted": "リポスト済み",
+    "share": "シェア",
+    "views": "閲覧数",
+    "views_count": "{count}",
+    "menu_title": "メニュー",
+    "menu_actions": {
+      "edit": "編集",
+      "delete": "削除",
+      "pin": "固定",
+      "unpin": "固定解除",
+      "copy_link": "リンクをコピー",
+      "report": "報告"
+    },
+    "edit_dialog": {
+      "title": "投稿を編集",
+      "time_limit": "編集は投稿から3時間以内のみ可能です",
+      "post_text": "投稿テキスト",
+      "current_images": "現在の画像",
+      "image_alt": "画像 {number}",
+      "post_image_alt": "投稿画像",
+      "delete_current_images": "現在の画像を削除",
+      "current_video": "現在の動画",
+      "delete_current_video": "現在の動画を削除",
+      "current_audio": "現在の音声",
+      "delete_music": "音楽を削除",
+      "add_images": "画像を追加",
+      "add_video": "動画を追加",
+      "new_video_selected": "新しい動画が選択されました: {name}",
+      "cancel": "キャンセル",
+      "saving": "保存中...",
+      "save_changes": "変更を保存",
+      "save": "保存"
+    },
+    "context_menu": {
+      "copy_link": "リンクをコピー",
+      "comment": "コメント",
+      "edit": "編集",
+      "delete": "削除",
+      "report": "報告"
+    },
+    "delete_dialog": {
+      "title": "投稿を削除",
+      "confirmation": "この投稿を削除してもよろしいですか？この操作は取り消せません。",
+      "cancel": "キャンセル",
+      "delete": "削除",
+      "deleting": "削除中...",
+      "success_title": "投稿が削除されました",
+      "success_message": "投稿は正常に削除されました"
+    },
+    "report_dialog": {
+      "title": "投稿を報告",
+      "description": "報告理由を選択してください。モデレーターがこの投稿を確認します。ご協力ありがとうございます！",
+      "success_title": "報告が送信されました",
+      "success_message": "ご協力ありがとうございます！モデレーターが報告を確認します。",
+      "post_by_user": "{username}さんの投稿",
+      "submitting": "送信中...",
+      "submit": "報告を送信",
+      "cancel": "キャンセル"
+    },
+    "repost_dialog": {
+      "title": "投稿をシェア",
+      "comment_placeholder": "リポストにコメントを追加...",
+      "mention_helper": "@でユーザーをメンション",
+      "original_post_notice": "オリジナルの投稿をリポストしています",
+      "repost_button": "リポスト"
+    },
+    "media_error": {
+      "animation_load_error": "アニメーションの読み込みに失敗しました",
+      "image_load_error": "画像の読み込みに失敗しました",
+      "video_load_error": "動画の読み込みに失敗しました",
+      "image_deleted": "ファイルが削除されたか利用できません",
+      "video_format": "動画が見つからないか、ブラウザでサポートされていないフォーマットです"
+    },
+    "pin": {
+      "pinned": "プロフィールに固定されました",
+      "unpinned": "固定が解除されました",
+      "pinned_short": "固定済み",
+      "unpinned_short": "固定解除",
+      "error": "固定状態の変更に失敗しました",
+      "error_short": "エラー",
+      "pin_error": "固定/固定解除に失敗しました",
+      "tooltip": "固定された投稿"
+    },
+    "channel": {
+      "label": "チャンネル"
+    },
+    "media": {
+      "post_image_alt": "投稿画像"
+    },
+    "dialog": {
+      "cancel": "キャンセル"
+    },
+    "report": {
+      "reasons": {
+        "spam": "スパム",
+        "insult": "侮辱",
+        "inappropriate_content": "不適切なコンテンツ",
+        "violation": "ルール違反",
+        "misinformation": "誤情報",
+        "harmful_content": "有害なコンテンツ",
+        "other": "その他"
+      },
+      "placeholder": "報告理由を入力してください"
+    },
+    "comments": "コメント",
+    "writeComment": "コメントを書く...",
+    "reply": "返信",
+    "delete": "削除",
+    "commentDeleted": "コメントが削除されました",
+    "replyDeleted": "返信が削除されました",
+    "noComments": "まだコメントはありません。最初のコメントをどうぞ！",
+    "loginToComment": "ログイン",
+    "added": "コメントが追加されました",
+    "deleted": "コメントが正常に削除されました",
+    "replyAdded": "返信が追加されました",
+    "replyDeletedSuccess": "返信が正常に削除されました",
+    "cancel": "キャンセル",
+    "confirmDelete": "コメントの削除",
+    "confirmDeleteReply": "返信の削除",
+    "sureDelete": "このコメントを削除してもよろしいですか？この操作は元に戻せません。",
+    "sureDeleteReply": "この返信を削除してもよろしいですか？この操作は元に戻せません。",
+    "deleteInProgress": "削除中...",
+    "firstComment": "まだコメントはありません。最初のコメントをどうぞ！",
+    "post": "投稿",
+    "back": "戻る",
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "errorAddComment": "コメントの追加中にエラーが発生しました",
+    "errorAddReply": "返信の追加中にエラーが発生しました",
+    "errorDeleteComment": "コメントの削除中にエラーが発生しました",
+    "errorDeleteReply": "返信の削除中にエラーが発生しました",
+    "replyFor": "返信先",
+    "errorImage": "メディアの読み込みエラー",
+    "errorReplyImage": "メディアの読み込みエラー",
+    "errorBadge": "画像エラー",
+    "errorReplyBadge": "画像エラー",
+    "errorLike": "いいねエラー",
+    "errorLikeReply": "返信のいいねエラー",
+    "errorDelete": "削除エラー",
+    "errorDeleteReply": "返信の削除エラー",
+    "errorRefresh": "更新エラー",
+    "errorRefreshReply": "返信の更新エラー",
+    "errorView": "表示エラー",
+    "errorTooFrequent": "コメントの制限を超えました。 ",
+    "wait": "しばらくしてから再度お試しください。"
+  },
+  "sidebar": {
+    "profile": {
+      "default_name": "ユーザー",
+      "default_username": "username"
+    },
+    "navigation": {
+      "my_profile": "マイプロフィール",
+      "feed": "フィード",
+      "messenger": "メッセージ",
+      "music": "ミュージック",
+      "subscriptions": "購読",
+      "channels": "チャンネル",
+      "search": "検索",
+      "management": "管理",
+      "admin_panel": "管理パネル",
+      "moderate": "モデレート",
+      "shops": {
+        "title": "ショップ",
+        "badge_shop": "バッジショップ",
+        "username_auction": "ユーザーネームオークション"
+      },
+      "minigames": "ミニゲーム",
+      "subscription_plans": "サブスクリプションプラン",
+      "more": {
+        "title": "その他",
+        "leaderboard": "リーダーボード",
+        "bug_reports": "バグ報告",
+        "rules": "ルール",
+        "api_docs": "APIドキュメント",
+        "about": "プラットフォームについて"
+      }
+    },
+    "footer": {
+      "version": "K-Connect v2.8",
+      "copyright": "著作権者向け",
+      "email": "verif@k-connect.ru"
+    }
+  },
+  "more_page": {
+    "points": "ポイント",
+    "shop": "ショップ",
+    "settings": "設定",
+    "banner_alt": "バナー",
+    "default_user": "ユーザー",
+    "default_username": "username",
+    "errors": {
+      "banner_load_error": "バナーの読み込みに失敗しました",
+      "avatar_load_error": "アバターの読み込みに失敗しました"
+    },
+    "sections": {
+      "social": {
+        "title": "ソーシャル",
+        "search": "検索",
+        "subscriptions": "サブスクリプション",
+        "channels": "チャンネル",
+        "rating": "ランキング"
+      },
+      "entertainment": {
+        "title": "エンターテイメント",
+        "minigames": "ミニゲーム",
+        "username_auction": "ユーザーネームオークション",
+        "subscription_plans": "サブスクリプションプラン",
+        "new_badge": "新着"
+      },
+      "administration": {
+        "title": "管理",
+        "moderation": "モデレーション",
+        "admin_panel": "管理パネル"
+      },
+      "platform": {
+        "title": "プラットフォーム",
+        "bug_reports": "バグレポート",
+        "about": "プラットフォームについて",
+        "rules": "ルール",
+        "messenger": "メッセンジャー",
+        "api_docs": "API ドキュメント",
+        "logout": "ログアウト"
+      }
+    },
+    "footer": {
+      "version": "K-Connect v2.8",
+      "email": "verif@k-connect.ru"
+    }
+  }
+} 

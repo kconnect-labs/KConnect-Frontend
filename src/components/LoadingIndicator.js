@@ -1,15 +1,50 @@
 import React, { useEffect, useState } from 'react';
 import { useApiLoadingStatus } from '../hooks/useApi';
+import { useTheme } from '@mui/material/styles';
+import { keyframes } from '@mui/material';
+import { styled } from '@mui/material/styles';
+
+const loadingAnimation = keyframes`
+  0% {
+    left: -20%;
+  }
+  50% {
+    left: 40%;
+  }
+  100% {
+    left: 100%;
+  }
+`;
+
+const LoadingIndicatorContainer = styled('div')({
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  right: 0,
+  height: '3px',
+  zIndex: 9999,
+  backgroundColor: 'rgba(199, 95, 255, 0.47)',
+  overflow: 'hidden',
+});
+
+const LoadingSpinner = styled('div')(({ theme }) => ({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  height: '100%',
+  backgroundColor: theme.palette.primary.main,
+  width: '20%',
+  animation: `${loadingAnimation} 1.5s infinite ease-in-out`,
+}));
 
 /**
  * Глобальный индикатор загрузки, отображаемый при активных API-запросах
  */
 const LoadingIndicator = () => {
-  const { isLoading, activeRequests } = useApiLoadingStatus();
+  const { isLoading } = useApiLoadingStatus();
   const [visible, setVisible] = useState(false);
-  
-  // Добавляем небольшую задержку перед отображением индикатора
-  // чтобы не мерцать при быстрых запросах
+  const theme = useTheme();
+
   useEffect(() => {
     let timer;
     if (isLoading) {
@@ -25,47 +60,12 @@ const LoadingIndicator = () => {
     };
   }, [isLoading]);
   
-  // Если нет активных запросов, не отображаем индикатор
   if (!visible) return null;
   
   return (
-    <div className="global-loading-indicator">
-      <div className="loading-spinner"></div>
-      <style jsx>{`
-        .global-loading-indicator {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 3px;
-          z-index: 9999;
-          background-color: rgba(0, 0, 0, 0.1);
-          overflow: hidden;
-        }
-        
-        .loading-spinner {
-          position: absolute;
-          top: 0;
-          left: 0;
-          height: 100%;
-          background: linear-gradient(to right, #2196F3, #4CAF50, #FFC107);
-          width: 20%;
-          animation: loadingAnimation 1.5s infinite ease-in-out;
-        }
-        
-        @keyframes loadingAnimation {
-          0% {
-            left: -20%;
-          }
-          50% {
-            left: 40%;
-          }
-          100% {
-            left: 100%;
-          }
-        }
-      `}</style>
-    </div>
+    <LoadingIndicatorContainer>
+      <LoadingSpinner theme={theme} />
+    </LoadingIndicatorContainer>
   );
 };
 

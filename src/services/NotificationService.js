@@ -354,7 +354,7 @@ class NotificationService {
       }
       
       console.log(`Final Uint8Array length: ${outputArray.length}`);
-      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      const isSafari = /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent) && !/android/i.test(navigator.userAgent);
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       
       if ((isSafari || isIOS) && outputArray.length !== 65) {

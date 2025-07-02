@@ -1,21 +1,16 @@
 import axios from 'axios';
 import { SessionContext } from '../App';
 
-
 let sessionContext = {
   checkSessionStatus: () => true,
   lastFetchTime: null,
 };
 
-
 export const setSessionContext = (context) => {
   sessionContext = context;
 };
 
-
 const shouldMakeRequest = () => {
-
-
   return true;
 };
 
@@ -31,28 +26,6 @@ const ProfileService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching profile:', error);
-      throw error;
-    }
-  },
-
-    getSettings: async () => {
-    if (!shouldMakeRequest()) {
-
-      return { 
-        success: true, 
-        settings: JSON.parse(localStorage.getItem('theme_settings') || '{}')
-      };
-    }
-    
-    try {
-      const response = await axios.get('/api/profile/settings');
-
-      if (response.data.success && response.data.settings) {
-        localStorage.setItem('theme_settings', JSON.stringify(response.data.settings));
-      }
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching settings:', error);
       throw error;
     }
   },

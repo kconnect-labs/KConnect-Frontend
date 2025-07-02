@@ -17,14 +17,12 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="application-name" content="К-Коннект" lang="ru" />
     
-    <!-- Essential OG Tags for social media previews -->
     <meta property="og:title" content="К-Коннект" />
     <meta property="og:description" content="К-Коннект - социальная сеть для молодежи и творческих людей" />
     <meta property="og:image" content="/icon-512.png" />
     <meta property="og:url" content="https://k-connect.ru" />
     <meta property="og:type" content="website" />
     
-    <!-- Apple specific tags -->
     <link rel="apple-touch-icon" href="/icon-180.png" />
     <link rel="apple-touch-icon" sizes="152x152" href="/icon-152.png" />
     <link rel="apple-touch-icon" sizes="167x167" href="/icon-167.png" />
@@ -36,18 +34,10 @@
     
     <meta name="format-detection" content="telephone=no" />
     <meta name="apple-touch-fullscreen" content="yes" />
-    
-    <link rel="apple-touch-startup-image" href="/splash/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" />
-    <link rel="apple-touch-startup-image" href="/splash/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" />
-    <link rel="apple-touch-startup-image" href="/splash/splash-1241x2208.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)" />
-    <link rel="apple-touch-startup-image" href="/splash/splash-1536x2048.png" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" />
-    
+
     <title>К-Коннект</title>
     <link rel="stylesheet" href="/fonts.css">
-    
 
-    <script src="/createSvgIcon.js"></script>
-    
     <style>
       body {
         touch-action: pan-x pan-y;
@@ -56,7 +46,6 @@
         -webkit-text-size-adjust: 100%;
       }
 
-      /* Prevent zoom on inputs */
       input, textarea, select {
         font-size: 16px !important;
         touch-action: manipulation;
@@ -74,6 +63,35 @@
         -moz-user-select: none;
         -ms-user-select: none;
         user-select: none;
+      }
+          
+      /* Оптимизация для анимаций текстов в плеере */
+      .lyrics-container {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+      }
+      
+      .lyrics-line {
+        will-change: transform, opacity, filter;
+        transform-style: preserve-3d;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+      }
+      
+      /* Ускорение анимаций на мощных устройствах */
+      @media (prefers-reduced-motion: no-preference) {
+        .lyrics-line {
+          transition-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+      }
+      
+      /* Уменьшение анимаций для пользователей с предпочтением */
+      @media (prefers-reduced-motion: reduce) {
+        .lyrics-line {
+          animation-duration: 0.2s !important;
+          transition-duration: 0.2s !important;
+        }
       }
     </style>
     
@@ -109,6 +127,22 @@
     <noscript>Для работы К-Коннект необходим JavaScript</noscript>
     <div id="root"></div>
     <script type="module" src="/src/index.js"></script>
+
+    <!-- Service Worker Registration for Push Notifications -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/custom-sw.js')
+            .then(function(registration) {
+              console.log('Воркер зареган йоу:', registration);
+            })
+            .catch(function(error) {
+              console.log('воркер помер:', error);
+            });
+        });
+      }
+    </script>
+    
 
   </body>
 </html>

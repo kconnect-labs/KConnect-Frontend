@@ -14,6 +14,14 @@ const AuthService = {
         }
       });
       
+      if (response.data && response.data.ban_info) {
+        return {
+          success: false,
+          error: response.data.error || 'Аккаунт заблокирован',
+          ban_info: response.data.ban_info
+        };
+      }
+      
       if (response.data && response.data.success) {
         if (response.data.token) {
           localStorage.setItem('token', response.data.token);
@@ -31,6 +39,14 @@ const AuthService = {
         };
       }
     } catch (error) {
+      if (error.response?.data?.ban_info) {
+        return {
+          success: false,
+          error: error.response.data.error || 'Аккаунт заблокирован',
+          ban_info: error.response.data.ban_info
+        };
+      }
+      
       return {
         success: false,
         error: error.response?.data?.message || error.response?.data?.error || 'Ошибка при входе в систему'

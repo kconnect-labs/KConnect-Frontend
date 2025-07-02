@@ -64,7 +64,8 @@ const SearchSection = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2, 2.5),
   marginBottom: theme.spacing(3),
   borderRadius: 16,
-  background: 'linear-gradient(145deg, #222222, #1c1c1c)',
+  background: 'rgba(255, 255, 255, 0.03)',
+  backdropFilter: 'blur(20px)',
   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
   border: '1px solid rgba(255, 255, 255, 0.05)',
   [theme.breakpoints.down('sm')]: {
@@ -106,7 +107,8 @@ const SectionHeader = styled(Box)(({ theme }) => ({
 const ChannelCard = styled(Card)(({ theme }) => ({
   borderRadius: 16,
   overflow: 'hidden',
-  background: 'linear-gradient(145deg, #222222, #1c1c1c)',
+  background: 'rgba(255, 255, 255, 0.03)',
+  backdropFilter: 'blur(20px)',
   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
   border: '1px solid rgba(255, 255, 255, 0.05)',
   transition: 'all 0.3s ease',
@@ -259,7 +261,8 @@ const ChannelCardLoader = () => {
     <Card sx={{ 
       borderRadius: 4, 
       overflow: 'hidden',
-      background: 'linear-gradient(145deg, #222222, #1c1c1c)',
+      background: 'rgba(255, 255, 255, 0.03)',
+      backdropFilter: 'blur(20px)',
       boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
       border: '1px solid rgba(255, 255, 255, 0.05)',
       height: '100%',

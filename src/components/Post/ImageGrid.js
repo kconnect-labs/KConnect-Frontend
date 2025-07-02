@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, styled } from '@mui/material';
+import { Box, styled, useTheme, useMediaQuery } from '@mui/material';
 import { optimizeImage } from '../../utils/imageUtils';
 import SimpleImageViewer from '../SimpleImageViewer';
 
@@ -37,9 +37,9 @@ const BackgroundImage = styled('div')({
   transform: 'scale(1.1)', 
 });
 
-const Image = styled('img')(({ isSingle }) => ({
+const Image = styled('img')(({ isSingle, isMobile }) => ({
   maxWidth: '100%',
-  maxHeight: isSingle ? '300px' : '100%',
+  maxHeight: isSingle ? (isMobile ? '600px' : '450px') : '100%',
   width: 'auto',
   height: isSingle ? '100%' : 'auto',
   objectFit: isSingle ? 'contain' : 'contain',
@@ -82,6 +82,9 @@ const ImageGrid = ({ images, selectedImage = null, onImageClick, onImageError, h
   const [loading, setLoading] = useState(true);
   const [errorImages, setErrorImages] = useState({});
   
+  const theme = useTheme();
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  
   const imageArray = Array.isArray(images) 
     ? images.filter(Boolean) 
     : (typeof images === 'string' && images ? [images] : []);
@@ -93,13 +96,13 @@ const ImageGrid = ({ images, selectedImage = null, onImageClick, onImageError, h
     return null;
   }
   
-  const getGridLayout = (count) => {
+  const getGridLayout = (count, isMobile = false) => {
     switch (count) {
       case 1:
         return {
           gridTemplateColumns: '1fr',
           gridTemplateRows: 'auto',
-          maxHeight: '300px',
+          maxHeight: isMobile ? '600px' : '450px',
           height: 'auto'
         };
       case 2:
@@ -170,7 +173,7 @@ const ImageGrid = ({ images, selectedImage = null, onImageClick, onImageError, h
         return {
           gridTemplateColumns: '1fr',
           gridTemplateRows: '300px',
-          maxHeight: '300px'
+          maxHeight: isMobile ? '600px' : '450px'
         };
     }
   };
@@ -385,6 +388,7 @@ const ImageGrid = ({ images, selectedImage = null, onImageClick, onImageError, h
           alt={`Изображение ${index + 1}`}
           loading="lazy"
           isSingle={isSingle}
+          isMobile={isMobile}
           onError={() => handleImageError(imageUrl, index)}
         />
         {!hideOverlay && (
@@ -400,7 +404,7 @@ const ImageGrid = ({ images, selectedImage = null, onImageClick, onImageError, h
         sx={{
           display: 'grid',
           gap: 1,
-          ...getGridLayout(limitedImages.length),
+          ...getGridLayout(limitedImages.length, isMobile),
           opacity: 0.7,
         }}
       >
@@ -443,7 +447,7 @@ const ImageGrid = ({ images, selectedImage = null, onImageClick, onImageError, h
     );
   }
 
-  const layoutProps = getGridLayout(limitedImages.length);
+  const layoutProps = getGridLayout(limitedImages.length, isMobile);
   
   return (
     <Box sx={{ mb: 1 }}>

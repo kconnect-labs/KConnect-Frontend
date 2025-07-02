@@ -48,6 +48,10 @@ import ShareIcon from '@mui/icons-material/Share';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import StarIcon from '@mui/icons-material/Star';
 import ChatIcon from '@mui/icons-material/Chat';
+import BoxIcon from '@mui/icons-material/Inventory';
+import StoreIcon from '@mui/icons-material/Store';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 const MotionBox = motion(Box);
 const MotionTypography = motion(Typography);
@@ -74,10 +78,11 @@ const FeatureCard = ({ icon, title, description, delay }) => {
           bgcolor: alpha(theme.palette.background.paper, 0.5),
           backdropFilter: 'blur(10px)',
           border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+          boxShadow: '0 2px 8px 0 rgba(0,0,0,0.10)',
           transition: 'all 0.3s ease',
           '&:hover': {
             transform: 'translateY(-5px)',
-            boxShadow: `0 10px 20px ${alpha(theme.palette.primary.main, 0.2)}`,
+            boxShadow: '0 4px 16px 0 rgba(0,0,0,0.13)',
             borderColor: alpha(theme.palette.primary.main, 0.3),
           }
         }}
@@ -264,6 +269,379 @@ const KConnectIllustration = () => (
   </svg>
 );
 
+// Добавляем определения вариантов анимации
+const containerVariants = {
+  hidden: { 
+    opacity: 0 
+  },
+  visible: { 
+    opacity: 1,
+    transition: { 
+      staggerChildren: 0.1,
+      delayChildren: 0.3
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { 
+    y: 20, 
+    opacity: 0 
+  },
+  visible: { 
+    y: 0, 
+    opacity: 1,
+    transition: { 
+      duration: 0.5 
+    }
+  }
+};
+
+const TeamSection = ({ title, members }) => {
+  const theme = useTheme();
+  
+  return (
+    <Box sx={{ mb: 8 }}>
+      <Typography 
+        variant="h3" 
+        sx={{ 
+          fontWeight: 700, 
+          mb: 4,
+          textAlign: 'center',
+          fontSize: { xs: '1.8rem', md: '2.2rem' }
+        }}
+      >
+        {title}
+      </Typography>
+      
+      <MotionGrid 
+        container 
+        spacing={4}
+        justifyContent="center"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible" 
+        viewport={{ once: true }}
+      >
+        {members.map((member, index) => (
+          <MotionGrid item xs={12} sm={6} md={4} key={index} variants={itemVariants}>
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.97 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.1 * index }}
+              viewport={{ once: true }}
+              style={{ height: '100%' }}
+            >
+              <Card 
+                sx={{ 
+                  height: '100%', 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  borderRadius: '20px',
+                  overflow: 'hidden',
+                  background: `rgba(255,255,255,0.13)`,
+                  backdropFilter: 'blur(16px)',
+                  boxShadow: '0 4px 16px 0 rgba(0,0,0,0.10)',
+                  border: `1.5px solid ${alpha(theme.palette.primary.main, 0.10)}`,
+                  transition: 'all 0.35s cubic-bezier(.4,2,.3,1)',
+                  '&:hover': {
+                    transform: 'translateY(-8px) scale(1.025)',
+                    boxShadow: '0 8px 24px 0 rgba(0,0,0,0.13)',
+                    borderColor: alpha(theme.palette.primary.main, 0.22),
+                  }
+                }}
+                elevation={0}
+              >
+                <Box 
+                  sx={{ 
+                    p: 4, 
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    background: 'none',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      mb: 2,
+                      borderRadius: '50%',
+                      boxShadow: '0 2px 12px 0 rgba(80,40,180,0.10)',
+                      transition: 'box-shadow 0.3s',
+                    }}
+                  >
+                    <Avatar 
+                      src={member.avatar} 
+                      alt={member.name}
+                      sx={{ 
+                        width: 110, 
+                        height: 110, 
+                        border: `3px solid ${alpha(theme.palette.primary.main, 0.7)}`,
+                        boxShadow: `0 2px 16px ${alpha(theme.palette.primary.main, 0.18)}`,
+                        background: '#fff',
+                      }} 
+                    />
+                  </Box>
+                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
+                    {member.name}
+                  </Typography>
+                  <Box sx={{ mb: 1 }}>
+                    <Box
+                      component="span"
+                      sx={{
+                        display: 'inline-block',
+                        px: 1.5,
+                        py: 0.5,
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: theme.palette.primary.main,
+                        bgcolor: alpha(theme.palette.primary.main, 0.10),
+                        borderRadius: '8px',
+                        letterSpacing: 0.2,
+                        boxShadow: '0 1px 4px 0 rgba(120,80,255,0.06)',
+                      }}
+                    >
+                      {member.role}
+                    </Box>
+                  </Box>
+                  {member.telegram && (
+                    <Button
+                      component="a"
+                      href={member.telegram}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      startIcon={<TelegramIcon />}
+                      size="small"
+                      variant="outlined"
+                      sx={{ 
+                        mt: 1,
+                        color: theme.palette.primary.main,
+                        borderColor: alpha(theme.palette.primary.main, 0.25),
+                        fontWeight: 500,
+                        borderRadius: '8px',
+                        px: 2,
+                        textTransform: 'none',
+                        background: 'rgba(255,255,255,0.10)',
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                          bgcolor: alpha(theme.palette.primary.main, 0.08),
+                          borderColor: theme.palette.primary.main,
+                          color: theme.palette.primary.main,
+                        }
+                      }}
+                    >
+                      Telegram
+                    </Button>
+                  )}
+                </Box>
+                <CardContent sx={{ flexGrow: 1, p: 3, textAlign: 'center' }}>
+                  <Typography variant="body1" sx={{ color: theme.palette.text.primary, fontSize: 16, fontWeight: 400 }}>
+                    {member.description}
+                  </Typography>
+                  {member.username && (
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        mt: 2,
+                        color: theme.palette.text.secondary
+                      }}
+                    >
+                      {member.username}
+                    </Typography>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          </MotionGrid>
+        ))}
+      </MotionGrid>
+    </Box>
+  );
+};
+
+// Слайдер для презентации сайта
+const previewImages = [
+  {
+    src: 'https://k-connect.ru/static/preview/Feed.png',
+    alt: 'Лента',
+  },
+  {
+    src: 'https://k-connect.ru/static/preview/Profile.png',
+    alt: 'Профиль',
+  },
+  {
+    src: 'https://k-connect.ru/static/preview/Messenger.png',
+    alt: 'Мессенджер',
+  },
+  {
+    src: 'https://k-connect.ru/static/preview/BadgeShop.png',
+    alt: 'Магазин бейджей',
+  },
+  {
+    src: 'https://k-connect.ru/static/preview/Items.png',
+    alt: 'Айтемы',
+  },
+  {
+    src: 'https://k-connect.ru/static/preview/Friends.png',
+    alt: 'Друзья',
+  },
+  {
+    src: 'https://k-connect.ru/static/preview/Balance.png',
+    alt: 'Баланс',
+  },
+];
+
+const HeroSlider = () => {
+  const [index, setIndex] = React.useState(0);
+  const timeoutRef = React.useRef(null);
+  const theme = useTheme();
+
+  const nextSlide = React.useCallback(() => {
+    setIndex((prev) => (prev + 1) % previewImages.length);
+  }, []);
+  const prevSlide = React.useCallback(() => {
+    setIndex((prev) => (prev - 1 + previewImages.length) % previewImages.length);
+  }, []);
+
+  React.useEffect(() => {
+    timeoutRef.current = setTimeout(nextSlide, 3500);
+    return () => clearTimeout(timeoutRef.current);
+  }, [index, nextSlide]);
+
+  return (
+    <Box
+      sx={{
+        position: 'relative',
+        width: { xs: '100%', sm: 500, md: 700 },
+        height: { xs: 220, sm: 320, md: 400 },
+        mx: 'auto',
+        my: 4,
+        borderRadius: '12px',
+        overflow: 'visible',
+        boxShadow: '0 8px 40px 0 rgba(80,40,180,0.18)',
+        background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.08)}, ${alpha(theme.palette.background.paper, 0.7)})`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <motion.img
+        key={previewImages[index].src}
+        src={previewImages[index].src}
+        alt={previewImages[index].alt}
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 1.02 }}
+        transition={{ duration: 0.6 }}
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          borderRadius: '12px',
+          boxShadow: '0 4px 32px rgba(80,40,180,0.10)',
+        }}
+      />
+      <IconButton
+        onClick={prevSlide}
+        sx={{
+          position: 'absolute',
+          left: { xs: -18, sm: -38, md: -48 },
+          top: '50%',
+          transform: 'translateY(-50%)',
+          bgcolor: alpha(theme.palette.background.paper, 0.85),
+          boxShadow: '0 0 16px 4px rgba(120,80,255,0.18)',
+          border: `2px solid ${alpha(theme.palette.primary.main, 0.25)}`,
+          width: 56,
+          height: 56,
+          zIndex: 2,
+          transition: 'all 0.2s',
+          '&:hover': {
+            bgcolor: alpha(theme.palette.primary.main, 0.18),
+            boxShadow: '0 0 32px 8px rgba(120,80,255,0.28)',
+            borderColor: theme.palette.primary.main,
+            transform: 'translateY(-50%) scale(1.08)',
+          },
+        }}
+        size="large"
+      >
+        <ChevronLeftIcon fontSize="large" />
+      </IconButton>
+      <IconButton
+        onClick={nextSlide}
+        sx={{
+          position: 'absolute',
+          right: { xs: -18, sm: -38, md: -48 },
+          top: '50%',
+          transform: 'translateY(-50%)',
+          bgcolor: alpha(theme.palette.background.paper, 0.85),
+          boxShadow: '0 0 16px 4px rgba(120,80,255,0.18)',
+          border: `2px solid ${alpha(theme.palette.primary.main, 0.25)}`,
+          width: 56,
+          height: 56,
+          zIndex: 2,
+          transition: 'all 0.2s',
+          '&:hover': {
+            bgcolor: alpha(theme.palette.primary.main, 0.18),
+            boxShadow: '0 0 32px 8px rgba(120,80,255,0.28)',
+            borderColor: theme.palette.primary.main,
+            transform: 'translateY(-50%) scale(1.08)',
+          },
+        }}
+        size="large"
+      >
+        <ChevronRightIcon fontSize="large" />
+      </IconButton>
+      <Box
+        sx={{
+          position: 'absolute',
+          bottom: 16,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          gap: 1,
+        }}
+      >
+        {previewImages.map((img, i) => (
+          <Box
+            key={img.src}
+            sx={{
+              width: 12,
+              height: 12,
+              borderRadius: '50%',
+              bgcolor: i === index ? theme.palette.primary.main : alpha(theme.palette.primary.main, 0.25),
+              transition: 'all 0.3s',
+              cursor: 'pointer',
+              border: i === index ? `2px solid ${theme.palette.background.paper}` : 'none',
+            }}
+            onClick={() => setIndex(i)}
+          />
+        ))}
+      </Box>
+      <motion.div
+        key={previewImages[index].alt}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        style={{
+          position: 'absolute',
+          bottom: -38,
+          left: 'calc(50% + 120px)',
+          transform: 'translateX(-50%)',
+          background: alpha(theme.palette.background.paper, 0.85),
+          color: theme.palette.primary.main,
+          borderRadius: 12,
+          padding: '6px 18px',
+          fontWeight: 600,
+          fontSize: 18,
+          boxShadow: '0 2px 12px rgba(120,80,255,0.10)',
+          letterSpacing: 0.2,
+        }}
+      >
+        {previewImages[index].alt}
+      </motion.div>
+    </Box>
+  );
+};
+
 const AboutPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -275,27 +653,6 @@ const AboutPage = () => {
   const scrollToNextSection = (ref) => {
     ref.current?.scrollIntoView({ behavior: 'smooth' });
   };
-  
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: { 
-        staggerChildren: 0.1,
-        delayChildren: 0.3
-      }
-    }
-  };
-  
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { 
-      y: 0, 
-      opacity: 1,
-      transition: { duration: 0.5 }
-    }
-  };
-
   
   const features = [
     {
@@ -343,11 +700,11 @@ const AboutPage = () => {
       description: "Автоматическое получение баллов каждое воскресенье на основе вашей активности на платформе",
       icon: <LocalAtmIcon fontSize="large" />,
     },
-    {
-      title: "Мини-игры",
-      description: "Делайте перерыв и наслаждайтесь развлекательными мини-играми, не покидая платформу",
-      icon: <SportsEsportsIcon fontSize="large" />
-    },
+    // {
+    //   title: "Мини-игры",
+    //   description: "Делайте перерыв и наслаждайтесь развлекательными мини-играми, не покидая платформу",
+    //   icon: <SportsEsportsIcon fontSize="large" />
+    // },
     {
       title: "Удобный баг-репортер",
       description: "Сообщайте о найденных проблемах через встроенную систему для быстрого улучшения платформы",
@@ -391,57 +748,116 @@ const AboutPage = () => {
       description: "Современный мессенджер с поддержкой медиа, стикеров и групповых чатов",
       icon: <ChatIcon fontSize="large" />,
       highlight: true
+    },
+    {
+      title: "Пачки",
+      description: "Коллекционные пачки с уникальными предметами разных редкостей для пополнения вашего инвентаря",
+      icon: <BoxIcon fontSize="large" />,
+      highlight: true
+    },
+    {
+      title: "Инвентарь",
+      description: "Коллекция предметов, полученных из паков. Передавайте, дарите друзьям или продавайте на маркетплейсе!",
+      icon: <BoxIcon fontSize="large" />,
+      highlight: true
+    },
+    {
+      title: "Маркетплейс",
+      description: "Покупайте и продавайте предметы из паков на маркетплейсе",
+      icon: <StoreIcon fontSize="large" />,
+      highlight: true
+    },
+    {
+      title: "Айтемы",
+      description: "Уникальные предметы разных редкостей, которые можно получить из паков и использовать для кастомизации",
+      icon: <AutoAwesomeIcon fontSize="large" />,
+      highlight: true
+    },
+    {
+      title: "Гранты",
+      description: "Система поддержки талантливых создателей контента с ежемесячными бонусами и уникальными возможностями",
+      icon: <StarIcon fontSize="large" />,
+      highlight: true
+    },
+    {
+      title: "Большая кастомизация профиля",
+      description: "Расширенные возможности настройки внешнего вида и функциональности вашего профиля",
+      icon: <ColorLensIcon fontSize="large" />,
+      highlight: true
+    },
+    {
+      title: "Дополнительные вещи для профилей",
+      description: "Новые элементы и функции для персонализации и улучшения вашего профиля",
+      icon: <AutoAwesomeIcon fontSize="large" />,
+      highlight: true
     }
   ];
   
   
-  const teamMembers = [
-    {
-      name: "амир",
-      role: "Founder & Developer",
-      avatar: "https://k-connect.ru/static/uploads/avatar/3/bo4hc37yKu.jpg", 
-      description: "Created K-Connect as a modern social network focused on uniting people through creative content.",
-      username: "@qsoul"
-    },
-    {
-      name: "алинк",
-      role: "Designer",
-      avatar: "https://k-connect.ru/static/uploads/avatar/9/9tGEbQE29B.jpeg", 
-      description: "Responsible for the visual aesthetics and user experience of K-Connect.",
-      username: "@yalinks"
-    },
-    {
-      name: "Liquides",
-      role: "React Native Разработчик",
-      avatar: "/static/moderators/lix.jpg", 
-      description: "Разработчик Android приложения",
-      username: "@liquides"
-    }
-  ];
-  
-  
-  const benefits = [
-    {
-      title: "Privacy-Focused",
-      description: "Your data stays yours. We prioritize user privacy and don't sell personal information to third parties.",
-      icon: <ShieldIcon fontSize="large" />
-    },
-    {
-      title: "Optimized Performance",
-      description: "Fast loading times and responsive design ensure a smooth experience on any device.",
-      icon: <SpeedIcon fontSize="large" />
-    },
-    {
-      title: "Multi-Device Support",
-      description: "Access K-Connect from your desktop, tablet, or mobile device with a consistent experience.",
-      icon: <DevicesIcon fontSize="large" />
-    },
-    {
-      title: "Creative Freedom",
-      description: "Express yourself freely through various content formats without restrictive algorithms.",
-      icon: <AutoAwesomeIcon fontSize="large" />
-    }
-  ];
+  const teamData = {
+    authors: [
+      {
+        name: "амир",
+        role: "Основатель и разработчик",
+        avatar: "https://k-connect.ru/static/uploads/avatar/3/bo4hc37yKu.jpg",
+        description: "Создал К-Коннект как современную социальную сеть, ориентированную на объединение людей через творческий контент.",
+        username: "@qsoul"
+      }
+    ],
+    designers: [
+      {
+        name: "алинк",
+        role: "Дизайнер",
+        avatar: "https://k-connect.ru/static/uploads/avatar/9/9tGEbQE29B.jpeg",
+        description: "Отвечает за визуальную эстетику и пользовательский опыт К-Коннект.",
+        username: "@yalinks"
+      },
+      {
+        name: "Rutrai 36",
+        role: "Друг Проекта",
+        avatar: "/static/moderators/rutrai.jpg",
+        description: "И огромное спасибо RUTRAI за то, что дал использовать свой концепт в рамках проекта.",
+        telegram: "https://t.me/Rutrai36"
+      }
+    ],
+    moderators: [
+      {
+        name: "ʙʟxꜱꜱxᴅ ₁₈₆",
+        role: "Модератор",
+        avatar: "/static/moderators/bxx.jpg"
+      },
+      {
+        name: "арбуз",
+        role: "Модератор",
+        avatar: "/static/moderators/arb.jpg"
+      },
+      {
+        name: "Liquides",
+        role: "Модератор",
+        avatar: "/static/moderators/lix.jpg"
+      },
+      {
+        name: "IMarandici",
+        role: "Модератор",
+        avatar: "/static/moderators/lmar.jpg"
+      },
+      // {
+      //   name: "Morozik",
+      //   role: "Поддержка",
+      //   avatar: "/static/moderators/morozik.jpeg"
+      // },
+      {
+        name: "rev/x",
+        role: "Модератор",
+        avatar: "/static/moderators/rev.jpg"
+      },
+      {
+        name: "Ронин",
+        role: "Модератор",
+        avatar: "/static/moderators/ronin.jpeg"
+      }
+    ]
+  };
 
   return (
     <Box sx={{ overflow: 'hidden' }}>
@@ -454,7 +870,8 @@ const AboutPage = () => {
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundImage: `linear-gradient(135deg, ${alpha(theme.palette.primary.dark, 0.9)}, ${alpha(theme.palette.background.default, 0.95)})`,
+          background: `linear-gradient(120deg, #a18cd1 0%, #fbc2eb 100%)`,
+          animation: 'gradientBG 12s ease-in-out infinite',
           color: '#fff',
           textAlign: 'center',
           p: 3,
@@ -465,11 +882,18 @@ const AboutPage = () => {
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'radial-gradient(circle at center, rgba(208, 188, 255, 0.1) 0%, transparent 70%)',
+            background: 'radial-gradient(circle at 60% 40%, rgba(208, 188, 255, 0.18) 0%, transparent 70%)',
             pointerEvents: 'none',
           }
         }}
       >
+        <style>{`
+          @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+        `}</style>
         <Container maxWidth="md">
           <MotionTypography
             variant="h1"
@@ -500,8 +924,11 @@ const AboutPage = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.5 }}
           >
-            Социальная платформа нового поколения
+            Социальная платформа нового поколения 🚀
           </MotionTypography>
+          
+          {/* Слайдер с превью */}
+          <HeroSlider />
           
           <MotionBox
             initial={{ opacity: 0, scale: 0.8 }}
@@ -509,21 +936,28 @@ const AboutPage = () => {
             transition={{ duration: 0.5, delay: 0.8 }}
           >
             <Button 
-              variant="contained" 
+              variant="outlined"
               size="large"
-              sx={{ 
-                fontSize: '1.1rem', 
-                py: 1.5, 
+              sx={{
+                fontSize: '1.08rem',
+                py: 1.2,
                 px: 4,
-                borderRadius: '50px',
-                backgroundColor: theme.palette.primary.main,
-                boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
-                '&:hover': { 
-                  transform: 'translateY(-3px)',
-                  boxShadow: '0 8px 25px rgba(0,0,0,0.4)',
-                  backgroundColor: theme.palette.primary.dark,
+                borderRadius: '32px',
+                background: 'rgba(255,255,255,0.08)',
+                color: '#fff',
+                border: '1.5px solid rgba(255,255,255,0.35)',
+                fontWeight: 500,
+                letterSpacing: 0.2,
+                boxShadow: 'none',
+                textTransform: 'none',
+                transition: 'all 0.2s',
+                '&:hover': {
+                  background: 'rgba(255,255,255,0.18)',
+                  borderColor: '#fff',
+                  color: '#fff',
+                  boxShadow: '0 2px 12px 0 rgba(120,80,255,0.10)',
+                  transform: 'translateY(-2px) scale(1.03)',
                 },
-                transition: 'all 0.3s'
               }}
               onClick={() => scrollToNextSection(featuresRef)}
             >
@@ -536,13 +970,13 @@ const AboutPage = () => {
           sx={{
             position: 'absolute',
             bottom: 40,
-            left: '50%',
-            transform: 'translateX(-50%)',
+            right: { xs: 16, sm: 40 },
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             cursor: 'pointer',
             opacity: 0.8,
+            zIndex: 10,
             '&:hover': {
               opacity: 1,
             }
@@ -556,7 +990,6 @@ const AboutPage = () => {
           <Typography variant="body2" sx={{ mb: 1 }}>
             {isMobile ? 'Свайп вниз' : 'Прокрути вниз'}
           </Typography>
-          
           {isMobile ? (
             <MotionBox
               animate={{ y: [0, 10, 0] }}
@@ -749,87 +1182,14 @@ const AboutPage = () => {
               Люди, стоящие за К-Коннект
             </Typography>
           </MotionBox>
-          
-          <MotionGrid 
-            container 
-            spacing={4}
-            justifyContent="center"
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible" 
-            viewport={{ once: true }}
-          >
-            {teamMembers.map((member, index) => (
-              <MotionGrid item xs={12} sm={6} md={4} key={index} variants={itemVariants}>
-                <Card 
-                  sx={{ 
-                    height: '100%', 
-                    display: 'flex', 
-                    flexDirection: 'column',
-                    borderRadius: '16px',
-                    overflow: 'hidden',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-8px)',
-                      boxShadow: '0 12px 20px rgba(0, 0, 0, 0.15)',
-                    }
-                  }}
-                  elevation={4}
-                >
-                  <Box 
-                    sx={{ 
-                      p: 4, 
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      background: 'linear-gradient(135deg, rgba(208, 188, 255, 0.15), rgba(242, 140, 154, 0.15))'
-                    }}
-                  >
-                    <Avatar 
-                      src={member.avatar} 
-                      alt={member.name}
-                      sx={{ 
-                        width: 120, 
-                        height: 120, 
-                        mb: 2,
-                        border: '4px solid',
-                        borderColor: theme.palette.primary.main
-                      }} 
-                    />
-                    
-                    <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                      {member.name}
-                    </Typography>
-                    
-                    <Typography 
-                      variant="subtitle1" 
-                      sx={{ 
-                        color: theme.palette.primary.main, 
-                        mb: 1 
-                      }}
-                    >
-                      {member.role === "Founder & Developer" ? "Основатель и разработчик" :
-                       member.role === "Designer" ? "Дизайнер" :
-                       member.role}
-                    </Typography>
-                  </Box>
-                  
-                  <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                    <Typography variant="body1">
-                      {member.description === "Created K-Connect as a modern social network focused on uniting people through creative content." ? "Создал К-Коннект как современную социальную сеть, ориентированную на объединение людей через творческий контент." :
-                       member.description === "Responsible for the visual aesthetics and user experience of K-Connect." ? "Отвечает за визуальную эстетику и пользовательский опыт К-Коннект." :
-                       member.description}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </MotionGrid>
-            ))}
-          </MotionGrid>
+
+          <TeamSection title="Авторы" members={teamData.authors} />
+          <TeamSection title="Дизайнеры" members={teamData.designers} />
         </Container>
       </Box>
       
-      
-      <Box sx={{ py: 12 }}>
+      {/* Moderators section with simpler cards */}
+      <Box sx={{ py: 12, bgcolor: theme.palette.background.paper }}>
         <Container maxWidth="lg">
           <MotionBox 
             sx={{ textAlign: 'center', mb: 8 }}
@@ -846,7 +1206,7 @@ const AboutPage = () => {
                 fontSize: { xs: '2rem', md: '2.5rem' }
               }}
             >
-              Наши модераторы
+              Модераторы
             </Typography>
             
             <Typography 
@@ -870,15 +1230,7 @@ const AboutPage = () => {
             whileInView="visible" 
             viewport={{ once: true }}
           >
-            {[
-              
-              { name: "ʙʟxꜱꜱxᴅ ₁₈₆", avatar: "/static/moderators/bxx.jpg" },
-              { name: "кам", avatar: "/static/moderators/kam.jpg" },
-              { name: "Liquides", avatar: "/static/moderators/lix.jpg" },
-              { name: "IMarandici", avatar: "/static/moderators/lmar.jpg" },
-
-              
-            ].map((moderator, index) => (
+            {teamData.moderators.map((moderator, index) => (
               <MotionGrid item xs={6} sm={4} md={3} key={index} variants={itemVariants}>
                 <MotionBox
                   sx={{ 

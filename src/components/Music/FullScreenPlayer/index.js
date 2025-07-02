@@ -122,7 +122,7 @@ const FullScreenPlayer = ({ open, onClose, ...props }) => {
         }
       );
     }
-  }, [currentTrack]);
+  }, [currentTrack?.cover_path]);
 
 
   useEffect(() => {

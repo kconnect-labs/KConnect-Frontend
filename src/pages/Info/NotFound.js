@@ -11,7 +11,6 @@ const NotFoundContainer = styled(Box)(({ theme }) => ({
   justifyContent: 'center',
   minHeight: '100vh',
   padding: theme.spacing(3),
-  background: '#111111',
 }));
 
 const StyledButton = styled(Button)(({ theme }) => ({

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import styled from '@emotion/styled';
+import { useLanguage } from '@/context/LanguageContext';
 import {
   Box,
   Typography,
@@ -19,6 +20,8 @@ import SendIcon from '@mui/icons-material/Send';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt';
+import { alpha } from '@mui/material/styles';
+import VerifiedIcon from '@mui/icons-material/Verified';
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
@@ -140,7 +143,77 @@ const GradientButton = styled(Button)(() => ({
   }
 }));
 
+// Функция для определения светлого/темного фона
+const isLightColor = (color) => {
+  if (!color || !color.startsWith('#')) {
+    return false;
+  }
+  const hex = color.replace('#', '');
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 128;
+};
+
+const UserCard = styled(Box)(({ theme, decoration }) => {
+  // Определяем тип фона (градиент, изображение или цвет)
+  const isGradient = decoration?.background?.includes('linear-gradient');
+  const isImage = decoration?.background?.includes('/');
+  const isHexColor = decoration?.background?.startsWith('#');
+  const isLightBackground = isHexColor && isLightColor(decoration?.background);
+
+  return {
+    display: 'flex',
+    alignItems: 'center',
+    padding: theme.spacing(1.5),
+    borderRadius: theme.spacing(2),
+    marginBottom: theme.spacing(1),
+    backgroundColor: theme.palette.background.paper,
+    position: 'relative',
+    overflow: 'hidden',
+    background: decoration?.background ? (
+      isImage ? `url(${decoration.background})` : decoration.background
+    ) : theme.palette.background.paper,
+    backgroundSize: isImage ? 'cover' : 'auto',
+    backgroundPosition: isImage ? 'center' : 'auto',
+    color: isLightBackground ? 'rgba(0, 0, 0, 0.87)' : theme.palette.text.primary,
+    '& .MuiTypography-root': {
+      color: isLightBackground ? 'rgba(0, 0, 0, 0.87)' : 'inherit',
+    },
+    '& .MuiTypography-colorTextSecondary': {
+      color: isLightBackground ? 'rgba(0, 0, 0, 0.6)' : theme.palette.text.secondary,
+    },
+    '&:hover': {
+      backgroundColor: alpha(theme.palette.background.paper, 0.8),
+      cursor: 'pointer',
+    },
+    '&::before': isGradient ? {
+      content: '""',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: decoration.background,
+      opacity: 0.15,
+      zIndex: 0,
+    } : {},
+  };
+});
+
+const DecorationItem = styled('img')({
+  position: 'absolute',
+  right: 0,
+  height: 'max-content',
+  maxHeight: 60,
+  opacity: 1,
+  pointerEvents: 'none',
+  zIndex: 1,
+});
+
 const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
+  const { t } = useLanguage();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [transferData, setTransferData] = useState({ username: '', amount: '', message: '', recipient_id: null });
@@ -174,31 +247,25 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
   const searchUser = (query) => {
     setUserSearch(prev => ({...prev, loading: true}));
     
-    
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
     
-    
     debounceTimerRef.current = setTimeout(() => {
-      
       const url = `/api/search/recipients?query=${encodeURIComponent(query)}`;
       
       axios.get(url)
         .then(response => {
           if (response.data && response.data.users && response.data.users.length > 0) {
-            
             const exactMatch = response.data.users.find(u => 
               u.username.toLowerCase() === query.toLowerCase()
             );
-            
             
             if (exactMatch) {
               setTransferData(prev => ({...prev, recipient_id: exactMatch.id}));
             } else {
               setTransferData(prev => ({...prev, recipient_id: null}));
             }
-            
             
             setUserSearch(prev => ({
               ...prev,
@@ -217,7 +284,7 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
           }
         })
         .catch(error => {
-          console.error('Ошибка при поиске пользователя:', error);
+          console.error('Error searching for user:', error);
           setUserSearch(prev => ({
             ...prev,
             loading: false,
@@ -261,16 +328,31 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
     }));
   };
 
+  // Calculate commission and total amount
+  const calculateCommission = (amount) => {
+    if (!amount || isNaN(amount)) return { commission: 0, total: 0, recipientAmount: 0 };
+    const numAmount = parseInt(amount);
+    const commission = Math.floor(numAmount * 0.1); // 10% commission
+    return {
+      commission,
+      total: numAmount,
+      recipientAmount: numAmount - commission
+    };
+  };
+
   const handleTransferPoints = async () => {
     const errors = {};
-    if (!transferData.username) errors.username = 'Введите имя пользователя';
-    if (!transferData.recipient_id) errors.username = 'Пользователь не найден';
+    if (!transferData.username) errors.username = t('balance.transfer.errors.enter_username');
+    if (!transferData.recipient_id) errors.username = t('balance.transfer.errors.user_not_found');
     if (!transferData.amount) {
-      errors.amount = 'Введите сумму перевода';
+      errors.amount = t('balance.transfer.errors.enter_amount');
     } else if (isNaN(transferData.amount) || parseInt(transferData.amount) <= 0) {
-      errors.amount = 'Сумма должна быть положительным числом';
-    } else if (parseInt(transferData.amount) > userPoints) {
-      errors.amount = 'Недостаточно баллов для перевода';
+      errors.amount = t('balance.transfer.errors.positive_amount');
+    } else {
+      const { total } = calculateCommission(transferData.amount);
+      if (total > userPoints) {
+        errors.amount = t('balance.transfer.errors.insufficient_points');
+      }
     }
 
     if (Object.keys(errors).length > 0) {
@@ -284,17 +366,16 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
     setIsTransferring(true);
     
     const transferAmount = parseInt(transferData.amount);
-    const newBalance = userPoints - transferAmount;
+    const { commission, total, recipientAmount } = calculateCommission(transferAmount);
+    const newBalance = userPoints - total;
     
     try {
-      
       const response = await axios.post(`/api/user/transfer-points`, {
         recipient_username: transferData.username,
         recipient_id: transferData.recipient_id,
         amount: transferAmount,
         message: transferData.message
       });
-      
       
       try {
         const now = new Date();
@@ -304,10 +385,12 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
           transaction_data: {
             transactionId: transactionId,
             amount: transferAmount,
+            commission: commission,
+            total: total,
+            recipientAmount: recipientAmount,
             recipientUsername: transferData.username,
             senderUsername: response.data.sender_username || 'Вы', 
             date: now.toISOString()
-            
           }
         });
         
@@ -316,6 +399,9 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
             dataUrl: `data:application/pdf;base64,${receiptResponse.data.pdf_data}`,
             filePath: receiptResponse.data.file_path,
             amount: transferAmount,
+            commission: commission,
+            total: total,
+            recipientAmount: recipientAmount,
             recipient: transferData.username,
             previousBalance: userPoints,
             newBalance: newBalance
@@ -327,7 +413,10 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
             onSuccess({
               newBalance: newBalance,
               previousBalance: userPoints,
-              amount: transferAmount
+              amount: transferAmount,
+              commission: commission,
+              total: total,
+              recipientAmount: recipientAmount
             });
           }
         }
@@ -339,11 +428,13 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
           onSuccess({
             newBalance: newBalance,
             previousBalance: userPoints,
-            amount: transferAmount
+            amount: transferAmount,
+            commission: commission,
+            total: total,
+            recipientAmount: recipientAmount
           });
         }
       }
-      
       
       setTransferData({ username: '', amount: '', message: '', recipient_id: null });
       setIsTransferring(false);
@@ -386,33 +477,33 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
               <SendIcon />
             </DialogAvatar>
             <Typography variant="h5" sx={{ color: 'white', fontWeight: 700, mb: 1 }}>
-              Перевод баллов
+              {t('balance.transfer_menu.title')}
             </Typography>
             <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)', maxWidth: '80%' }}>
-              Мгновенный перевод баллов другому пользователю платформы
+              {t('balance.transfer_menu.subtitle')}
             </Typography>
           </DialogHeader>
           
           <DialogContent sx={{ p: 3, bgcolor: 'rgba(10, 10, 10, 0.8)' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
               <Typography variant="subtitle2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
-                Доступно для перевода
+                {t('balance.transfer_menu.available')}
               </Typography>
               <Typography variant="h6" fontWeight="bold" sx={{ color: '#AAAAAA' }}>
-                {userPoints} баллов
+                {userPoints} {t('balance.transfer_menu.points_suffix')}
               </Typography>
             </Box>
 
             <InputContainer>
               <StyledTextField
-                label="Получатель"
+                label={t('balance.transfer_menu.recipient.label')}
                 fullWidth
                 variant="outlined"
                 value={transferData.username}
                 onChange={handleUsernameChange}
                 error={!!transferErrors.username}
                 helperText={transferErrors.username}
-                placeholder="Введите имя пользователя"
+                placeholder={t('balance.transfer_menu.recipient.placeholder')}
                 InputProps={{
                   endAdornment: (
                     <React.Fragment>
@@ -440,31 +531,62 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
               <SuggestionsContainer>
                 <Box sx={{ p: 2, pb: 1 }}>
                   <Typography variant="subtitle2" sx={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem' }}>
-                    Похожие пользователи
+                    {t('balance.transfer_menu.recipient.similar_users')}
                   </Typography>
                 </Box>
-                {userSearch.suggestions.map(user => (
-                  <SuggestionItem
+                {userSearch.suggestions.map((user) => (
+                  <UserCard
                     key={user.id}
+                    decoration={user.decoration}
                     onClick={() => selectSuggestion(user.username, user.id)}
                   >
-                    <UserAvatar 
-                      src={user.photo ? `/static/uploads/avatar/${user.id}/${user.photo}` : undefined}
-                      alt={user.username}
-                    >
-                      {user.username.charAt(0).toUpperCase()}
-                    </UserAvatar>
-                    <Box>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {user.username}
-                      </Typography>
-                      {user.name && (
-                        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
-                          {user.name}
+                    {user.decoration?.item_path && (() => {
+                      const [path, ...styles] = user.decoration.item_path.split(';');
+                      const styleObj = styles.reduce((acc, style) => {
+                        const [key, value] = style.split(':').map(s => s.trim());
+                        if (key === 'height') {
+                          const size = parseInt(value);
+                          return { ...acc, [key]: `${size / 2}px` };
+                        }
+                        return { ...acc, [key]: value };
+                      }, {});
+
+                      return (
+                        <DecorationItem 
+                          src={path}
+                          alt={t('balance.transfer_menu.recipient.decoration_alt')}
+                          style={styleObj}
+                        />
+                      );
+                    })()}
+                    <Box sx={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', width: '100%' }}>
+                      <UserAvatar 
+                        src={user.photo ? `/static/uploads/avatar/${user.id}/${user.photo}` : undefined}
+                        alt={user.username}
+                      >
+                        {user.username.charAt(0).toUpperCase()}
+                      </UserAvatar>
+                      <Box sx={{ flex: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                            {user.name}
+                          </Typography>
+                          {user.verification_status === 'verified' && (
+                            <VerifiedIcon 
+                              sx={{ 
+                                fontSize: 16, 
+                                ml: 0.5, 
+                                color: '#D0BCFF' 
+                              }} 
+                            />
+                          )}
+                        </Box>
+                        <Typography variant="body2" color="text.secondary">
+                          @{user.username}
                         </Typography>
-                      )}
+                      </Box>
                     </Box>
-                  </SuggestionItem>
+                  </UserCard>
                 ))}
               </SuggestionsContainer>
             )}
@@ -482,34 +604,80 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
               }}>
                 <CheckCircleIcon sx={{ color: '#4CAF50', mr: 1 }} />
                 <Typography variant="body2">
-                  Получатель подтвержден: <strong>{transferData.username}</strong>
+                  {t('balance.transfer_menu.recipient.confirmed')} <strong>{transferData.username}</strong>
                 </Typography>
               </Box>
             )}
             
             <InputContainer>
               <StyledTextField
-                label="Количество баллов"
+                label={t('balance.transfer_menu.amount.label')}
                 fullWidth
                 variant="outlined"
                 type="number"
-                inputProps={{ min: 1, max: userPoints }}
                 value={transferData.amount}
-                onChange={(e) => setTransferData({...transferData, amount: e.target.value})}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '' || /^\d+$/.test(value)) {
+                    setTransferData(prev => ({...prev, amount: value}));
+                    setTransferErrors(prev => ({...prev, amount: ''}));
+                  }
+                }}
                 error={!!transferErrors.amount}
                 helperText={transferErrors.amount}
-                placeholder="Введите сумму перевода"
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">{t('balance.transfer_menu.points_suffix')}</InputAdornment>
+                }}
               />
+              {transferData.amount && !transferErrors.amount && (
+                <Box sx={{ mt: 2, p: 2, bgcolor: 'rgba(0,0,0,0.2)', borderRadius: 1 }}>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    {t('balance.transfer_menu.amount.details')}
+                  </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      {t('balance.transfer_menu.amount.transfer_amount')}
+                    </Typography>
+                    <Typography variant="body2" color="text.primary">
+                      {transferData.amount} {t('balance.transfer_menu.points_suffix')}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      {t('balance.transfer_menu.amount.commission')}
+                    </Typography>
+                    <Typography variant="body2" color="error">
+                      -{calculateCommission(transferData.amount).commission} {t('balance.transfer_menu.points_suffix')}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      {t('balance.transfer_menu.amount.recipient_gets')}
+                    </Typography>
+                    <Typography variant="body2" color="success.main">
+                      {calculateCommission(transferData.amount).recipientAmount} {t('balance.transfer_menu.points_suffix')}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      {t('balance.transfer_menu.amount.your_balance')}
+                    </Typography>
+                    <Typography variant="body2" color="text.primary">
+                      {userPoints - calculateCommission(transferData.amount).total} {t('balance.transfer_menu.points_suffix')}
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
             </InputContainer>
             
             <InputContainer>
               <StyledTextField
-                label="Сообщение (необязательно)"
+                label={t('balance.transfer_menu.message.label')}
                 fullWidth
                 variant="outlined"
                 value={transferData.message}
-                onChange={(e) => setTransferData({...transferData, message: e.target.value})}
-                placeholder="Добавьте сообщение к переводу"
+                onChange={(e) => setTransferData(prev => ({ ...prev, message: e.target.value }))}
+                placeholder={t('balance.transfer_menu.message.placeholder')}
                 multiline
                 rows={2}
               />
@@ -536,14 +704,14 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
               onClick={onClose}
               disabled={isTransferring}
             >
-              Отмена
+              {t('balance.transfer_menu.buttons.cancel')}
             </CancelButton>
             <GradientButton 
               onClick={handleTransferPoints} 
               disabled={!userSearch.exists || !transferData.recipient_id || userSearch.loading || !transferData.amount || isTransferring}
               startIcon={isTransferring ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
             >
-              {isTransferring ? 'Выполнение перевода...' : 'Перевести безопасно'}
+              {isTransferring ? t('balance.transfer_menu.buttons.processing') : t('balance.transfer_menu.buttons.transfer')}
             </GradientButton>
           </ButtonContainer>
         </>
@@ -554,10 +722,10 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
               <CheckCircleIcon sx={{ fontSize: 32 }} />
             </DialogAvatar>
             <Typography variant="h5" sx={{ color: 'white', fontWeight: 700, mb: 1 }}>
-              Перевод выполнен
+              {t('balance.transfer_menu.success.title')}
             </Typography>
             <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)', maxWidth: '80%' }}>
-              Баллы успешно переведены пользователю {transferReceipt?.recipient}
+              {t('balance.transfer_menu.success.subtitle', { recipient: transferReceipt?.recipient })}
             </Typography>
           </DialogHeader>
           
@@ -570,21 +738,21 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
               border: '1px solid rgba(60, 60, 60, 0.4)',
             }}>
               <Typography variant="subtitle1" sx={{ color: 'rgba(255,255,255,0.7)', mb: 2 }}>
-                Детали транзакции
+                {t('balance.transfer_menu.success.details.title')}
               </Typography>
               
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                 <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
-                  Сумма перевода
+                  {t('balance.transfer_menu.success.details.amount')}
                 </Typography>
                 <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                  {transferReceipt?.amount} баллов
+                  {transferReceipt?.amount} {t('balance.transfer_menu.points_suffix')}
                 </Typography>
               </Box>
               
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                 <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
-                  Получатель
+                  {t('balance.transfer_menu.success.details.recipient')}
                 </Typography>
                 <Typography variant="body1">
                   {transferReceipt?.recipient}
@@ -593,13 +761,13 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
               
               <Box sx={{ mt: 4, mb: 1 }}>
                 <Typography variant="subtitle2" sx={{ color: '#4CAF50', mb: 2 }}>
-                  Баланс после операции
+                  {t('balance.transfer_menu.success.details.balance.title')}
                 </Typography>
                 
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Box>
                     <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
-                      До перевода
+                      {t('balance.transfer_menu.success.details.balance.before')}
                     </Typography>
                     <Typography variant="h6">
                       {transferReceipt?.previousBalance}
@@ -610,7 +778,7 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
                   
                   <Box sx={{ textAlign: 'right' }}>
                     <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
-                      После перевода
+                      {t('balance.transfer_menu.success.details.balance.after')}
                     </Typography>
                     <Typography variant="h6" sx={{ color: '#AAAAAA' }}>
                       {transferReceipt?.newBalance}
@@ -636,11 +804,10 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
                     }
                   }}
                 >
-                  Скачать квитанцию
+                  {t('balance.transfer_menu.success.receipt.download')}
                 </Button>
               </Box>
             )}
-            
           </DialogContent>
           
           <ButtonContainer>
@@ -651,7 +818,7 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
               }}
               fullWidth
             >
-              Закрыть
+              {t('balance.transfer_menu.buttons.close')}
             </GradientButton>
           </ButtonContainer>
         </>

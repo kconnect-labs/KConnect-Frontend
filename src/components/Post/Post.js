@@ -3,16 +3,13 @@ import {
   Box, 
   Typography,
   Avatar,
-  IconButton,
   Menu,
   MenuItem,
   ListItemIcon,
   ListItemText,
   Snackbar,
   Card,
-  CardContent,
   styled,
-  AvatarGroup,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -20,82 +17,79 @@ import {
   Button,
   TextField,
   CircularProgress,
-  Paper,
-  Skeleton,
+
   Alert,
   FormControlLabel,
   Checkbox,
   List,
   ListItem,
-  CardActions,
-  CardHeader,
+
   Chip,
-  Divider,
-  Badge,
+
   Tooltip,
-  Collapse,
-  Zoom,
-  useTheme
+
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 import { MusicContext } from '../../context/MusicContext';
+import { useLanguage } from '../../context/LanguageContext';
 import ReactMarkdown from 'react-markdown';
 import { formatTimeAgo, getRussianWordForm } from '../../utils/dateUtils';
 import SimpleImageViewer from '../SimpleImageViewer';
 import VideoPlayer from '../VideoPlayer';
-import { optimizeImage } from '../../utils/imageUtils';
-import { linkRenderers, URL_REGEX, USERNAME_MENTION_REGEX, HASHTAG_REGEX, processTextWithLinks } from '../../utils/LinkUtils';
+import { optimizeImage, handleImageError as safeImageError } from '../../utils/imageUtils';
+import { linkRenderers, URL_REGEX, USERNAME_MENTION_REGEX, HASHTAG_REGEX, processTextWithLinks, LinkPreview } from '../../utils/LinkUtils';
 import { Icon } from '@iconify/react';
 import Lottie from 'lottie-react'; 
+import { MessageCircle, Repeat2, Link2, Heart } from 'lucide-react';
 
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DeleteIcon from '@mui/icons-material/Delete';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
-import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
-import RepeatIcon from '@mui/icons-material/Repeat';
-import ShareIcon from '@mui/icons-material/Share';
-import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
-import ThumbUpRoundedIcon from '@mui/icons-material/ThumbUpRounded';
-import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
-import CommentRoundedIcon from '@mui/icons-material/CommentRounded';
-import CommentOutlinedIcon from '@mui/icons-material/CommentOutlined';
+
 import ImageGrid from './ImageGrid';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
-import LinkIcon from '@mui/icons-material/Link';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import FlagIcon from '@mui/icons-material/Flag';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import EditIcon from '@mui/icons-material/Edit';
 import PhotoIcon from '@mui/icons-material/Photo';
 import VideocamIcon from '@mui/icons-material/Videocam';
+import PushPinIcon from '@mui/icons-material/PushPin';
+import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
+import FactCheckIcon from '@mui/icons-material/FactCheck';
 import { usePostDetail } from '../../context/PostDetailContext';
 
 import { ContextMenu, useContextMenu } from '../../UIKIT';
 import RepostImageGrid from './RepostImageGrid';  
 import MusicTrack from './MusicTrack';
 import { VerificationBadge } from '../../UIKIT';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
+import FactModal from './FactModal';
 
-const PostCard = styled(Card)(({ theme }) => ({
-  marginBottom: 10,
-  borderRadius: '10px',
-  overflow: 'hidden',
-  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-  background: '#1A1A1A',
-  [theme.breakpoints.down('sm')]: {
-    boxShadow: 'none',
-    marginBottom: 8,
-    width: '100%'
-  }
+const PostCard = styled(Card)(({ theme, isPinned, statusColor }) => ({
+  marginBottom: theme.spacing(2),
+  borderRadius: theme.spacing(1),
+  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+  transition: 'box-shadow 0.3s ease-in-out',
+  background: 'rgba(255, 255, 255, 0.03)',
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)',
+  border: isPinned 
+    ? `1px solid ${statusColor ? `${statusColor}33` : 'rgba(140, 82, 255, 0.2)'}` 
+    : '1px solid rgba(255, 255, 255, 0.1)',
+  '&:hover': {
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12)',
+  },
 }));
 
 const MarkdownContent = styled(Box, {
@@ -129,13 +123,16 @@ const MarkdownContent = styled(Box, {
     backgroundColor: theme.palette.action.hover,
     padding: theme.spacing(0, 0.6),
     borderRadius: 3,
+    fontSize: '0.85rem',
   },
   '& pre': {
-    backgroundColor: theme.palette.grey[900],
-    color: theme.palette.common.white,
+    background: 'rgba(255, 255, 255, 0.03)',
+    backdropFilter: 'blur(50px)',
+    WebkitBackdropFilter: 'blur(50px)',
     padding: theme.spacing(1.5),
     borderRadius: theme.shape.borderRadius,
     overflowX: 'auto',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
     '& code': {
       backgroundColor: 'transparent',
       padding: 0,
@@ -149,10 +146,9 @@ const MarkdownContent = styled(Box, {
 
 const BlurredMenu = styled(Menu)(({ theme }) => ({
   '& .MuiPaper-root': {
-    background: 'linear-gradient(135deg, rgb(49 49 49 / 50%) 0%, rgb(62 62 62 / 60%) 100%)',
+    background: 'linear-gradient(135deg, rgb(19 19 19 / 51%) 0%, rgb(25 24 24 / 39%) 100%)',
     backdropFilter: 'blur(10px)',
     border: '1px solid rgba(255, 255, 255, 0.2)',
-    boxShadow: '0 4px 20px rgba(97, 76, 147, 0.3)',
     borderRadius: '12px',
     '& .MuiMenuItem-root': {
       '&:hover': {
@@ -182,213 +178,6 @@ const ShowMoreButton = styled(Button)(({ theme }) => ({
   }
 }));
 
-const ActionButton = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'active'
-})(({ theme, active, position }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  padding: '6px 12px',
-  cursor: 'pointer',
-  transition: 'all 0.2s ease',
-  backgroundColor: active ? 'rgba(140, 82, 255, 0.08)' : 'transparent',
-  position: 'relative',
-  zIndex: 2,
-  '&:hover': {
-    backgroundColor: active ? 'rgba(140, 82, 255, 0.12)' : 'rgba(255, 255, 255, 0.04)',
-  },
-  borderRadius: position === 'left' ? '20px 0 0 20px' : position === 'right' ? '0 20px 20px 0' : '20px',
-  borderRight: position === 'left' ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
-}));
-
-const ActionButtonContainer = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  borderRadius: '20px',
-  overflow: 'hidden',
-  border: '1px solid rgba(255, 255, 255, 0.08)',
-  marginRight: theme.spacing(1),
-  backgroundColor: 'rgba(40, 40, 50, 0.4)',
-  position: 'relative',
-  transition: 'all 0.25s ease',
-  '&:hover': {
-    backgroundColor: 'rgba(50, 50, 60, 0.5)',
-    transform: 'translateY(-2px)',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-    '&:after': {
-      opacity: 1,
-      transform: 'translateX(100%)'
-    }
-  },
-  '&:after': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: '-100%',
-    width: '100%',
-    height: '100%',
-    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)',
-    opacity: 0,
-    transition: 'all 0.5s ease',
-    zIndex: 1
-  }
-}));
-
-const SharePill = styled(motion.div)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '6px 14px',
-  backgroundColor: 'rgba(40, 40, 50, 0.4)',
-  borderRadius: '20px',
-  border: '1px solid rgba(255, 255, 255, 0.1)',
-  cursor: 'pointer',
-  marginLeft: theme.spacing(1),
-  transition: 'all 0.25s ease',
-  position: 'relative',
-  overflow: 'hidden',
-  '&:hover': {
-    backgroundColor: 'rgba(50, 50, 60, 0.5)',
-    transform: 'translateY(-2px)',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-    '&:after': {
-      opacity: 1,
-      transform: 'translateX(100%)'
-    }
-  },
-  '&:after': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: '-100%',
-    width: '100%',
-    height: '100%',
-    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)',
-    opacity: 0,
-    transition: 'all 0.5s ease',
-    zIndex: 1
-  }
-}));
-
-const CommentPill = styled(motion.div)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '6px 14px',
-  backgroundColor: 'rgba(40, 40, 50, 0.4)',
-  borderRadius: '20px',
-  border: '1px solid rgba(255, 255, 255, 0.1)',
-  cursor: 'pointer',
-  marginLeft: theme.spacing(1),
-  transition: 'all 0.25s ease',
-  position: 'relative',
-  overflow: 'hidden',
-  '&:hover': {
-    backgroundColor: 'rgba(50, 50, 60, 0.5)',
-    transform: 'translateY(-2px)',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-    '&:after': {
-      opacity: 1,
-      transform: 'translateX(100%)'
-    }
-  },
-  '&:after': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: '-100%',
-    width: '100%',
-    height: '100%',
-    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)',
-    opacity: 0,
-    transition: 'all 0.5s ease',
-    zIndex: 1
-  }
-}));
-
-const LikePill = styled(motion.div)(({ theme, active }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '6px 14px',
-  backgroundColor: active ? 'rgba(140, 82, 255, 0.08)' : 'rgba(40, 40, 50, 0.4)',
-  borderRadius: '20px',
-  border: active ? '1px solid rgba(140, 82, 255, 0.2)' : '1px solid rgba(255, 255, 255, 0.1)',
-  cursor: 'pointer',
-  marginRight: theme.spacing(1),
-  transition: 'all 0.25s ease',
-  position: 'relative',
-  overflow: 'hidden',
-  '&:hover': {
-    backgroundColor: active ? 'rgba(140, 82, 255, 0.12)' : 'rgba(50, 50, 60, 0.5)',
-    transform: 'translateY(-2px)',
-    boxShadow: active ? '0 4px 12px rgba(140, 82, 255, 0.2)' : '0 4px 12px rgba(0, 0, 0, 0.2)',
-    '&:after': {
-      opacity: 1,
-      transform: 'translateX(100%)'
-    }
-  },
-  '&:after': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: '-100%',
-    width: '100%',
-    height: '100%',
-    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)',
-    opacity: 0,
-    transition: 'all 0.5s ease',
-    zIndex: 1
-  }
-}));
-
-const ActionsPill = styled(motion.div)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  borderRadius: '20px',
-  overflow: 'hidden',
-  backgroundColor: 'rgba(40, 40, 50, 0.4)',
-  border: '1px solid rgba(255, 255, 255, 0.1)',
-  marginRight: theme.spacing(1),
-  position: 'relative',
-  transition: 'all 0.25s ease',
-  '&:hover': {
-    backgroundColor: 'rgba(50, 50, 60, 0.5)',
-    transform: 'translateY(-2px)',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-    '&:after': {
-      opacity: 1,
-      transform: 'translateX(100%)'
-    }
-  },
-  '&:after': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: '-100%',
-    width: '100%',
-    height: '100%',
-    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)',
-    opacity: 0,
-    transition: 'all 0.5s ease',
-    zIndex: 1
-  }
-}));
-
-const ActionItem = styled(Box)(({ theme, active, islike }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  padding: '6px 14px',
-  cursor: 'pointer',
-  transition: 'all 0.2s ease',
-  backgroundColor: active && islike ? 'rgba(140, 82, 255, 0.08)' : 'transparent',
-  position: 'relative',
-  zIndex: 2,
-  '&:hover': {
-    backgroundColor: active && islike ? 'rgba(140, 82, 255, 0.12)' : 'rgba(255, 255, 255, 0.04)',
-  },
-  borderRight: islike ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
-}));
-
 const ChannelTag = styled(Chip)(({ theme }) => ({
   backgroundColor: 'rgba(255, 255, 255, 0.08)',
   color: 'rgba(255, 255, 255, 0.8)',
@@ -402,18 +191,6 @@ const ChannelTag = styled(Chip)(({ theme }) => ({
   }
 }));
 
-const ViewMenuPill = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-  borderRadius: '20px',
-  padding: '4px 8px 4px 12px',
-  border: '1px solid rgba(255, 255, 255, 0.08)',
-  transition: 'all 0.2s ease',
-  '&:hover': {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-  }
-}));
 
 const HeartAnimation = styled(motion.div)(({ theme }) => ({
   position: 'absolute',
@@ -454,38 +231,48 @@ const LottieWrapper = styled(Box)(({ theme }) => ({
   opacity: 0.8,
 }));
 
-const Post = ({ post, onDelete, onOpenLightbox }) => {
-  if (!post || typeof post !== 'object') {
-    console.error('Post component received invalid post data:', post);
-    return null;
-  }
-  
-  console.log(`Post ${post.id} user account type:`, post.user?.account_type, 'Is channel:', post.user?.is_channel);
-  
+
+
+
+const Post = ({ post, onDelete, onOpenLightbox, isPinned: isPinnedPost, statusColor }) => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const { user: currentUser } = useContext(AuthContext);
+  const { playTrack, currentTrack, isPlaying, togglePlay } = useContext(MusicContext);
+  const { setPostDetail, openPostDetail } = usePostDetail();
+  const { show: showContextMenu } = useContextMenu();
+  
   const [liked, setLiked] = useState(post?.user_liked || post?.is_liked || false);
   const [likesCount, setLikesCount] = useState(post?.likes_count || 0);
   const [viewsCount, setViewsCount] = useState(post?.views_count || 0);
+  const [lastLikedUsers, setLastLikedUsers] = useState([]);
   const [clickTimer, setClickTimer] = useState(null); 
-  const { user: currentUser } = useContext(AuthContext);
-  const { playTrack, currentTrack, isPlaying, togglePlay } = useContext(MusicContext);
   const isCurrentUserPost = currentUser && post?.user && currentUser.id === post.user.id;
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const menuOpen = Boolean(menuAnchorEl);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("Ссылка скопирована в буфер обмена");
-  const [lastLikedUsers, setLastLikedUsers] = useState([]);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
   const [reposted, setReposted] = useState(post?.is_reposted || false);
+  const [repostModalOpen, setRepostModalOpen] = useState(false);
+  const [repostContent, setRepostContent] = useState('');
+  const [repostLoading, setRepostLoading] = useState(false);
+  const [isPinned, setIsPinned] = useState(isPinnedPost || false);
+  const [editDialog, setEditDialog] = useState({
+    open: false,
+    content: post?.content || '',
+    loading: false,
+    previews: [],
+    deleteImages: false,
+    deleteVideo: false,
+    deleteMusic: false
+  });
   
   const [musicTracks, setMusicTracks] = useState([]);
   
   const [isExpanded, setIsExpanded] = useState(false);
   const [needsExpandButton, setNeedsExpandButton] = useState(false);
   const contentRef = useRef(null);
-  
-  const [repostModalOpen, setRepostModalOpen] = useState(false);
-  const [repostText, setRepostText] = useState('');
-  const [isReposting, setIsReposting] = useState(false);
   
   const [processedContent, setProcessedContent] = useState('');
   
@@ -494,9 +281,6 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     message: '',
     severity: 'error'
   });
-  
-  const theme = useTheme();
-  const primaryColor = theme.palette.primary.main;
   
   const [deleteDialog, setDeleteDialog] = useState({
     open: false,
@@ -511,31 +295,27 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     submitted: false,
     error: null
   });
+  const [mediaError, setMediaError] = useState({ type: null, url: null }); 
   
-  const [editDialog, setEditDialog] = useState({
+  const [showSensitive, setShowSensitive] = useState(false);
+  
+  const [factModal, setFactModal] = useState({
     open: false,
-    content: post?.content || '',
-    submitting: false,
-    deleteImages: false,
-    deleteVideo: false,
-    deleteMusic: false,
-    newImages: [],
-    newVideo: null,
-    previews: [],
+    loading: false,
     error: null
   });
   
   const reportReasons = [
-    "Спам",
-    "Оскорбления",
-    "Неприемлемый контент",
-    "Нарушение правил",
-    "Дезинформация",
-    "Вредоносный контент",
-    "Другое"
+    t('post.report.reasons.spam'),
+    t('post.report.reasons.insult'),
+    t('post.report.reasons.inappropriate_content'),
+    t('post.report.reasons.violation'),
+    t('post.report.reasons.misinformation'),
+    t('post.report.reasons.harmful_content'),
+    t('post.report.reasons.other')
   ];
   
-  const [mediaError, setMediaError] = useState({ type: null, url: null }); 
+  const isMobile = useMediaQuery('(max-width:600px)');
   
   useEffect(() => {
     if (post) {
@@ -555,13 +335,20 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         let content = post.content;
         USERNAME_MENTION_REGEX.lastIndex = 0;
         HASHTAG_REGEX.lastIndex = 0;
+        URL_REGEX.lastIndex = 0;
         
+        // Обработка обычных ссылок
+        content = content.replace(URL_REGEX, (match) => {
+          return `[${match}](${match.startsWith('http') ? match : `https://${match}`})`;
+        });
 
-        content = content.replace(USERNAME_MENTION_REGEX, (match, username) => {
-          return `[${match}](/profile/${username})`;
+        // Обработка упоминаний пользователей
+        content = content.replace(USERNAME_MENTION_REGEX, (match, prefix, username) => {
+          const adjustedMatch = prefix ? match.substring(prefix.length) : match;
+          return `${prefix || ''}[${adjustedMatch}](/profile/${username})`;
         });
         
-
+        // Обработка хештегов
         content = content.replace(HASHTAG_REGEX, (match, hashtag) => {
           return `[${match}](https://k-connect.ru/search?q=${encodeURIComponent(hashtag)}&type=posts)`;
         });
@@ -677,54 +464,16 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
 
   const fetchLastLikedUsers = async (postId) => {
     try {
-      if (window._globalLastLikesFetch && Date.now() - window._globalLastLikesFetch < 3000) {
-        console.log(`Global likes fetch rate limit in effect, skipping fetch for post ${postId}`);
-        return;
-      }
+      const response = await axios.get(`/api/posts/${postId}/likes`, {
+        params: { limit: 3 },
+        forceRefresh: true
+      });
       
-      if (!window._postLikesCache) {
-        window._postLikesCache = {};
-      }
-      
-      const now = Date.now();
-      if (
-        window._postLikesCache[postId] && 
-        window._postLikesCache[postId].timestamp &&
-        now - window._postLikesCache[postId].timestamp < 5 * 60 * 1000
-      ) {
-        console.log(`Using cached likes data for post ${postId}`);
-        setLastLikedUsers(window._postLikesCache[postId].users);
-        return;
-      }
-      
-      if (window._postLikesFetching && window._postLikesFetching[postId]) {
-        console.log(`Likes fetch already in progress for post ${postId}`);
-        return;
-      }
-      
-      if (!window._postLikesFetching) {
-        window._postLikesFetching = {};
-      }
-      window._postLikesFetching[postId] = true;
-      window._globalLastLikesFetch = now; 
-      
-      const response = await axios.get(`/api/posts/${postId}/likes?limit=3`);
       if (response.data && Array.isArray(response.data.users)) {
-        console.log(`Received like data for post ${postId}:`, response.data.users);
-        
-        window._postLikesCache[postId] = {
-          users: response.data.users,
-          timestamp: now
-        };
-        
         setLastLikedUsers(response.data.users);
       }
     } catch (error) {
-      console.error('Error fetching liked users:', error);
-    } finally {
-      if (window._postLikesFetching) {
-        window._postLikesFetching[postId] = false;
-      }
+      console.error('Error fetching last liked users:', error);
     }
   };
 
@@ -1046,22 +795,29 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     try {
       setDeleteDialog({ ...deleteDialog, deleting: true });
       
+      // Сразу удаляем пост из UI
       if (onDelete) {
         onDelete(post.id);
       }
       
-      setDeleteDialog({ open: true, deleting: false, deleted: true });
+      // Очищаем кеш
+      if (axios.cache) {
+        axios.cache.clearPostsCache();
+        axios.cache.clearByUrlPrefix(`/api/profile/pinned_post`);
+        axios.cache.clearByUrlPrefix(`/api/posts/${post.id}`);
+      }
       
-      const response = await axios.delete(`/api/posts/${post.id}`);
+      // Отправляем запрос на удаление
+      await axios.delete(`/api/posts/${post.id}`);
       
-      setTimeout(() => {
-        setDeleteDialog({ open: false, deleting: false, deleted: true });
-      }, 1500);
+      // Закрываем диалог
+      setDeleteDialog({ open: false, deleting: false, deleted: false });
       
     } catch (error) {
       console.error('Error deleting post:', error);
-      setDeleteDialog({ open: true, deleting: false, deleted: false });
+      setDeleteDialog({ open: false, deleting: false, deleted: false });
       
+      // Показываем ошибку
       setSnackbar({
         open: true,
         message: "Не удалось удалить пост. Попробуйте позже.",
@@ -1077,7 +833,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
       return;
     }
     
-    setRepostText('');
+    setRepostContent('');
     setRepostModalOpen(true);
   };
   
@@ -1093,7 +849,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
   
   
   const renderRepostInputWithMentions = () => {
-    if (!repostText) return null;
+    if (!repostContent) return null;
     
     const parts = [];
     let lastIndex = 0;
@@ -1101,9 +857,9 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     USERNAME_MENTION_REGEX.lastIndex = 0;
     
     let match;
-    while ((match = USERNAME_MENTION_REGEX.exec(repostText)) !== null) {
+    while ((match = USERNAME_MENTION_REGEX.exec(repostContent)) !== null) {
       if (match.index > lastIndex) {
-        parts.push(<span key={`text-${lastIndex}`}>{repostText.substring(lastIndex, match.index)}</span>);
+        parts.push(<span key={`text-${lastIndex}`}>{repostContent.substring(lastIndex, match.index)}</span>);
       }
       
       parts.push(
@@ -1124,8 +880,8 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
       lastIndex = match.index + match[0].length;
     }
     
-    if (lastIndex < repostText.length) {
-      parts.push(<span key={`text-end`}>{repostText.substring(lastIndex)}</span>);
+    if (lastIndex < repostContent.length) {
+      parts.push(<span key={`text-end`}>{repostContent.substring(lastIndex)}</span>);
     }
     
     return (
@@ -1152,13 +908,13 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
   
   const handleCreateRepost = async () => {
     
-    if (isReposting) return;
+    if (repostLoading) return;
     
     try {
-      setIsReposting(true);
+      setRepostLoading(true);
       
       const response = await axios.post(`/api/posts/${post.id}/repost`, {
-        text: repostText
+        text: repostContent
       });
       
       
@@ -1193,7 +949,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
       );
       setSnackbarOpen(true);
     } finally {
-      setIsReposting(false);
+      setRepostLoading(false);
     }}
 
   
@@ -1201,9 +957,6 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     e.preventDefault();
     e.stopPropagation();
     console.log("Comment button clicked, opening overlay for post ID:", post.id);
-    
-    
-    
     openPostDetail(post.id, e);
   };
   
@@ -1271,7 +1024,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     console.log("Opening post comments from context menu, ID:", post.id);
     
     
-    openPostDetail(post.id);
+    setPostDetail(post.id);
   };
 
   
@@ -1403,14 +1156,13 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
   
   const handleReportSubmit = async () => {
     if (!reportDialog.reason) {
-      setReportDialog({...reportDialog, error: "Пожалуйста, выберите причину жалобы"});
+      setReportDialog({...reportDialog, error: t('post.report_dialog.select_reason')});
       return;
     }
     
     setReportDialog({...reportDialog, submitting: true, error: null});
     
     try {
-      
       
       const reportMessage = `🚨 *ЖАЛОБА НА ПОСТ*\n\n` +
         `📝 *ID поста*: ${post.id}\n` +
@@ -1436,14 +1188,14 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
           setReportDialog({open: false, reason: '', submitting: false, submitted: false, error: null});
         }, 2000);
       } else {
-        throw new Error(response.data?.error || "Ошибка при отправке жалобы");
+        throw new Error(response.data?.error || t('post.report_dialog.error'));
       }
     } catch (error) {
       console.error("Error submitting report:", error);
       setReportDialog({
         ...reportDialog, 
         submitting: false, 
-        error: error.response?.data?.error || "Не удалось отправить жалобу. Попробуйте позже."
+        error: error.response?.data?.error || t('post.report_dialog.error')
       });
     }
   };
@@ -1454,13 +1206,62 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
     setReportDialog({...reportDialog, open: true});
   };
 
-  const { openPostDetail } = usePostDetail();
-  
+  const handleFactsClick = () => {
+    handleMenuClose();
+    setFactModal({ ...factModal, open: true });
+  };
+
+  const handleFactModalClose = () => {
+    setFactModal({ open: false, loading: false, error: null });
+  };
+
+  const handleFactSubmit = async (factData) => {
+    setFactModal({ ...factModal, loading: true, error: null });
+    
+    try {
+      if (post.fact) {
+        // Обновляем существующий факт
+        await axios.put(`/api/facts/${post.fact.id}`, factData);
+      } else {
+        // Создаем новый факт и привязываем к посту
+        const factResponse = await axios.post('/api/facts', factData);
+        const factId = factResponse.data.fact.id;
+        await axios.post(`/api/posts/${post.id}/attach-fact`, { fact_id: factId });
+      }
+      
+      // Перезагружаем страницу для обновления данных
+      window.location.reload();
+    } catch (error) {
+      console.error('Error submitting fact:', error);
+      setFactModal({ 
+        ...factModal, 
+        loading: false, 
+        error: error.response?.data?.error || 'Ошибка при сохранении факта' 
+      });
+    }
+  };
+
+  const handleFactDelete = async () => {
+    setFactModal({ ...factModal, loading: true, error: null });
+    
+    try {
+      // Отвязываем факт от поста
+      await axios.delete(`/api/posts/${post.id}/detach-fact`);
+      
+      // Перезагружаем страницу для обновления данных
+      window.location.reload();
+    } catch (error) {
+      console.error('Error deleting fact:', error);
+      setFactModal({ 
+        ...factModal, 
+        loading: false, 
+        error: error.response?.data?.error || 'Ошибка при удалении факта' 
+      });
+    }
+  };
+
   const handlePostClick = (e) => {
     if (e.target.closest('a, button')) return; 
-    
-    
-    
     incrementViewCount();
   };
   
@@ -1478,46 +1279,50 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
   const getContextMenuItems = () => {
     const items = [];
     
-    
     items.push({
       id: 'share',
-      label: 'Копировать ссылку',
-      icon: <ShareIcon fontSize="small" />,
+      label: t('post.context_menu.copy_link'),
+      icon: <Link2 size={16} />,
       onClick: handleCopyLink 
     });
     
-    
     items.push({
       id: 'comment',
-      label: 'Комментировать',
-      icon: <ChatBubbleOutlineIcon fontSize="small" />,
+      label: t('post.context_menu.comment'),
+      icon: <MessageCircle size={16} />,
       onClick: handleOpenPostFromMenu 
     });
     
+    // Добавляем кнопку "Факты" для пользователя с ID 3
+    if (currentUser && currentUser.id === 3) {
+      items.push({
+        id: 'facts',
+        label: 'Факты',
+        icon: <FactCheckIcon fontSize="small" />,
+        onClick: handleFactsClick
+      });
+    }
     
     if (isCurrentUserPost) {
-      
       if (isPostEditable()) {
         items.push({
           id: 'edit',
-          label: 'Редактировать',
+          label: t('post.context_menu.edit'),
           icon: <EditIcon fontSize="small" />,
           onClick: () => handleEdit()
         });
       }
       
-      
       items.push({
         id: 'delete',
-        label: 'Удалить',
+        label: t('post.context_menu.delete'),
         icon: <DeleteIcon fontSize="small" />,
         onClick: () => handleDelete()
       });
     } else {
-      
       items.push({
         id: 'report',
-        label: 'Пожаловаться',
+        label: t('post.context_menu.report'),
         icon: <FlagIcon fontSize="small" />,
         onClick: () => handleReportClick()
       });
@@ -1681,11 +1486,11 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
       
       const loadSpiderAnimation = async () => {
         try {
-          const response = await fetch('/static/json/error/spider.json?_nocache=' + Date.now());
+          const response = await fetch('https://k-connect.ru/static/json/error/spider.json');
           const animationData = await response.json();
           setSpiderAnimation(animationData);
         } catch (error) {
-          console.error('Ошибка загрузки анимации:', error);
+          console.error(t('post.media_error.animation_load_error'), error);
         }
       };
       
@@ -1704,17 +1509,235 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
           </LottieWrapper>
         )}
         <Typography variant="h6" gutterBottom>
-          {type === 'image' ? 'Не удалось загрузить изображение' : 'Не удалось загрузить видео'}
+          {type === 'image' ? t('post.media_error.image_load_error') : t('post.media_error.video_load_error')}
         </Typography>
         <Typography variant="body2">
           {type === 'image' 
-            ? 'Файл был удален или недоступен.' 
-            : 'Видео не найдено или формат не поддерживается вашим браузером.'}
+            ? t('post.media_error.image_deleted')
+            : t('post.media_error.video_format')}
         </Typography>
       </MediaErrorContainer>
     );
   };
   
+  // Add pin post handler
+  const handlePinPost = async () => {
+    try {
+      if (isPinned) {
+        await axios.post('/api/profile/unpin_post', {}, {
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        });
+        setIsPinned(false);
+        window.dispatchEvent(new CustomEvent('show-error', {
+          detail: {
+            message: t('post.pin.unpinned'),
+            shortMessage: t('post.pin.unpinned_short'),
+            notificationType: 'info',
+            animationType: 'pill'
+          }
+        }));
+        window.dispatchEvent(new CustomEvent('post-pinned-state-changed', {
+          detail: { postId: post.id, isPinned: false }
+        }));
+      } else {
+        await axios.post(`/api/profile/pin_post/${post.id}`, {}, {
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        });
+        setIsPinned(true);
+        window.dispatchEvent(new CustomEvent('show-error', {
+          detail: {
+            message: t('post.pin.pinned'),
+            shortMessage: t('post.pin.pinned_short'),
+            notificationType: 'success',
+            animationType: 'pill'
+          }
+        }));
+        window.dispatchEvent(new CustomEvent('post-pinned-state-changed', {
+          detail: { postId: post.id, isPinned: true }
+        }));
+      }
+    } catch (error) {
+      console.error(t('post.pin.pin_error'), error);
+      window.dispatchEvent(new CustomEvent('show-error', {
+        detail: {
+          message: t('post.pin.error'),
+          shortMessage: t('post.pin.error_short'),
+          notificationType: 'error'
+        }
+      }));
+    }
+  };
+
+  const markdownComponents = {
+    ...linkRenderers,
+    code({node, inline, className, children, ...props}) {
+      const match = /language-(\w+)/.exec(className || '');
+      return !inline && match ? (
+        <SyntaxHighlighter
+          style={vscDarkPlus}
+          language={match[1]}
+          PreTag="div"
+          customStyle={{
+            backgroundColor: 'transparent'
+          }}
+          {...props}
+        >
+          {String(children).replace(/\n$/, '')}
+        </SyntaxHighlighter>
+      ) : (
+        <code className={className} {...props}>
+          {children}
+        </code>
+      );
+    }
+  };
+
+  // NSFW Overlay (монотонный стиль)
+  const NSFWOverlay = (
+    <Box
+      sx={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: 2,
+        borderRadius: '12px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: isMobile ? 2 : 4,
+        textAlign: 'center',
+        overflow: 'hidden',
+      }}
+    >
+      <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', mb: isMobile ? 1 : 2 }}>
+        <ShieldOutlinedIcon sx={{ fontSize: isMobile ? 48 : 72, color: '#bdbdbd' }} />
+        <Typography
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -54%)',
+            color: '#fff',
+            fontWeight: 700,
+            fontSize: isMobile ? 8 : 14,
+            letterSpacing: 0.5,
+            userSelect: 'none',
+            pointerEvents: 'none',
+            textShadow: '0 1px 2px rgba(0,0,0,0.18)'
+          }}
+        >
+          18+
+        </Typography>
+      </Box>
+      <Typography variant="h6" sx={{ fontWeight: 500, mb: isMobile ? 1 : 2, color: '#fff', fontSize: isMobile ? '1rem' : '1.25rem' }}>
+        Деликатный контент
+      </Typography>
+      <Button
+        variant="contained"
+        disableElevation
+        sx={{
+          borderRadius: '8px',
+          fontWeight: 500,
+          mb: isMobile ? 1 : 2,
+          background: '#5c5b5e',
+          color: '#fff',
+          boxShadow: 'none',
+          fontSize: isMobile ? '0.75rem' : '0.85rem',
+          px: isMobile ? 0.5 : 1,
+          py: isMobile ? 0.25 : 0.5,
+        }}
+        onClick={() => setShowSensitive(true)}
+      >
+        Посмотреть
+      </Button>
+      <Typography variant="caption" sx={{ color: '#bdbdbd', opacity: 0.7, mt: isMobile ? 1 : 2, fontSize: isMobile ? '0.75rem' : '0.9rem', wordBreak: 'break-word', maxWidth: '100%' }}>
+        Тут может быть шокирующий контент
+      </Typography>
+    </Box>
+  );
+
+  // Добавляем эффект для hover-появления аватарок
+  useEffect(() => {
+    const likeBox = document.querySelectorAll('.like-avatars');
+    const parentBox = document.querySelectorAll('[data-like-parent]');
+    parentBox.forEach((el, idx) => {
+      el.onmouseenter = () => {
+        if (likeBox[idx]) {
+          likeBox[idx].style.opacity = 1;
+          likeBox[idx].style.pointerEvents = 'auto';
+          likeBox[idx].style.transform = 'translateY(-50%) translateX(8px)';
+        }
+      };
+      el.onmouseleave = () => {
+        if (likeBox[idx]) {
+          likeBox[idx].style.opacity = 0;
+          likeBox[idx].style.pointerEvents = 'none';
+          likeBox[idx].style.transform = 'translateY(-50%)';
+        }
+      };
+    });
+    return () => {
+      parentBox.forEach((el, idx) => {
+        el.onmouseenter = null;
+        el.onmouseleave = null;
+      });
+    };
+  }, [lastLikedUsers, isMobile]);
+
+  const FactCard = styled(Box)(({ theme }) => ({
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(2),
+    padding: theme.spacing(2),
+    borderRadius: '12px',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    position: 'relative',
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '4px',
+      height: '100%',
+      backgroundColor: '#FFA726',
+      borderRadius: '2px 0 0 2px',
+    }
+  }));
+
+  const FactHeader = styled(Box)(({ theme }) => ({
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: theme.spacing(1.5),
+    gap: theme.spacing(0.5),
+  }));
+
+  const FactTitle = styled(Typography)(({ theme }) => ({
+    fontWeight: 600,
+    fontSize: '0.9rem',
+    color: 'rgba(255, 255, 255, 0.9)',
+  }));
+
+  const FactText = styled(Typography)(({ theme }) => ({
+    fontSize: '0.85rem',
+    lineHeight: 1.5,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginBottom: theme.spacing(1.5),
+  }));
+
+  const FactFooter = styled(Typography)(({ theme }) => ({
+    fontSize: '0.75rem',
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontStyle: 'italic',
+  }));
+
   return (
     <>
       <svg style={{ position: 'absolute', width: 0, height: 0 }}>
@@ -1728,22 +1751,22 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
       </svg>
       
       <PostCard
-        ref={postRef}
-        elevation={0} 
-        onClick={(e) => {
-          handlePostClick(e);
-          handleClick(e);
-        }}
+        isPinned={isPinned}
+        statusColor={statusColor}
+        onClick={handlePostClick}
+        onContextMenu={handlePostContextMenu}
         onDoubleClick={handleDoubleClick}
         onTouchStart={handleTouchStart}
-        onContextMenu={handlePostContextMenu}
+        ref={postRef}
+        elevation={0} 
         sx={{
           overflow: 'visible',
           mb: 1,
-          borderRadius: 2,
-          bgcolor: 'background.paper',
-          border: post.type === 'stena' ? `1px solid ${theme.palette.primary.main}40` : '1px solid',
-          borderColor: post.type === 'stena' ? 'primary.main' : 'divider',
+          borderRadius: 1,
+          border: isPinned 
+            ? `1px solid ${statusColor ? `${statusColor}33` : 'rgba(140, 82, 255, 0.2)'}` 
+            : '1px solid rgba(255, 255, 255, 0.1)',
+          borderColor: isPinned ? (statusColor || 'primary.main') : 'divider',
           cursor: 'auto',
           position: 'relative',
         }}
@@ -1766,7 +1789,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                 transform: `rotate(${heart.rotation}deg)`
               }}
             >
-              <FavoriteIcon style={{ fontSize: heart.size }} />
+              <Heart size={heart.size} />
             </HeartAnimation>
           ))}
         </AnimatePresence>
@@ -1806,10 +1829,20 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                 >
                   {post.user?.name}
                   
+                  {isPinned && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', ml: 1 }}>
+                      <Tooltip title={t('post.pin.tooltip')}>
+                        <PushPinIcon sx={{ 
+                          fontSize: 16, 
+                          color: statusColor || 'primary.main'
+                        }} />
+                      </Tooltip>
+                    </Box>
+                  )}
                   
                   {(post.user?.account_type === 'channel' || post.user?.is_channel === true) && (
                     <ChannelTag 
-                      label="Канал"
+                      label={t('post.channel.label')}
                       size="small"
                       sx={{ ml: 1, height: 20 }}
                     />
@@ -1851,12 +1884,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                       }} 
                       src={`/static/images/bages/${post.user.achievement.image_path}`} 
                       alt={post.user.achievement.bage}
-                      onError={(e) => {
-                        console.error("Achievement badge failed to load:", e);
-                        if (e.target && e.target instanceof HTMLImageElement) {
-                          e.target.style.display = 'none';
-                        }
-                      }}
+                      onError={safeImageError}
                     />
                   )}
                 </Typography>
@@ -1881,7 +1909,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
               
               {processedContent && (
                 <ReactMarkdown 
-                  components={linkRenderers}
+                  components={markdownComponents}
                   skipHtml={false}
                   transformLinkUri={null} 
                   remarkPlugins={[]}
@@ -1947,7 +1975,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             >
               {/* Заголовок с информацией о репосте */}
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-                <RepeatIcon sx={{ fontSize: 16, mr: 0.5, color: theme.palette.primary.main }} />
+                <Repeat2 size={16} color={theme.palette.primary.main} style={{ marginRight: '4px' }} />
                 <Typography 
                   variant="caption" 
                   color="text.secondary"
@@ -2029,27 +2057,41 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                 }}
               >
                 {post.original_post.content && (
-                  <Typography variant="body2" sx={{ mb: 1, color: 'text.primary', fontSize: '0.9rem', whiteSpace: 'pre-wrap' }}>
-                    {truncateText(post.original_post.content, 500)}
-                    {post.original_post.content.length > 500 && (
-                      <Box 
-                        component="span" 
-                        sx={{ 
-                          color: 'primary.main', 
-                          cursor: 'pointer',
-                          display: 'inline-block',
-                          fontSize: '0.85rem',
-                          ml: 0.5
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openPostDetail(post.original_post.id);
-                        }}
-                      >
-                        Читать далее
-                      </Box>
-                    )}
-                  </Typography>
+                  <Box sx={{ mb: 1 }}>
+                    <Typography variant="body2" sx={{ color: 'text.primary', fontSize: '0.9rem', whiteSpace: 'pre-wrap' }}>
+                      {truncateText(post.original_post.content, 500)}
+                      {post.original_post.content.length > 500 && (
+                        <Box 
+                          component="span" 
+                          sx={{ 
+                            color: 'primary.main', 
+                            cursor: 'pointer',
+                            display: 'inline-block',
+                            fontSize: '0.85rem',
+                            ml: 0.5
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openPostDetail(post.original_post.id);
+                          }}
+                        >
+                          Читать далее
+                        </Box>
+                      )}
+                    </Typography>
+                    
+                    {/* Отображение ссылок для репоста */}
+                    {(() => {
+                      const { urls } = processTextWithLinks(truncateText(post.original_post.content, 500), theme);
+                      return urls.length > 0 && (
+                        <Box sx={{ mt: 1 }}>
+                          {urls.map((url, index) => (
+                            <LinkPreview key={`repost-link-${index}`} url={url} />
+                          ))}
+                        </Box>
+                      );
+                    })()}
+                  </Box>
                 )}
                 
                 {/* Replacing the single image with our new RepostImageGrid component */}
@@ -2079,6 +2121,103 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                   </Box>
                 )}
                 
+                {/* Блок фактов оригинального поста в репосте */}
+                {post.original_post.fact && (
+                  <Box
+                    sx={{
+                      mt: 1.5,
+                      p: 1.5,
+                      borderRadius: '8px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                      backdropFilter: 'blur(8px)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      position: 'relative',
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '8px',
+                        height: '100%',
+                        backgroundColor: '#6e5a9d',
+                        borderRadius: '8px 0 0 8px',
+                      }
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: '0.8rem',
+                          color: 'rgba(255, 255, 255, 0.9)',
+                        }}
+                      >
+                        Проверка фактов
+                      </Typography>
+                      <Tooltip 
+                        title="Это разъяснение было предоставлено организацией"
+                        placement="top"
+                        arrow
+                        sx={{
+                          '& .MuiTooltip-tooltip': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            backdropFilter: 'blur(10px)',
+                            fontSize: '0.7rem',
+                            maxWidth: 180,
+                          }
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: 14,
+                            height: 14,
+                            borderRadius: '50%',
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                            border: '1px solid rgba(255, 255, 255, 0.2)',
+                            cursor: 'help',
+                            fontSize: '0.65rem',
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            '&:hover': {
+                              backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                            }
+                          }}
+                        >
+                          ?
+                        </Box>
+                      </Tooltip>
+                    </Box>
+                    
+                    <Typography
+                      sx={{
+                        fontSize: '0.75rem',
+                        lineHeight: 1.4,
+                        color: 'rgba(255, 255, 255, 0.8)',
+                      }}
+                    >
+                      {post.original_post.fact.explanation_text}
+                    </Typography>
+                    
+                    <Typography
+                      sx={{
+                        fontSize: '0.7rem',
+                        color: 'rgba(255, 255, 255, 0.6)',
+                        fontStyle: 'italic',
+                      }}
+                    >
+                      Предоставлено {post.original_post.fact.who_provided}
+                    </Typography>
+                  </Box>
+                )}
+                
                 {/* Статистика оригинального поста */}
                 <Box sx={{ 
                   display: 'flex', 
@@ -2095,14 +2234,14 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                   
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <FavoriteBorderIcon sx={{ fontSize: 12, mr: 0.5, color: 'text.secondary' }} />
+                      <Heart size={12} color="text.secondary" style={{ marginRight: '4px' }} />
                       <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
                         {post.original_post.likes_count || 0}
                       </Typography>
                     </Box>
                     
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <ChatBubbleOutlineIcon sx={{ fontSize: 12, mr: 0.5, color: 'text.secondary' }} />
+                      <MessageCircle size={12} color="text.secondary" style={{ marginRight: '4px' }} />
                       <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
                         {post.original_post.comments_count || 0}
                       </Typography>
@@ -2121,23 +2260,13 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
           )}
           
           {videoUrl && mediaError.type !== 'video' ? (
-            <Box sx={{ 
-              mb: 2,
-              position: 'relative',
-              borderRadius: '8px',
-              overflow: 'hidden',
-              transition: 'transform 0.2s ease',
-              '&:hover': {
-                transform: 'scale(1.01)',
-              }
-            }}
-            data-no-navigate
-            >
-              <VideoPlayer 
-                videoUrl={videoUrl} 
-                poster={images.length > 0 ? formatVideoUrl(images[0]) : undefined}
-                onError={() => handleVideoError(videoUrl)}
-              />
+            <Box sx={{ mb: 2, position: 'relative', borderRadius: '12px', overflow: 'hidden' }} data-no-navigate>
+              <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+                <Box sx={{ filter: post.is_nsfw && !showSensitive ? 'blur(16px)' : 'none', transition: 'filter 0.3s', pointerEvents: post.is_nsfw && !showSensitive ? 'none' : 'auto', width: '100%', height: '100%' }}>
+                  <VideoPlayer videoUrl={videoUrl} poster={images.length > 0 ? formatVideoUrl(images[0]) : undefined} onError={() => handleVideoError(videoUrl)} />
+                </Box>
+                {post.is_nsfw && !showSensitive && NSFWOverlay}
+              </Box>
             </Box>
           ) : mediaError.type === 'video' && (
             <Box sx={{ mb: 2 }}>
@@ -2147,21 +2276,13 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
           
           
           {images.length > 0 && mediaError.type !== 'image' ? (
-            <Box sx={{ 
-              mb: 2, 
-              width: '100%', 
-              position: 'relative',
-              '&:hover::after': {
-                opacity: 0.7,
-              }
-            }}
-            data-no-navigate
-            >
-              <ImageGrid 
-                images={images}
-                onImageClick={handleOpenImage}
-                onImageError={handleImageError}
-              />
+            <Box sx={{ mb: 2, width: '100%', position: 'relative', borderRadius: '12px', overflow: 'hidden' }} data-no-navigate>
+              <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+                <Box sx={{ filter: post.is_nsfw && !showSensitive ? 'blur(16px)' : 'none', transition: 'filter 0.3s', pointerEvents: post.is_nsfw && !showSensitive ? 'none' : 'auto', width: '100%', height: '100%' }}>
+                  <ImageGrid images={images} onImageClick={handleOpenImage} onImageError={handleImageError} />
+                </Box>
+                {post.is_nsfw && !showSensitive && NSFWOverlay}
+              </Box>
             </Box>
           ) : mediaError.type === 'image' && (
             <Box sx={{ mb: 2 }}>
@@ -2176,8 +2297,8 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                 <MusicTrack key={`track-${index}`} onClick={(e) => handleTrackPlay(track, e)}>
                   <Box 
                     sx={{ 
-                      width: 40, 
-                      height: 40, 
+                      width: 48, 
+                      height: 48, 
                       borderRadius: '8px', 
                       overflow: 'hidden', 
                       position: 'relative',
@@ -2198,9 +2319,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                         height: '100%', 
                         objectFit: 'cover' 
                       }}
-                      onError={(e) => {
-                        e.target.src = '/uploads/system/album_placeholder.jpg';
-                      }}
+                      onError={safeImageError}
                     />
                     <Box 
                       sx={{ 
@@ -2253,260 +2372,205 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             </Box>
           )}
           
-          
-          <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, px: 1, justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              
-              <ActionsPill>
-                
-                <ActionItem 
-                  onClick={handleLike}
-                  islike={true}
-                  active={liked}
-                >
-                  <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                    {liked ? (
-                      <Icon 
-                        icon="solar:heart-bold" 
-                        color={primaryColor} 
-                        width={18} 
-                        height={18}
-                      />
-                    ) : (
-                      <Icon 
-                        icon="solar:heart-linear" 
-                        width={18} 
-                        height={18} 
-                        color="rgba(255, 255, 255, 0.8)"
-                      />
-                    )}
-                  </Box>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center',
-                    ml: 0.5
-                  }}>
-                    {lastLikedUsers.length > 0 && (
-                      <AvatarGroup 
-                        max={3}
-                        spacing="small"
-                        sx={{ 
-                          mr: 0.5,
-                          '& .MuiAvatar-root': {
-                            width: 18,
-                            height: 18,
-                            fontSize: '0.7rem',
-                            border: '1px solid rgba(0, 0, 0, 0.1)',
-                            '&:hover': {
-                              zIndex: 10,
-                              transform: 'scale(1.3)',
-                              transition: 'transform 0.2s ease'
-                            }
-                          }
-                        }}
-                      >
-                        {lastLikedUsers.map(user => {
-                          
-                          let avatarUrl = user.avatar || user.photo || '';
-                          
-                          
-                          if (avatarUrl && !avatarUrl.startsWith('/') && !avatarUrl.startsWith('http')) {
-                            avatarUrl = `/static/uploads/avatar/${user.id}/${avatarUrl}`;
-                          }
-                          
-                          
-                          if (avatarUrl && !avatarUrl.includes('format=webp') && 'imageRendering' in document.documentElement.style) {
-                            
-                            if (avatarUrl.startsWith('/static/')) {
-                              avatarUrl = `${avatarUrl}${avatarUrl.includes('?') ? '&' : '?'}format=webp`;
-                            }
-                          }
-                          
-                          return (
-                            <Avatar 
-                              key={user.id} 
-                              src={avatarUrl}
-                              alt={user.name}
-                              sx={{ width: 18, height: 18 }}
-                              onError={(e) => {
-                                console.log(`Error loading avatar for user ${user.id}`);
-                                e.target.onerror = null; 
-                                e.target.src = `/static/uploads/avatar/system/avatar.png`;
-                              }}
-                            >
-                              {user.name ? user.name[0] : '?'}
-                            </Avatar>
-                          );
-                        })}
-                      </AvatarGroup>
-                    )}
-                    {likesCount > 0 && (
-                      <Typography 
-                        variant="body2" 
-                        color={liked ? 'primary' : 'text.secondary'}
-                      >
-                        {likesCount}
-                      </Typography>
-                    )}
-                  </Box>
-                </ActionItem>
-                
-                
-                <ActionItem
-                  onClick={handleCommentClick}
-                  islike={false}
+          {/* Блок фактов */}
+          {post?.fact && (
+            <Box
+              sx={{
+                mt: 1,
+                mb: 1,
+                p: 2,
+                borderRadius: '8px',
+                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                backdropFilter: 'blur(50px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                position: 'relative',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '8px',
+                  height: '100%',
+                  backgroundColor: '#6e5a9d',
+                  borderRadius: '8px 0 0 8px',
+                }
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  mb: 1,
+                  gap: 0.5,
+                }}
+              >
+                <Typography
                   sx={{
-                    position: 'relative',
-                    '&:hover': {
-                      bgcolor: 'rgba(140, 82, 255, 0.08)',
-                      '& .MuiSvgIcon-root': {
-                        color: 'primary.main',
-                      },
-                      '& .MuiTypography-root': {
-                        color: 'primary.main',
-                      }
-                    },
-                    transition: 'all 0.2s ease',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    color: 'rgba(255, 255, 255, 0.9)',
                   }}
                 >
-                  {post?.total_comments_count > 0 || post?.comments_count > 0 ? (
-                    <ChatBubbleIcon 
-                      sx={{ 
-                        color: 'text.secondary',
-                        position: 'relative', 
-                        zIndex: 2,
-                        fontSize: { xs: 16, sm: 19 }
-                      }}
-                    />
-                  ) : (
-                    <ChatBubbleOutlineIcon 
-                      sx={{ 
-                        color: 'text.secondary',
-                        position: 'relative',
-                        zIndex: 2,
-                        fontSize: { xs: 16, sm: 19 }
-                      }}
-                    />
-                  )}
-                  {(post?.total_comments_count > 0 || post?.comments_count > 0) && (
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary" 
-                      sx={{ 
-                        ml: 0.5,
-                        position: 'relative',
-                        zIndex: 2
-                      }}
-                    >
-                      {post?.total_comments_count || post?.comments_count}
-                    </Typography>
-                  )}
-                </ActionItem>
-              </ActionsPill>
-              
-              {/* Кнопка репоста */}
-              <SharePill 
-                onClick={handleRepostClick}
-                component={motion.div}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                sx={{ 
-                  mr: 1,
-                  bgcolor: reposted ? 'rgba(140, 82, 255, 0.08)' : 'rgba(40, 40, 50, 0.4)',
-                  borderColor: reposted ? 'rgba(140, 82, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)'
-                }}
-              >
-                <RepeatIcon sx={{ 
-                  fontSize: { xs: 16, sm: 19 },
-                  color: reposted ? 'primary.main' : 'text.secondary',
-                  position: 'relative',
-                  zIndex: 2
-                }} />
-              </SharePill>
-              
-              {/* Кнопка шаринга */}
-              <SharePill 
-                onClick={handleShare}
-                component={motion.div}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <ShareRoundedIcon sx={{ 
-                  fontSize: { xs: 16, sm: 19 },
-                  color: 'text.secondary',
-                  position: 'relative',
-                  zIndex: 2
-                }} />
-              </SharePill>
-            </Box>
-            
-            
-            <ViewMenuPill>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <VisibilityIcon sx={{ fontSize: 16, mr: 0.5, color: 'text.secondary' }} />
-                <Typography variant="caption" sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
-                  {viewsCount}
+                  Проверка фактов
                 </Typography>
+                <Tooltip 
+                  title="Это разъяснение было предоставлено организацией"
+                  placement="top"
+                  arrow
+                  sx={{
+                    '& .MuiTooltip-tooltip': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                      backdropFilter: 'blur(10px)',
+                      fontSize: '0.75rem',
+                      maxWidth: 200,
+                    }
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 16,
+                      height: 16,
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      cursor: 'help',
+                      fontSize: '0.7rem',
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                      }
+                    }}
+                  >
+                    ?
+                  </Box>
+                </Tooltip>
               </Box>
-              <IconButton 
-                size="small"
-                aria-label="Действия с постом"
-                onClick={handleMenuOpen}
-                sx={{ 
-                  ml: 0.5,
-                  p: 0.5,
-                  color: 'text.secondary',
+              
+              <Typography
+                sx={{
+                  fontSize: '0.85rem',
+                  lineHeight: 1.5,
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  mb: 1.5,
                 }}
-                data-no-navigate
               >
-                <Icon icon="solar:menu-dots-bold" width="18" height="18" />
-              </IconButton>
-              <BlurredMenu
-                anchorEl={menuAnchorEl}
-                open={menuOpen}
-                onClose={handleMenuClose}
-                onClick={(e) => e.stopPropagation()}
-                PaperProps={{
-                  sx: {
-                    bgcolor: '#1E1E1E',
-                    boxShadow: '0 5px 15px rgba(0, 0, 0, 0.2)',
-                    mt: 1
-                  }
+                {post.fact.explanation_text}
+              </Typography>
+              
+              <Typography
+                sx={{
+                  fontSize: '0.75rem',
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  fontStyle: 'italic',
                 }}
-                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
               >
-                
-                {isCurrentUserPost && (
-                  <MenuItem onClick={handleDelete} sx={{ color: '#f44336' }}>
-                    <ListItemIcon>
-                      <DeleteIcon fontSize="small" sx={{ color: '#f44336' }} />
-                    </ListItemIcon>
-                    <ListItemText primary="Удалить" />
-                  </MenuItem>
+                Это разъяснение было предоставлено {post.fact.who_provided}
+              </Typography>
+            </Box>
+          )}
+          
+          <Box sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mt: 2,
+            gap: 1.7 // уменьшено с 2
+          }}>
+            {/* Левая группа: лайк, коммент, репост, поделиться */}
+            <Box sx={{
+              display: 'flex',
+              gap: 1.7, // уменьшено с 2
+              background: 'rgba(0, 0, 0, 0.05)',
+              backdropFilter: 'blur(40px)',
+              border: '1px solid #333',
+              borderRadius: '10px', // было 12px
+              px: 2.5, // было 3
+              py: 0.85, // было 1
+              alignItems: 'center',
+              minWidth: 185 // было 220
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.85, cursor: 'pointer', position: 'relative' }} onClick={handleLike} data-like-parent>
+                {liked ? <Heart size={21} color={theme.palette.primary.main} fill={theme.palette.primary.main} /> : <Heart size={21} color="#fff" />}
+                <Typography sx={{ color: '#fff', fontSize: '0.85rem', ml: 0.4 }}>{likesCount > 0 ? likesCount : ''}</Typography>
+                {/* Аватарки последних лайкнувших — появляются при наведении */}
+                {!isMobile && lastLikedUsers.length > 0 && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      left: '110%',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      opacity: 0,
+                      pointerEvents: 'none',
+                      transition: 'opacity 0.25s cubic-bezier(.4,2,.6,1), transform 0.25s cubic-bezier(.4,2,.6,1)',
+                      zIndex: 20,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
+                    }}
+                    className="like-avatars"
+                  >
+                    {lastLikedUsers.slice(0, 3).map((user, index) => {
+                      const avatarUrl = user.avatar_url || (user.avatar ? `/static/uploads${user.avatar}` : null) || `/static/uploads/avatar/${user.id}/${user.photo || 'avatar.png'}`;
+                      return (
+                        <Avatar
+                          key={user.id}
+                          src={avatarUrl}
+                          alt={user.name}
+                          sx={{
+                            width: 22,
+                            height: 22,
+                            border: '1.5px solid #fff',
+                            ml: index > 0 ? -0.7 : 0,
+                            zIndex: 3 - index,
+                            background: '#eee',
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.10)',
+                            transition: 'transform 0.18s',
+                            '&:hover': {
+                              transform: 'scale(1.13)',
+                              zIndex: 10
+                            }
+                          }}
+                          onError={safeImageError}
+                        />
+                      );
+                    })}
+                  </Box>
                 )}
-                
-                
-                {isCurrentUserPost && (
-                  <MenuItem onClick={handleEdit} sx={{ color: '#2196f3' }}>
-                    <ListItemIcon>
-                      <EditIcon fontSize="small" sx={{ color: '#2196f3' }} />
-                    </ListItemIcon>
-                    <ListItemText primary="Изменить" />
-                  </MenuItem>
-                )}
-                
-                
-                {!isCurrentUserPost && (
-                  <MenuItem onClick={handleReportClick} sx={{ color: '#ff9800' }}>
-                    <ListItemIcon>
-                      <FlagIcon fontSize="small" sx={{ color: '#ff9800' }} />
-                    </ListItemIcon>
-                    <ListItemText primary="Пожаловаться" />
-                  </MenuItem>
-                )}
-              </BlurredMenu>
-            </ViewMenuPill>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.85, cursor: 'pointer' }} onClick={handleCommentClick}>
+                <MessageCircle size={21} color="#fff" />
+                <Typography sx={{ color: '#fff', fontSize: '0.85rem', ml: 0.4 }}>{(post?.total_comments_count || post?.comments_count) > 0 ? (post?.total_comments_count || post?.comments_count) : ''}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.85, cursor: 'pointer' }} onClick={handleRepostClick}>
+                <Repeat2 size={21} color="#fff" />
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.85, cursor: 'pointer' }} onClick={handleShare}>
+                <Link2 size={21} color="#fff" />
+              </Box>
+            </Box>
+
+            {/* Правая группа: просмотры и меню */}
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              background: 'rgba(0, 0, 0, 0.05)',
+              backdropFilter: 'blur(40px)',
+              border: '1px solid #333',
+              borderRadius: '10px', // было 12px
+              px: 1.7, // было 2
+              py: 0.85, // было 1
+              minWidth: 68, // было 80
+              justifyContent: 'center',
+              gap: 0.85 // было 1
+            }}>
+              <VisibilityIcon sx={{ color: '#fff', mr: 0.85, fontSize: 21 }} />
+              <Typography sx={{ color: '#fff', fontSize: '0.85rem', mr: 1.7 }}>{viewsCount}</Typography>
+              <MoreVertIcon sx={{ color: '#fff', cursor: 'pointer', fontSize: 21 }} onClick={handleMenuOpen} data-no-navigate />
+            </Box>
           </Box>
         </Box>
       </PostCard>
@@ -2518,6 +2582,60 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         message={snackbarMessage}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       />
+
+      <BlurredMenu
+        anchorEl={menuAnchorEl}
+        open={menuOpen}
+        onClose={handleMenuClose}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {currentUser && currentUser.id === 3 && (
+          <MenuItem onClick={handleFactsClick}>
+            <ListItemIcon>
+              <FactCheckIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Факты</ListItemText>
+          </MenuItem>
+        )}
+        {isCurrentUserPost && (
+          <>
+            <MenuItem onClick={handleEdit}>
+              <ListItemIcon>
+                <EditIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>{t('post.menu_actions.edit')}</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={handleDelete}>
+              <ListItemIcon>
+                <DeleteIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>{t('post.menu_actions.delete')}</ListItemText>
+            </MenuItem>
+          </>
+        )}
+        {isCurrentUserPost && (
+          <MenuItem onClick={handlePinPost}>
+            <ListItemIcon>
+              {isPinned ? <PushPinIcon fontSize="small" /> : <PushPinOutlinedIcon fontSize="small" />}
+            </ListItemIcon>
+            <ListItemText>{isPinned ? t('post.menu_actions.unpin') : t('post.menu_actions.pin')}</ListItemText>
+          </MenuItem>
+        )}
+        <MenuItem onClick={handleCopyLink}>
+          <ListItemIcon>
+            <Link2 size={16} />
+          </ListItemIcon>
+          <ListItemText>{t('post.menu_actions.copy_link')}</ListItemText>
+        </MenuItem>
+        {!isCurrentUserPost && (
+          <MenuItem onClick={handleReportClick}>
+            <ListItemIcon>
+              <FlagIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>{t('post.menu_actions.report')}</ListItemText>
+          </MenuItem>
+        )}
+      </BlurredMenu>
       
       
       <Dialog
@@ -2568,7 +2686,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             backgroundRepeat: 'no-repeat'
           }
         }}>
-          Поделиться постом
+            {t('post.repost_dialog.title')}
         </DialogTitle>
         <DialogContent sx={{ pt: 3, px: 3 }}>
           {post.type === 'repost' && (
@@ -2583,9 +2701,9 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
               display: 'flex',
               alignItems: 'flex-start'
             }}>
-              <RepeatIcon sx={{ mr: 1, fontSize: '18px', color: '#7B68EE', mt: '2px' }} />
+              <Repeat2 size={18} color="#7B68EE" style={{ marginRight: '8px', marginTop: '2px' }} />
               <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
-                Репост будет ссылаться на оригинальный пост, а не на этот репост.
+                {t('post.repost_dialog.original_post_notice')}
               </Typography>
             </Box>
           )}
@@ -2595,11 +2713,11 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
               multiline
               rows={3}
               fullWidth
-              placeholder="Добавьте комментарий к репосту (необязательно)"
-              value={repostText}
-              onChange={(e) => setRepostText(e.target.value)}
+              placeholder={t('post.repost_dialog.comment_placeholder')}
+              value={repostContent}
+              onChange={(e) => setRepostContent(e.target.value)}
               variant="outlined"
-              helperText="Вы можете упомянуть пользователей с помощью @username"
+              helperText={t('post.repost_dialog.mention_helper')}
               sx={{
                 mb: 2.5,
                 '& .MuiOutlinedInput-root': {
@@ -2712,7 +2830,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
               <Box 
                 component="img" 
                 src={post.image} 
-                alt="Изображение поста"
+                alt={t('post.media.post_image_alt')}
                 sx={{
                   width: '100%',
                   height: '120px',
@@ -2740,12 +2858,12 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
               }
             }}
           >
-            Отмена
+            {t('post.dialog.cancel')}
           </Button>
           <Button 
             onClick={handleCreateRepost} 
             variant="contained" 
-            disabled={isReposting}
+            disabled={repostLoading}
             sx={{ 
               borderRadius: '10px',
               bgcolor: '#7B68EE',
@@ -2760,9 +2878,9 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                 color: 'rgba(255, 255, 255, 0.5)'
               }
             }}
-            endIcon={isReposting ? <CircularProgress size={16} color="inherit" /> : null}
+            endIcon={repostLoading ? <CircularProgress size={16} color="inherit" /> : null}
           >
-            Репостнуть
+            {t('post.repost_dialog.repost_button')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -2811,10 +2929,10 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
               <Box sx={{ textAlign: 'center', py: 2 }}>
                 <CheckCircleIcon sx={{ fontSize: 56, color: '#4CAF50', mb: 2 }} />
                 <Typography variant="h6" sx={{ mb: 1, color: 'white' }}>
-                  Пост удален
+                  {t('post.delete_dialog.success_title')}
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                  Пост был успешно удален
+                  {t('post.delete_dialog.success_message')}
                 </Typography>
               </Box>
             </>
@@ -2830,10 +2948,10 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                   alignItems: 'center'
                 }}
               >
-                <DeleteIcon sx={{ mr: 1 }} /> Удаление поста
+                <DeleteIcon sx={{ mr: 1 }} /> {t('post.delete_dialog.title')}
               </Typography>
               <Typography sx={{ mb: 3, color: 'rgba(255, 255, 255, 0.7)' }}>
-                Вы уверены, что хотите удалить этот пост? Это действие нельзя отменить.
+                {t('post.delete_dialog.confirmation')}
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
                 <Button 
@@ -2849,7 +2967,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                     }
                   }}
                 >
-                  Отмена
+                  {t('post.delete_dialog.cancel')}
                 </Button>
                 <Button 
                   onClick={confirmDelete}
@@ -2863,7 +2981,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                   }}
                   endIcon={deleteDialog.deleting ? <CircularProgress size={16} color="inherit" /> : null}
                 >
-                  {deleteDialog.deleting ? 'Удаление...' : 'Удалить'}
+                  {deleteDialog.deleting ? t('post.delete_dialog.deleting') : t('post.delete_dialog.delete')}
                 </Button>
               </Box>
             </>
@@ -2919,24 +3037,24 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             backgroundRepeat: 'no-repeat'
           }
         }}>
-          Пожаловаться на пост
+          {t('post.report_dialog.title')}
         </DialogTitle>
         
         {reportDialog.submitted ? (
           <Box sx={{ p: 3, textAlign: 'center' }}>
             <CheckCircleIcon sx={{ fontSize: 56, color: '#4CAF50', mb: 2 }} />
             <Typography variant="h6" sx={{ mb: 1, color: 'white' }}>
-              Жалоба отправлена
+              {t('post.report_dialog.success_title')}
             </Typography>
             <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-              Спасибо за вашу бдительность! Модераторы рассмотрят вашу жалобу.
+              {t('post.report_dialog.success_message')}
             </Typography>
           </Box>
         ) : (
           <>
             <DialogContent sx={{ pt: 3, px: 3 }}>
               <Typography variant="body2" sx={{ mb: 3, color: 'rgba(255, 255, 255, 0.7)' }}>
-                Выберите причину жалобы, и наши модераторы рассмотрят этот пост. Спасибо за помощь в поддержании порядка!
+                {t('post.report_dialog.description')}
               </Typography>
               
               {reportDialog.error && (
@@ -2977,12 +3095,12 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                 ))}
               </Box>
               
-              {reportDialog.reason === "Другое" && (
+              {reportDialog.reason === t('post.report.reasons.other') && (
                 <TextField
                   fullWidth
                   multiline
                   rows={3}
-                  placeholder="Укажите причину жалобы"
+                  placeholder={t('post.report.placeholder')}
                   variant="outlined"
                   value={reportDialog.customReason || ''}
                   onChange={(e) => setReportDialog({...reportDialog, customReason: e.target.value})}
@@ -3013,7 +3131,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                 }}
               >
                 <Typography variant="caption" sx={{ display: 'block', color: 'rgba(255, 255, 255, 0.5)', mb: 1 }}>
-                  Пост пользователя {post?.user?.name}
+                  {t('post.report_dialog.post_by_user', { username: post?.user?.name })}
                 </Typography>
                 <Typography 
                   variant="body2" 
@@ -3041,7 +3159,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                   }
                 }}
               >
-                Отмена
+                {t('post.report_dialog.cancel')}
               </Button>
               <Button 
                 onClick={handleReportSubmit}
@@ -3056,7 +3174,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                   }
                 }}
               >
-                {reportDialog.submitting ? 'Отправка...' : 'Отправить жалобу'}
+                {reportDialog.submitting ? t('post.report_dialog.submitting') : t('post.report_dialog.submit')}
               </Button>
             </DialogActions>
           </>
@@ -3129,11 +3247,11 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             backgroundRepeat: 'no-repeat'
           }
         }}>
-          Редактировать пост
+          {t('post.edit_dialog.title')}
         </DialogTitle>
         <DialogContent sx={{ pt: 3, px: 3 }}>
           <Typography variant="caption" sx={{ display: 'block', color: 'rgba(255, 255, 255, 0.6)', mb: 2 }}>
-            Редактирование доступно только в течение 3 часов после публикации
+            {t('post.edit_dialog.time_limit')}
           </Typography>
           
           {editDialog.error && (
@@ -3148,7 +3266,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
             multiline
             minRows={3}
             maxRows={8}
-            label="Текст поста"
+            label={t('post.edit_dialog.post_text')}
             value={editDialog.content}
             onChange={handleEditContentChange}
             margin="normal"
@@ -3184,7 +3302,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
           {(post.images?.length > 0 || post.image) && !editDialog.deleteImages && (
             <Box sx={{ mt: 2, mb: 1 }}>
               <Typography variant="subtitle2" gutterBottom>
-                Текущие изображения
+                {t('post.edit_dialog.current_images')}
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {post.images ? post.images.map((img, idx) => (
@@ -3192,7 +3310,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                     key={`current-img-${idx}`}
                     component="img"
                     src={img}
-                    alt={`Изображение ${idx + 1}`}
+                    alt={t('post.edit_dialog.image_alt', { number: idx + 1 })}
                     sx={{ 
                       width: 80, 
                       height: 80, 
@@ -3204,7 +3322,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                   <Box 
                     component="img"
                     src={post.image}
-                    alt="Изображение поста"
+                    alt={t('post.edit_dialog.post_image_alt')}
                     sx={{ 
                       width: 80, 
                       height: 80, 
@@ -3228,7 +3346,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                     }}
                   />
                 }
-                label="Удалить существующие изображения"
+                label={t('post.edit_dialog.delete_current_images')}
                 sx={{ 
                   mt: 1,
                   color: 'rgba(255, 255, 255, 0.8)',
@@ -3244,7 +3362,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
           {post.video && !editDialog.deleteVideo && (
             <Box sx={{ mt: 2, mb: 1 }}>
               <Typography variant="subtitle2" gutterBottom>
-                Текущее видео
+                {t('post.edit_dialog.current_video')}
               </Typography>
               <Box 
                 component="video"
@@ -3270,7 +3388,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                     }}
                   />
                 }
-                label="Удалить существующее видео"
+                label={t('post.edit_dialog.delete_current_video')}
                 sx={{ 
                   mt: 1, 
                   display: 'block',
@@ -3287,7 +3405,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
           {post.music && post.music.length > 0 && !editDialog.deleteMusic && (
             <Box sx={{ mt: 2, mb: 1 }}>
               <Typography variant="subtitle2" gutterBottom>
-                Текущие аудиотреки
+                {t('post.edit_dialog.current_audio')}
               </Typography>
               <List dense>
                 {post.music.map((track, idx) => (
@@ -3318,7 +3436,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                     }}
                   />
                 }
-                label="Удалить музыку"
+                label={t('post.edit_dialog.delete_music')}
                 sx={{ 
                   mt: 0.5,
                   color: 'rgba(255, 255, 255, 0.8)',
@@ -3351,7 +3469,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                 }
               }}
             >
-              Добавить изображения
+              {t('post.edit_dialog.add_images')}
               <input
                 type="file"
                 multiple
@@ -3379,7 +3497,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
                 }
               }}
             >
-              {post.video && !editDialog.deleteVideo ? 'Удалите текущее видео' : 'Добавить видео'}
+              {post.video && !editDialog.deleteVideo ? t('post.edit_dialog.delete_current_video') : t('post.edit_dialog.add_video')}
               <input
                 type="file"
                 accept="video/*"
@@ -3430,7 +3548,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
               border: '1px solid rgba(255, 255, 255, 0.1)'
             }}>
               <Typography variant="caption" color="rgba(255, 255, 255, 0.7)">
-                Новое видео выбрано: {editDialog.newVideo.name}
+                {t('post.edit_dialog.new_video_selected', { name: editDialog.newVideo.name })}
               </Typography>
             </Box>
           )}
@@ -3451,7 +3569,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
               }
             }}
           >
-            Отмена
+            {t('post.edit_dialog.cancel')}
           </Button>
           <Button 
             onClick={handleSubmitEdit} 
@@ -3467,7 +3585,7 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
               }
             }}
           >
-            {editDialog.submitting ? 'Сохранение...' : 'Сохранить изменения'}
+            {editDialog.submitting ? t('post.edit_dialog.saving') : t('post.edit_dialog.save')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -3479,6 +3597,18 @@ const Post = ({ post, onDelete, onOpenLightbox }) => {
         y={contextMenuState.y}
         show={contextMenuState.show && contextMenuState.data?.postId === post.id}
         onClose={closeContextMenu}
+      />
+      
+      {/* Модалка для работы с фактами */}
+      <FactModal
+        open={factModal.open}
+        onClose={handleFactModalClose}
+        onSubmit={handleFactSubmit}
+        onDelete={handleFactDelete}
+        loading={factModal.loading}
+        error={factModal.error}
+        existingFact={post?.fact}
+        postId={post?.id}
       />
     </>
   );

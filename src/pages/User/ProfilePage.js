@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { 
   Box, 
   Typography, 
@@ -11,1140 +11,61 @@ import {
   Tabs, 
   Tab, 
   IconButton, 
-  Snackbar, 
-  Alert, 
-  TextField, 
   Tooltip, 
   Link as MuiLink,
-  ImageList,
-  ImageListItem,
-  Chip,
-  SvgIcon
 } from '@mui/material';
-import { styled } from '@mui/material/styles';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
+import { Link, useParams, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
-import PostService from '../../services/PostService';
 import 'react-medium-image-zoom/dist/styles.css';
 import { ThemeSettingsContext } from '../../App';
-import { formatDate } from '../../utils/dateUtils';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import TabContentLoader from '../../components/UI/TabContentLoader';
 import { UsernameCard, VerificationBadge } from '../../UIKIT';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
-import CloseIcon from '@mui/icons-material/Close';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import LinkIcon from '@mui/icons-material/Link';
-import MusicNoteIcon from '@mui/icons-material/MusicNote';
-import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined';
-import MusicSelectDialog from '../../components/Music/MusicSelectDialog';
-import InfoIcon from '@mui/icons-material/Info';
-import CakeIcon from '@mui/icons-material/Cake';
-import TodayIcon from '@mui/icons-material/Today';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
-import DiamondIcon from '@mui/icons-material/Diamond';
-import ChatIcon from '@mui/icons-material/Chat';
-import WarningIcon from '@mui/icons-material/Warning';
-import BlockIcon from '@mui/icons-material/Block';
-import { Icon } from '@iconify/react';
-import { PostsFeed, WallFeed } from './components';
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
-import ModeCommentOutlinedIcon from '@mui/icons-material/ModeCommentOutlined';
-import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
+import LinkRoundedIcon from '@mui/icons-material/LinkRounded';
+import { useLanguage } from '../../context/LanguageContext';
+// Импорты вынесенных компонентов
+import { 
+  CreatePost, 
+  TabPanel, 
+  SubscriptionBadge,
+  UpgradeEffects,
+  UserStatus,
+  InventoryTab,
+  PostsFeed, 
+  WallFeed, 
+  EquippedItem 
+} from './ProfilePage/components';
+import { getLighterColor } from './ProfilePage/utils/colorUtils';
+import { requireAuth } from './ProfilePage/utils/authUtils';
+
+import { WallPostsTab, PostsTab } from './ProfilePage/components/TabComponents';
+import ImageLightbox from './ProfilePage/components/ImageLightbox';
+import { useLightbox } from './ProfilePage/hooks/useLightbox';
+import ProfileLoader from './ProfilePage/components/ProfileLoader';
+import UserNotFound from './ProfilePage/components/UserNotFound';
+import ProfileInfo from './ProfilePage/components/ProfileInfo';
+import { useTabs } from './ProfilePage/hooks/useTabs';
+import { usePostActions } from './ProfilePage/hooks/usePostActions';
+import UserBanInfo from './ProfilePage/components/UserBanInfo';
+import UserScamBadge from './ProfilePage/components/UserScamBadge';
+import UserSubscriptionBadge from './ProfilePage/components/UserSubscriptionBadge';
+import { OwnedUsernames } from './ProfilePage/components';
+import { ProfileAbout } from './ProfilePage/components';
 
 
-const PostInput = styled(TextField)(({ theme }) => ({
-  '& .MuiInputBase-root': {
-    background: theme.palette.mode === 'dark' 
-      ? 'rgba(0, 0, 0, 0.2)'
-      : 'rgba(0, 0, 0, 0.03)',
-    backdropFilter: 'blur(5px)',
-    borderRadius: '12px',
-    border: theme.palette.mode === 'dark'
-      ? '1px solid rgba(255, 255, 255, 0.05)'
-      : '1px solid rgba(0, 0, 0, 0.05)',
-    fontSize: '0.95rem',
-    padding: theme.spacing(1, 1.5),
-    color: theme.palette.text.primary,
-    transition: 'all 0.3s ease',
-    '&:hover': {
-      borderColor: 'rgba(208, 188, 255, 0.3)',
-      background: theme.palette.mode === 'dark'
-        ? 'rgba(0, 0, 0, 0.25)'
-        : 'rgba(0, 0, 0, 0.05)',
-    },
-    '&.Mui-focused': {
-      borderColor: 'rgba(208, 188, 255, 0.5)',
-      boxShadow: '0 0 0 2px rgba(208, 188, 255, 0.1)'
-    }
-  },
-  '& .MuiOutlinedInput-notchedOutline': {
-    border: 'none'
-  },
-  width: '100%'
-}));
-
-
-const PostActions = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  justifyContent: 'space-between',
-  padding: theme.spacing(1.5, 0, 0),
-  borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-  marginTop: theme.spacing(1.5)
-}));
-
-
-
-
-
-const PublishButton = styled(Button)(({ theme }) => ({
-  borderRadius: '18px',
-  textTransform: 'none',
-  fontSize: '0.6rem',
-  fontWeight: 600,
-  boxShadow: '0 2px 8px rgba(124, 77, 255, 0.25)',
-  padding: theme.spacing(0.4, 1.5),
-  background: theme.palette.mode === 'dark'
-    ? 'linear-gradient(90deg, rgb(180 163 220) 0%, rgb(177 161 216) 100%)'
-    : 'linear-gradient(90deg, rgb(124 77 255) 0%, rgb(148 108 255) 100%)',
-  color: theme.palette.mode === 'dark' ? '#000' : '#fff',
-  '&:hover': {
-    boxShadow: '0 4px 12px rgba(124, 77, 255, 0.35)',
-  },
-  '&.Mui-disabled': {
-    background: theme.palette.mode === 'dark'
-      ? 'rgba(255, 255, 255, 0.05)'
-      : 'rgba(0, 0, 0, 0.05)',
-    color: theme.palette.mode === 'dark'
-      ? 'rgba(255, 255, 255, 0.3)'
-      : 'rgba(0, 0, 0, 0.3)'
-  }
-}));
-
-
-const CreatePost = ({ onPostCreated, postType = 'post', recipientId = null }) => {
-  const [content, setContent] = useState('');
-  const [media, setMedia] = useState(null);
-  const [mediaFiles, setMediaFiles] = useState([]);
-  const [mediaPreview, setMediaPreview] = useState([]);
-  const [mediaType, setMediaType] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef(null);
-  const [musicTracks, setMusicTracks] = useState([]);
-  const [showMusicPicker, setShowMusicPicker] = useState(false);
-  const [mediaNotification, setMediaNotification] = useState({ open: false, message: '' });
-  
-  const { user } = useContext(AuthContext);
-  const placeholderText = postType === 'stena' ? 'Че напишем?' : 'Что у вас нового?';
-  
-  
-  useEffect(() => {
-    if (error) setError('');
-  }, [content, media, mediaPreview, musicTracks, error]);
-  
-  
-  const dragCounter = useRef(0);
-  
-  const handleDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.current += 1;
-    if (dragCounter.current === 1) {
-      setIsDragging(true);
-    }
-  };
-  
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-  };
-  
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.current -= 1;
-    if (dragCounter.current === 0) {
-      setIsDragging(false);
-    }
-  };
-  
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.current = 0;
-    setIsDragging(false);
-    
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      processFiles(files);
-    }
-  };
-  
-  
-  const processFiles = (files) => {
-    if (!files.length) return;
-
-    const file = files[0];
-    const isImage = file.type.startsWith('image/');
-    const isVideo = file.type.startsWith('video/');
-
-    if (!isImage && !isVideo) {
-      setMediaNotification({
-        open: true,
-        message: 'Поддерживаются только изображения и видео'
-      });
-      return;
-    }
-
-    
-    if (mediaType && ((isImage && mediaType === 'video') || (isVideo && mediaType === 'image'))) {
-      setMediaNotification({
-        open: true,
-        message: 'Нельзя прикрепить фото и видео одновременно'
-      });
-      return;
-    }
-
-    setMediaFiles([file]);
-    setMediaType(isImage ? 'image' : 'video');
-    
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setMediaPreview([reader.result]);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleMediaChange = (e) => {
-    e.preventDefault(); 
-    
-    
-    if (!e.target.files || e.target.files.length === 0) {
-      console.error('No files selected or invalid files');
-      return;
-    }
-    
-    const files = Array.from(e.target.files);
-    console.log(`handleMediaChange: Selected ${files.length} files`, files);
-    processFiles(files);
-  };
-  
-  const handleRemoveMedia = () => {
-    setMedia(null);
-    setMediaFiles([]);
-    setMediaPreview([]);
-    setMediaType('');
-    setMusicTracks([]);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-  
-  const handlePaste = (e) => {
-    const clipboardData = e.clipboardData;
-    if (clipboardData.items) {
-      const items = clipboardData.items;
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf('image') !== -1) {
-          e.preventDefault();  
-          const file = items[i].getAsFile();
-          if (file) {
-            
-            if (mediaType && mediaType === 'video') {
-              setMediaNotification({
-                open: true,
-                message: 'Нельзя прикрепить фото и видео одновременно'
-              });
-              return;
-            }
-
-            
-            setMediaFiles(prev => [...prev, file]);
-            setMediaType('image');
-            
-            
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              setMediaPreview(prev => [...prev, reader.result]);
-            };
-            reader.readAsDataURL(file);
-            break;
-          }
-        }
-      }
-    }
-  };
-  
-  
-  const handleMusicSelect = (tracks) => {
-    setMusicTracks(tracks);
-  };
-  
-  
-  const handleRemoveTrack = (trackId) => {
-    setMusicTracks(prev => prev.filter(track => track.id !== trackId));
-  };
-  
-  const handleSubmit = async () => {
-    
-    if (!content.trim() && mediaFiles.length === 0 && musicTracks.length === 0) return;
-    
-    setIsSubmitting(true);
-    
-    try {
-      const formData = new FormData();
-      formData.append('content', content.trim());
-      
-      
-      if (postType && postType !== 'post') {
-        formData.append('type', postType);
-      }
-      
-      if (recipientId) {
-        formData.append('recipient_id', recipientId);
-      }
-      
-      
-      if (mediaType === 'images') {
-        
-        console.log(`Adding ${mediaFiles.length} images to FormData`);
-        mediaFiles.forEach((file, index) => {
-          console.log(`Adding image[${index}]:`, file.name, file.size);
-          formData.append(`images[${index}]`, file);
-        });
-      } else if (mediaType === 'image') {
-        
-        console.log("Adding single image to FormData:", mediaFiles[0].name, mediaFiles[0].size);
-        formData.append('image', mediaFiles[0]);
-      } else if (mediaType === 'video') {
-        
-        console.log("Adding video to FormData:", mediaFiles[0].name, mediaFiles[0].size);
-        formData.append('video', mediaFiles[0]);
-      }
-      
-      
-      if (musicTracks.length > 0) {
-        console.log(`Adding ${musicTracks.length} music tracks to form data`);
-        
-        const trackData = musicTracks.map(track => ({
-          id: track.id,
-          title: track.title,
-          artist: track.artist,
-          duration: track.duration,
-          file_path: track.file_path,
-          cover_path: track.cover_path
-        }));
-        formData.append('music', JSON.stringify(trackData));
-      }
-      
-      
-      console.log('Creating post with form data:');
-      for (const pair of Array.from(formData.entries())) {
-        if (pair[1] instanceof File) {
-          console.log(`${pair[0]}: File ${pair[1].name} (${pair[1].size} bytes)`);
-        } else {
-          console.log(`${pair[0]}: ${pair[1]}`);
-        }
-      }
-      
-      const response = await PostService.createPost(formData);
-      console.log('Post created:', response);
-      
-      if (response && response.success) {
-        
-        setContent('');
-        setMedia(null);
-        setMediaFiles([]);
-        setMediaPreview([]);
-        setMediaType('');
-        setMusicTracks([]);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-        
-        
-        if (onPostCreated && response.post) {
-          onPostCreated(response.post);
-        }
-        
-        
-        console.log('Post created successfully');
-      }
-    } catch (error) {
-      console.error('Error creating post:', error);
-      
-      
-      if (error.response && error.response.status === 429) {
-        const rateLimit = error.response.data.rate_limit;
-        let errorMessage = "Превышен лимит публикации постов. ";
-        
-        if (rateLimit && rateLimit.reset) {
-          
-          const resetTime = new Date(rateLimit.reset * 1000);
-          const now = new Date();
-          const diffSeconds = Math.round((resetTime - now) / 1000);
-          
-          if (diffSeconds > 60) {
-            const minutes = Math.floor(diffSeconds / 60);
-            const seconds = diffSeconds % 60;
-            errorMessage += `Следующий пост можно опубликовать через ${minutes} мин. ${seconds} сек.`;
-          } else {
-            errorMessage += `Следующий пост можно опубликовать через ${diffSeconds} сек.`;
-          }
-        } else {
-          errorMessage += "Пожалуйста, повторите попытку позже.";
-        }
-        
-        
-        setError(errorMessage);
-      } else if (error.response && error.response.data && error.response.data.error) {
-        
-        setError(error.response.data.error);
-      } else {
-        
-        setError("Произошла ошибка при создании поста. Пожалуйста, попробуйте еще раз.");
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-  
-  if (!user) return null;
-  
-  return (
-    <Paper 
-      elevation={0} 
-      sx={{ 
-        p: 2, 
-        borderRadius: 2,
-        backgroundColor: (theme) => theme.palette.background.paper,
-        position: 'relative',
-        overflow: 'hidden',
-        border: '1px solid rgba(255, 255, 255, 0.1)'
-      }}
-    >
-      {error && (
-        <Alert 
-          severity="error" 
-          sx={{ mb: 2 }}
-          onClose={() => setError('')}
-        >
-          {error}
-        </Alert>
-      )}
-      
-      <Box 
-        component="form" 
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit();
-        }}
-        sx={{ 
-          position: 'relative',
-          zIndex: 1 
-        }}
-        onDragEnter={handleDragEnter}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            flexDirection: 'column',
-            position: 'relative',
-            borderRadius: '12px',
-            border: isDragging ? '2px dashed #D0BCFF' : 'none',
-            backgroundColor: isDragging ? 'rgba(208, 188, 255, 0.05)' : 'transparent',
-            padding: isDragging ? 1 : 0,
-            transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'
-          }}
-        >
-          {isDragging && (
-            <Box 
-              sx={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexDirection: 'column',
-                backgroundColor: 'rgba(26, 26, 26, 0.7)',
-                borderRadius: '12px',
-                zIndex: 10,
-                opacity: isDragging ? 1 : 0,
-                transition: 'opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'
-              }}
-            >
-              <ImageOutlinedIcon sx={{ fontSize: 40, color: '#D0BCFF', mb: 1, filter: 'drop-shadow(0 0 8px rgba(208, 188, 255, 0.6))' }} />
-              <Typography variant="body1" color="primary" sx={{ fontWeight: 'medium', textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-                Перетащите файлы сюда
-              </Typography>
-            </Box>
-          )}
-          
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
-            <Avatar 
-              src={user.photo ? `/static/uploads/avatar/${user.id}/${user.photo}` : undefined}
-              alt={user.name}
-              sx={{ 
-                mr: 1.5, 
-                width: 40, 
-                height: 40, 
-                border: '2px solid rgba(208, 188, 255)',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  transform: 'scale(1.05)',
-                  boxShadow: '0 3px 10px rgba(0, 0, 0, 0.3)'
-                }
-              }}
-            />
-            <PostInput
-              placeholder={placeholderText}
-              multiline
-              maxRows={6}
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              onPaste={handlePaste}
-              fullWidth
-            />
-          </Box>
-          
-          
-          {mediaPreview.length > 0 && (
-            <Box sx={{ position: 'relative', mb: 2 }}>
-              <Box sx={{ 
-                position: 'relative',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                backgroundColor: 'rgba(0, 0, 0, 0.2)'
-              }}>
-                {mediaType === 'image' ? (
-                  <ImageList 
-                    sx={{ 
-                      width: '100%', 
-                      height: 'auto',
-                      maxHeight: 500,
-                      margin: 0,
-                      padding: 1
-                    }} 
-                    cols={mediaPreview.length > 3 ? 3 : mediaPreview.length} 
-                    rowHeight={164}
-                    gap={8}
-                  >
-                    {mediaPreview.map((preview, index) => (
-                      <ImageListItem 
-                        key={index}
-                        sx={{
-                          position: 'relative',
-                          borderRadius: '8px',
-                          overflow: 'hidden',
-                          border: '1px solid rgba(255, 255, 255, 0.1)'
-                        }}
-                      >
-                        <img
-                          src={preview}
-                          alt={`Preview ${index + 1}`}
-                          style={{ 
-                            objectFit: 'cover',
-                            height: '100%',
-                            width: '100%',
-                            borderRadius: '8px'
-                          }}
-                        />
-                        <IconButton
-                          onClick={() => {
-                            setMediaFiles(prev => prev.filter((_, i) => i !== index));
-                            setMediaPreview(prev => prev.filter((_, i) => i !== index));
-                            if (mediaPreview.length === 1) {
-                              setMediaType('');
-                            }
-                          }}
-                          sx={{
-                            position: 'absolute',
-                            top: 4,
-                            right: 4,
-                            backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                            color: 'white',
-                            padding: '4px',
-                            '&:hover': {
-                              backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            },
-                            backdropFilter: 'blur(4px)'
-                          }}
-                        >
-                          <CloseIcon fontSize="small" />
-                        </IconButton>
-                      </ImageListItem>
-                    ))}
-                  </ImageList>
-                ) : (
-                  <video
-                    src={mediaPreview[0]}
-                    controls
-                    style={{ 
-                      width: '100%', 
-                      maxHeight: '300px',
-                      borderRadius: '12px'
-                    }}
-                  />
-                )}
-                {mediaType === 'video' && (
-                  <IconButton
-                    onClick={handleRemoveMedia}
-                    sx={{
-                      position: 'absolute',
-                      top: 8,
-                      right: 8,
-                      backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                      color: 'white',
-                      '&:hover': {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                      },
-                      padding: '8px',
-                      backdropFilter: 'blur(4px)'
-                    }}
-                  >
-                    <CloseIcon fontSize="small" />
-                  </IconButton>
-                )}
-              </Box>
-            </Box>
-          )}
-          
-          
-          {musicTracks.length > 0 && (
-            <Box sx={{ mt: 2, mb: 1 }}>
-              {musicTracks.map(track => (
-                <Box 
-                  key={track.id}
-                  sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    py: 1, 
-                    px: 2, 
-                    mb: 1, 
-                    borderRadius: '8px',
-                    bgcolor: theme => theme.palette.mode === 'dark'
-                      ? 'rgba(255, 255, 255, 0.05)'
-                      : 'rgba(0, 0, 0, 0.03)',
-                    border: theme => theme.palette.mode === 'dark'
-                      ? '1px solid rgba(255, 255, 255, 0.08)'
-                      : '1px solid rgba(0, 0, 0, 0.05)'
-                  }}
-                >
-                  <Box 
-                    sx={{ 
-                      width: 36, 
-                      height: 36, 
-                      borderRadius: '4px', 
-                      overflow: 'hidden',
-                      mr: 1.5,
-                      position: 'relative',
-                      bgcolor: theme => theme.palette.mode === 'dark' 
-                        ? 'rgba(0, 0, 0, 0.3)'
-                        : 'rgba(0, 0, 0, 0.1)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <img 
-                      src={track.cover_path.startsWith('/static/') ? track.cover_path : `/static/uploads/music/covers/${track.cover_path}`} 
-                      alt={track.title}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      onError={(e) => {
-                        e.target.src = '/uploads/system/album_placeholder.jpg';
-                      }}
-                    />
-                    <MusicNoteIcon 
-                      sx={{ 
-                        position: 'absolute', 
-                        fontSize: 16, 
-                        color: 'rgba(255, 255, 255, 0.7)'
-                      }} 
-                    />
-                  </Box>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography variant="body2" noWrap>
-                      {track.title}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" noWrap>
-                      {track.artist}
-                    </Typography>
-                  </Box>
-                  <IconButton 
-                    size="small" 
-                    onClick={() => handleRemoveTrack(track.id)}
-                    sx={{ ml: 1 }}
-                  >
-                    <CloseIcon fontSize="small" />
-                  </IconButton>
-                </Box>
-              ))}
-            </Box>
-          )}
-          
-          <PostActions>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*,video/*"
-                onChange={handleMediaChange}
-                multiple
-                style={{ display: 'none' }}
-                id="media-upload-profile"
-              />
-              <label htmlFor="media-upload-profile">
-                <Button
-                  component="span"
-                  startIcon={<ImageOutlinedIcon sx={{ fontSize: 18 }} />}
-                  sx={{
-                    color: mediaFiles.length > 0 || musicTracks.length > 0 ? 'primary.main' : 'text.secondary',
-                    borderRadius: '10px',
-                    textTransform: 'none',
-                    fontSize: '0.8rem',
-                    fontWeight: 500,
-                    border: mediaFiles.length > 0 || musicTracks.length > 0 
-                      ? '1px solid rgba(208, 188, 255, 0.5)'
-                      : theme => theme.palette.mode === 'dark'
-                        ? '1px solid rgba(255, 255, 255, 0.12)'
-                        : '1px solid rgba(0, 0, 0, 0.12)',
-                    padding: '4px 10px',
-                    '&:hover': {
-                      backgroundColor: 'rgba(208, 188, 255, 0.08)',
-                      borderColor: 'rgba(208, 188, 255, 0.4)'
-                    }
-                  }}
-                  size="small"
-                >
-                  {mediaFiles.length > 0 ? `Файлы (${mediaFiles.length})` : 'Медиа'}
-                </Button>
-              </label>
-              
-              
-              <Button
-                onClick={() => setShowMusicPicker(true)}
-                startIcon={<MusicNoteIcon sx={{ fontSize: 18 }} />}
-                sx={{
-                  color: musicTracks.length > 0 ? 'primary.main' : 'text.secondary',
-                  borderRadius: '10px',
-                  textTransform: 'none',
-                  fontSize: '0.8rem',
-                  fontWeight: 500,
-                  padding: '4px 10px',
-                  border: musicTracks.length > 0 
-                    ? '1px solid rgba(208, 188, 255, 0.5)' 
-                    : theme => theme.palette.mode === 'dark'
-                      ? '1px solid rgba(255, 255, 255, 0.12)'
-                      : '1px solid rgba(0, 0, 0, 0.12)',
-                  '&:hover': {
-                    backgroundColor: 'rgba(208, 188, 255, 0.08)',
-                    borderColor: 'rgba(208, 188, 255, 0.4)'
-                  }
-                }}
-                size="small"
-              >
-                {musicTracks.length > 0 ? `Музыка (${musicTracks.length})` : 'Музыка'}
-              </Button>
-            </Box>
-            
-            <PublishButton 
-              variant="contained" 
-              onClick={handleSubmit}
-              disabled={isSubmitting || (!content.trim() && mediaFiles.length === 0 && musicTracks.length === 0)}
-              endIcon={isSubmitting ? <CircularProgress size={14} color="inherit" /> : null}
-              size="small"
-            >
-              Опубликовать
-            </PublishButton>
-          </PostActions>
-          
-          
-          <MusicSelectDialog
-            open={showMusicPicker}
-            onClose={() => setShowMusicPicker(false)}
-            onSelectTracks={handleMusicSelect}
-            maxTracks={3}
-          />
-        </Box>
-      </Box>
-      
-      <Snackbar
-        open={mediaNotification.open}
-        autoHideDuration={3000}
-        onClose={() => setMediaNotification({ ...mediaNotification, open: false })}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert 
-          onClose={() => setMediaNotification({ ...mediaNotification, open: false })} 
-          severity="warning"
-          sx={{ width: '100%' }}
-        >
-          {mediaNotification.message}
-        </Alert>
-      </Snackbar>
-    </Paper>
-  );
-};
-
-
-const TabPanel = ({ children, value, index, ...other }) => {
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <TabContentLoader tabIndex={index}>
-          <Box sx={{ pt: 0 }}>
-            {children}
-          </Box>
-        </TabContentLoader>
-      )}
-    </div>
-  );
-};
-
-
-const UserStatus = ({ statusText, statusColor }) => {
-  if (!statusText) return null;
-  
-  
-  const getContrastTextColor = (hexColor) => {
-    
-    const r = parseInt(hexColor.substr(1, 2), 16);
-    const g = parseInt(hexColor.substr(3, 2), 16);
-    const b = parseInt(hexColor.substr(5, 2), 16);
-    
-    
-    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-    
-    
-    return brightness > 128 ? '#000000' : '#FFFFFF';
-  };
-
-  
-  const createGradientColor = (hexColor) => {
-    
-    let r = parseInt(hexColor.substr(1, 2), 16);
-    let g = parseInt(hexColor.substr(3, 2), 16);
-    let b = parseInt(hexColor.substr(5, 2), 16);
-    
-    
-    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-    
-    
-    if (brightness < 128) {
-      
-      r = Math.min(255, r + 30);
-      g = Math.min(255, g + 30);
-      b = Math.min(255, b + 30);
-    } else {
-      
-      r = Math.max(0, r - 30);
-      g = Math.max(0, g - 30);
-      b = Math.max(0, b - 30);
-    }
-    
-    
-    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-  };
-
-  
-  const gradientColor = createGradientColor(statusColor || '#D0BCFF');
-  const textColor = getContrastTextColor(statusColor || '#D0BCFF');
-
-  
-  const parseStatusText = (text) => {
-    
-    const iconTagRegex = /\{(\w+)\}/;
-    const match = text.match(iconTagRegex);
-    
-    
-    const result = {
-      text: text,
-      iconName: null
-    };
-    
-    if (match) {
-      
-      result.iconName = match[1].toLowerCase();
-      
-      result.text = text.replace(iconTagRegex, '').trim();
-    }
-    
-    return result;
-  };
-  
-  
-  const parsedStatus = parseStatusText(statusText);
-  
-  
-  const getIconByName = (iconName) => {
-    switch (iconName) {
-      case 'minion':
-        return (
-          <SvgIcon sx={{ fontSize: 18, opacity: 0.8 }}>
-            <svg width="800" height="800" viewBox="0 0 800 800" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M402.667 518C367.33 518 332.786 507.523 303.405 487.89C274.023 468.257 251.123 440.353 237.6 407.707C224.077 375.06 220.539 339.137 227.433 304.478C234.327 269.82 251.343 237.984 276.33 212.997C301.317 188.01 333.153 170.994 367.81 164.1C402.47 157.206 438.393 160.744 471.04 174.267C503.687 187.79 531.59 210.69 551.223 240.072C570.853 269.453 581.333 303.997 581.333 339.333C581.333 362.797 576.713 386.03 567.733 407.707C558.753 429.383 545.593 449.08 529.003 465.67C512.413 482.26 492.717 495.42 471.04 504.4C449.363 513.38 426.13 518 402.667 518ZM402.667 210.667C377.22 210.667 352.343 218.213 331.183 232.351C310.024 246.489 293.533 266.584 283.794 290.095C274.056 313.606 271.508 339.477 276.472 364.437C281.437 389.393 293.691 412.32 311.686 430.313C329.68 448.31 352.607 460.563 377.567 465.527C402.523 470.493 428.393 467.943 451.907 458.207C475.417 448.467 495.51 431.977 509.65 410.817C523.787 389.657 531.333 364.78 531.333 339.333C531.333 305.209 517.777 272.482 493.647 248.353C469.517 224.223 436.79 210.667 402.667 210.667Z" fill="currentColor"/>
-            <path d="M400 643.667C376.53 643.72 353.28 639.123 331.597 630.14C309.913 621.157 290.224 607.97 273.667 591.333C269.251 586.593 266.847 580.327 266.961 573.85C267.075 567.373 269.699 561.193 274.28 556.613C278.86 552.033 285.04 549.407 291.516 549.293C297.993 549.18 304.261 551.583 309 556C333.693 579.057 366.216 591.88 400 591.88C433.783 591.88 466.31 579.057 491 556C495.74 551.583 502.006 549.18 508.483 549.293C514.96 549.407 521.14 552.033 525.72 556.613C530.303 561.193 532.926 567.373 533.04 573.85C533.153 580.327 530.75 586.593 526.333 591.333C509.776 607.97 490.086 621.157 468.403 630.14C446.72 639.123 423.47 643.72 400 643.667Z" fill="currentColor"/>
-            <path d="M402.667 400C436.173 400 463.333 372.837 463.333 339.333C463.333 305.828 436.173 278.666 402.667 278.666C369.163 278.666 342 305.828 342 339.333C342 372.837 369.163 400 402.667 400Z" fill="currentColor"/>
-            <path d="M666.666 755.333C660.036 755.333 653.676 752.7 648.99 748.01C644.3 743.323 641.666 736.963 641.666 730.333V333.333C637.156 272.944 609.983 216.492 565.596 175.297C521.21 134.102 462.89 111.209 402.333 111.209C341.776 111.209 283.457 134.102 239.07 175.297C194.684 216.492 167.511 272.944 163 333.333V730.333C163 736.963 160.366 743.323 155.678 748.01C150.989 752.7 144.631 755.333 138 755.333C131.37 755.333 125.011 752.7 120.322 748.01C115.634 743.323 113 736.963 113 730.333V333.333C115.55 258.166 147.202 186.929 201.278 134.656C255.354 82.3832 327.623 53.1636 402.833 53.1636C478.043 53.1636 550.313 82.3832 604.39 134.656C658.466 186.929 690.116 258.166 692.666 333.333V730.333C692.623 733.69 691.913 737.003 690.58 740.08C689.246 743.16 687.313 745.943 684.893 748.27C682.476 750.597 679.62 752.417 676.49 753.63C673.36 754.843 670.023 755.423 666.666 755.333Z" fill="currentColor"/>
-            <path d="M666.666 755.333H138C131.37 755.333 125.011 752.7 120.322 748.01C115.634 743.323 113 736.963 113 730.333C113 723.703 115.634 717.343 120.322 712.657C125.011 707.967 131.37 705.333 138 705.333H666.666C673.296 705.333 679.656 707.967 684.343 712.657C689.033 717.343 691.666 723.703 691.666 730.333C691.666 736.963 689.033 743.323 684.343 748.01C679.656 752.7 673.296 755.333 666.666 755.333Z" fill="currentColor"/>
-            </svg>
-
-          </SvgIcon>
-        );
-      case 'heart':
-        return (
-          <SvgIcon sx={{ fontSize: 18, opacity: 0.8 }}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12,21.35l-1.45-1.32C5.4,15.36,2,12.28,2,8.5C2,5.42,4.42,3,7.5,3c1.74,0,3.41,0.81,4.5,2.09C13.09,3.81,14.76,3,16.5,3 C19.58,3,22,5.42,22,8.5c0,3.78-3.4,6.86-8.55,11.54L12,21.35z"/>
-            </svg>
-          </SvgIcon>
-        );
-      case 'star':
-        return (
-          <SvgIcon sx={{ fontSize: 18, opacity: 0.8 }}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12,17.27L18.18,21l-1.64-7.03L22,9.24l-7.19-0.61L12,2L9.19,8.63L2,9.24l5.46,4.73L5.82,21L12,17.27z"/>
-            </svg>
-          </SvgIcon>
-        );
-      case 'music':
-        return <MusicNoteIcon sx={{ fontSize: 18, opacity: 0.8 }} />;
-      case 'location':
-        return <LocationOnIcon sx={{ fontSize: 18, opacity: 0.8 }} />;
-      case 'cake':
-        return <CakeIcon sx={{ fontSize: 18, opacity: 0.8 }} />;
-      case 'info':
-        return <InfoIcon sx={{ fontSize: 18, opacity: 0.8 }} />;
-      case 'chat':
-        return <ChatIcon sx={{ fontSize: 18, opacity: 0.8 }} />;
-      default:
-        
-        return (
-          <SvgIcon sx={{ fontSize: 18, opacity: 0.8 }}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/>
-            </svg>
-          </SvgIcon>
-        );
-    }
-  };
-
-  
-  const StatusIcon = getIconByName(parsedStatus.iconName);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.8, y: 10 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ 
-        type: "spring", 
-        stiffness: 500, 
-        damping: 30,
-        delay: 0.2
-      }}
-      style={{
-        position: 'absolute',
-        left: '100%',
-        top: '60%',
-        zIndex: 10
-      }}
-    >
-      <Box
-        sx={{
-          position: 'relative',
-          backgroundColor: 'transparent',
-          filter: `drop-shadow(0 4px 8px rgba(0,0,0,0.2))`,
-          maxWidth: '200px',
-          transform: 'translateX(10px)',
-          '&:before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: -8,
-            width: 0,
-            height: 0,
-            borderStyle: 'solid',
-            borderWidth: '0 14px 14px 0',
-            borderColor: `transparent ${statusColor || '#D0BCFF'} transparent transparent`,
-            transform: 'rotate(40deg)',
-            filter: 'drop-shadow(-3px 2px 2px rgba(0,0,0,0.1))',
-            zIndex: 0
-          }
-        }}
-      >
-        <Box
-          sx={{
-            background: `linear-gradient(135deg, ${statusColor || '#D0BCFF'} 0%, ${gradientColor} 100%)`,
-            color: textColor,
-            padding: '8px 12px',
-            borderRadius: '18px',
-            fontSize: '14px',
-            fontWeight: 500,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            boxShadow: `inset 0 0 10px rgba(255,255,255,0.15), 
-                        0 1px 1px rgba(0,0,0,0.1),
-                        0 4px 10px rgba(0,0,0,0.15)`,
-            backdropFilter: 'blur(4px)',
-            border: `1px solid ${statusColor === '#ffffff' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)'}`,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            position: 'relative'
-          }}
-        >
-          {StatusIcon}
-          <Box 
-            sx={{ 
-              overflow: 'hidden',
-              maskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)'
-            }}
-          >
-            <Box
-              className="scrolling-text"
-              sx={{
-                whiteSpace: 'nowrap',
-                display: 'inline-block',
-                animation: parsedStatus.text.length > 15 ? 'scrollText 10s linear infinite' : 'none',
-                '@keyframes scrollText': {
-                  '0%': { transform: 'translateX(0%)' },
-                  '25%': { transform: 'translateX(0%)' },
-                  '75%': { transform: parsedStatus.text.length > 15 ? 'translateX(-50%)' : 'translateX(0%)' },
-                  '100%': { transform: 'translateX(0%)' }
-                },
-                '&::after': parsedStatus.text.length > 15 ? {
-                  content: `" • ${parsedStatus.text} • "`,
-                  paddingLeft: '10px'
-                } : {}
-              }}
-            >
-              {parsedStatus.text}
-            </Box>
-          </Box>
-        </Box>
-      </Box>
-    </motion.div>
-  );
-};
-
-
-const requireAuth = (user, isAuthenticated, navigate) => {
-  if (!isAuthenticated || !user) {
-    
-    navigate('/login', { 
-      state: { 
-        from: window.location.pathname,
-        message: 'Для выполнения этого действия необходима авторизация'
-      } 
-    });
-    return false;
-  }
-  return true;
-};
-
-
-const getLighterColor = (hexColor, factor = 0.3) => {
-  if (!hexColor || hexColor === 'transparent' || hexColor.startsWith('rgba')) {
-    return hexColor;
-  }
-  
-  
-  const hex = hexColor.replace('#', '');
-  
-  
-  const r = parseInt(hex.substring(0, 2), 16);
-  const g = parseInt(hex.substring(2, 4), 16);
-  const b = parseInt(hex.substring(4, 6), 16);
-  
-  
-  const lighter = (component) => Math.min(255, Math.floor(component + (255 - component) * factor));
-  
-  
-  return `#${lighter(r).toString(16).padStart(2, '0')}${lighter(g).toString(16).padStart(2, '0')}${lighter(b).toString(16).padStart(2, '0')}`;
-};
-
-
-const SubscriptionBadge = ({ duration, subscriptionDate, subscriptionType }) => {
-  
-  if (!duration || duration < 1 || subscriptionType !== 'ultimate') return null;
-  
-  console.log(`SubscriptionBadge: duration=${duration}, type=${subscriptionType}`); 
-  
-  
-  let badgeType = 'bronze'; 
-  if (duration >= 6) {
-    badgeType = 'diamond';
-  } else if (duration >= 3) {
-    badgeType = 'gold';
-  } else if (duration >= 2) {
-    badgeType = 'silver';
-  }
-  
-  console.log(`SubscriptionBadge: selected badge type=${badgeType}`); 
-  
-  
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ru-RU', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-  };
-  
-  const tooltipText = `Подписчик Ultima с ${formatDate(subscriptionDate)}`;
-  
-  return (
-    <Tooltip title={tooltipText} arrow placement="top">
-      <Box 
-        component="img" 
-        src={`/static/subs/${badgeType}.svg`}
-        alt={`${badgeType} подписка`}
-        sx={{ 
-          width: 24, 
-          height: 24, 
-          ml: 0.5,
-          cursor: 'pointer',
-          transition: 'transform 0.2s ease-in-out',
-          '&:hover': {
-            transform: 'scale(1.2)'
-          }
-        }} 
-      />
-    </Tooltip>
-  );
-};
 
 const ProfilePage = () => {
+  const { t } = useLanguage();
   const { username } = useParams();
   const { user: currentUser, isAuthenticated } = useContext(AuthContext);
   const [user, setUser] = useState(null);
   const [ownedUsernames, setOwnedUsernames] = useState([]);
+  const [equippedItems, setEquippedItems] = useState([]);
   const [photos, setPhotos] = useState([]);  
   const [videos, setVideos] = useState([]);  
-  const [tabValue, setTabValue] = useState(0);
+  const { tabValue, setTabValue, handleTabChange } = useTabs();
   const [loading, setLoading] = useState(true);
   const [loadingPhotos, setLoadingPhotos] = useState(true);
   const [loadingVideos, setLoadingVideos] = useState(true);
@@ -1160,11 +81,8 @@ const ProfilePage = () => {
   const [loadingFriends, setLoadingFriends] = useState(true);
   const [socials, setSocials] = useState([]);
   const [page, setPage] = useState(1);
-  const [lightboxIsOpen, setLightboxIsOpen] = useState(false);
-  const [currentImage, setCurrentImage] = useState('');
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const navigate = useNavigate();
-  const { themeSettings } = useContext(ThemeSettingsContext);
+  const { themeSettings, setProfileBackground, clearProfileBackground, globalProfileBackgroundEnabled } = useContext(ThemeSettingsContext);
   const [totalLikes, setTotalLikes] = useState(0);
   
   const [isOnline, setIsOnline] = useState(false);
@@ -1185,43 +103,10 @@ const ProfilePage = () => {
 
   const [isCurrentUserModerator, setIsCurrentUserModerator] = useState(false);
   
-  
-  const openLightbox = (imageUrl) => {
-    console.log("Opening lightbox for image:", imageUrl);
-    if (typeof imageUrl === 'string') {
-      setCurrentImage(imageUrl);
-      setLightboxIsOpen(true);
-    } else {
-      console.error("Invalid image URL provided to lightbox:", imageUrl);
-    }
-  };
-  
-  
-  const closeLightbox = () => {
-    setLightboxIsOpen(false);
-  };
-  
-  
-  const showNotification = (severity, message) => {
-    setSnackbar({
-      open: true,
-      severity,
-      message
-    });
-  };
-  
-  const handleCloseSnackbar = () => {
-    setSnackbar(prev => ({ ...prev, open: false }));
-  };
-
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-  };
-  
-
+  const { lightboxIsOpen, currentImage, openLightbox, closeLightbox } = useLightbox();
+  const { handlePostCreated } = usePostActions();
   
   const handleFollow = async () => {
-    
     if (!requireAuth(currentUser, isAuthenticated, navigate)) {
       return;
     }
@@ -1238,10 +123,6 @@ const ProfilePage = () => {
     } catch (error) {
       console.error('Error following/unfollowing user:', error);
     }
-  };
-  
-  const handlePostCreated = (newPost) => {
-    showNotification('success', 'Пост успешно создан');
   };
   
   useEffect(() => {
@@ -1270,6 +151,12 @@ const ProfilePage = () => {
           if (response.data.achievement) {
             response.data.user.achievement = response.data.achievement;
             console.log('Copied achievement data from root to user object:', response.data.achievement);
+          }
+          
+          // Копируем connect_info из корневого объекта, если он есть
+          if (response.data.connect_info) {
+            response.data.user.connect_info = response.data.connect_info;
+            console.log('Copied connect_info from root to user object:', response.data.connect_info);
           }
           
           setUser(response.data.user);
@@ -1359,6 +246,13 @@ const ProfilePage = () => {
 
           if (response.data.current_user_is_moderator !== undefined) {
             setIsCurrentUserModerator(response.data.current_user_is_moderator);
+          }
+          
+          // Получаем надетые предметы из API профиля
+          if (response.data.equipped_items) {
+            setEquippedItems(response.data.equipped_items);
+          } else {
+            setEquippedItems([]);
           }
         } else {
           console.error('User data not found in response', response.data);
@@ -1566,46 +460,66 @@ const ProfilePage = () => {
     setUsernameCardOpen(false);
   };
 
+  // Функция для обновления надетых предметов
+  const refreshEquippedItems = async () => {
+    if (user?.id) {
+      try {
+        const response = await axios.get(`/api/inventory/user/${user.id}/equipped`);
+        if (response.data.success) {
+          setEquippedItems(response.data.equipped_items || []);
+        }
+      } catch (error) {
+        console.error('Error refreshing equipped items:', error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const restoreMyBackground = () => {
+      if (globalProfileBackgroundEnabled) {
+        let myBg = localStorage.getItem('myProfileBackgroundUrl');
+        if (!myBg) {
+          const match = document.cookie.match(/(?:^|; )myProfileBackgroundUrl=([^;]*)/);
+          if (match) myBg = decodeURIComponent(match[1]);
+        }
+        if (myBg) {
+          setProfileBackground(myBg);
+        } else {
+          clearProfileBackground();
+        }
+      } else {
+        clearProfileBackground();
+      }
+    };
+
+    if (user?.profile_background_url) {
+      setProfileBackground(user.profile_background_url);
+      return () => {
+        restoreMyBackground();
+      };
+    } else {
+      restoreMyBackground();
+    }
+  }, [user, globalProfileBackgroundEnabled, setProfileBackground, clearProfileBackground]);
+
+  const [searchParams] = useSearchParams();
+  const itemIdToOpen = searchParams.get('item');
+
+  useEffect(() => {
+    if (itemIdToOpen) {
+      setTabValue(2);
+    }
+  }, [itemIdToOpen]);
+
   if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <ProfileLoader />;
   }
   
   if (!user) {
-    return (
-      <Container maxWidth="lg">
-        <Box sx={{ textAlign: 'center', mt: 5 }}>
-          <Typography variant="h5">Пользователь не найден</Typography>
-        <Button 
-            component={Link} 
-            to="/" 
-          variant="contained" 
-          color="primary" 
-            sx={{ mt: 2, borderRadius: 20, textTransform: 'none' }}
-        >
-          Вернуться на главную
-        </Button>
-        </Box>
-      </Container>
-    );
+    return <UserNotFound />;
   }
   
   const isCurrentUser = currentUser && currentUser.username === user.username;
-  
-  const WallPostsTab = ({ userId }) => {
-    return (
-      <WallFeed userId={userId} />
-    );
-  };
-
-  const PostsTab = () => {
-    return (
-      <PostsFeed userId={user?.id} />
-    );
-  };
 
   return (
     <Container 
@@ -1633,93 +547,32 @@ const ProfilePage = () => {
         }}
       >
         
-        <Grid item xs={12} md={5}>
+        <Grid item xs={12} md={5} sx={{ 
+          position: { xs: 'static', md: 'sticky' },
+          top: '60px',
+          height: 'fit-content',
+          zIndex: 2
+        }}>
           
-          <Paper sx={{ 
-            p: 0, 
-            borderRadius: '16px', 
-            background: theme => {
-              
-              const currentTheme = localStorage.getItem('theme');
-              if (currentTheme === 'amoled') {
-                return 'linear-gradient(135deg, #000000 0%, #000000 100%)';
-              }
-              
-              if (user?.profile_id === 2 && user?.banner_url) {
-                return 'transparent';
-              }
-              
-              if (user?.profile_id === 1) {
-                return 'rgb(26, 26, 26)';
-              }
-              
-              return theme.palette.mode === 'dark'
-                ? 'linear-gradient(135deg, #232526 0%, #121212 100%)'
-                : 'linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%)';
-            },
-            backgroundImage: user?.profile_id === 2 && user?.banner_url 
-              ? `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.6)), url(${user.banner_url})` 
-              : 'none',
-            backgroundSize: user?.profile_id === 2 ? 'cover' : 'auto',
-            backgroundPosition: user?.profile_id === 2 ? 'center' : 'auto',
-            boxShadow: theme => {
-              
-              const currentTheme = localStorage.getItem('theme');
-              if (currentTheme === 'amoled') {
-                return '0 10px 30px rgba(0, 0, 0, 0.5)';
-              }
-              return theme.palette.mode === 'dark'
-                ? '0 10px 30px rgba(0, 0, 0, 0.25)'
-                : '0 10px 30px rgba(0, 0, 0, 0.1)';
-            },
-            mb: { xs: 1, md: 0 },
+          <Paper sx={{
+            p: 0,
+            borderRadius: '16px',
+            background: user?.profile_id === 2 && user?.banner_url
+              ? `url(${user.banner_url}), rgba(255, 255, 255, 0.03)`
+              : 'rgba(255, 255, 255, 0.03)',
+            backgroundSize: user?.profile_id === 2 && user?.banner_url ? 'cover' : undefined,
+            backgroundPosition: user?.profile_id === 2 && user?.banner_url ? 'center' : undefined,
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            boxShadow: '0 5px 15px rgba(0, 0, 0, 0.2)',
             overflow: 'hidden',
-            position: { xs: 'relative', md: 'sticky' },
-            top: { md: '80px' },
-            zIndex: 1,
-            transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-            '&:hover': {
-              boxShadow: theme => theme.palette.mode === 'dark'
-                ? '0 14px 35px rgba(0, 0, 0, 0.35)'
-                : '0 14px 35px rgba(0, 0, 0, 0.15)',
-              transform: 'translateY(-2px)'
-            },
-            
-            ...(user?.subscription && {
-              border: (user.status_color && user.status_text && user.subscription) 
-                ? `4px solid ${user.status_color}` 
-                : user?.subscription 
-                  ? `4px solid ${user.subscription.type === 'premium' ? 'rgba(186, 104, 200)' : user.subscription.type === 'pick-me' ? 'rgba(208, 188, 255)' : user.subscription.type === 'ultimate' ? 'rgba(124, 77, 255)' : 'rgba(66, 165, 245)'}` 
-                  : theme => theme.palette.mode === 'dark'
-                    ? '4px solid #121212'
-                    : '4px solid #ffffff',
-              boxShadow: (user.status_color && user.status_text && user.subscription)
-                ? `0 0 15px ${user.status_color}33`  
-                : user.subscription.type === 'premium' 
-                  ? '0 0 15px rgba(186, 104, 200, 0.2)' 
-                  : user.subscription.type === 'pick-me'
-                    ? '0 0 15px rgba(208, 188, 255, 0.2)'
-                    : user.subscription.type === 'ultimate' 
-                      ? '0 0 15px rgba(124, 77, 255, 0.2)' 
-                      : '0 0 15px rgba(66, 165, 245, 0.2)',
-              '&:hover': {
-                boxShadow: (user.status_color && user.status_text && user.subscription)
-                  ? `0 0 20px ${user.status_color}4D`  
-                  : user.subscription.type === 'premium' 
-                    ? '0 0 20px rgba(186, 104, 200, 0.3)' 
-                    : user.subscription.type === 'pick-me'
-                      ? '0 0 20px rgba(208, 188, 255, 0.3)'
-                      : user.subscription.type === 'ultimate' 
-                        ? '0 0 20px rgba(124, 77, 255, 0.3)' 
-                        : '0 0 20px rgba(66, 165, 245, 0.3)',
-                transform: 'translateY(-2px)'
-              }
-            })
+            mb: '5px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            position: 'relative',
+            zIndex: 2
           }}>
-            
             {/* Banner section */}
             {user?.profile_id !== 2 ? (
-              
               user?.banner_url ? (
                 <Box sx={{ 
                   width: '100%',
@@ -1739,44 +592,17 @@ const ProfilePage = () => {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    background: theme => theme.palette.mode === 'dark'
-                      ? 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(18,18,18,0.45) 100%)'
-                      : 'linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.4) 100%)'
+                    zIndex: 1
                   }
                 }}></Box>
               ) : (
                 <Box sx={{ 
                   width: '100%',
                   height: { xs: 100, sm: 120 },
-                  background: theme => theme.palette.mode === 'dark'
-                    ? 'linear-gradient(135deg, #4568dc 0%, #b06ab3 100%)'
-                    : 'linear-gradient(135deg, #7c4dff 0%, #b388ff 100%)',
                   position: 'relative',
-                  '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zm60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z\' fill=\'%23ffffff\' fill-opacity=\'0.05\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")',
-                    opacity: 0.4
-                  },
-                  '&::after': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: theme => theme.palette.mode === 'dark'
-                      ? 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(18,18,18,0.9) 100%)'
-                      : 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 100%)'
-                  }
                 }}></Box>
               )
             ) : (
-              
               null
             )}
             
@@ -1838,6 +664,9 @@ const ProfilePage = () => {
                       }}
                     />
                   </Tooltip>
+                  {equippedItems.map((item, index) => (
+                    <EquippedItem key={item.id} item={item} index={index} />
+                  ))}
                   
                   
                   {isOnline && user?.subscription?.type !== 'channel' && (
@@ -1930,7 +759,7 @@ const ProfilePage = () => {
 
                 </Box>
                 
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5, flexWrap: 'wrap', maxWidth: '100%' }}>
                   <Typography 
                     variant="body2" 
                     sx={{ 
@@ -1952,379 +781,84 @@ const ProfilePage = () => {
                   >
                     @{user?.username || 'username'}
                   </Typography>
-                  
 
-                  {userBanInfo ? (
-                    <Tooltip 
-                      title={
-                        <Box sx={{ p: 0.5 }}>
-                          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>Аккаунт заблокирован</Typography>
-                          <Typography variant="body2" sx={{ mb: 0.5 }}>Причина: {userBanInfo.reason}</Typography>
-                          <Typography variant="body2" sx={{ mb: 0.5 }}>До: {userBanInfo.end_date}</Typography>
-                          {userBanInfo.remaining_days > 0 && (
-                            <Typography variant="body2">
-                              Осталось дней: {userBanInfo.remaining_days}
-                            </Typography>
-                          )}
-                        </Box>
-                      } 
-                      arrow 
-                      placement="top"
-                    >
-                      <Typography 
-                        variant="caption" 
-                        sx={{
-                          display: 'flex', 
-                          alignItems: 'center',
-                          color: '#fff',
-                          fontWeight: 500,
-                          background: 'rgba(211, 47, 47, 0.7)', 
-                          px: 1,
-                          py: 0.1,
-                          borderRadius: 4,
-                          border: '1px solid rgba(211, 47, 47, 0.8)',
-                          boxShadow: '0 0 8px rgba(211, 47, 47, 0.5)',
-                          '&:hover': {
-                            background: 'rgba(211, 47, 47, 0.8)',
-                          },
-                          animation: 'pulse-red 2s infinite',
-                          '@keyframes pulse-red': {
-                            '0%': { boxShadow: '0 0 0 0 rgba(211, 47, 47, 0.4)' },
-                            '70%': { boxShadow: '0 0 0 6px rgba(211, 47, 47, 0)' },
-                            '100%': { boxShadow: '0 0 0 0 rgba(211, 47, 47, 0)' }
-                          }
-                        }}
-                      >
-                        <BlockIcon sx={{ fontSize: 14, mr: 0.5, opacity: 0.9 }} />
-                        <Box component="span">В бане</Box>
-                      </Typography>
-                    </Tooltip>
-                  ) : null}
-
-                  {isOnline && user?.subscription?.type !== 'channel' ? (
-                    <Typography 
-                      variant="caption" 
-                      sx={{
-                        display: 'flex', 
-                        alignItems: 'center',
-                        color: 'success.light',
-                        fontWeight: 500,
-                        background: theme => theme.palette.mode === 'dark' 
-                          ? 'rgba(46, 125, 50, 0.1)' 
-                          : 'rgba(46, 125, 50, 0.15)',
-                        px: 1,
-                        py: 0.1,
-                        borderRadius: 4,
-                        border: '1px solid rgba(46, 125, 50, 0.2)'
-                      }}
-                    >
-                      <Box 
-                        sx={{ 
-                          width: '8px', 
-                          height: '8px', 
-                          bgcolor: 'success.main', 
-                          borderRadius: '50%',
-                          mr: 0.5,
-                          boxShadow: '0 0 4px rgba(76, 175, 80, 0.6)'
-                        }} 
+                  {user?.connect_info && user.connect_info.length > 0 && (
+                    <>
+                      <LinkRoundedIcon 
+                        sx={theme => ({ 
+                          width: '2em',
+                          height: '2em',
+                          fontSize: 16,
+                          color: user?.profile_id === 2 ? 'rgba(255,255,255,0.9)' : theme.palette.text.secondary
+                        })} 
                       />
-                      онлайн
-                    </Typography>
-                  ) : !isOnline && user?.subscription?.type !== 'channel' ? (
-                    <Typography 
-                      variant="caption" 
-                      sx={{
-                        display: 'flex', 
-                        alignItems: 'center',
-                        color: theme => theme.palette.text.secondary,
-                        fontWeight: 500,
-                        background: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
-                        px: 1,
-                        py: 0.3,
-                        borderRadius: 4,
-                        border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)'
-                      }}
-                    >
-                      <AccessTimeIcon sx={{ fontSize: 12, mr: 0.5, opacity: 0.7 }} />
-                      {lastActive ? `${lastActive}` : "не в сети"}
-                    </Typography>
-                  ) : null}
-
-                  {user?.scam === 1 && (
-                    <Tooltip 
-                      title="Этот аккаунт был отмечен как мошеннический. Будьте осторожны!" 
-                      arrow 
-                      placement="top"
-                    >
-                      <Typography 
-                        variant="caption" 
-                        sx={{
-                          display: 'flex', 
-                          alignItems: 'center',
-                          color: '#fff',
+                      <Typography
+                        variant="body2"
+                        component={Link}
+                        to={`/profile/${user.connect_info[0].username}`}
+                        sx={theme => ({
                           fontWeight: 500,
-                          background: 'rgba(211, 47, 47, 0.6)',
-                          px: 1,
-                          py: 0.1,
+                          color: user?.profile_id === 2 ? 'rgba(255,255,255,0.9)' : theme.palette.text.secondary,
+                          textShadow: user?.profile_id === 2 ? '0 1px 2px rgba(0,0,0,0.5)' : 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          background: user?.profile_id === 2
+                            ? 'rgba(0,0,0,0.3)'
+                            : theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+                          px: 1.2,
+                          py: 0.4,
                           borderRadius: 4,
-                          border: '1px solid rgba(211, 47, 47, 0.8)',
-                          boxShadow: '0 0 8px rgba(211, 47, 47, 0.5)',
+                          border: user?.profile_id === 2
+                            ? '1px solid rgba(255,255,255,0.15)'
+                            : theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)',
+                          textDecoration: 'none',
                           '&:hover': {
-                            background: 'rgba(211, 47, 47, 0.7)',
-                          },
-                          animation: 'pulse-red 2s infinite',
-                          '@keyframes pulse-red': {
-                            '0%': { boxShadow: '0 0 0 0 rgba(211, 47, 47, 0.4)' },
-                            '70%': { boxShadow: '0 0 0 6px rgba(211, 47, 47, 0)' },
-                            '100%': { boxShadow: '0 0 0 0 rgba(211, 47, 47, 0)' }
+                            textDecoration: 'none',
+                            background: user?.profile_id === 2
+                              ? 'rgba(0,0,0,0.4)'
+                              : theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
                           }
-                        }}
+                        })}
                       >
-                        <WarningIcon sx={{ fontSize: 14, mr: 0.5, opacity: 0.9 }} />
-                        <Box component="span">SCAM</Box>
+                        @{user.connect_info[0].username}
                       </Typography>
-                    </Tooltip>
+                    </>
                   )}
+
+                  <UserBanInfo 
+                    userBanInfo={userBanInfo}
+                    user={user}
+                    currentUser={currentUser}
+                    isCurrentUserModerator={isCurrentUserModerator}
+                    showTooltip={false}
+                    showDetailed={true}
+                  />
+
+                  <UserScamBadge user={user} />
                   
-                  {user?.subscription && (
-                    user.subscription.type === 'channel' ? (
-                      <Chip
-                        icon={<ChatIcon fontSize="small" />}
-                        label="Канал"
-                        size="small"
-                        sx={{
-                          bgcolor: (user.status_color) 
-                            ? `${user.status_color}26` 
-                            : theme => theme.palette.mode === 'dark'
-                              ? 'rgba(208, 188, 255, 0.15)' 
-                              : 'rgba(124, 77, 255, 0.15)',
-                          color: (user.status_color) 
-                            ? user.status_color 
-                            : theme => theme.palette.mode === 'dark'
-                              ? '#d0bcff'
-                              : '#7c4dff',
-                          fontWeight: 'bold',
-                          border: '1px solid',
-                          borderColor: (user.status_color) 
-                            ? `${user.status_color}4D` 
-                            : theme => theme.palette.mode === 'dark'
-                              ? 'rgba(208, 188, 255, 0.3)'
-                              : 'rgba(124, 77, 255, 0.3)',
-                          '& .MuiChip-icon': {
-                            color: 'inherit'
-                          },
-                          py: 0.25, 
-                          height: 'auto',
-                          animation: 'pulse-light 2s infinite',
-                          '@keyframes pulse-light': {
-                            '0%': {
-                              boxShadow: (user.status_color) ? 
-                                `0 0 0 0 ${user.status_color}66` : 
-                                '0 0 0 0 rgba(124, 77, 255, 0.4)'
-                            },
-                            '70%': {
-                              boxShadow: (user.status_color) ? 
-                                `0 0 0 6px ${user.status_color}00` : 
-                                '0 0 0 6px rgba(124, 77, 255, 0)'
-                            },
-                            '100%': {
-                              boxShadow: (user.status_color) ? 
-                                `0 0 0 0 ${user.status_color}00` : 
-                                '0 0 0 0 rgba(124, 77, 255, 0)'
-                            }
-                          }
-                        }}
-                      />
-                    ) : (
-                      <Tooltip title={`Подписка ${user.subscription.type === 'pick-me' ? 'Пикми' : user.subscription.type} активна до ${new Date(user.subscription.expires_at).toLocaleDateString()}`}>
-                        <Chip
-                          icon={<DiamondIcon fontSize="small" />}
-                          label={user.subscription.type === 'pick-me' ? 'Пикми' : 
-                                user.subscription.type.charAt(0).toUpperCase() + user.subscription.type.slice(1)}
-                          size="small"
-                          sx={{
-                            bgcolor: user.subscription.type === 'premium' ? 'rgba(186, 104, 200, 0.15)' : 
-                                    user.subscription.type === 'ultimate' ? 'rgba(124, 77, 255, 0.15)' :
-                                    user.subscription.type === 'pick-me' ? 'rgba(208, 188, 255, 0.15)' : 
-                                    'rgba(66, 165, 245, 0.15)',
-                            color: user.subscription.type === 'premium' ? '#ba68c8' : 
-                                  user.subscription.type === 'ultimate' ? '#7c4dff' : 
-                                  user.subscription.type === 'pick-me' ? 'rgb(208, 188, 255)' :
-                                  '#42a5f5',
-                            fontWeight: 'bold',
-                            border: '1px solid',
-                            borderColor: user.subscription.type === 'premium' ? 'rgba(186, 104, 200, 0.3)' : 
-                                        user.subscription.type === 'ultimate' ? 'rgba(124, 77, 255, 0.3)' :
-                                        user.subscription.type === 'pick-me' ? 'rgba(208, 188, 255, 0.3)' :
-                                        'rgba(66, 165, 245, 0.3)',
-                            '& .MuiChip-icon': {
-                              color: 'inherit'
-                            },
-                            py: 0.25, 
-                            height: 'auto',
-                            animation: 'pulse-light 2s infinite',
-                            '@keyframes pulse-light': {
-                              '0%': {
-                                boxShadow: (user.status_color && user.status_text) ? 
-                                  `0 0 0 0 ${user.status_color}66` : 
-                                  '0 0 0 0 rgba(124, 77, 255, 0.4)'
-                              },
-                              '70%': {
-                                boxShadow: (user.status_color && user.status_text) ? 
-                                  `0 0 0 6px ${user.status_color}00` : 
-                                  '0 0 0 6px rgba(124, 77, 255, 0)'
-                              },
-                              '100%': {
-                                boxShadow: (user.status_color && user.status_text) ? 
-                                  `0 0 0 0 ${user.status_color}00` : 
-                                  '0 0 0 0 rgba(124, 77, 255, 0)'
-                              }
-                            }
-                          }}
-                        />
-                      </Tooltip>
-                    )
-                  )}
+                  <UserSubscriptionBadge user={user} />
                   
                 </Box>
                   
-                {ownedUsernames.length > 0 && (
-                  <Box sx={{ 
-                    display: 'flex',
-                    mt: 1,
-                    width: '100%'
-                  }}>
-                    <Box 
-                      sx={{ 
-                        color: theme => theme.palette.text.secondary,
-                        backgroundColor: (user.status_color && user.status_text && user.subscription) ? 
-                          `${user.status_color}1A` : 
-                          theme => theme.palette.mode === 'dark' ? 'rgba(208, 188, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-                        px: 1.2,
-                        py: 0.4,
-                        borderRadius: 4,
-                        border: (user.status_color && user.status_text && user.subscription) ? 
-                          `1px solid ${user.status_color}33` : 
-                          theme => theme.palette.mode === 'dark' ? '1px solid rgba(208, 188, 255, 0.2)' : '1px solid rgba(0, 0, 0, 0.1)',
-                        fontSize: '0.75rem',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        maxWidth: '100%',
-                        flexWrap: 'wrap'
-                      }}
-                    >
-                      <Typography variant="caption" sx={{ color: user?.status_color ? getLighterColor(user.status_color) : theme => theme.palette.text.secondary, mr: 0.5 }}>
-                        А также:
-                      </Typography>
-                      {ownedUsernames.slice(0, 3).map((usernameItem, idx) => (
-                        <React.Fragment key={idx}>
-                          <Typography 
-                            variant="caption" 
-                            component="span" 
-                            sx={{ 
-                              color: (user.status_color && user.status_text && user.subscription) ? 
-                                user.status_color : 
-                                theme => theme.palette.mode === 'dark' ? '#d0bcff' : '#7c4dff',
-                              fontWeight: 500,
-                              cursor: 'pointer',
-                              '&:hover': {
-                                textDecoration: 'underline'
-                              }
-                            }}
-                            onClick={(e) => handleUsernameClick(e, usernameItem)}
-                          >
-                            @{usernameItem}
-                          </Typography>
-                          {idx < Math.min(ownedUsernames.length, 3) - 1 && (
-                            <Typography variant="caption" component="span" sx={{ mx: 0.5, color: theme => theme.palette.text.disabled }}>
-                              ,
-                            </Typography>
-                          )}
-                        </React.Fragment>
-                      ))}
-                      {ownedUsernames.length > 3 && (
-                        <Typography variant="caption" component="span" sx={{ ml: 0.5, color: theme => theme.palette.text.disabled }}>
-                          и ещё {ownedUsernames.length - 3}
-                        </Typography>
-                      )}
-                    </Box>
-                  </Box>
-                )}
+                <OwnedUsernames 
+                  ownedUsernames={ownedUsernames}
+                  user={user}
+                  t={t}
+                  getLighterColor={getLighterColor}
+                  handleUsernameClick={handleUsernameClick}
+                />
                 
-                {userBanInfo && (isCurrentUserModerator || (currentUser && currentUser.id === 3)) && (
-                  <Box sx={{ 
-                    mt: 2,
-                    p: 1.5,
-                    borderRadius: '12px',
-                    backgroundColor: 'rgba(211, 47, 47, 0.7)',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(211, 47, 47, 0.8)',
-                    boxShadow: '0 0 15px rgba(211, 47, 47, 0.4)',
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: 1.5
-                  }}>
-                    <WarningIcon sx={{ fontSize: 22, mt: 0.5, color: 'white' }} />
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'white' }}>
-                        Аккаунт заблокирован
-                      </Typography>
-                      <Typography variant="caption" sx={{ display: 'block', color: 'rgba(255,255,255,0.9)' }}>
-                        Причина: {userBanInfo.reason}
-                      </Typography>
-                      <Typography variant="caption" sx={{ display: 'block', color: 'rgba(255,255,255,0.9)' }}>
-                        До {userBanInfo.end_date} 
-                        {userBanInfo.remaining_days > 0 && ` (осталось ${userBanInfo.remaining_days} дн.)`}
-                      </Typography>
-                      
-                      {currentUser && currentUser.id === 3 && (
-                        <Box sx={{ mt: 1, pt: 1, borderTop: '1px dashed rgba(255, 255, 255, 0.4)' }}>
-                          <Typography variant="caption" sx={{ display: 'block', fontStyle: 'italic', color: 'rgba(255,255,255,0.9)' }}>
-                            {userBanInfo.is_auto_ban ? 'Автоматический бан системой' : (
-                              userBanInfo.admin ? `Бан выдал: ${userBanInfo.admin.name} (@${userBanInfo.admin.username})` : 'Бан выдан администрацией'
-                            )}
-                          </Typography>
-                          {userBanInfo.start_date && (
-                            <Typography variant="caption" sx={{ display: 'block', fontStyle: 'italic', color: 'rgba(255,255,255,0.9)' }}>
-                              Начало бана: {userBanInfo.start_date}
-                            </Typography>
-                          )}
-                          {userBanInfo.details && (
-                            <Typography variant="caption" sx={{ display: 'block', fontStyle: 'italic', color: 'rgba(255,255,255,0.9)' }}>
-                              Детали: {userBanInfo.details}
-                            </Typography>
-                          )}
-                        </Box>
-                      )}
-                    </Box>
-                  </Box>
-                )}
+                <UserBanInfo 
+                  userBanInfo={userBanInfo}
+                  user={user}
+                  currentUser={currentUser}
+                  isCurrentUserModerator={isCurrentUserModerator}
+                  showTooltip={false}
+                  showDetailed={true}
+                />
                 
-                {/* Блок с информацией о пользователе */}
-                {user?.about && (
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
-                      mt: 1,
-                      lineHeight: 1.5,
-                      color: user?.status_color ? getLighterColor(user.status_color) : theme => theme.palette.text.secondary,
-                      p: 1.5,
-                      borderRadius: 2,
-                      background: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
-                      backdropFilter: 'blur(10px)',
-                      border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)',
-                      overflowWrap: 'break-word',
-                      wordBreak: 'break-word',
-                      whiteSpace: 'normal'
-                    }}
-                  >
-                    {user.about}
-                  </Typography>
+                <ProfileAbout user={user} getLighterColor={getLighterColor} />
 
-                )}
-                
-                
-                
                 <Box sx={{ 
                   display: 'grid', 
                   gridTemplateColumns: user?.subscription?.type === 'channel' ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', 
@@ -2359,14 +893,14 @@ const ProfilePage = () => {
                     <Typography variant="caption" sx={{ 
                       color: user?.status_color ? getLighterColor(user.status_color) : theme => theme.palette.text.secondary
                     }}>
-                      публикаций
+                      {t('profile.stats.posts')}
                     </Typography>
                   </Paper>
                   
                   
                   <Paper 
                     component={Link}
-                    to={`/profile/${user?.username}/followers`}
+                    to={`/friends/${user?.username}`}
                     sx={{ 
                       p: 1.5, 
                       borderRadius: 2, 
@@ -2401,7 +935,7 @@ const ProfilePage = () => {
                     <Typography variant="caption" sx={{ 
                       color: user?.status_color ? getLighterColor(user.status_color) : theme => theme.palette.text.secondary
                     }}>
-                      подписчиков
+                      {t('profile.stats.followers')}
                     </Typography>
                   </Paper>
                   
@@ -2409,7 +943,7 @@ const ProfilePage = () => {
                   {(!user?.subscription || user.subscription.type !== 'channel') && (
                     <Paper 
                       component={Link}
-                      to={`/profile/${user?.username}/following`}
+                      to={`/friends/${user?.username}`}
                       sx={{ 
                         p: 1.5, 
                         borderRadius: 2, 
@@ -2444,7 +978,7 @@ const ProfilePage = () => {
                       <Typography variant="caption" sx={{ 
                         color: user?.status_color ? getLighterColor(user.status_color) : theme => theme.palette.text.secondary
                       }}>
-                        подписок
+                        {t('profile.stats.following')}
                       </Typography>
                     </Paper>
                   )}
@@ -2459,21 +993,21 @@ const ProfilePage = () => {
                       <Grid item xs={6}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                           <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
-                            Подписчики
+                            {t('profile.followers')}
                           </Typography>
                           
                           
-                          {loadingFriends ? (
+                          {loadingFollowers ? (
                             <CircularProgress size={20} />
-                          ) : friends && friends.length > 0 ? (
+                          ) : followers && followers.length > 0 ? (
                             <Box sx={{ display: 'flex', gap: 1 }}>
-                              {friends.slice(0, 3).map(friend => (
-                                <Tooltip key={friend.id} title={friend.name} arrow>
+                              {followers.slice(0, 3).map(follower => (
+                                <Tooltip key={follower.id} title={follower.name} arrow>
                                   <Avatar 
-                                    src={friend.avatar_url} 
-                                    alt={friend.name}
+                                    src={follower.avatar_url} 
+                                    alt={follower.name}
                                     component={Link}
-                                    to={`/profile/${friend.username}`}
+                                    to={`/profile/${follower.username}`}
                                     sx={{ 
                                       width: 32, 
                                       height: 32, 
@@ -2483,19 +1017,19 @@ const ProfilePage = () => {
                                       flexShrink: 0 
                                     }}
                                     onError={(e) => {
-                                      console.error(`Failed to load friend avatar for ${friend.username}`);
-                                      if (friend.id) {
-                                        e.target.src = `/static/uploads/avatar/${friend.id}/${friend.photo || 'avatar.png'}`;
+                                      console.error(`Failed to load follower avatar for ${follower.username}`);
+                                      if (follower.id) {
+                                        e.target.src = `/static/uploads/avatar/${follower.id}/${follower.photo || 'avatar.png'}`;
                                       }
                                     }}
                                   />
                                 </Tooltip>
                               ))}
-                              {user?.friends_count > 3 && (
-                                <Tooltip title="Показать всех подписчиков" arrow>
+                              {followersCount > 3 && (
+                                <Tooltip title={t('profile.show_all_followers')}>
                                   <Avatar 
                                     component={Link}
-                                    to={`/profile/${user?.username}/followers`}
+                                    to={`/friends/${user?.username}`}
                                     sx={{ 
                                       width: 32, 
                                       height: 32, 
@@ -2509,14 +1043,14 @@ const ProfilePage = () => {
                                       flexShrink: 0 
                                     }}
                                   >
-                                    +{user?.friends_count - 3}
+                                    +{followersCount - 3}
                                   </Avatar>
                                 </Tooltip>
                               )}
                             </Box>
                           ) : (
                             <Typography variant="caption" color="text.secondary">
-                              Нет подписчиков
+                              {t('profile.no_followers')}
                             </Typography>
                           )}
                         </Box>
@@ -2526,7 +1060,7 @@ const ProfilePage = () => {
                       <Grid item xs={6}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                           <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
-                            Подписчики
+                            {t('profile.followers')}
                           </Typography>
                           <Typography variant="body2">
                             {followersCount || 0}
@@ -2539,7 +1073,7 @@ const ProfilePage = () => {
                     <Grid item xs={6}>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                         <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
-                          Подписки
+                          {t('profile.subscriptions')}
                         </Typography>
                         
                         
@@ -2577,10 +1111,10 @@ const ProfilePage = () => {
                                 </Tooltip>
                               ))}
                               {followingCount > 3 && (
-                                <Tooltip title="Показать всех" arrow>
+                                <Tooltip title={t('profile.show_all_following')}>
                                   <Avatar 
                                     component={Link}
-                                    to={`/profile/${user?.username}/following`}
+                                    to={`/friends/${user?.username}`}
                                     sx={{ 
                                       width: 32, 
                                       height: 32, 
@@ -2601,7 +1135,7 @@ const ProfilePage = () => {
                             </Box>
                           ) : (
                             <Typography variant="caption" color="text.secondary">
-                              {user?.subscription && user.subscription.type === 'channel' ? 'Нет подписчиков' : 'Нет друзей'}
+                              {t('profile.no_following')}
                             </Typography>
                           )
                         )}
@@ -2720,13 +1254,14 @@ const ProfilePage = () => {
                         }
                       }}
                     >
-                      {following ? 'Отписаться' : 'Подписаться'}
+                      {following ? t('profile.actions.unfollow') : t('profile.actions.follow')}
                     </Button>
                   </Box>
                 )}
                 
                 
               </Box>
+
             </Box>
           </Paper>
         </Grid>
@@ -2735,14 +1270,14 @@ const ProfilePage = () => {
         <Grid item xs={12} md={7} sx={{ pt: 0, ml: { xs: 0, md: '5px' }, mb: '100px' }}>
         
           <Paper sx={{ 
-            borderRadius: '16px', 
-            backgroundColor: theme => theme.palette.mode === 'dark' ? '#1E1E1E' : theme.palette.background.paper,
-            backgroundImage: 'unset',
+            borderRadius: '12px', 
+            background: 'rgba(255, 255, 255, 0.03)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
             boxShadow: '0 5px 15px rgba(0, 0, 0, 0.2)',
             overflow: 'hidden',
             mb: '5px',
             border: '1px solid rgba(255, 255, 255, 0.1)'
-
           }}>
             <Tabs 
               value={tabValue} 
@@ -2761,9 +1296,10 @@ const ProfilePage = () => {
                 }
               }}
             >
-              <Tab label="Посты" />
-              <Tab label="Стена" />
-              <Tab label="Профиль" />
+              <Tab label={t('profile.tabs.posts')} />
+              <Tab label={t('profile.tabs.wall')} />
+              <Tab label="Инвентарь" />
+              <Tab label={t('profile.tabs.about')} />
             </Tabs>
           </Paper>
           
@@ -2773,7 +1309,7 @@ const ProfilePage = () => {
               <CreatePost onPostCreated={handlePostCreated} />
             )}
             
-            <PostsTab />
+            <PostsTab userId={user?.id} statusColor={user?.status_color} PostsFeed={PostsFeed} />
           </TabPanel>
           
           <TabPanel value={tabValue} index={1} sx={{ p: 0, mt: 1 }}>
@@ -2785,273 +1321,38 @@ const ProfilePage = () => {
               />
             )}
             
-            <WallPostsTab userId={user.id} />
+            <WallPostsTab userId={user.id} WallFeed={WallFeed} />
           </TabPanel>
           
           <TabPanel value={tabValue} index={2} sx={{ p: 0, mt: 1 }}>
-            <Paper sx={{ 
-              p: 3, 
-              borderRadius: '16px',
-              background: theme => theme.palette.mode === 'dark' 
-                ? 'linear-gradient(135deg, #232526 0%, #121212 100%)' 
-                : theme.palette.background.paper,
-              boxShadow: '0 5px 15px rgba(0, 0, 0, 0.2)'
-            }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                Информация о профиле
-              </Typography>
-              
-              <Grid container spacing={3}>
-                {user?.about && (
-                  <Grid item xs={12}>
-                    <Box sx={{ 
-                      display: 'flex', 
-                      alignItems: 'flex-start', 
-                      gap: 1.5,
-                      pb: 2,
-                      borderBottom: '1px solid rgba(255,255,255,0.07)'
-                    }}>
-                      <InfoIcon color="primary" sx={{ mt: 0.5 }} />
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                          Обо мне
-                        </Typography>
-                        <Typography variant="body2" sx={{ 
-                          whiteSpace: 'pre-line',
-                          wordBreak: 'break-word',
-                          overflowWrap: 'break-word'
-                        }}>
-                          {user.about}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-                )}
-                
-                {user?.location && (
-                  <Grid item xs={12} sm={6}>
-                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-                      <LocationOnIcon color="primary" sx={{ mt: 0.5 }} />
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                          Местоположение
-                        </Typography>
-                        <Typography variant="body2">
-                          {user.location}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-                )}
-                
-                {user?.website && (
-                  <Grid item xs={12} sm={6}>
-                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-                      <LinkIcon color="primary" sx={{ mt: 0.5 }} />
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                          Веб-сайт
-                        </Typography>
-                        <Typography variant="body2">
-                          <Link href={user.website} target="_blank" rel="noopener noreferrer" sx={{ color: 'primary.main' }}>
-                            {user.website.replace(/^https?:\/\//, '')}
-                          </Link>
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-                )}
-                
-                {user?.birthday && (
-                  <Grid item xs={12} sm={6}>
-                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-                      <CakeIcon color="primary" sx={{ mt: 0.5 }} />
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                          Дата рождения
-                        </Typography>
-                        <Typography variant="body2">
-                          {formatDate(user.birthday)}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-                )}
-                
-                <Grid item xs={12} sm={6}>
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-                    <TodayIcon color="primary" sx={{ mt: 0.5 }} />
-                    <Box>
-                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                        Дата регистрации
-                      </Typography>
-                      <Typography variant="body2">
-                        {user?.registration_date ? new Date(user.registration_date).toLocaleDateString('ru-RU', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        }) : 'Недоступно'}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Grid>
-                
-                {user?.purchased_usernames && user.purchased_usernames.length > 0 && (
-                  <Grid item xs={12}>
-                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-                      <AlternateEmailIcon color="primary" sx={{ mt: 0.5 }} />
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                          Юзернеймы
-                        </Typography>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                          
-                          {user.purchased_usernames.map((usernameObj, idx) => (
-                            <Chip 
-                              key={idx}
-                              label={usernameObj.username}
-                              size="small"
-                              variant={usernameObj.is_active ? "filled" : "outlined"}
-                              color={usernameObj.is_active ? "primary" : "default"}
-                              onClick={(e) => handleUsernameClick(e, usernameObj.username)}
-                              sx={{ 
-                                '& .MuiChip-label': {
-                                  px: 1
-                                }
-                              }}
-                            />
-                          ))}
-                        </Box>
-                      </Box>
-                    </Box>
-                  </Grid>
-                )}
-
-                {/* Medals section */}
-                {medals && medals.length > 0 && (
-                  <Grid item xs={12}>
-                    <Box sx={{ 
-                      display: 'flex', 
-                      alignItems: 'flex-start', 
-                      gap: 1.5,
-                      pb: 2,
-                      borderBottom: '1px solid rgba(255,255,255,0.07)'
-                    }}>
-                      <EmojiEventsIcon color="primary" sx={{ mt: 0.5 }} />
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                          Медали
-                        </Typography>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 1 }}>
-                          {medals.map((medal) => (
-                            <Tooltip
-                              key={medal.id}
-                              title={
-                                <Box>
-                                  {medal.description && (
-                                    <Typography variant="caption">{medal.description}</Typography>
-                                  )}
-                                  <Typography variant="caption" display="block" sx={{ mt: 0.5, opacity: 0.8 }}>
-                                    Выдана: {new Date(medal.awarded_at).toLocaleDateString()}
-                                  </Typography>
-                                  <Typography variant="caption" display="block" sx={{ opacity: 0.8 }}>
-                                    Кем: @{medal.awarded_by}
-                                  </Typography>
-                                </Box>
-                              }
-                              arrow
-                            >
-                              <img
-                                src={medal.image_path}
-                                alt={medal.name}
-                                style={{ 
-                                  width: 150,
-                                  height: 150,
-                                  cursor: 'pointer',
-                                  transition: 'transform 0.2s',
-                                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
-                                }}
-                                onMouseOver={(e) => {
-                                  e.currentTarget.style.transform = 'translateY(-2px)';
-                                  e.currentTarget.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))';
-                                }}
-                                onMouseOut={(e) => {
-                                  e.currentTarget.style.transform = 'translateY(0)';
-                                  e.currentTarget.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))';
-                                }}
-                              />
-                            </Tooltip>
-                          ))}
-                        </Box>
-                      </Box>
-                    </Box>
-                  </Grid>
-                )}
-              </Grid>
-            </Paper>
+            <UpgradeEffects item={user}>
+              <InventoryTab 
+                userId={user?.id} 
+                itemIdToOpen={itemIdToOpen} 
+                onEquippedItemsUpdate={refreshEquippedItems}
+                currentUserId={currentUser?.id}
+              />
+            </UpgradeEffects>
+          </TabPanel>
+          
+          <TabPanel value={tabValue} index={3} sx={{ p: 0, mt: 1 }}>
+            <ProfileInfo 
+              user={user} 
+              medals={medals}
+              onUsernameClick={handleUsernameClick}
+            />
           </TabPanel>
         </Grid>
       </Grid>
       
       
-      {lightboxIsOpen && (
-        <div 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.9)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999
-          }}
-          onClick={closeLightbox}
-        >
-          <img 
-            src={currentImage} 
-            alt="Full size" 
-            style={{ 
-              maxWidth: '90%', 
-              maxHeight: '90%', 
-              objectFit: 'contain' 
-            }} 
-            onClick={(e) => e.stopPropagation()}
-          />
-          <IconButton
-            sx={{
-              position: 'absolute',
-              top: 20,
-              right: 20,
-              color: 'white',
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-              '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.7)',
-              }
-            }}
-            onClick={closeLightbox}
-          >
-            <CloseIcon />
-          </IconButton>
-        </div>
-      )}
+      <ImageLightbox 
+        isOpen={lightboxIsOpen}
+        imageUrl={currentImage}
+        onClose={closeLightbox}
+      />
       
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity={snackbar.severity}
-          variant="filled"
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      
       <AnimatePresence>
         {selectedUsername && (
           <UsernameCard 

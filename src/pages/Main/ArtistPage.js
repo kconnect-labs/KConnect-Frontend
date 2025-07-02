@@ -50,7 +50,7 @@ import { useMusic } from '../../context/MusicContext';
 import { formatDuration } from '../../utils/formatters';
 import SEO from '../../components/SEO';
 import { useSnackbar } from 'notistack';
-import FullScreenPlayer from '../../components/Music/FullScreenPlayer/index.js';
+import FullScreenPlayer from '../../components/Music';
 import MobilePlayer from '../../components/Music/MobilePlayer';
 import DesktopPlayer from '../../components/Music/DesktopPlayer';
 
@@ -278,10 +278,18 @@ const ArtistPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMoreTracks, setHasMoreTracks] = useState(true);
   const [loadingMoreTracks, setLoadingMoreTracks] = useState(false);
-  const [fullScreenPlayerOpen, setFullScreenPlayerOpen] = useState(false);
   const theme = useTheme();
   const navigate = useNavigate();
-  const { playTrack, currentTrack, isPlaying, togglePlay, likeTrack } = useMusic();
+  const { 
+    currentTrack, 
+    isPlaying, 
+    playTrack, 
+    likeTrack,
+    setCurrentSection,
+    openFullScreenPlayer,
+    closeFullScreenPlayer,
+    isFullScreenPlayerOpen
+  } = useMusic();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { enqueueSnackbar } = useSnackbar();
   const tracksContainerRef = useRef(null);
@@ -369,22 +377,22 @@ const ArtistPage = () => {
   };
 
   const handleOpenFullScreenPlayer = useCallback(() => {
-    setFullScreenPlayerOpen(true);
-  }, []);
+    openFullScreenPlayer();
+  }, [openFullScreenPlayer]);
 
   const handleCloseFullScreenPlayer = useCallback(() => {
-    setFullScreenPlayerOpen(false);
+    closeFullScreenPlayer();
     
     document.body.style.overflow = '';
     document.body.style.touchAction = '';
-  }, []);
+  }, [closeFullScreenPlayer]);
 
   const handleTrackClick = (track) => {
-    handlePlayTrack(track);
+    handlePlayTrack(track, 'artist');
   };
 
   const handlePlayTrack = (track) => {
-    playTrack(track);
+    playTrack(track, 'artist');
     if (isMobile) {
 
       handleOpenFullScreenPlayer();
@@ -1014,7 +1022,7 @@ const ArtistPage = () => {
       
       {/* Full Screen Player */}
       <FullScreenPlayer 
-        open={fullScreenPlayerOpen} 
+        open={isFullScreenPlayerOpen} 
         onClose={handleCloseFullScreenPlayer} 
       />
     </ArtistContainer>

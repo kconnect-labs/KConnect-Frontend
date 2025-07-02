@@ -2,72 +2,155 @@
 <html lang="ru">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Обновление приложения</title>
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover" />
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <meta name="theme-color" content="#1E1E1E" />
+    <meta name="description" content="К-Коннект - социальная сеть для молодежи и творческих людей" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="К-Коннект" lang="ru" />
+    
+    <meta property="og:title" content="К-Коннект" />
+    <meta property="og:description" content="К-Коннект - социальная сеть для молодежи и творческих людей" />
+    <meta property="og:image" content="/icon-512.png" />
+    <meta property="og:url" content="https://k-connect.ru" />
+    <meta property="og:type" content="website" />
+    
+    <link rel="apple-touch-icon" href="/icon-180.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icon-152.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/icon-167.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="К-Коннект" lang="ru" />
+    
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="apple-touch-fullscreen" content="yes" />
+
+    <title>К-Коннект</title>
+    <link rel="stylesheet" href="/fonts.css">
+
     <style>
-      /* Основные стили для страницы */
       body {
-        margin: 0;
-        padding: 0;
-        background-color: #131313;
-        color: #d0bcff;
-        font-family: Arial, sans-serif;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        overflow: hidden;
+        touch-action: pan-x pan-y;
+        -webkit-touch-callout: none;
+        text-size-adjust: 100%;
+        -webkit-text-size-adjust: 100%;
+      }
+
+      input, textarea, select {
+        font-size: 16px !important;
+        touch-action: manipulation;
       }
       
-      .container {
-        text-align: center;
+      p, h1, h2, h3, h4, h5, h6, span, div, article, section {
+        -webkit-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+        user-select: text;
       }
       
-      h1 {
-        font-size: 2rem;
-        margin-bottom: 1rem;
+      button, a, input[type="button"], .no-select {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
       }
       
-      p {
-        font-size: 1.2rem;
+      /* Стили для портала полноэкранного плеера */
+      #fullscreen-player-portal {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        z-index: 9999 !important;
+        background: transparent;
+        pointer-events: none;
+        visibility: hidden;
       }
       
-      /* Анимация спиннера */
-      .spinner {
-        margin: 2rem auto;
-        width: 60px;
-        height: 60px;
-        border: 6px solid rgba(208, 188, 255, 0.3);
-        border-top-color: #d0bcff;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
+
+      
+      /* Дополнительные стили для iOS/Safari */
+      @supports (-webkit-touch-callout: none) {
+        #fullscreen-player-portal {
+          -webkit-transform: translateZ(0);
+          -webkit-backface-visibility: hidden;
+          -webkit-perspective: 1000;
+        }
       }
       
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+      /* Оптимизация для анимаций текстов в плеере */
+      .lyrics-container {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+      }
+      
+      .lyrics-line {
+        will-change: transform, opacity, filter;
+        transform-style: preserve-3d;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+      }
+      
+      /* Ускорение анимаций на мощных устройствах */
+      @media (prefers-reduced-motion: no-preference) {
+        .lyrics-line {
+          transition-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+      }
+      
+      /* Уменьшение анимаций для пользователей с предпочтением */
+      @media (prefers-reduced-motion: reduce) {
+        .lyrics-line {
+          animation-duration: 0.2s !important;
+          transition-duration: 0.2s !important;
+        }
       }
     </style>
+    
     <script>
-      // Service Worker Registration for Push Notifications
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/service-worker.js')
-            .then(registration => {
-              console.log('Service Worker registered with scope:', registration.scope);
-            })
-            .catch(error => {
-              console.error('Service Worker registration failed:', error);
-            });
-        });
-      }
+      document.addEventListener('touchmove', function(event) {
+        if (event.touches.length > 1) {
+          event.preventDefault();
+        }
+      }, { passive: false });
+      
+      let lastTap = 0;
+      document.addEventListener('touchend', function(event) {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        if (tapLength < 300 && tapLength > 0) {
+          event.preventDefault();
+        }
+        lastTap = currentTime;
+      });
+      
+      // Prevent zoom on input focus
+      document.addEventListener('focus', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+          // Prevent iOS zoom
+          document.body.style.touchAction = 'manipulation';
+          document.documentElement.style.touchAction = 'manipulation';
+        }
+      }, true);
     </script>
+
   </head>
   <body>
-    <div class="container">
-      <h1>Обновление приложения</h1>
-      <div class="spinner"></div>
-      <p>Пожалуйста, ожидайте обновления.<br>Приложение перезагрузится через 10 секунд.</p>
-    </div>
+    <noscript>Для работы К-Коннект необходим JavaScript</noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/index.js"></script>
+
   </body>
 </html>

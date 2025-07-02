@@ -32,6 +32,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import DateRangeIcon from '@mui/icons-material/DateRange';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import VerificationBadge from '../../UIKIT/VerificationBadge';
 
 
 const API_URL = '';
@@ -42,6 +43,8 @@ const LeaderboardContainer = styled(Container)(({ theme }) => ({
   marginBottom: theme.spacing(8),
   [theme.breakpoints.down('sm')]: {
     marginTop: theme.spacing(2),
+    paddingLeft: 0,
+    paddingRight: 0,
   },
 }));
 
@@ -49,31 +52,143 @@ const LeaderboardHeader = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  marginBottom: theme.spacing(4),
   textAlign: 'center',
 }));
 
-const UserCard = styled(motion.div)(({ theme, position }) => ({
+// Функция для проверки является ли цвет светлым
+const isLightColor = (color) => {
+  // Если это не HEX цвет, возвращаем false
+  if (!color || !color.startsWith('#')) {
+    return false;
+  }
+
+  // Конвертируем HEX в RGB
+  const hex = color.replace('#', '');
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+
+  // Вычисляем яркость
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 128;
+};
+
+const UserCard = styled(motion.div)(({ theme, position, decoration }) => {
+  // Определяем тип фона (градиент, изображение или цвет)
+  const isGradient = decoration?.background?.includes('linear-gradient');
+  const isImage = decoration?.background?.includes('/');
+  const isHexColor = decoration?.background?.startsWith('#');
+  const isLightBackground = isHexColor && isLightColor(decoration?.background);
+
+  return {
+    display: 'flex',
+    alignItems: 'center',
+    padding: theme.spacing(2),
+    borderRadius: theme.spacing(2),
+    marginBottom: '5px',
+    backgroundColor: theme.palette.background.paper,
+    boxShadow: theme.shadows[2],
+    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+    position: 'relative',
+    overflow: 'hidden',
+    background: decoration?.background ? (
+      isImage ? theme.palette.background.paper : decoration.background
+    ) : theme.palette.background.paper,
+    color: isLightBackground ? 'rgba(0, 0, 0, 0.87)' : theme.palette.text.primary,
+    '& .MuiTypography-root': {
+      color: isLightBackground ? 'rgba(0, 0, 0, 0.87)' : 'inherit',
+    },
+    '& .MuiTypography-colorTextSecondary': {
+      color: isLightBackground ? 'rgba(0, 0, 0, 0.6)' : theme.palette.text.secondary,
+    },
+    '&:hover': {
+      transform: 'translateY(-3px)',
+      boxShadow: theme.shadows[6],
+    },
+    '&::before': isGradient ? {
+      content: '""',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: decoration.background,
+      opacity: 0,
+      zIndex: 0,
+      borderRadius: '16px',
+    } : isImage ? {
+      content: '""',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundImage: `url(${API_URL}/${decoration.background})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      opacity: 0.75,
+      zIndex: 0,
+      borderRadius: '16px',
+    } : {},
+  };
+});
+
+// Функция для парсинга настроек из строки пути
+const parseItemSettings = (itemPath) => {
+  if (!itemPath || !itemPath.includes(';')) {
+    return {
+      path: itemPath,
+      styles: {}
+    };
+  }
+
+  const [path, ...stylesParts] = itemPath.split(';');
+  const stylesString = stylesParts.join(';');
+  
+  // Парсим CSS свойства
+  const styles = {};
+  stylesString.split(';').forEach(style => {
+    const [property, value] = style.split(':').map(s => s.trim());
+    if (property && value) {
+      // Конвертируем property в camelCase для React
+      const camelProperty = property.replace(/-([a-z])/g, g => g[1].toUpperCase());
+      styles[camelProperty] = value;
+    }
+  });
+
+  return {
+    path: path,
+    styles: styles
+  };
+};
+
+// Обновляем компонент DecorationItem
+const DecorationItem = styled('img')(({ customStyles }) => ({
+  position: 'absolute',
+  right: 0,
+  height: 'max-content',
+  maxHeight: 120,
+  opacity: 1,
+  pointerEvents: 'none',
+  zIndex: 1,
+  ...customStyles, // Применяем пользовательские стили
+  transition: 'transform 0.35s cubic-bezier(.4,2,.3,1), z-index 0.2s',
+}));
+
+const ScoreDisplay = styled(Box)(({ theme, position, isLightBackground }) => ({
+  minWidth: 50,
+  maxWidth: 50,
   display: 'flex',
   alignItems: 'center',
-  padding: theme.spacing(2),
-  borderRadius: theme.spacing(2),
-  marginBottom: theme.spacing(1.5),
-  background: position <= 3 
-    ? `linear-gradient(to right, ${theme.palette.background.paper}, ${
-        position === 1 ? 'rgba(255, 215, 0, 0.15)' : 
-        position === 2 ? 'rgba(192, 192, 192, 0.15)' : 
-        'rgba(205, 127, 50, 0.15)'
-      })`
-    : theme.palette.background.paper,
-  boxShadow: position <= 3 
-    ? `0 4px 12px rgba(0, 0, 0, 0.1)` 
-    : '0 2px 8px rgba(0, 0, 0, 0.05)',
-  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-  '&:hover': {
-    transform: 'translateY(-3px)',
-    boxShadow: '0 6px 16px rgba(0, 0, 0, 0.12)',
-  },
+  justifyContent: 'center',
+  marginRight: theme.spacing(2),
+  fontSize: '0.875rem',
+  fontWeight: 'bold',
+  color: position <= 3 
+    ? '#fff' 
+    : (isLightBackground ? 'rgba(0, 0, 0, 0.87)' : theme.palette.text.primary),
+  overflow: 'hidden',
+  whiteSpace: 'nowrap',
 }));
 
 const RankNumber = styled(Box)(({ theme, position }) => ({
@@ -85,21 +200,19 @@ const RankNumber = styled(Box)(({ theme, position }) => ({
   fontWeight: 'bold',
   marginRight: theme.spacing(2),
   borderRadius: '50%',
-  color: position <= 3 ? '#fff' : theme.palette.text.primary,
+  color: theme.palette.primary.contrastText,
   background: position === 1 
-    ? 'linear-gradient(135deg, #FFD700, #FFA500)' 
+    ? 'linear-gradient(90deg, #FFFCA8 -0.05%, #FDB836 31.2%, #FDC966 75.92%, #F1DC83 100.02%)' 
     : position === 2 
-    ? 'linear-gradient(135deg, #C0C0C0, #A9A9A9)' 
+    ? 'linear-gradient(90deg, #FFF8C1 -0.05%, #C2E8FD -0.04%, #919191 31.2%, #DDDDDD 75.92%, #E3E3E3 100.02%)' 
     : position === 3 
-    ? 'linear-gradient(135deg, #CD7F32, #A0522D)' 
-    : theme.palette.action.hover,
-  boxShadow: position <= 3 ? '0 3px 6px rgba(0, 0, 0, 0.3)' : 'none',
+    ? 'linear-gradient(90.56deg, #9E8976 -0.5%, #7A5E50 -0.49%, #F6D0AB 31.04%, #9D774E 76.19%, #C99B70 100.51%)' 
+    : theme.palette.grey[700],
+  boxShadow: theme.shadows[3],
 }));
 
 const PositionIcon = ({ position }) => {
-  if (position === 1) return <EmojiEventsIcon sx={{ color: '#FFFFFF', filter: 'drop-shadow(0 0 4px rgba(255, 255, 255, 0.5))', fontSize: '1.3rem' }} />;
-  if (position === 2) return <EmojiEventsIcon sx={{ color: '#FFFFFF', filter: 'drop-shadow(0 0 4px rgba(255, 255, 255, 0.5))', fontSize: '1.3rem' }} />;
-  if (position === 3) return <EmojiEventsIcon sx={{ color: '#FFFFFF', filter: 'drop-shadow(0 0 4px rgba(255, 255, 255, 0.5))', fontSize: '1.3rem' }} />;
+  if (position <= 3) return <EmojiEventsIcon sx={{ color: '#FFFFFF', fontSize: '1.3rem' }} />;
   return <Typography variant="body1">{position}</Typography>;
 };
 
@@ -107,45 +220,55 @@ const UserAvatar = styled(Avatar)(({ theme, position }) => ({
   width: 50,
   height: 50,
   marginRight: theme.spacing(2),
-  border: position <= 3 
-    ? `2px solid ${
-        position === 1 ? '#FFD700' : 
-        position === 2 ? '#C0C0C0' : 
-        '#CD7F32'
-      }` 
-    : 'none',
-  boxShadow: position <= 3 ? '0 2px 8px rgba(0, 0, 0, 0.1)' : 'none',
+  border: position === 1
+    ? '3px solid #FDB836'
+    : position === 2
+    ? '3px solid #919191'
+    : position === 3
+    ? '3px solid #7A5E50'
+    : `2px solid ${theme.palette.divider}`,
+  boxShadow: theme.shadows[position <= 3 ? 4 : 1],
 }));
 
 const UserInfo = styled(Box)({
   flex: 1,
   overflow: 'hidden',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center'
 });
 
 const ScoreChip = styled(Chip)(({ theme, position }) => ({
   fontWeight: 'bold',
-  background: position <= 3 
-    ? `linear-gradient(135deg, ${
-        position === 1 ? '#FFD700, #FFA500' : 
-        position === 2 ? '#C0C0C0, #A9A9A9' : 
-        '#CD7F32, #A0522D'
-      })` 
+  backgroundColor: position === 1 
+    ? '#FDB836'
+    : position === 2 
+    ? '#919191'
+    : position === 3 
+    ? '#7A5E50'
     : theme.palette.primary.main,
-  color: position <= 3 ? '#fff' : theme.palette.primary.contrastText,
+  color: theme.palette.primary.contrastText,
 }));
 
-const StatsChip = styled(Chip)(({ theme }) => ({
-  margin: theme.spacing(0.5),
-  backgroundColor: theme.palette.background.default,
+const StatsChip = styled(Chip)(({ theme, isLightBackground }) => ({
+  marginRight: theme.spacing(1),
+  height: 24,
+  backgroundColor: 'transparent',
+  border: `1px solid ${isLightBackground ? 'rgba(0, 0, 0, 0.23)' : 'rgba(255, 255, 255, 0.23)'}`,
+  '& .MuiChip-label': {
+    color: isLightBackground ? 'rgba(0, 0, 0, 0.6)' : theme.palette.text.secondary,
+    fontSize: '0.75rem',
+    padding: '0 8px',
+  },
 }));
 
 const DateRangeChip = styled(Chip)(({ theme }) => ({
   margin: theme.spacing(1, 0, 2),
-  backgroundColor: 'rgba(208, 188, 255, 0.1)',
-  border: '1px solid rgba(208, 188, 255, 0.3)',
-  color: theme.palette.primary.light,
+  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(208, 188, 255, 0.15)' : 'rgba(140, 82, 255, 0.15)',
+  border: 'none',
+  color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark,
   '& .MuiChip-icon': {
-    color: theme.palette.primary.light,
+    color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark,
   }
 }));
 
@@ -158,6 +281,20 @@ const formatDateForDisplay = (dateString) => {
     month: 'long',
     year: 'numeric',
   });
+};
+
+// Функция для сокращения чисел
+const formatCompactNumber = (number) => {
+  if (number < 1000) {
+    return number.toString();
+  }
+  const units = ['', 'K', 'M', 'B'];
+  const order = Math.floor(Math.log10(Math.abs(number)) / 3);
+  const unitName = units[order];
+  const value = (number / Math.pow(1000, order)).toFixed(1);
+  
+  // Убираем .0 если число целое
+  return value.replace('.0', '') + unitName;
 };
 
 const LeaderboardPage = () => {
@@ -206,11 +343,6 @@ const LeaderboardPage = () => {
   };
 
   
-  const formatScore = (score) => {
-    return new Intl.NumberFormat('ru-RU').format(score);
-  };
-
-  
   const getDateRangeText = () => {
     if (!dateRange) {
       if (timePeriod === 'all_time') {
@@ -246,80 +378,205 @@ const LeaderboardPage = () => {
   return (
     <LeaderboardContainer maxWidth="md">
       <LeaderboardHeader>
-        <Typography variant="h4" component="h1" gutterBottom fontWeight="bold" 
-          sx={{
-            background: 'linear-gradient(45deg, #D0BCFF, #9747FF)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            mb: 1
-          }}>
-          Доска лидеров
+      <Box
+        sx={{
+          width: '100%',
+          maxWidth: 750,
+          minWidth: 320,
+          mx: 'auto',
+          mb: 1,
+          p: { xs: 2, md: 3 },
+          background: '#1c1c1c',
+          borderRadius: '16px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          color: 'white',
+          textAlign: 'left',
+          position: 'relative',
+          overflow: 'hidden',
+          '::before': {
+            content: '""',
+            position: 'absolute',
+            left: -80,
+            top: '50%',
+            transform: 'translateY(-50%) rotate(-12deg)',
+            width: 180,
+            height: 220,
+            background: 'linear-gradient(13.89deg, #B69DF8 47.02%, #D0BCFF 97.69%)',
+            opacity: 0.25,
+            filter: 'blur(18px)',
+            borderRadius: '50%',
+            zIndex: 1,
+            pointerEvents: 'none',
+          },
+          '::after': {
+            content: '""',
+            position: 'absolute',
+            right: -80,
+            top: '50%',
+            transform: 'translateY(-50%) rotate(12deg)',
+            width: 180,
+            height: 220,
+            background: 'linear-gradient(13.89deg, #B69DF8 47.02%, #D0BCFF 97.69%)',
+            opacity: 0.25,
+            filter: 'blur(18px)',
+            borderRadius: '50%',
+            zIndex: 1,
+            pointerEvents: 'none',
+          },
+          zIndex: 2,
+        }}
+      >
+        <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: 'white' }}>
+          Рейтинг ТОП лидеров
         </Typography>
-        <Typography variant="body1" color="textSecondary" sx={{ mb: 3, maxWidth: 600 }}>
-          Соревнуйтесь за первое место в рейтинге активных пользователей K-Connect. 
-          Публикуйте посты, получайте лайки и комментарии, чтобы заработать больше очков!
+        <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+          20 пользователей, получивших наибольшее количество очков сообщества K-Коннект за совокупность активности: созданных постов и историй, полученных лайков, комментариев, ответов, репостов, просмотров и реакций на истории.
         </Typography>
-        
+      </Box>
+        <Paper sx={{
+          borderRadius: '16px',
+          backgroundColor: theme => theme.palette.mode === 'dark' ? '#1E1E1E' : theme.palette.background.paper,
+          backgroundImage: 'unset',
+          boxShadow: '0 5px 15px rgba(0, 0, 0, 0.2)',
+          overflow: 'hidden',
+          mb: 1,
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          width: '100%',
+          maxWidth: 750,
+          minWidth: 320,
+          mx: 'auto',
+          position: 'relative',
+          '::before': {
+            content: '""',
+            position: 'absolute',
+            left: -80,
+            top: '50%',
+            transform: 'translateY(-50%) rotate(-12deg)',
+            width: 180,
+            height: 220,
+            background: 'linear-gradient(13.89deg, #B69DF8 47.02%, #D0BCFF 97.69%)',
+            opacity: 0.25,
+            filter: 'blur(18px)',
+            borderRadius: '50%',
+            zIndex: 1,
+            pointerEvents: 'none',
+          },
+          '::after': {
+            content: '""',
+            position: 'absolute',
+            right: -80,
+            top: '50%',
+            transform: 'translateY(-50%) rotate(12deg)',
+            width: 180,
+            height: 220,
+            background: 'linear-gradient(13.89deg, #B69DF8 47.02%, #D0BCFF 97.69%)',
+            opacity: 0.25,
+            filter: 'blur(18px)',
+            borderRadius: '50%',
+            zIndex: 1,
+            pointerEvents: 'none',
+          },
+          zIndex: 2,
+        }}>
         <Tabs 
           value={timePeriod} 
           onChange={handleTimePeriodChange}
           variant="fullWidth"
           sx={{ 
-            mb: 1,
-            width: '100%',
-            maxWidth: 400,
             '& .MuiTab-root': {
+                color: theme => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+                backgroundColor: '#1c1c1c',
               fontWeight: 'bold',
-            }
-          }}
-        >
-          <Tab 
-            label="Неделя" 
-            value="week" 
-            icon={<DateRangeIcon fontSize="small" />}
-            iconPosition="start"
-          />
-          <Tab 
-            label="Месяц" 
-            value="month" 
-            icon={<CalendarMonthIcon fontSize="small" />}
-            iconPosition="start"
-          />
-          <Tab label="Всё время" value="all_time" />
-        </Tabs>
-        
-        {dateRange && (
-          <DateRangeChip 
-            label={getDateRangeText()} 
-            icon={getDateRangeIcon()}
-          />
-        )}
-
-        {user && userPosition && (
-          <Paper 
-            elevation={3} 
-            sx={{ 
-              p: 2, 
-              borderRadius: 3, 
-              width: '100%',
-              background: theme.palette.mode === 'dark' 
-                ? 'linear-gradient(to right, #1A1A2E, #16213E)' 
-                : 'linear-gradient(to right, #F4F6F8, #E3F2FD)'
+                fontSize: '1rem',
+                textTransform: 'none',
+                borderRadius: 0,
+                minHeight: 48,
+                transition: 'color 0.2s',
+                '&.Mui-selected': {
+                  color: theme => theme.palette.primary.main,
+                  backgroundColor: '#1c1c1c',
+                }
+              },
+              '& .MuiTabs-indicator': {
+                backgroundColor: '#D0BCFF',
+                height: 3,
+                borderRadius: '3px',
+                transition: 'all 0.2s',
+              },
+              minHeight: 48,
             }}
           >
-            <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap">
+            <Tab label="Неделя" value="week" />
+            <Tab label="Месяц" value="month" />
+          <Tab label="Всё время" value="all_time" />
+        </Tabs>
+        </Paper>
+
+        {user && userPosition && (
+          <Box
+            sx={{ 
+              borderRadius: '16px',
+              background: '#1c1c1c',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              color: '#D0BCFF',
+              fontWeight: 700,
+              px: 3,
+              py: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: '100%',
+              maxWidth: 750,
+              minWidth: 320,
+              mb: 1,
+              boxShadow: 'none',
+              position: 'relative',
+              overflow: 'hidden',
+              '::before': {
+                content: '""',
+                position: 'absolute',
+                left: -80,
+                top: '50%',
+                transform: 'translateY(-50%) rotate(-12deg)',
+                width: 180,
+                height: 220,
+                background: 'linear-gradient(13.89deg, #B69DF8 47.02%, #D0BCFF 97.69%)',
+                opacity: 0.25,
+                filter: 'blur(18px)',
+                borderRadius: '50%',
+                zIndex: 1,
+                pointerEvents: 'none',
+              },
+              '::after': {
+                content: '""',
+                position: 'absolute',
+                right: -80,
+                top: '50%',
+                transform: 'translateY(-50%) rotate(12deg)',
+                width: 180,
+                height: 220,
+                background: 'linear-gradient(13.89deg, #B69DF8 47.02%, #D0BCFF 97.69%)',
+                opacity: 0.25,
+                filter: 'blur(18px)',
+                borderRadius: '50%',
+                zIndex: 1,
+                pointerEvents: 'none',
+              },
+              zIndex: 2,
+            }}
+          >
               <Box display="flex" alignItems="center">
-                <MilitaryTechIcon color="primary" sx={{ mr: 1, fontSize: 28 }} />
-                <Typography variant="h6">Ваше место: {userPosition}</Typography>
+              <MilitaryTechIcon sx={{ mr: 1, fontSize: 28, color: '#D0BCFF' }} />
+              <Typography variant="h6" sx={{ color: '#D0BCFF', fontWeight: 700 }}>
+                Ваше место: {userPosition}
+              </Typography>
               </Box>
               <Box>
-                <ScoreChip 
-                  label={`${formatScore(userScore)} очков`} 
-                  position={userPosition}
-                />
-              </Box>
+              <Typography sx={{ color: '#D0BCFF', fontWeight: 700, fontSize: '1.1rem' }}>
+                {formatCompactNumber(userScore)} очков
+              </Typography>
             </Box>
-          </Paper>
+          </Box>
         )}
       </LeaderboardHeader>
 
@@ -332,110 +589,157 @@ const LeaderboardPage = () => {
           <Typography>{error}</Typography>
         </Paper>
       ) : (
-        <List sx={{ width: '100%', p: 0 }}>
-          {leaderboardData.map((user, index) => (
+        <List sx={{ width: '100%', p: 0, maxWidth: 750, minWidth: 320, mx: 'auto' }}>
+          {leaderboardData.map((user, index) => {
+            // Определяем hasBottom0 до UserCard
+            let hasBottom0 = false;
+            if (user.decoration?.item_path) {
+              const { styles } = parseItemSettings(user.decoration.item_path);
+              hasBottom0 = styles && styles.bottom === '0';
+            }
+            return (
             <UserCard
               key={user.id}
               position={index + 1}
+              decoration={user.decoration}
               component={motion.div}
               custom={index}
               initial="hidden"
               animate="visible"
               variants={cardVariants}
+                sx={{
+                  overflow: hasBottom0 ? 'hidden' : 'hidden',
+                  transition: 'overflow 0.2s',
+                  ...(hasBottom0 && {
+                    '&:hover': {
+                      overflow: 'visible',
+                    },
+                    '&:hover .decoration-bottom0': {
+                      transform: 'scale(1.18)',
+                      transformOrigin: 'right bottom',
+                      zIndex: 10,
+                    },
+                  }),
+                }}
             >
-              <RankNumber position={index + 1}>
-                <PositionIcon position={index + 1} />
-              </RankNumber>
-
-              <UserAvatar 
-                position={index + 1}
-                src={user.avatar_url ? `${API_URL}${user.avatar_url}` : null} 
-                alt={user.name}
-              >
-                {user.name.charAt(0)}
-              </UserAvatar>
-
-              <UserInfo>
-                <Box display="flex" alignItems="center">
-                  <Typography 
-                    variant="subtitle1" 
-                    component={Link} 
-                    to={`/profile/${user.username}`}
-                    sx={{ 
-                      fontWeight: 'bold', 
-                      textDecoration: 'none',
-                      color: 'inherit',
-                      '&:hover': {
-                        textDecoration: 'underline',
-                        color: theme.palette.primary.main
-                      }
-                    }}
-                  >
-                    {user.name}
-                  </Typography>
-                  {user.verification && user.verification.status >= 1 && (
-                    <Tooltip title="Верифицированный пользователь">
-                      <VerifiedIcon 
-                        sx={{ 
-                          ml: 0.5, 
-                          fontSize: 16, 
-                          color: theme.palette.primary.main 
-                        }} 
-                      />
-                    </Tooltip>
-                  )}
-                </Box>
-                <Typography 
-                  variant="body2" 
-                  color="textSecondary" 
-                  sx={{ display: 'flex', alignItems: 'center' }}
-                >
-                  @{user.username}
-                </Typography>
-                
-                {!isMobile && (
-                  <Box sx={{ mt: 0.5, display: 'flex', flexWrap: 'wrap' }}>
-                    <StatsChip 
-                      size="small" 
-                      label={`${user.stats.posts_count} постов`} 
-                      variant="outlined"
-                    />
-                    <StatsChip 
-                      size="small" 
-                      label={`${user.stats.followers_count} подписчиков`} 
-                      variant="outlined"
-                    />
-                  </Box>
-                )}
-              </UserInfo>
-
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                {user.achievement && (
-                  <Tooltip title={user.achievement.bage}>
-                    <Box 
-                      component="img"
-                      src={`/static/images/bages/${user.achievement.image_path}`}
-                      sx={{ 
-                        width: 'auto', 
-                        height: 32, 
-                        mr: 2,
-                        display: { xs: 'none', sm: 'block' }
-                      }}
-                    />
-                  </Tooltip>
-                )}
-                <ScoreChip 
-                  label={formatScore(user.score)} 
+              {user.decoration?.item_path && (() => {
+                const { path, styles } = parseItemSettings(user.decoration.item_path);
+                  const hasBottom0 = styles && styles.bottom === '0';
+                return (
+                  <DecorationItem 
+                    src={`${API_URL}/${path}`}
+                    alt="decoration"
+                    customStyles={styles}
+                      className={hasBottom0 ? 'decoration-bottom0' : undefined}
+                  />
+                );
+              })()}
+              <Box sx={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', width: '100%' }}>
+                <ScoreDisplay 
                   position={index + 1}
-                />
+                  isLightBackground={user.decoration?.background?.startsWith('#') && isLightColor(user.decoration.background)}
+                >
+                  {formatCompactNumber(user.score)}
+                </ScoreDisplay>
+
+                <UserAvatar 
+                  position={index + 1}
+                  src={user.avatar_url ? `${API_URL}${user.avatar_url}` : null} 
+                  alt={user.name}
+                >
+                  {user.name.charAt(0)}
+                </UserAvatar>
+
+                <UserInfo>
+                  <Box display="flex" alignItems="center">
+                    <Typography 
+                      variant="subtitle1" 
+                      component={Link} 
+                      to={`/profile/${user.username}`}
+                      sx={{ 
+                        fontWeight: 'bold', 
+                        textDecoration: 'none',
+                        color: 'inherit',
+                        maxWidth: 'calc(100% - 40px)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        '&:hover': {
+                          textDecoration: 'underline',
+                          color: theme.palette.primary.main
+                        }
+                      }}
+                    >
+                      {user.name}
+                    </Typography>
+                    {user.verification && user.verification.status && (
+                      <VerificationBadge status={user.verification.status} />
+                    )}
+                    {user.achievement && (
+                      <Tooltip title={user.achievement.bage}>
+                        <Box 
+                          component="img"
+                          src={`/static/images/bages/${user.achievement.image_path}`}
+                          sx={{ 
+                            width: 'auto',
+                            height: 24,
+                            objectFit: 'contain'
+                          }}
+                        />
+                      </Tooltip>
+                    )}
+                  </Box>
+                </UserInfo>
               </Box>
             </UserCard>
-          ))}
+            );
+          })}
         </List>
       )}
-
-      <Card sx={{ mt: 4, borderRadius: 2 }}>
-        <CardContent>
+      <Card 
+        sx={{
+          background: '#1c1c1c',
+          borderRadius: '16px',
+          border: '1px solid rgba(255,255,255,0.1)',
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden',
+          boxShadow: 'none',
+          mt: 4,
+          '::before': {
+            content: '""',
+            position: 'absolute',
+            left: -80,
+            top: '50%',
+            transform: 'translateY(-50%) rotate(-12deg)',
+            width: 180,
+            height: 220,
+            background: 'linear-gradient(13.89deg, #B69DF8 47.02%, #D0BCFF 97.69%)',
+            opacity: 0.25,
+            filter: 'blur(18px)',
+            borderRadius: '50%',
+            zIndex: 1,
+            pointerEvents: 'none',
+          },
+          '::after': {
+            content: '""',
+            position: 'absolute',
+            right: -80,
+            top: '50%',
+            transform: 'translateY(-50%) rotate(12deg)',
+            width: 180,
+            height: 220,
+            background: 'linear-gradient(13.89deg, #B69DF8 47.02%, #D0BCFF 97.69%)',
+            opacity: 0.25,
+            filter: 'blur(18px)',
+            borderRadius: '50%',
+            zIndex: 1,
+            pointerEvents: 'none',
+          },
+          zIndex: 2,
+        }}
+      >
+        <CardContent sx={{ position: 'relative', zIndex: 2 }}>
           <Box display="flex" alignItems="center" mb={2}>
             <InfoIcon color="primary" sx={{ mr: 1 }} />
             <Typography variant="h6">Как начисляются очки?</Typography>
@@ -451,19 +755,22 @@ const LeaderboardPage = () => {
             }}
           >
             <Box>
-              <Typography variant="subtitle2">• Создание поста: 10 очков</Typography>
-              <Typography variant="subtitle2">• Лайк на ваш пост: 2 очка</Typography>
-              <Typography variant="subtitle2">• Написание комментария: 5 очков</Typography>
-              <Typography variant="subtitle2">• Лайк на ваш комментарий: 1 очко</Typography>
+              <Typography variant="subtitle2">• Создание поста: 50 очков</Typography>
+              <Typography variant="subtitle2">• Лайк на ваш пост: 10 очков</Typography>
+              <Typography variant="subtitle2">• Написание комментария: 50 очков</Typography>
+              <Typography variant="subtitle2">• Лайк на ваш комментарий: 10 очков</Typography>
+              <Typography variant="subtitle2">• Создание истории: 25 очков</Typography>
             </Box>
             <Box>
-              <Typography variant="subtitle2">• Ответ на комментарий: 3 очка</Typography>
-              <Typography variant="subtitle2">• Лайк на ваш ответ: 1 очко</Typography>
-              <Typography variant="subtitle2">• Репост: 7 очков</Typography>
+              <Typography variant="subtitle2">• Ответ на комментарий: 30 очков</Typography>
+              <Typography variant="subtitle2">• Лайк на ваш ответ: 10 очков</Typography>
+              <Typography variant="subtitle2">• Репост: 40 очков</Typography>
+              <Typography variant="subtitle2">• Просмотр вашей истории: 10 очков</Typography>
+              <Typography variant="subtitle2">• Реакция на вашу историю: 20 очков</Typography>
             </Box>
           </Box>
           <Typography variant="body2" sx={{ mt: 2 }}>
-            Очки обновляются в реальном времени. Если вы удалите пост или комментарий, или кто-то уберет лайк, соответствующие очки будут вычтены из вашего счета.
+            Очки обновляются раз в час. Если вы удалите пост или комментарий, или кто-то уберет лайк, соответствующие очки будут вычтены из вашего счета.
           </Typography>
           
           <Box sx={{ mt: 3, p: 2, bgcolor: 'rgba(208, 188, 255, 0.05)', borderRadius: 2, border: '1px solid rgba(208, 188, 255, 0.1)' }}>
@@ -471,7 +778,7 @@ const LeaderboardPage = () => {
               Периоды расчета очков:
             </Typography>
             <Typography variant="body2">
-              • <strong>Неделя:</strong> с понедельника 00:00 до воскресенья 23:50
+              • <strong>Неделя:</strong> с понедельника 00:00 до воскресенья 19:00
             </Typography>
             <Typography variant="body2">
               • <strong>Месяц:</strong> с 1-го числа 00:00 до последнего дня месяца 23:59

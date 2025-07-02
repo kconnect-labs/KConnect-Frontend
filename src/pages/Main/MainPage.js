@@ -3,9 +3,7 @@ import {
   Box, 
   Typography,
   Container,
-  Grid,
   Card,
-  CardContent,
   Avatar,
   Button,
   CircularProgress,
@@ -15,45 +13,22 @@ import {
   styled,
   InputBase,
   Tooltip,
-  Fade,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
   Snackbar,
-  Chip,
   useTheme,
-  useMediaQuery,
-  CardMedia,
   ImageList,
   ImageListItem,
   Alert,
   Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions
 } from '@mui/material';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import PostService from '../../services/PostService';
+import { useLanguage } from '../../context/LanguageContext';
 import axios from '../../services/axiosConfig';
-import ImageIcon from '@mui/icons-material/Image';
-import VideoCameraBackIcon from '@mui/icons-material/VideoCameraBack';
-import SendIcon from '@mui/icons-material/Send';
+import { handleImageError as safeImageError } from '../../utils/imageUtils';
+
 import CloseIcon from '@mui/icons-material/Close';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import DeleteIcon from '@mui/icons-material/Delete';
-import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
-import ShareIcon from '@mui/icons-material/Share';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import RefreshIcon from '@mui/icons-material/Refresh';
+
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
-import ReportIcon from '@mui/icons-material/Report';
-import { formatTimeAgo, formatDate } from '../../utils/dateUtils';
-import ZoomInIcon from '@mui/icons-material/ZoomIn';
-import ImageGrid from '../../components/Post/ImageGrid';
 import { Post } from '../../components/Post';
 import RepostItem from '../../components/RepostItem';
 import PostSkeleton from '../../components/Post/PostSkeleton';
@@ -63,128 +38,42 @@ import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined';
 import { MusicContext } from '../../context/MusicContext';
 import PauseIcon from '@mui/icons-material/Pause';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import VolumeOffIcon from '@mui/icons-material/VolumeOff';
+
 import ContentLoader from '../../components/UI/ContentLoader';
 import TimerIcon from '@mui/icons-material/Timer';
 import UpdateInfo from '../../components/Updates/UpdateInfo';
 import UpdateService from '../../services/UpdateService';
 import SimpleImageViewer from '../../components/SimpleImageViewer';
+import DynamicIslandNotification from '../../components/DynamicIslandNotification';
+import WarningIcon from '@mui/icons-material/Warning';
+// import TelegramIcon from '@mui/icons-material/Telegram';
 
-
-const PostCard = styled(Card)(({ theme }) => ({
-  marginBottom: 10,
-  borderRadius: '10px',
-  overflow: 'hidden',
-  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-  background: '#1A1A1A',
-  cursor: 'pointer'
-}));
 
 
 const OnlineUsersCard = styled(Card)(({ theme }) => ({
-  borderRadius: '24px',
+  borderRadius: '12px',
   overflow: 'hidden',
   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-  background: theme.palette.background.paper,
+  background: 'rgba(255, 255, 255, 0.03)',
+  backdropFilter: 'blur(20px)',
   border: theme.palette.mode === 'dark' 
     ? '1px solid rgba(255, 255, 255, 0.1)' 
     : '1px solid rgba(0, 0, 0, 0.1)'
 }));
 
-const RecommendationCard = styled(Card)(({ theme }) => ({
-  marginBottom: theme.spacing(1.5),
-  borderRadius: '12px',
-  background: '#1d1d1d',
-  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
-  border: '1px solid rgba(255, 255, 255, 0.03)'
-}));
 
-const FollowButton = styled(Button)(({ theme, following }) => ({
-  borderRadius: '10px',
-  textTransform: 'none',
-  fontWeight: 'medium',
-  minWidth: '80px',
-  padding: theme.spacing(0.5, 1.5),
-  fontSize: '0.75rem',
-  backgroundColor: following ? 'transparent' : theme.palette.primary.main,
-  borderColor: following ? theme.palette.divider : theme.palette.primary.main,
-  color: following ? theme.palette.text.primary : theme.palette.primary.contrastText,
-  '&:hover': {
-    backgroundColor: following ? 'rgba(255, 255, 255, 0.05)' : theme.palette.primary.dark,
-  }
-}));
 
-const SidebarContainer = styled(Box)(({ theme }) => ({
-  position: 'sticky',
-  top: 80,
-  width: '100%',
-  [theme.breakpoints.down('md')]: {
-    position: 'static',
-    marginTop: theme.spacing(2)
-  }
-}));
 
-const MarkdownContent = styled(Box)(({ theme }) => ({
-  '& p': {
-    margin: theme.spacing(1, 0),
-    lineHeight: 1.6,
-  },
-  '& h1, & h2, & h3, & h4, & h5, & h6': {
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(1),
-    fontWeight: 600,
-  },
-  '& a': {
-    color: theme.palette.primary.main,
-    textDecoration: 'none',
-    '&:hover': {
-      textDecoration: 'underline',
-    },
-  },
-  '& ul, & ol': {
-    marginLeft: theme.spacing(2),
-  },
-  '& code': {
-    fontFamily: 'monospace',
-    backgroundColor: theme.palette.action.hover,
-    padding: theme.spacing(0.3, 0.6),
-    borderRadius: 3,
-  },
-  '& pre': {
-    backgroundColor: theme.palette.grey[900],
-    color: theme.palette.common.white,
-    padding: theme.spacing(1.5),
-    borderRadius: theme.shape.borderRadius,
-    overflowX: 'auto',
-    '& code': {
-      backgroundColor: 'transparent',
-      padding: 0,
-    },
-  },
-}));
-
-const CreatePostCard = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(1.5),
-  borderRadius: '12px',
-  background: '#1d1d1d',
-  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
-  border: '1px solid rgba(255, 255, 255, 0.03)',
-  [theme.breakpoints.down('sm')]: {
-    padding: theme.spacing(1), 
-  },
-}));
 
 const PostInput = styled(InputBase)(({ theme }) => ({
   width: '100%',
-  padding: theme.spacing(1),
   borderRadius: '10px',
   backgroundColor: 'rgba(255, 255, 255, 0.05)',
   '&:hover': {
     backgroundColor: 'rgba(255, 255, 255, 0.07)',
   },
   '& .MuiInputBase-input': {
-    padding: theme.spacing(1),
+    padding: '8px',
   },
 }));
 
@@ -192,34 +81,14 @@ const PostActions = styled(Box)(({ theme }) => ({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  marginTop: theme.spacing(1),
   paddingTop: theme.spacing(1),
 }));
 
-const MediaPreviewContainer = styled(Box)(({ theme }) => ({
-  position: 'relative',
-  marginTop: theme.spacing(2),
-  borderRadius: '10px',
-  overflow: 'hidden',
-  backgroundColor: 'rgba(0, 0, 0, 0.2)',
-}));
-
-const RemoveMediaButton = styled(IconButton)(({ theme }) => ({
-  position: 'absolute',
-  top: 8,
-  right: 8,
-  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  color: theme.palette.common.white,
-  padding: theme.spacing(0.5),
-  '&:hover': {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  },
-}));
 
 const ContentContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
-  gap: theme.spacing(2),
+  gap: theme.spacing(),
   width: '100%',
   maxWidth: '100%',
   overflow: { xs: 'hidden', md: 'visible' },
@@ -259,6 +128,7 @@ const RightColumn = styled(Box)(({ theme }) => ({
 
 
 const OnlineUsers = () => {
+  const { t } = useLanguage();
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -299,13 +169,9 @@ const OnlineUsers = () => {
   
   if (loading) {
     return (
-      <OnlineUsersCard sx={{ p: 2, mb: 0 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <CircularProgress size={20} sx={{ mr: 2 }} />
-          <Typography variant="h6" sx={{ fontSize: '1.1rem' }}>
-            Загрузка...
-          </Typography>
-        </Box>
+      <OnlineUsersCard sx={{ p: 1, minHeight: 56, display: 'flex', alignItems: 'center' }}>
+        <CircularProgress size={18} sx={{ mr: 1 }} />
+        <Typography variant="body2" sx={{ fontSize: '0.95rem' }}>{t('main_page.loading')}</Typography>
       </OnlineUsersCard>
     );
   }
@@ -315,90 +181,83 @@ const OnlineUsers = () => {
   }
   
   return (
-    <OnlineUsersCard sx={{ p: 2, mb: 0 }}>
-      <Typography variant="h6" sx={{ 
-        fontSize: '1.1rem', 
-        mb: 1.5,
-        color: theme => theme.palette.text.primary
-      }}>
-        Сейчас онлайн ({onlineUsers.length})
-      </Typography>
-      
-      
-      <Box sx={{ 
-        display: 'flex', 
-        flexWrap: 'nowrap', 
-        gap: 2,
+    <OnlineUsersCard sx={{ p: 1, minHeight: 56, display: 'flex', alignItems: 'center', overflowX: 'auto' }}>
+      <Box sx={{
+        display: 'flex',
+        flexWrap: 'nowrap',
+        gap: 1,
         overflowX: 'auto',
         pb: 0,
-        '&::-webkit-scrollbar': {
-          height: '0px',
-          display: 'none'
-        },
-        '&::-webkit-scrollbar-thumb': {
-          backgroundColor: 'transparent',
-        },
-        '&::-webkit-scrollbar-track': {
-          backgroundColor: 'transparent',
-        },
-        msOverflowStyle: 'none', /* IE and Edge */
-        scrollbarWidth: 'none',   /* Firefox */
+        '&::-webkit-scrollbar': { height: '0px', display: 'none' },
+        msOverflowStyle: 'none',
+        scrollbarWidth: 'none',
       }}>
-        {onlineUsers.map(user => (
-          <Box 
-            key={user.id} 
-            sx={{ 
-              display: 'flex', 
-              flexDirection: 'column',
-              alignItems: 'center',
-              cursor: 'pointer'
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.5,
+            px: 1,
+            py: 0.5,
+            borderRadius: '12px',
+            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+            border: '1px solid rgba(76, 175, 80, 0.2)',
+            minWidth: 'fit-content',
+            height: 36,
+            mr: 0.5
+          }}
+        >
+          <Box
+            sx={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              backgroundColor: '#4caf50',
+              boxShadow: '0 0 8px rgba(76, 175, 80, 0.5)'
             }}
+          />
+          <Typography
+            variant="body2"
+            sx={{
+              fontSize: '0.75rem',
+              fontWeight: 500,
+              color: '#4caf50'
+            }}
+          >
+            {t('main_page.online_count', { count: onlineUsers.length })}
+          </Typography>
+        </Box>
+        {onlineUsers.map(user => (
+          <Box
+            key={user.id}
+            sx={{ position: 'relative', cursor: 'pointer', mx: 0.25 }}
             onClick={() => handleUserClick(user.username)}
           >
-            <Box sx={{ position: 'relative' }}>
-              <Avatar 
-                src={user.photo}
-                alt={user.name || user.username}
-                sx={{ 
-                  width: 56, 
-                  height: 56, 
-                  border: `2px solid ${theme.palette.background.paper}`
-                }}
-                onError={(e) => {
-                  console.error(`Failed to load avatar for ${user.username}`);
-                  const imgElement = e.target;
-                  if (imgElement && typeof imgElement.src !== 'undefined') {
-                    imgElement.src = `/static/uploads/system/avatar.png`;
-                  }
-                }}
-              />
-              <Box 
-                sx={{ 
-                  position: 'absolute', 
-                  bottom: 0, 
-                  right: '5px',
-                  width: 13, 
-                  height: 13, 
-                  borderRadius: '50%', 
-                  backgroundColor: '#4caf50',
-                  border: `1px solid ${theme.palette.background.paper}`
-                }} 
-              />
-            </Box>
-            <Typography 
-              variant="caption" 
-              sx={{ 
-                mt: 0.5, 
-                maxWidth: '70px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                textAlign: 'center',
-                fontSize: '0.85rem'
+            <Avatar
+              src={user.photo}
+              alt={user.username}
+              sx={{
+                width: 36,
+                height: 36,
+                border: `2px solid ${theme.palette.background.paper}`,
+                boxSizing: 'border-box',
+                background: '#222',
               }}
-            >
-              {user.name || user.username}
-            </Typography>
+              onError={safeImageError}
+            />
+            <Box
+              sx={{
+                position: 'absolute',
+                bottom: 2,
+                right: 2,
+                width: 9,
+                height: 9,
+                borderRadius: '50%',
+                backgroundColor: '#4caf50',
+                border: `1.5px solid ${theme.palette.background.paper}`,
+                boxSizing: 'border-box',
+              }}
+            />
           </Box>
         ))}
       </Box>
@@ -408,6 +267,7 @@ const OnlineUsers = () => {
 
 
 const UserRecommendation = ({ user }) => {
+  const { t } = useLanguage();
   const [following, setFollowing] = useState(user.is_following || false);
   const { user: currentUser } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -478,13 +338,7 @@ const UserRecommendation = ({ user }) => {
               border: '2px solid rgba(208, 188, 255, 0.3)',
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
             }}
-            onError={(e) => {
-              console.error(`Failed to load avatar for ${user.name}`);
-              const imgElement = e.target;
-              if (imgElement && typeof imgElement.src !== 'undefined') {
-                imgElement.src = `/static/uploads/avatar/system/avatar.png`;
-              }
-            }}
+            onError={safeImageError}
           />
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography 
@@ -561,7 +415,7 @@ const UserRecommendation = ({ user }) => {
                 })
               }}
             >
-              {following ? 'Отписаться' : 'Подписаться'}
+              {following ? t('main_page.follow.unfollow') : t('main_page.follow.follow')}
             </Button>
           )}
         </Box>
@@ -573,6 +427,7 @@ const UserRecommendation = ({ user }) => {
 
 const CreatePost = ({ onPostCreated }) => {
   const { user } = useContext(AuthContext);
+  const { t } = useLanguage();
   const { playTrack, currentTrack, isPlaying, togglePlay } = useContext(MusicContext);
   const [content, setContent] = useState('');
   const [mediaFiles, setMediaFiles] = useState([]);
@@ -583,6 +438,7 @@ const CreatePost = ({ onPostCreated }) => {
   const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [mediaNotification, setMediaNotification] = useState({ open: false, message: '' });
+  const [isNsfw, setIsNsfw] = useState(false);
   
   
   const [musicSelectOpen, setMusicSelectOpen] = useState(false);
@@ -601,6 +457,11 @@ const CreatePost = ({ onPostCreated }) => {
     message: '',
     timeRemaining: 0
   });
+  
+  const [showSizeError, setShowSizeError] = useState(false);
+  const [sizeErrorMessage, setSizeErrorMessage] = useState('');
+  const MAX_VIDEO_SIZE = 150 * 1024 * 1024; // 150MB in bytes
+  const MAX_PHOTO_SIZE = 50 * 1024 * 1024;  // 50MB in bytes
   
   
   useEffect(() => {
@@ -657,35 +518,92 @@ const CreatePost = ({ onPostCreated }) => {
   const processFiles = (files) => {
     if (!files.length) return;
 
-    const file = files[0];
-    const isImage = file.type.startsWith('image/');
-    const isVideo = file.type.startsWith('video/');
+    let hasInvalidSize = false;
+    
+    // Проверяем размеры файлов
+    Array.from(files).forEach(file => {
+      const isVideo = file.type.startsWith('video/');
+      const isImage = file.type.startsWith('image/');
 
-    if (!isImage && !isVideo) {
+      if (isVideo && file.size > MAX_VIDEO_SIZE) {
+        setSizeErrorMessage(t('main_page.media.video_size_error'));
+        setShowSizeError(true);
+        hasInvalidSize = true;
+      }
+
+      if (isImage && file.size > MAX_PHOTO_SIZE) {
+        setSizeErrorMessage(t('main_page.media.image_size_error'));
+        setShowSizeError(true);
+        hasInvalidSize = true;
+      }
+    });
+
+    if (hasInvalidSize) {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      return;
+    }
+
+    const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+    const videoFiles = Array.from(files).filter(file => file.type.startsWith('video/'));
+
+    if (imageFiles.length === 0 && videoFiles.length === 0) {
       setMediaNotification({
         open: true,
-        message: 'Поддерживаются только изображения и видео'
+        message: t('main_page.media.unsupported_format')
       });
       return;
     }
 
-    
-    if (mediaType && ((isImage && mediaType === 'video') || (isVideo && mediaType === 'image'))) {
+    // Если уже есть видео, не позволяем добавлять изображения
+    if (mediaType === 'video' && imageFiles.length > 0) {
       setMediaNotification({
         open: true,
-        message: 'Нельзя прикрепить фото и видео одновременно'
+        message: t('main_page.media.mixed_content_error')
       });
       return;
     }
 
-    setMediaFiles([file]);
-    setMediaType(isImage ? 'image' : 'video');
-    
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setMediaPreview([reader.result]);
-    };
-    reader.readAsDataURL(file);
+    // Если уже есть изображения, не позволяем добавлять видео
+    if (mediaType === 'image' && videoFiles.length > 0) {
+      setMediaNotification({
+        open: true,
+        message: t('main_page.media.mixed_content_error')
+      });
+      return;
+    }
+
+    // Обработка видео
+    if (videoFiles.length > 0) {
+      setMediaFiles([videoFiles[0]]);
+      setMediaType('video');
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setMediaPreview([reader.result]);
+      };
+      reader.readAsDataURL(videoFiles[0]);
+      return;
+    }
+
+    // Обработка изображений
+    if (imageFiles.length > 0) {
+      setMediaFiles(prev => [...prev, ...imageFiles]);
+      setMediaType('image');
+      
+      // Создаем превью для всех изображений
+      const newPreviews = [];
+      imageFiles.forEach(file => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          newPreviews.push(reader.result);
+          if (newPreviews.length === imageFiles.length) {
+            setMediaPreview(prev => [...prev, ...newPreviews]);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
   };
   
   const handleRemoveMedia = () => {
@@ -715,6 +633,7 @@ const CreatePost = ({ onPostCreated }) => {
     setMediaPreview([]);
     setMediaType('');
     setSelectedTracks([]);
+    setIsNsfw(false);
     setError('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -730,7 +649,7 @@ const CreatePost = ({ onPostCreated }) => {
     if (currentTrack && currentTrack.id === track.id) {
       togglePlay(); 
     } else {
-      playTrack(track); 
+      playTrack(track, 'main');
     }
   };
   
@@ -744,27 +663,20 @@ const CreatePost = ({ onPostCreated }) => {
       
       const formData = new FormData();
       formData.append('content', content.trim());
+      formData.append('is_nsfw', isNsfw.toString());
       
       console.log("Added content to FormData:", content.trim());
       
-      
-      if (mediaType === 'images') {
-        
-        console.log(`Adding ${mediaFiles.length} images to FormData`);
+      if (mediaType === 'image') {
+        // Отправляем все изображения с правильным форматом
         mediaFiles.forEach((file, index) => {
           console.log(`Adding image[${index}]:`, file.name, file.size);
-          formData.append(`images[${index}]`, file);
+          formData.append(`images[${index}]`, file); // Исправлено на правильный формат
         });
-      } else if (mediaType === 'image') {
-        
-        console.log("Adding single image to FormData:", mediaFiles[0].name, mediaFiles[0].size);
-        formData.append('image', mediaFiles[0]);
       } else if (mediaType === 'video') {
-        
         console.log("Adding video to FormData:", mediaFiles[0].name, mediaFiles[0].size);
         formData.append('video', mediaFiles[0]);
       }
-      
       
       if (selectedTracks.length > 0) {
         console.log(`Adding ${selectedTracks.length} music tracks to post`);
@@ -789,9 +701,7 @@ const CreatePost = ({ onPostCreated }) => {
       
       console.log("Post created successfully!", response.data);
       
-      
       clearForm();
-      
       
       if (onPostCreated) {
         onPostCreated(response.data.post);
@@ -863,34 +773,23 @@ const CreatePost = ({ onPostCreated }) => {
   const handlePaste = (e) => {
     const clipboardData = e.clipboardData;
     if (clipboardData.items) {
-      const items = clipboardData.items;
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf('image') !== -1) {
-          e.preventDefault();  
-          const file = items[i].getAsFile();
-          if (file) {
-            
-            if (mediaType && mediaType === 'video') {
-              setMediaNotification({
-                open: true,
-                message: 'Нельзя прикрепить фото и видео одновременно'
-              });
-              return;
-            }
-
-            
-            setMediaFiles(prev => [...prev, file]);
-            setMediaType('image');
-            
-            
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              setMediaPreview(prev => [...prev, reader.result]);
-            };
-            reader.readAsDataURL(file);
-            break;
-          }
+      const items = Array.from(clipboardData.items);
+      const imageItems = items.filter(item => item.type.indexOf('image') !== -1);
+      
+      if (imageItems.length > 0) {
+        e.preventDefault();
+        
+        // Если уже есть видео, не позволяем добавлять изображения
+        if (mediaType === 'video') {
+          setMediaNotification({
+            open: true,
+            message: 'Нельзя прикрепить фото и видео одновременно'
+          });
+          return;
         }
+
+        const imageFiles = imageItems.map(item => item.getAsFile());
+        processFiles(imageFiles);
       }
     }
   };
@@ -902,8 +801,9 @@ const CreatePost = ({ onPostCreated }) => {
       elevation={0} 
       sx={{ 
         p: 2, 
-        borderRadius: 2,
-        backgroundColor: (theme) => theme.palette.background.paper,
+        borderRadius: 1,
+        background: 'rgba(255, 255, 255, 0.03)',
+        backdropFilter: 'blur(20px)',
         position: 'relative',
         overflow: 'hidden',
         border: '1px solid rgba(255, 255, 255, 0.1)'
@@ -965,7 +865,7 @@ const CreatePost = ({ onPostCreated }) => {
               alignItems: 'center'
             }}
           >
-            <TimerIcon sx={{ mr: 1 }} /> Пожалуйста, подождите
+            <TimerIcon sx={{ mr: 1 }} /> {t('main_page.post.create.error.title')}
           </Typography>
           <Typography id="rate-limit-dialog-description" sx={{ mb: 3, color: 'text.secondary' }}>
             {rateLimitDialog.message}
@@ -981,7 +881,7 @@ const CreatePost = ({ onPostCreated }) => {
                 padding: '6px 16px'
               }}
             >
-              Понятно
+              {t('main_page.post.create.error.understand')}
             </Button>
           </Box>
         </Box>
@@ -1001,6 +901,16 @@ const CreatePost = ({ onPostCreated }) => {
           {mediaNotification.message}
         </Alert>
       </Snackbar>
+      
+      <DynamicIslandNotification
+        open={showSizeError}
+        message={sizeErrorMessage}
+        shortMessage={t('main_page.post.create.error.file_size')}
+        notificationType="error"
+        animationType="pill"
+        autoHideDuration={5000}
+        onClose={() => setShowSizeError(false)}
+      />
       
       <Box 
         component="form" 
@@ -1050,19 +960,19 @@ const CreatePost = ({ onPostCreated }) => {
             >
               <ImageOutlinedIcon sx={{ fontSize: 40, color: '#D0BCFF', mb: 1, filter: 'drop-shadow(0 0 8px rgba(208, 188, 255, 0.6))' }} />
               <Typography variant="body1" color="primary" sx={{ fontWeight: 'medium', textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-                Перетащите файлы сюда
+                {t('main_page.post.create.drag_files')}
               </Typography>
             </Box>
           )}
           
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 0 }}>
             <Avatar 
               src={user.photo ? `/static/uploads/avatar/${user.id}/${user.photo}` : undefined}
               alt={user.name}
               sx={{ mr: 1.5, width: 42, height: 42, border: '2px solid #D0BCFF' }}
             />
             <PostInput 
-              placeholder="Что у вас нового?"
+              placeholder={t('main_page.post.create.placeholder')}
               multiline
               maxRows={6}
               value={content}
@@ -1323,11 +1233,11 @@ const CreatePost = ({ onPostCreated }) => {
                 startIcon={<ImageOutlinedIcon />}
                 sx={{
                   color: mediaFiles.length > 0 ? 'primary.main' : 'text.secondary',
-                  borderRadius: '24px',
+                  borderRadius: '8px',
                   textTransform: 'none',
                   fontSize: '0.875rem',
                   fontWeight: 500,
-                  padding: '6px 12px',
+                  padding: '4px 8px',
                   border: mediaFiles.length > 0 
                     ? '1px solid rgba(208, 188, 255, 0.5)' 
                     : '1px solid rgba(255, 255, 255, 0.12)',
@@ -1339,7 +1249,7 @@ const CreatePost = ({ onPostCreated }) => {
                 size="small"
                 onClick={() => fileInputRef.current?.click()}
               >
-                {mediaFiles.length ? `Файлы (${mediaFiles.length})` : 'Медиа'}
+                {mediaFiles.length ? t('main_page.post.create.media_count', { count: mediaFiles.length }) : t('main_page.post.create.media')}
               </Button>
               
               <Button
@@ -1347,11 +1257,11 @@ const CreatePost = ({ onPostCreated }) => {
                 startIcon={<MusicNoteIcon />}
                 sx={{
                   color: selectedTracks.length > 0 ? 'primary.main' : 'text.secondary',
-                  borderRadius: '24px',
+                  borderRadius: '8px',
                   textTransform: 'none',
                   fontSize: '0.875rem',
                   fontWeight: 500,
-                  padding: '6px 12px',
+                  padding: '4px 8px',
                   border: selectedTracks.length > 0 
                     ? '1px solid rgba(208, 188, 255, 0.5)' 
                     : '1px solid rgba(255, 255, 255, 0.12)',
@@ -1362,8 +1272,41 @@ const CreatePost = ({ onPostCreated }) => {
                 }}
                 size="small"
               >
-                {selectedTracks.length ? `Музыка (${selectedTracks.length})` : 'Музыка'}
+                {selectedTracks.length ? t('main_page.post.create.music_count', { count: selectedTracks.length }) : t('main_page.post.create.music')}
               </Button>
+              
+              {/* NSFW кнопка - показывается только при наличии медиа */}
+              {(mediaFiles.length > 0 || selectedTracks.length > 0) && (
+                <Tooltip title="Деликатный контент" placement="top">
+                  <IconButton
+                    onClick={() => setIsNsfw(!isNsfw)}
+                    sx={{
+                      color: isNsfw ? '#ff6b6b' : 'text.secondary',
+                      borderRadius: '50%',
+                      width: 36,
+                      height: 36,
+                      minWidth: 36,
+                      minHeight: 36,
+                      padding: 0,
+                      border: isNsfw 
+                        ? '1px solid rgba(255, 107, 107, 0.5)' 
+                        : '1px solid rgba(255, 255, 255, 0.12)',
+                      backgroundColor: isNsfw ? 'rgba(255, 107, 107, 0.1)' : 'transparent',
+                      '&:hover': {
+                        backgroundColor: isNsfw 
+                          ? 'rgba(255, 107, 107, 0.2)' 
+                          : 'rgba(255, 107, 107, 0.08)',
+                        borderColor: 'rgba(255, 107, 107, 0.4)'
+                      },
+                      transition: 'all 0.2s ease',
+                      flexShrink: 0
+                    }}
+                    size="small"
+                  >
+                    <WarningIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </Tooltip>
+              )}
             </Box>
             
             <Button 
@@ -1378,7 +1321,7 @@ const CreatePost = ({ onPostCreated }) => {
                 padding: '6px 16px'
               }}
             >
-              Опубликовать
+              {t('main_page.post.create.publish')}
             </Button>
           </PostActions>
           
@@ -1398,12 +1341,12 @@ const CreatePost = ({ onPostCreated }) => {
 
 const MainPage = React.memo(() => {
   const { user } = useContext(AuthContext);
+  const { t } = useLanguage();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [recommendations, setRecommendations] = useState([]);
   const [loadingRecommendations, setLoadingRecommendations] = useState(true);
   const [trendingBadges, setTrendingBadges] = useState([]);
-  const [loadingTrendingBadges, setLoadingTrendingBadges] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [feedType, setFeedType] = useState('all'); 
@@ -1607,55 +1550,6 @@ const MainPage = React.memo(() => {
     
   }, []);
 
-  
-  useEffect(() => {
-    const fetchTrendingBadges = async () => {
-      try {
-        setLoadingTrendingBadges(true);
-        
-        const response = await axios.get('/api/badges/trending');
-        if (response.data && Array.isArray(response.data.badges)) {
-          setTrendingBadges(response.data.badges);
-        } else {
-          setTrendingBadges([]);
-        }
-      } catch (error) {
-        console.error('Error fetching trending badges:', error);
-        setTrendingBadges([]);
-      } finally {
-        setLoadingTrendingBadges(false);
-      }
-    };
-
-    fetchTrendingBadges();
-  }, []);
-
-  
-  const getFallbackRecommendations = () => {
-    return [
-      {
-        id: 'local1',
-        name: 'Анна Смирнова',
-        username: 'anna_smirnova',
-        photo: '/static/uploads/system/user_placeholder.png',
-        about: 'UX/UI дизайнер, люблю путешествия и фотографию'
-      },
-      {
-        id: 'local2',
-        name: 'Иван Петров',
-        username: 'ivan_petrov',
-        photo: '/static/uploads/system/user_placeholder.png',
-        about: 'Разработчик, любитель музыки и хороших книг'
-      },
-      {
-        id: 'local3',
-        name: 'Маргарита К.',
-        username: 'rita_k',
-        photo: '/static/uploads/system/user_placeholder.png',
-        about: 'Фотограф, путешественник, искатель приключений'
-      }
-    ];
-  };
 
   
   const loadMorePosts = async () => {
@@ -1684,8 +1578,12 @@ const MainPage = React.memo(() => {
       if (requestId !== currentRequestId - 1) return;
       
       if (response.data && Array.isArray(response.data.posts)) {
-        setPosts(prev => [...prev, ...response.data.posts]);
-        setHasMore(response.data.has_next === true);
+        setPosts(prev => {
+          const existingPostIds = new Set(prev.map(p => p.id));
+          const newPosts = response.data.posts.filter(post => !existingPostIds.has(post.id));
+          return [...prev, ...newPosts];
+        });
+        setHasMore(response.data.has_next === true && response.data.posts.length > 0);
       } else {
         setHasMore(false);
       }
@@ -1699,23 +1597,24 @@ const MainPage = React.memo(() => {
   };
   
   const handlePostCreated = (newPost, deletedPostId = null) => {
+    if (axios.cache) {
+      axios.cache.clearPostsCache();
+      axios.cache.clearByUrlPrefix('/api/posts/feed');
+      axios.cache.clearByUrlPrefix('/api/profile/pinned_post');
+    }
     
     if (deletedPostId) {
       setPosts(prevPosts => prevPosts.filter(p => p.id !== deletedPostId));
       return;
     }
     
-    
     if (!newPost) {
-      
       setPosts([]); 
       setPage(1); 
-      
       
       const refreshFeed = async () => {
         try {
           setLoading(true);
-          
           const params = {
             page: 1,
             per_page: 20,
@@ -1726,7 +1625,10 @@ const MainPage = React.memo(() => {
           const currentRequestId = requestId + 1;
           setRequestId(currentRequestId);
           
-          const response = await axios.get('/api/posts/feed', { params });
+          const response = await axios.get('/api/posts/feed', { 
+            params,
+            forceRefresh: true
+          });
           
           if (requestId !== currentRequestId - 1) return;
           
@@ -1750,7 +1652,6 @@ const MainPage = React.memo(() => {
       refreshFeed();
       return;
     }
-    
     
     setPosts(prevPosts => [newPost, ...prevPosts]);
   };
@@ -1804,7 +1705,7 @@ const MainPage = React.memo(() => {
     <Container maxWidth="lg" sx={{ 
       mt: 2, 
       mb: 0,
-      px: { xs: 0, sm: 0 },
+      px: { xs: 0.5, sm: 0 },
       width: '100%',
       maxWidth: '100%',
       overflow: { xs: 'hidden', md: 'visible' },
@@ -1812,10 +1713,7 @@ const MainPage = React.memo(() => {
     }}>
       <ContentContainer>
         <LeftColumn>
-          
           <OnlineUsers />
-          
-          
           <CreatePost onPostCreated={handlePostCreated} />
           
           
@@ -1824,32 +1722,31 @@ const MainPage = React.memo(() => {
             display: 'flex', 
             justifyContent: 'space-between',
             mb: 0,
-            borderRadius: '24px',
-            backgroundColor: theme => theme.palette.mode === 'dark' ? '#1E1E1E' : theme.palette.background.paper,
-            backgroundImage: 'unset',
+            borderRadius: '12px',
+            background: 'rgba(255, 255, 255, 0.03)',
+            backdropFilter: 'blur(20px)',
             border: '1px solid rgba(255, 255, 255, 0.1)'
-
           }}>
             <Button 
               variant={feedType === 'all' ? 'contained' : 'text'} 
               onClick={() => setFeedType('all')}
               sx={{ flex: 1, mx: 0.5 }}
             >
-              Все
+              {t('main_page.feed.tabs.all')}
             </Button>
             <Button 
               variant={feedType === 'following' ? 'contained' : 'text'} 
               onClick={() => setFeedType('following')}
               sx={{ flex: 1, mx: 0.5 }}
             >
-              Подписки
+              {t('main_page.feed.tabs.following')}
             </Button>
             <Button 
               variant={feedType === 'recommended' ? 'contained' : 'text'} 
               onClick={() => setFeedType('recommended')}
               sx={{ flex: 1, mx: 0.5 }}
             >
-              Рекомендации
+              {t('main_page.feed.tabs.recommended')}
             </Button>
           </Paper>
           
@@ -1902,7 +1799,7 @@ const MainPage = React.memo(() => {
                     opacity: 0.7
                   }}>
                     <Typography variant="body2" color="text.secondary">
-                      Вы просмотрели все посты
+                      {t('main_page.feed.end')}
                     </Typography>
                   </Box>
                 )}
@@ -1914,7 +1811,7 @@ const MainPage = React.memo(() => {
                 mt: 2
               }}>
                 <Typography color="text.secondary">
-                  Нет постов для отображения. Подпишитесь на пользователей, чтобы видеть их публикации в ленте.
+                  {t('main_page.feed.empty')}
                 </Typography>
               </Box>
             )}
@@ -1927,40 +1824,17 @@ const MainPage = React.memo(() => {
             component={Paper} 
             sx={{ 
               p: 0, 
-              borderRadius: '16px', 
+              borderRadius: '12px', 
               mb: -0.625,
-              background: theme => theme.palette.mode === 'dark' 
-                ? 'linear-gradient(145deg, #222222, #1c1c1c)'
-                : theme.palette.background.paper,
+              background: 'rgba(255, 255, 255, 0.03)',
+              backdropFilter: 'blur(20px)',
               boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-              border: theme => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'}`,
+              border: '1px solid rgba(255, 255, 255, 0.05)',
               overflow: 'hidden',
               display: { xs: 'none', sm: 'block' } 
             }}
           >
-            <Box sx={{ 
-              background: theme => theme.palette.mode === 'dark' 
-                ? 'linear-gradient(90deg, rgba(208, 188, 255, 0.08), rgba(208, 188, 255, 0.02))'
-                : 'linear-gradient(90deg, rgba(140, 82, 255, 0.05), rgba(140, 82, 255, 0.01))', 
-              p: 2,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
-              <Typography 
-                variant="h6" 
-                sx={{ 
-                  fontWeight: 600,
-                  fontSize: '1.1rem',
-                  color: theme => theme.palette.text.primary,
-                  display: 'flex',
-                  alignItems: 'center',
-                  letterSpacing: '0.2px'
-                }}
-              >
-                Новые каналы
-              </Typography>
-            </Box>
+
             
             {loadingRecommendations ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 3, px: 2 }}>
@@ -1999,10 +1873,10 @@ const MainPage = React.memo(() => {
                   <PersonAddIcon sx={{ color: '#D0BCFF', fontSize: 26 }} />
                 </Avatar>
                 <Typography variant="body2" sx={{ fontWeight: 500, color: theme => theme.palette.text.secondary }}>
-                  Нет активных каналов
+                  {t('main_page.recommendations.empty.title')}
                 </Typography>
                 <Typography variant="caption" sx={{ display: 'block', mt: 1, maxWidth: '80%', mx: 'auto', color: theme => theme.palette.text.disabled }}>
-                  Создайте первый канал или подпишитесь на существующие каналы
+                  {t('main_page.recommendations.empty.description')}
                 </Typography>
               </Box>
             ) : (
@@ -2037,6 +1911,7 @@ const MainPage = React.memo(() => {
                 title={latestUpdate.title}
                 updates={latestUpdate.updates}
                 fixes={latestUpdate.fixes}
+                hideHeader={true}
               />
             </Box>
           )}

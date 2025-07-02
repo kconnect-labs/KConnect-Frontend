@@ -16,13 +16,14 @@ const MenuContainer = styled(Box)(({ theme }) => ({
   position: 'fixed',
   zIndex: 1000,
   backgroundColor: theme.palette.mode === 'light' 
-    ? alpha(theme.palette.background.paper, 0.95)
+    ? 'rgba(255,255,255,0.03)'
     : theme.palette.mode === 'contrast'
       ? '#101010'
-      : '#1A1A1A',
+      : 'rgba(255,255,255,0.03)',
+  backdropFilter: 'blur(10px)',
   borderRadius: 8,
   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
-  minWidth: 180,
+  // minWidth: 180,
   padding: '6px 0',
   overflow: 'hidden',
   animation: 'fadeIn 0.15s ease-out',
@@ -83,14 +84,14 @@ const ContextMenu = ({ items, x, y, show, onClose }) => {
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
       
-      let adjustedX = x;
+      let adjustedX = x - rect.width;
       let adjustedY = y;
       
-      if (x + rect.width > viewportWidth) {
-        adjustedX = viewportWidth - rect.width;
+      if (adjustedX < 0) {
+        adjustedX = 0;
       }
       
-      if (y + rect.height > viewportHeight) {
+      if (adjustedY + rect.height > viewportHeight) {
         adjustedY = viewportHeight - rect.height;
       }
       

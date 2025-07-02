@@ -1,36 +1,151 @@
 import React from 'react';
-import { Typography, Container, Paper, Divider } from '@mui/material';
-import { Link } from 'react-router-dom';
-import Header from '../../components/Layout/Header';
+import { Typography, Container, Paper, Divider, Box } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
+import { styled } from '@mui/material/styles';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import SecurityIcon from '@mui/icons-material/Security';
+import RuleIcon from '@mui/icons-material/Rule';
+
+const PageContainer = styled(Container)(({ theme }) => ({
+  paddingTop: theme.spacing(4),
+  paddingBottom: theme.spacing(8),
+  [theme.breakpoints.down('sm')]: {
+    paddingTop: theme.spacing(2),
+  },
+}));
+
+const RuleCard = styled(Paper)(({ theme }) => ({
+  marginBottom: theme.spacing(3),
+  borderRadius: theme.spacing(2),
+  overflow: 'hidden',
+  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+  transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+  '&:hover': {
+    transform: 'translateY(-5px)',
+    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)',
+  },
+}));
+
+const RuleCardHeader = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  padding: theme.spacing(2),
+  backgroundColor: 'rgba(208, 188, 255, 0.1)',
+}));
+
+const SectionTitle = styled(Typography)(({ theme }) => ({
+  position: 'relative',
+  display: 'inline-block',
+  marginBottom: theme.spacing(2),
+  fontWeight: 'bold',
+  color: theme.palette.primary.main,
+  '&::after': {
+    content: '""',
+    position: 'absolute',
+    bottom: -8,
+    left: 0,
+    width: '100%',
+    height: 3,
+    background: `linear-gradient(to right, ${theme.palette.primary.main}, transparent)`,
+    borderRadius: 4,
+  },
+}));
 
 const TermsOfServicePage = () => {
   return (
-    <div className="terms-of-service-page">
-      <Header title="Условия использования" backButton />
-      
-      <Container maxWidth="md" style={{ marginBottom: '2rem' }}>
-        <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
-          <Link to="/rules" style={{ textDecoration: 'none', color: '#666' }}>
-            Правила сообщества
-          </Link>
-          <Link to="/privacy-policy" style={{ textDecoration: 'none', color: '#666' }}>
-            Политика конфиденциальности
-          </Link>
-          <Link to="/terms-of-service" style={{ textDecoration: 'none', color: '#8c52ff', fontWeight: 'bold' }}>
-            Условия использования
-          </Link>
-        </div>
+    <PageContainer maxWidth="lg">
+      <Paper
+        elevation={0}
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 3,
+          p: 2,
+          mb: 3,
+          borderRadius: 2,
+          background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(208, 188, 255, 0.1) 100%)',
+          border: '1px solid rgba(208, 188, 255, 0.2)'
+        }}
+      >
+        <Box 
+          component={RouterLink} 
+          to="/rules"
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            textDecoration: 'none',
+            color: 'text.primary',
+            fontWeight: 'medium',
+            py: 0.5,
+            px: 1.5,
+            borderRadius: 1,
+            '&:hover': { 
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            }
+          }}
+        >
+          <RuleIcon sx={{ mr: 1, fontSize: 20 }} />
+          <Typography variant="body2">Правила сообщества</Typography>
+        </Box>
         
-        <Paper style={{ padding: '24px' }}>
-          <Typography variant="h5" style={{ marginBottom: '8px', fontWeight: 'bold', color: '#8c52ff' }}>
-            Условия использования К-Коннект
+        <Box 
+          component={RouterLink} 
+          to="/privacy-policy"
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            textDecoration: 'none',
+            color: 'text.primary',
+            fontWeight: 'medium',
+            py: 0.5,
+            px: 1.5,
+            borderRadius: 1,
+            '&:hover': { 
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            }
+          }}
+        >
+          <SecurityIcon sx={{ mr: 1, fontSize: 20 }} />
+          <Typography variant="body2">Политика конфиденциальности</Typography>
+        </Box>
+        
+        <Box 
+          component={RouterLink} 
+          to="/terms-of-service"
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            textDecoration: 'none',
+            color: 'primary.main',
+            fontWeight: 'medium',
+            py: 0.5,
+            px: 1.5,
+            borderRadius: 1,
+            backgroundColor: 'rgba(208, 188, 255, 0.15)',
+            '&:hover': { 
+              backgroundColor: 'rgba(208, 188, 255, 0.25)',
+            }
+          }}
+        >
+          <AssignmentIcon sx={{ mr: 1, fontSize: 20 }} />
+          <Typography variant="body2">Условия использования</Typography>
+        </Box>
+      </Paper>
+
+      <RuleCard>
+        <RuleCardHeader>
+          <AssignmentIcon color="primary" fontSize="large" sx={{ mr: 2 }} />
+          <SectionTitle variant="h5">Условия использования К-Коннект</SectionTitle>
+        </RuleCardHeader>
+        
+        <Box sx={{ p: 3 }}>
+          <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+            Последнее обновление: 07.06.2025
           </Typography>
           
-          <Typography variant="body2" color="textSecondary" style={{ marginBottom: '16px' }}>
-            Последнее обновление: {new Date().toLocaleDateString()}
-          </Typography>
-          
-          <Divider style={{ margin: '16px 0' }} />
+          <Divider sx={{ mb: 3 }} />
           
           <Typography variant="body1" paragraph>
             Добро пожаловать в К-Коннект. Пожалуйста, внимательно прочитайте эти условия использования перед 
@@ -38,7 +153,7 @@ const TermsOfServicePage = () => {
             вы соглашаетесь соблюдать эти условия.
           </Typography>
           
-          <Typography variant="h6" style={{ marginTop: '24px', fontWeight: 'bold' }}>
+          <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
             1. Принятие условий
           </Typography>
           
@@ -46,7 +161,7 @@ const TermsOfServicePage = () => {
             Используя К-Коннект, вы соглашаетесь с настоящими Условиями использования, нашей Политикой конфиденциальности, Правилами сообщества и другими политиками, которые могут быть опубликованы на платформе. Если вы не согласны с любым из этих условий, пожалуйста, не используйте наш сервис.
           </Typography>
           
-          <Typography variant="h6" style={{ marginTop: '24px', fontWeight: 'bold' }}>
+          <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
             2. Регистрация и безопасность аккаунта
           </Typography>
           
@@ -54,30 +169,30 @@ const TermsOfServicePage = () => {
             Для использования всех функций К-Коннект вам нужно создать аккаунт. Вы соглашаетесь:
           </Typography>
           
-          <ul>
-            <li>
+          <Box component="ul" sx={{ pl: 2 }}>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
                 Предоставлять точную и актуальную информацию во время регистрации.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
                 Сохранять конфиденциальность своего пароля и немедленно уведомлять нас о любом несанкционированном использовании вашего аккаунта.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
                 Нести ответственность за все действия, происходящие под вашим аккаунтом.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
                 Не создавать несколько аккаунтов без явного разрешения администрации.
               </Typography>
-            </li>
-          </ul>
+            </Box>
+          </Box>
           
-          <Typography variant="h6" style={{ marginTop: '24px', fontWeight: 'bold' }}>
+          <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
             3. Правила контента
           </Typography>
           
@@ -85,30 +200,30 @@ const TermsOfServicePage = () => {
             Вы несете полную ответственность за контент, который публикуете на К-Коннект. Вы обязуетесь не публиковать и не распространять:
           </Typography>
           
-          <ul>
-            <li>
+          <Box component="ul" sx={{ pl: 2 }}>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
                 Контент, нарушающий чьи-либо права, включая права интеллектуальной собственности.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
                 Незаконный, оскорбительный, дискриминационный, угрожающий или враждебный контент.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
                 Спам, фишинг, вредоносное ПО и другие формы нежелательного контента.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
                 Личную информацию других лиц без их согласия.
               </Typography>
-            </li>
-          </ul>
+            </Box>
+          </Box>
           
-          <Typography variant="h6" style={{ marginTop: '24px', fontWeight: 'bold' }}>
+          <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
             4. Интеллектуальная собственность
           </Typography>
           
@@ -116,7 +231,7 @@ const TermsOfServicePage = () => {
             К-Коннект и весь контент, представленный на платформе, защищены авторским правом и другими законами об интеллектуальной собственности. Публикуя контент, вы сохраняете все права на него, но предоставляете К-Коннект неисключительную, бесплатную лицензию на использование, воспроизведение, модификацию и отображение этого контента в связи с нашими услугами.
           </Typography>
           
-          <Typography variant="h6" style={{ marginTop: '24px', fontWeight: 'bold' }}>
+          <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
             5. Использование сервиса
           </Typography>
           
@@ -124,30 +239,30 @@ const TermsOfServicePage = () => {
             Вы соглашаетесь:
           </Typography>
           
-          <ul>
-            <li>
+          <Box component="ul" sx={{ pl: 2 }}>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
                 Использовать сервис только для законных целей и в соответствии с действующим законодательством.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
                 Не пытаться получить несанкционированный доступ к любой части сервиса.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
                 Не использовать автоматизированные скрипты или боты без нашего разрешения.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
                 Не нарушать работу сервиса или сетей, связанных с сервисом.
               </Typography>
-            </li>
-          </ul>
+            </Box>
+          </Box>
           
-          <Typography variant="h6" style={{ marginTop: '24px', fontWeight: 'bold' }}>
+          <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
             6. Отказ от ответственности
           </Typography>
           
@@ -155,25 +270,25 @@ const TermsOfServicePage = () => {
             К-Коннект не несет ответственности за:
           </Typography>
           
-          <ul>
-            <li>
+          <Box component="ul" sx={{ pl: 2 }}>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
                 Любые прямые, косвенные, случайные или штрафные убытки.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
                 Любые действия или контент, опубликованный третьими лицами.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
                 Перебои в работе сервиса или потерю данных.
               </Typography>
-            </li>
-          </ul>
+            </Box>
+          </Box>
           
-          <Typography variant="h6" style={{ marginTop: '24px', fontWeight: 'bold' }}>
+          <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
             7. Прекращение использования
           </Typography>
           
@@ -181,25 +296,25 @@ const TermsOfServicePage = () => {
             Мы имеем право:
           </Typography>
           
-          <ul>
-            <li>
+          <Box component="ul" sx={{ pl: 2 }}>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
                 Приостановить или удалить ваш аккаунт, если вы нарушаете наши условия.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
                 Удалить любой контент, нарушающий наши правила.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
                 Прекратить предоставление сервиса или его частей по нашему усмотрению с предварительным уведомлением.
               </Typography>
-            </li>
-          </ul>
+            </Box>
+          </Box>
           
-          <Typography variant="h6" style={{ marginTop: '24px', fontWeight: 'bold' }}>
+          <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
             8. Изменения условий
           </Typography>
           
@@ -207,7 +322,7 @@ const TermsOfServicePage = () => {
             Мы можем изменять эти условия время от времени. Мы уведомим вас о существенных изменениях через сервис К-Коннект. Продолжая использовать сервис после таких изменений, вы соглашаетесь с новыми условиями.
           </Typography>
           
-          <Typography variant="h6" style={{ marginTop: '24px', fontWeight: 'bold' }}>
+          <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
             9. Применимое право
           </Typography>
           
@@ -215,12 +330,12 @@ const TermsOfServicePage = () => {
             Настоящие условия регулируются и толкуются в соответствии с законодательством Российской Федерации, без учета принципов коллизионного права.
           </Typography>
           
-          <Typography variant="body1" style={{ marginTop: '32px', fontStyle: 'italic' }}>
+          <Typography variant="body1" sx={{ mt: 4, fontStyle: 'italic' }}>
             Используя К-Коннект, вы подтверждаете, что прочитали, поняли и соглашаетесь с этими Условиями использования.
           </Typography>
-        </Paper>
-      </Container>
-    </div>
+        </Box>
+      </RuleCard>
+    </PageContainer>
   );
 };
 

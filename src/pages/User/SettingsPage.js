@@ -29,7 +29,6 @@ import {
   Select,
   MenuItem,
   Switch,
-  FormControlLabel,
   Slider,
   Tooltip,
   useTheme,
@@ -51,7 +50,9 @@ import {
   Chip,
   DialogContentText,
   AlertTitle,
-  Snackbar
+  Snackbar,
+  ToggleButton,
+  ToggleButtonGroup
 } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -72,6 +73,10 @@ import StraightenIcon from '@mui/icons-material/Straighten';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import SearchIcon from '@mui/icons-material/Search';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+import ConnectionModal from '../../components/Connections/ConnectionModal';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import { styled as styledMui } from '@mui/material/styles';
+import ProfileKonnectModal from './settings/ProfileKonnectModal';
 
 
 const IOSSwitch = styled((props) => (
@@ -124,7 +129,6 @@ const IOSSwitch = styled((props) => (
 
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import SaveIcon from '@mui/icons-material/Save';
-import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import PaletteIcon from '@mui/icons-material/Palette';
@@ -138,32 +142,18 @@ import YouTubeIcon from '@mui/icons-material/YouTube';
 import CheckIcon from '@mui/icons-material/Check';
 import BrushIcon from '@mui/icons-material/Brush';
 import PersonIcon from '@mui/icons-material/Person';
-import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
-import WarningIcon from '@mui/icons-material/Warning';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import DoneIcon from '@mui/icons-material/Done';
-import LanguageIcon from '@mui/icons-material/Language';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
-import NotificationsOffIcon from '@mui/icons-material/NotificationsOff';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import LinkIcon from '@mui/icons-material/Link';
 import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
 import SvgIcon from '@mui/material/SvgIcon';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
-import LinkOffIcon from '@mui/icons-material/LinkOff';
-import MenuIcon from '@mui/icons-material/Menu';
-import LogoutIcon from '@mui/icons-material/Logout';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import LooksOneIcon from '@mui/icons-material/LooksOne';
-import LooksTwoIcon from '@mui/icons-material/LooksTwo';
-import Looks3Icon from '@mui/icons-material/Looks3';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import LaunchIcon from '@mui/icons-material/Launch';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import SecurityIcon from '@mui/icons-material/Security';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import BlockIcon from '@mui/icons-material/Block';
@@ -182,6 +172,7 @@ import ShieldIcon from '@mui/icons-material/Shield';
 import DevicesIcon from '@mui/icons-material/Devices';
 import { SessionManager } from '../../UIKIT';
 import ColorizeIcon from '@mui/icons-material/Colorize';
+import DeleteChannelDialog from '../../components/DeleteChannelDialog';
 
 
 const SettingsContainer = styled(Container)(({ theme }) => ({
@@ -206,6 +197,7 @@ export const SettingsCard = styled(Card)(({ theme }) => ({
   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
   overflow: 'hidden',
   transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+  backgroundImage: 'unset',
   backgroundColor: theme.palette.mode === 'light' 
     ? alpha(theme.palette.background.paper, 0.95)
     : theme.palette.mode === 'contrast'
@@ -234,59 +226,6 @@ export const SectionTitle = styled(Typography)(({ theme }) => ({
   '& .MuiSvgIcon-root': {
     color: theme.palette.primary.main
   }
-}));
-
-const ProfileImageContainer = styled(Box)(({ theme }) => ({
-  position: 'relative',
-  width: 120,
-  height: 120,
-  margin: '0 auto',
-  marginBottom: theme.spacing(3),
-  '&:hover .edit-overlay': {
-    opacity: 1,
-  },
-}));
-
-const EditOverlay = styled(Box)(({ theme }) => ({
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundColor: alpha(theme.palette.common.black, 0.7),
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  borderRadius: '50%',
-  opacity: 0,
-  transition: 'opacity 0.3s ease',
-}));
-
-const BannerContainer = styled(Box)(({ theme }) => ({
-  position: 'relative',
-  width: '100%',
-  height: 180,
-  marginBottom: theme.spacing(4),
-  borderRadius: theme.shape.borderRadius * 2,
-  overflow: 'hidden',
-  backgroundColor: alpha(theme.palette.background.paper, 0.5),
-  '&:hover .edit-overlay': {
-    opacity: 1,
-  },
-}));
-
-const BannerOverlay = styled(Box)(({ theme }) => ({
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundColor: alpha(theme.palette.common.black, 0.7),
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  opacity: 0,
-  transition: 'opacity 0.3s ease',
 }));
 
 const ColorPreview = styled(Box)(({ bg }) => ({
@@ -344,20 +283,6 @@ const FileInput = styled('input')({
   display: 'none',
 });
 
-
-const ElementIcon = (props) => (
-  <SvgIcon {...props}>
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.17 14.93l-4.11-4.11 1.41-1.41 2.7 2.7 5.88-5.88 1.41 1.41-7.29 7.29z" />
-  </SvgIcon>
-);
-
-const AumbentIcon = (props) => (
-  <SvgIcon {...props} viewBox="0 0 6000 6000">
-    <rect x="3564.05" y="1024" width="1500" height="3500" rx="221" transform="rotate(24.0085 3564.05 1024)" fill="currentColor"/>
-    <rect x="1066" y="1901.42" width="1500" height="3250" rx="221" transform="rotate(-18.8815 1066 1901.42)" fill="currentColor"/>
-  </SvgIcon>
-);
-
 const getSocialIcon = (name, url) => {
   if (url) {
     const lowerUrl = url.toLowerCase();
@@ -366,8 +291,6 @@ const getSocialIcon = (name, url) => {
     if (lowerUrl.includes('instagram.com')) return <InstagramIcon />;
     if (lowerUrl.includes('t.me') || lowerUrl.includes('telegram.')) return <TelegramIcon />;
     if (lowerUrl.includes('youtube.com')) return <YouTubeIcon />;
-    if (lowerUrl.includes('element.com') || lowerUrl.includes('elemsocial.com')) return <ElementIcon />;
-    if (lowerUrl.includes('aumbent.ru')) return <AumbentIcon />;
     if (lowerUrl.includes('vk.com')) return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M15.07 2H8.93C3.33 2 2 3.33 2 8.93V15.07C2 20.67 3.33 22 8.93 22H15.07C20.67 22 22 20.67 22 15.07V8.93C22 3.33 20.67 2 15.07 2M15.54 13.5C15.24 13.41 14.95 13.33 14.7 13.21C13.3 12.58 12.64 11.3 12.34 10.55C12.23 10.26 12.16 10 12.15 9.89C12.15 9.89 12.15 9.89 12.15 9.89V9.85C12.15 9.63 12.34 9.44 12.56 9.44H13.43C13.6 9.44 13.75 9.59 13.75 9.76V9.76C13.81 9.93 13.82 9.98 13.96 10.26C14.11 10.59 14.36 11.09 14.91 11.54C15.18 11.77 15.34 11.75 15.46 11.66C15.46 11.66 15.5 11.55 15.5 11.13V10.11C15.46 9.85 15.4 9.77 15.35 9.67C15.32 9.61 15.29 9.56 15.27 9.47C15.27 9.37 15.35 9.28 15.45 9.28H17.1C17.27 9.28 17.4 9.41 17.4 9.58V10.94C17.4 11.05 17.42 11.94 18.05 11.94C18.38 11.94 18.66 11.63 19.07 11.15C19.5 10.57 19.71 10.08 19.81 9.85C19.86 9.76 19.93 9.53 20.04 9.47C20.12 9.42 20.21 9.44 20.28 9.44H21.1C21.27 9.44 21.42 9.59 21.42 9.77C21.42 9.77 21.42 9.77 21.42 9.77C21.46 9.97 21.39 10.14 21.17 10.45C20.88 10.91 20.57 11.32 20.32 11.66C19.58 12.68 19.58 12.75 20.35 13.46C20.65 13.76 20.9 14.02 21.1 14.25C21.27 14.45 21.45 14.66 21.6 14.89C21.69 15.04 21.77 15.19 21.74 15.37C21.71 15.57 21.53 15.72 21.33 15.72H20.2C19.84 15.72 19.77 15.5 19.44 15.11C19.37 15.02 19.28 14.94 19.2 14.85C18.98 14.59 18.81 14.4 18.59 14.23C18 13.71 17.57 13.77 17.33 13.77C17.13 13.79 16.98 13.95 16.98 14.15V15.07C16.98 15.35 16.95 15.5 16.71 15.62C16.66 15.62 16.57 15.67 16.53 15.67H15.54V13.5Z" /></svg>;
     if (lowerUrl.includes('tiktok.com')) return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.59-1.16-2.59-2.5 0-1.4 1.16-2.5 2.59-2.5.27 0 .53.04.77.13v-3.13c-.25-.02-.5-.04-.77-.04-3.09 0-5.59 2.57-5.59 5.67 0 3.1 2.5 5.67 5.59 5.67 3.09 0 5.59-2.57 5.59-5.67V9.14c.85.63 1.91 1.05 3.09 1.05V7.15c-1.32 0-2.59-.7-3.09-1.33z"/></svg>;
   }
@@ -384,11 +307,6 @@ const getSocialIcon = (name, url) => {
       return <TelegramIcon />;
     case 'youtube':
       return <YouTubeIcon />;
-    case 'element':
-      return <ElementIcon />;
-    case 'aumbent':
-    case 'iq_search':
-      return <AumbentIcon />;
     case 'vk':
     case 'вконтакте':
       return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M15.07 2H8.93C3.33 2 2 3.33 2 8.93V15.07C2 20.67 3.33 22 8.93 22H15.07C20.67 22 22 20.67 22 15.07V8.93C22 3.33 20.67 2 15.07 2M15.54 13.5C15.24 13.41 14.95 13.33 14.7 13.21C13.3 12.58 12.64 11.3 12.34 10.55C12.23 10.26 12.16 10 12.15 9.89C12.15 9.89 12.15 9.89 12.15 9.89V9.85C12.15 9.63 12.34 9.44 12.56 9.44H13.43C13.6 9.44 13.75 9.59 13.75 9.76V9.76C13.81 9.93 13.82 9.98 13.96 10.26C14.11 10.59 14.36 11.09 14.91 11.54C15.18 11.77 15.34 11.75 15.46 11.66C15.46 11.66 15.5 11.55 15.5 11.13V10.11C15.46 9.85 15.4 9.77 15.35 9.67C15.32 9.61 15.29 9.56 15.27 9.47C15.27 9.37 15.35 9.28 15.45 9.28H17.1C17.27 9.28 17.4 9.41 17.4 9.58V10.94C17.4 11.05 17.42 11.94 18.05 11.94C18.38 11.94 18.66 11.63 19.07 11.15C19.5 10.57 19.71 10.08 19.81 9.85C19.86 9.76 19.93 9.53 20.04 9.47C20.12 9.42 20.21 9.44 20.28 9.44H21.1C21.27 9.44 21.42 9.59 21.42 9.77C21.42 9.77 21.42 9.77 21.42 9.77C21.46 9.97 21.39 10.14 21.17 10.45C20.88 10.91 20.57 11.32 20.32 11.66C19.58 12.68 19.58 12.75 20.35 13.46C20.65 13.76 20.9 14.02 21.1 14.25C21.27 14.45 21.45 14.66 21.6 14.89C21.69 15.04 21.77 15.19 21.74 15.37C21.71 15.57 21.53 15.72 21.33 15.72H20.2C19.84 15.72 19.77 15.5 19.44 15.11C19.37 15.02 19.28 14.94 19.2 14.85C18.98 14.59 18.81 14.4 18.59 14.23C18 13.71 17.57 13.77 17.33 13.77C17.13 13.79 16.98 13.95 16.98 14.15V15.07C16.98 15.35 16.95 15.5 16.71 15.62C16.66 15.62 16.57 15.67 16.53 15.67H15.54V13.5Z" /></svg>;
@@ -401,8 +319,6 @@ const getSocialIcon = (name, url) => {
       if (lowerName.includes('instagram')) return <InstagramIcon />;
       if (lowerName.includes('telegram')) return <TelegramIcon />;
       if (lowerName.includes('youtube')) return <YouTubeIcon />;
-      if (lowerName.includes('element')) return <ElementIcon />;
-      if (lowerName.includes('aumbent') || lowerName.includes('iq_search')) return <AumbentIcon />;
       if (lowerName.includes('vk') || lowerName.includes('вконтакте')) return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M15.07 2H8.93C3.33 2 2 3.33 2 8.93V15.07C2 20.67 3.33 22 8.93 22H15.07C20.67 22 22 20.67 22 15.07V8.93C22 3.33 20.67 2 15.07 2M15.54 13.5C15.24 13.41 14.95 13.33 14.7 13.21C13.3 12.58 12.64 11.3 12.34 10.55C12.23 10.26 12.16 10 12.15 9.89C12.15 9.89 12.15 9.89 12.15 9.89V9.85C12.15 9.63 12.34 9.44 12.56 9.44H13.43C13.6 9.44 13.75 9.59 13.75 9.76V9.76C13.81 9.93 13.82 9.98 13.96 10.26C14.11 10.59 14.36 11.09 14.91 11.54C15.18 11.77 15.34 11.75 15.46 11.66C15.46 11.66 15.5 11.55 15.5 11.13V10.11C15.46 9.85 15.4 9.77 15.35 9.67C15.32 9.61 15.29 9.56 15.27 9.47C15.27 9.37 15.35 9.28 15.45 9.28H17.1C17.27 9.28 17.4 9.41 17.4 9.58V10.94C17.4 11.05 17.42 11.94 18.05 11.94C18.38 11.94 18.66 11.63 19.07 11.15C19.5 10.57 19.71 10.08 19.81 9.85C19.86 9.76 19.93 9.53 20.04 9.47C20.12 9.42 20.21 9.44 20.28 9.44H21.1C21.27 9.44 21.42 9.59 21.42 9.77C21.42 9.77 21.42 9.77 21.42 9.77C21.46 9.97 21.39 10.14 21.17 10.45C20.88 10.91 20.57 11.32 20.32 11.66C19.58 12.68 19.58 12.75 20.35 13.46C20.65 13.76 20.9 14.02 21.1 14.25C21.27 14.45 21.45 14.66 21.6 14.89C21.69 15.04 21.77 15.19 21.74 15.37C21.71 15.57 21.53 15.72 21.33 15.72H20.2C19.84 15.72 19.77 15.5 19.44 15.11C19.37 15.02 19.28 14.94 19.2 14.85C18.98 14.59 18.81 14.4 18.59 14.23C18 13.71 17.57 13.77 17.33 13.77C17.13 13.79 16.98 13.95 16.98 14.15V15.07C16.98 15.35 16.95 15.5 16.71 15.62C16.66 15.62 16.57 15.67 16.53 15.67H15.54V13.5Z" /></svg>;
       if (lowerName.includes('tiktok')) return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.59-1.16-2.59-2.5 0-1.4 1.16-2.5 2.59-2.5.27 0 .53.04.77.13v-3.13c-.25-.02-.5-.04-.77-.04-3.09 0-5.59 2.57-5.59 5.67 0 3.1 2.5 5.67 5.59 5.67 3.09 0 5.59-2.57 5.59-5.67V9.14c.85.63 1.91 1.05 3.09 1.05V7.15c-1.32 0-2.59-.7-3.09-1.33z"/></svg>;
       
@@ -764,25 +680,6 @@ const ColorPicker = ({ label, color, onChange }) => {
   );
 };
 
-
-const BlurredDialog = styled(Dialog)(({ theme }) => ({
-  '& .MuiDialog-paper': {
-    borderRadius: 16,
-    backgroundImage: 'linear-gradient(to bottom, rgba(18, 18, 18, 0.95), rgba(22, 22, 22, 0.95))',
-    backdropFilter: 'blur(10px)',
-    boxShadow: '0 14px 28px rgba(0,0,0,0.4), 0 10px 10px rgba(0,0,0,0.3)',
-    border: '1px solid rgba(255, 255, 255, 0.05)',
-    overflow: 'hidden',
-    [theme.breakpoints.down('sm')]: {
-      width: '100%',
-      maxWidth: '100%',
-      margin: 0,
-      borderRadius: 0,
-    }
-  }
-}));
-
-
 const PurchaseDialogHeader = styled(Box)(({ theme }) => ({
   position: 'relative',
   padding: theme.spacing(3),
@@ -959,44 +856,59 @@ const UsernameShopTab = () => {
   };
   
   const handleUsernameChange = (e) => {
-    const value = e.target.value.trim();
+    const value = e.target.value; // .trim() удален, чтобы разрешить пробелы для проверки, но они будут удалены позже
     setUsername(value);
-    
-    
+
     if (!value) {
       setUsernameData(null);
       setError('');
       return;
     }
-    
-    
+
+    // --- Новая логика валидации ---
+    const isCyrillic = /[а-яА-ЯёЁ]/.test(value);
+    const isLatin = /[a-zA-Z]/.test(value);
+    let validationError = '';
+
     if (value.length < 3) {
-      setError('Юзернейм должен содержать не менее 3 символов');
+      validationError = 'Юзернейм должен содержать не менее 3 символов';
+    } else if (value.length > 16) {
+      validationError = 'Юзернейм не должен превышать 16 символов';
+    } else if (isCyrillic && isLatin) {
+      validationError = 'Юзернейм не может содержать одновременно кириллицу и латиницу';
+    } else if (isCyrillic) {
+      // Правила для кириллицы
+      if (!/^[а-яА-ЯёЁ0-9]+$/.test(value)) {
+        validationError = 'Кириллический юзернейм может содержать только буквы и цифры';
+      }
+    } else if (isLatin) {
+      // Правила для латиницы
+      if (!/^[a-zA-Z]/.test(value)) {
+        validationError = 'Латинский юзернейм должен начинаться с буквы';
+      } else if (!/^[a-zA-Z0-9._-]+$/.test(value)) {
+        validationError = 'Латинский юзернейм содержит недопустимые символы';
+      } else if (/[._-]{2,}/.test(value)) {
+        validationError = 'Спецсимволы не могут идти подряд';
+      } else if ((value.match(/[._-]/g) || []).length > 1) {
+        validationError = 'Может быть использован только один спецсимвол (. или _ или -)';
+      }
+    } else if (!isCyrillic && !isLatin) {
+        validationError = 'Юзернейм должен содержать хотя бы одну букву';
+    }
+    
+    if (validationError) {
+      setError(validationError);
       setUsernameData(null);
       return;
     }
-    
-    if (value.length > 16) {
-      setError('Юзернейм не должен превышать 16 символов');
-      setUsernameData(null);
-      return;
-    }
-    
-    
-    if (!/[a-zA-Z]/.test(value)) {
-      setError('Юзернейм должен содержать хотя бы одну букву');
-      setUsernameData(null);
-      return;
-    }
-    
-    
+    // --- Конец новой логики ---
+
     setError('');
-    
-    
+
     const delayDebounceFn = setTimeout(() => {
-      calculateUsernamePrice(value);
+      calculateUsernamePrice(value.trim()); // Отправляем на сервер уже очищенное значение
     }, 500);
-    
+
     return () => clearTimeout(delayDebounceFn);
   };
   
@@ -1454,7 +1366,7 @@ const UsernameShopTab = () => {
         </Box>
         
         <Typography variant="body2" sx={{ mb: 2, color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem' }}>
-          Юзернейм должен содержать хотя бы одну букву и не может состоять только из цифр или специальных символов. 
+          Юзернейм должен начинаться с латинской буквы и может содержать только один спецсимвол (. или _ или -). 
           Длина от 3 до 16 символов. Более короткие юзернеймы стоят дороже.
         </Typography>
         
@@ -1492,7 +1404,7 @@ const UsernameShopTab = () => {
               marginLeft: '4px'
             }
           }}
-          helperText="Должен содержать хотя бы одну букву. От 3 до 16 символов. Допустимы только латинские буквы, цифры, точки, подчеркивания и дефисы."
+          helperText="Юзернейм должен: 1) начинаться с латинской буквы, 2) содержать только один спецсимвол (. или _ или -), 3) быть длиной от 3 до 16 символов. Спецсимволы не могут повторяться подряд."
           error={!!error}
           InputProps={{
             endAdornment: username && (
@@ -2127,16 +2039,69 @@ const UsernameShopTab = () => {
   );
 };
 
+const DecorationItem = styled('img')(({ customStyles }) => ({
+  position: 'absolute',
+  right: 0,
+  height: 'max-content',
+  maxHeight: 60,
+  opacity: 1,
+  pointerEvents: 'none',
+  zIndex: 1,
+  ...customStyles
+}));
+
+const DecorationPreview = ({ decoration, children }) => {
+  // Определяем тип фона (градиент, изображение или цвет)
+  const isGradient = decoration?.background?.includes('linear-gradient');
+  const isImage = decoration?.background?.includes('/');
+  const isHexColor = decoration?.background?.startsWith('#');
+
+  return (
+    <Box
+      sx={{
+        position: 'relative',
+        width: '100%',
+        height: 60,
+        borderRadius: 1,
+        overflow: 'hidden',
+        bgcolor: 'background.default',
+        background: decoration?.background ? (
+          isImage ? 'none' : decoration.background
+        ) : 'background.default',
+        '&::before': isImage ? {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundImage: `url(${decoration.background})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          opacity: 0.75,
+          zIndex: 0,
+        } : {},
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}
+    >
+      {children}
+    </Box>
+  );
+};
 
 const SettingsPage = () => {
+
   const theme = useTheme();
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user, updateUserData } = useContext(AuthContext);
-  const { themeSettings, updateThemeSettings } = useContext(ThemeSettingsContext);
+  const { themeSettings, updateThemeSettings, setProfileBackground, clearProfileBackground, globalProfileBackgroundEnabled, setGlobalProfileBackgroundEnabled } = useContext(ThemeSettingsContext);
   const { enqueueSnackbar } = useSnackbar();
   
-
+  const [userDecorations, setUserDecorations] = useState([]);
+  const [loadingDecorations, setLoadingDecorations] = useState(false);
   const isChannel = user?.account_type === 'channel';
   
 
@@ -2179,34 +2144,16 @@ const SettingsPage = () => {
   const [userAchievements, setUserAchievements] = useState([]);
   const [loadingAchievements, setLoadingAchievements] = useState(false);
   const [updatingActiveBadge, setUpdatingActiveBadge] = useState(false);
-  
-  
-  const [elementConnected, setElementConnected] = useState(false);
-  const [elementLinking, setElementLinking] = useState(false);
-  const [elementToken, setElementToken] = useState('');
-  const [loadingElementStatus, setLoadingElementStatus] = useState(false);
-  
-  
+    
   const [socialDialogOpen, setSocialDialogOpen] = useState(false);
   const [newSocialName, setNewSocialName] = useState('');
   const [newSocialLink, setNewSocialLink] = useState('');
   
   
+  // Упрощенная структура настроек
   const [settings, setSettings] = useState({
-    background_color: '#131313',
-    container_color: '#1c1c1c',
-    welcome_bubble_color: '#131313',
-    avatar_border_color: '#D0BCFF',
-    button_primary_color: '#ffffff00',
-    button_primary_border_color: '#ffffff00',
-    button_edit_color: '#ffffff00',
-    button_edit_border_color: '#ff9800',
-    info_bubble_color: '#242526',
-    info_bubble_border_color: '#cccccc',
-    popup_alert_color: 'rgba(0, 0, 0, 0.8)',
-    header_color: '#1c1c1c',
-    bottom_nav_color: '#1c1c1c',
-    content_color: '#1c1c1c',
+    primary_color: '#D0BCFF',
+    theme: 'dark'
   });
   
   
@@ -2244,44 +2191,83 @@ const SettingsPage = () => {
   const [purchasedBadges, setPurchasedBadges] = useState([]);
   const [loadingPurchasedBadges, setLoadingPurchasedBadges] = useState(false);
   const [isCustomProfileActive, setIsCustomProfileActive] = useState(false); 
+  const [deleteChannelDialogOpen, setDeleteChannelDialogOpen] = useState(false);
+  
+  const [connectionModalOpen, setConnectionModalOpen] = useState(false);
+  const [konnectModalOpen, setKonnectModalOpen] = useState(false);
+  
+ 
   
   useEffect(() => {
     fetchProfileData();
-    
     fetchUserAchievements();
-    
     fetchUserWarnings();
-    
-    
-    
-    
-    const handleStorageChange = (e) => {
-      if (e.key === 'elem_connected' && e.newValue === 'true') {
-        checkElementStatus();
-        localStorage.removeItem('elem_connected'); 
+    fetchUserDecorations();
+    fetchSettings();
+  }, []);
+  
+  // Функция для загрузки настроек с бэкенда
+  const fetchSettings = async () => {
+    try {
+      const settingsData = await ProfileService.getSettings();
+      if (settingsData && settingsData.success && settingsData.settings) {
+        setSettings(settingsData.settings);
+        
+        // Обновляем localStorage с данными с бэкенда
+        localStorage.setItem('primaryColor', settingsData.settings.primary_color || '#D0BCFF');
+        localStorage.setItem('theme', settingsData.settings.theme || 'dark');
+        
+        // Обновляем контекст темы
+        updateThemeSettings({
+          primaryColor: settingsData.settings.primary_color || '#D0BCFF',
+          theme: settingsData.settings.theme || 'dark'
+        });
       }
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
+    } catch (error) {
+      console.error('Ошибка загрузки настроек:', error);
+      // Используем дефолтные значения при ошибке
+      setSettings({
+        primary_color: '#D0BCFF',
+        theme: 'dark'
+      });
+    }
+  };
   
+  // Функция для сохранения настроек через API
+  const saveSettings = async (newSettings) => {
+    try {
+      const response = await ProfileService.updateSettings(newSettings);
+      if (response && response.success) {
+        setSettings(newSettings);
+        showNotification('success', 'Настройки сохранены');
+        return true;
+      } else {
+        showNotification('error', 'Ошибка сохранения настроек');
+        return false;
+      }
+    } catch (error) {
+      console.error('Ошибка сохранения настроек:', error);
+      showNotification('error', 'Ошибка сохранения настроек');
+      return false;
+    }
+  };
   
-  useEffect(() => {
-    const checkElementOnFocus = () => {
-      checkElementStatus();
-    };
-    
-    window.addEventListener('focus', checkElementOnFocus);
-    
-    return () => {
-      window.removeEventListener('focus', checkElementOnFocus);
-    };
-  }, []);
-  
+  const fetchUserDecorations = async () => {
+    setLoadingDecorations(true);
+    try {
+      const response = await fetch('/api/decorations/current');
+      if (!response.ok) throw new Error('Failed to fetch decorations');
+      
+      const data = await response.json();
+      if (data.success) {
+        setUserDecorations(data.decorations);
+      }
+    } catch (error) {
+      console.error('Error fetching decorations:', error);
+    } finally {
+      setLoadingDecorations(false);
+    }
+  };
   
   const fetchProfileData = async () => {
     try {
@@ -2304,18 +2290,6 @@ const SettingsPage = () => {
         setIsCustomProfileActive(profileData.user.profile_id === 2);
         
         
-        if (profileData.user.element_connected !== undefined) {
-          setElementConnected(profileData.user.element_connected);
-        } else {
-          
-          setElementConnected(!!profileData.user.elem_id);
-        }
-      }
-      
-      
-      const settingsData = await ProfileService.getSettings();
-      if (settingsData && settingsData.success && settingsData.settings) {
-        setSettings(settingsData.settings);
       }
       
       setLoading(false);
@@ -2905,13 +2879,8 @@ const SettingsPage = () => {
         setSuccess(true);
         showNotification('success', 'Настройки успешно сохранены');
         
-
+        // оставлена тема цвет
         themeSettings.updateThemeSettings({
-          backgroundColor: response.data.settings.background_color,
-          paperColor: response.data.settings.container_color,
-          headerColor: response.data.settings.header_color || response.data.settings.container_color,
-          bottomNavColor: response.data.settings.bottom_nav_color || response.data.settings.container_color,
-          contentColor: response.data.settings.content_color || response.data.settings.container_color,
           primaryColor: response.data.settings.avatar_border_color
         });
       } else {
@@ -2929,90 +2898,6 @@ const SettingsPage = () => {
         setSuccess(false);
       }, 3000);
     }
-  };
-  
-  
-  const handleColorChange = (colorType, color) => {
-    
-    if (colorType === 'background_color') {
-      setSettings(prev => ({ ...prev, background_color: color }));
-      updateThemeSettings({ backgroundColor: color });
-      
-      document.documentElement.style.setProperty('--background-color', color);
-      localStorage.setItem('backgroundColor', color);
-    } else if (colorType === 'container_color') {
-      setSettings(prev => ({ ...prev, container_color: color }));
-      updateThemeSettings({ paperColor: color });
-      
-      document.documentElement.style.setProperty('--paper-color', color);
-      localStorage.setItem('paperColor', color);
-    } else if (colorType === 'welcome_bubble_color') {
-      setSettings(prev => ({ ...prev, welcome_bubble_color: color }));
-      updateThemeSettings({ welcomeBubbleColor: color });
-      
-      document.documentElement.style.setProperty('--welcome-bubble-color', color);
-      localStorage.setItem('welcomeBubbleColor', color);
-    } else if (colorType === 'avatar_border_color') {
-      setSettings(prev => ({ ...prev, avatar_border_color: color }));
-      updateThemeSettings({ primaryColor: color });
-      
-      document.documentElement.style.setProperty('--primary-color', color);
-      localStorage.setItem('primaryColor', color);
-    } else if (colorType === 'info_bubble_color') {
-      setSettings(prev => ({ ...prev, info_bubble_color: color }));
-      updateThemeSettings({ infoBubbleColor: color });
-      
-      document.documentElement.style.setProperty('--info-bubble-color', color);
-      localStorage.setItem('infoBubbleColor', color);
-    } else if (colorType === 'header_color') {
-      setSettings(prev => ({ ...prev, header_color: color }));
-      updateThemeSettings({ headerColor: color });
-      
-      document.documentElement.style.setProperty('--header-color', color);
-      localStorage.setItem('headerColor', color);
-    } else if (colorType === 'bottom_nav_color') {
-      setSettings(prev => ({ ...prev, bottom_nav_color: color }));
-      updateThemeSettings({ bottomNavColor: color });
-      
-      document.documentElement.style.setProperty('--bottom-nav-color', color);
-      localStorage.setItem('bottomNavColor', color);
-    } else if (colorType === 'content_color') {
-      setSettings(prev => ({ ...prev, content_color: color }));
-      updateThemeSettings({ contentColor: color });
-      
-      document.documentElement.style.setProperty('--content-color', color);
-      localStorage.setItem('contentColor', color);
-    }
-
-    
-    window.dispatchEvent(new Event('storage'));
-    
-    
-    if (autoSaveTimeout) {
-      clearTimeout(autoSaveTimeout);
-    }
-    
-    setAutoSaveTimeout(setTimeout(() => {
-      handleSaveSettings();
-    }, 1000));
-  };
-
-  
-  const getContrastTextColor = (hexColor) => {
-    
-    
-    const color = hexColor.charAt(0) === '#' ? hexColor.substring(1) : hexColor;
-    
-    
-    const r = parseInt(color.substr(0, 2), 16);
-    const g = parseInt(color.substr(2, 2), 16);
-    const b = parseInt(color.substr(4, 2), 16);
-    
-    
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    
-    
-    return luminance > 0.5 ? '#000000' : '#FFFFFF';
   };
   
   
@@ -3131,16 +3016,10 @@ const SettingsPage = () => {
   const applyTheme = async (theme) => {
     try {
       setSaving(true);
-      let newSettings = {...settings};
-      
       
       const saveThemeSetting = (key, value) => {
-        
         localStorage.setItem(key, value);
-        
-        
         sessionStorage.setItem(key, value);
-        
         
         try {
           const expires = new Date();
@@ -3150,189 +3029,78 @@ const SettingsPage = () => {
           console.error('Error setting cookie:', e);
         }
         
-        
-        if (key === 'theme' || key === 'themeMode') {
+        if (key === 'theme') {
           document.documentElement.setAttribute('data-theme', value);
         } else {
+          // Применяем CSS переменные сразу
           const cssKey = key.replace(/([A-Z])/g, '-$1').toLowerCase();
           document.documentElement.style.setProperty(`--${cssKey}`, value);
         }
       };
       
+      let themeMode = 'dark';
+      let backgroundColor = '#131313';
+      let textColor = '#FFFFFF';
       
-      const themeData = {};
-      
-      
-      if (theme === 'dark') {
-        
-        newSettings = {
-          ...newSettings,
-          background_color: '#131313',
-          container_color: '#1c1c1c',
-          welcome_bubble_color: '#131313',
-          avatar_border_color: '#D0BCFF',
-          info_bubble_color: '#242526',
-          header_color: '#1c1c1c',
-          bottom_nav_color: '#1c1c1c',
-          content_color: '#1c1c1c',
-        };
-
-        
-        updateThemeSettings({ 
-          mode: 'dark',
-          backgroundColor: '#131313',
-          paperColor: '#1c1c1c',
-          headerColor: '#1c1c1c',
-          bottomNavColor: '#1c1c1c',
-          contentColor: '#1c1c1c',
-          primaryColor: '#D0BCFF',
-          textColor: '#FFFFFF'
-        });
-
-        
-        saveThemeSetting('theme', 'dark');
-        saveThemeSetting('themeMode', 'dark');
+      if (theme === 'default') {
+        // Дефолтная тема - темный фон, белый текст
+        saveThemeSetting('theme', 'default');
         saveThemeSetting('backgroundColor', '#131313');
-        saveThemeSetting('paperColor', '#1c1c1c');
-        saveThemeSetting('headerColor', '#1c1c1c');
-        saveThemeSetting('bottomNavColor', '#1c1c1c');
-        saveThemeSetting('contentColor', '#1c1c1c');
-        saveThemeSetting('primaryColor', '#D0BCFF');
         saveThemeSetting('textColor', '#FFFFFF');
-        
-        
-        themeData.mode = 'dark';
-        themeData.theme = 'dark';
-        themeData.themeMode = 'dark';
-        themeData.backgroundColor = '#131313';
-        themeData.paperColor = '#1c1c1c';
-        themeData.headerColor = '#1c1c1c';
-        themeData.bottomNavColor = '#1c1c1c';
-        themeData.contentColor = '#1c1c1c';
-        themeData.primaryColor = '#D0BCFF';
-        themeData.textColor = '#FFFFFF';
+        themeMode = 'dark';
+        backgroundColor = '#131313';
+        textColor = '#FFFFFF';
         
       } else if (theme === 'light') {
-        
-        newSettings = {
-          ...newSettings,
-          background_color: '#f5f5f5',
-          container_color: '#ffffff',
-          welcome_bubble_color: '#f0f0f0',
-          avatar_border_color: '#8c52ff',
-          info_bubble_color: '#e0e0e0',
-          header_color: '#ffffff',
-          bottom_nav_color: '#ffffff',
-          content_color: '#ffffff',
-        };
-
-        
-        updateThemeSettings({ 
-          mode: 'light',
-          backgroundColor: '#f5f5f5',
-          paperColor: '#ffffff',
-          headerColor: '#ffffff',
-          bottomNavColor: '#ffffff',
-          contentColor: '#ffffff',
-          primaryColor: '#8c52ff',
-          textColor: '#121212'
-        });
-        
-        
+        // Белая тема - белый фон, черный текст
         saveThemeSetting('theme', 'light');
-        saveThemeSetting('themeMode', 'light');
-        saveThemeSetting('backgroundColor', '#f5f5f5');
-        saveThemeSetting('paperColor', '#ffffff');
-        saveThemeSetting('headerColor', '#ffffff');
-        saveThemeSetting('bottomNavColor', '#ffffff');
-        saveThemeSetting('contentColor', '#ffffff');
-        saveThemeSetting('primaryColor', '#8c52ff');
-        saveThemeSetting('textColor', '#121212');
-        
-        
-        themeData.mode = 'light';
-        themeData.theme = 'light';
-        themeData.themeMode = 'light';
-        themeData.backgroundColor = '#f5f5f5';
-        themeData.paperColor = '#ffffff';
-        themeData.headerColor = '#ffffff';
-        themeData.bottomNavColor = '#ffffff';
-        themeData.contentColor = '#ffffff';
-        themeData.primaryColor = '#8c52ff';
-        themeData.textColor = '#121212';
+        saveThemeSetting('backgroundColor', '#ffffff');
+        saveThemeSetting('textColor', '#000000');
+        themeMode = 'light';
+        backgroundColor = '#ffffff';
+        textColor = '#000000';
         
       } else if (theme === 'contrast') {
-        
-        newSettings = {
-          ...newSettings,
-          background_color: '#080808', 
-          container_color: '#101010', 
-          welcome_bubble_color: '#0A0A0A',
-          avatar_border_color: '#7B46E3', 
-          info_bubble_color: '#151515',
-          header_color: '#101010',
-          bottom_nav_color: '#101010',
-          content_color: '#101010',
-        };
-
-        
-        updateThemeSettings({ 
-          mode: 'contrast',
-          backgroundColor: '#080808',
-          paperColor: '#101010',
-          headerColor: '#101010',
-          bottomNavColor: '#101010',
-          contentColor: '#101010',
-          primaryColor: '#7B46E3',
-          textColor: '#FFFFFF'
+        // Контрастная тема - черный фон, белый текст
+        saveThemeSetting('theme', 'contrast');
+        saveThemeSetting('backgroundColor', '#000000');
+        saveThemeSetting('textColor', '#FFFFFF');
+        themeMode = 'contrast';
+        backgroundColor = '#000000';
+        textColor = '#FFFFFF';
+      }
+      
+      // Обновляем настройки темы для немедленного применения
+      updateThemeSettings({ 
+        mode: themeMode,
+        backgroundColor: backgroundColor,
+        textColor: textColor
+      });
+      
+      // Сохраняем тему в БД через API
+      try {
+        const response = await fetch('/api/profile/settings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            theme: themeMode
+          })
         });
         
-        
-        saveThemeSetting('theme', 'contrast');
-        saveThemeSetting('themeMode', 'contrast');
-        saveThemeSetting('backgroundColor', '#080808');
-        saveThemeSetting('paperColor', '#101010');
-        saveThemeSetting('headerColor', '#101010');
-        saveThemeSetting('bottomNavColor', '#101010');
-        saveThemeSetting('contentColor', '#101010');
-        saveThemeSetting('primaryColor', '#7B46E3');
-        saveThemeSetting('textColor', '#FFFFFF');
-        
-        
-        themeData.mode = 'contrast';
-        themeData.theme = 'contrast';
-        themeData.themeMode = 'contrast';
-        themeData.backgroundColor = '#080808';
-        themeData.paperColor = '#101010';
-        themeData.headerColor = '#101010';
-        themeData.bottomNavColor = '#101010';
-        themeData.contentColor = '#101010';
-        themeData.primaryColor = '#7B46E3';
-        themeData.textColor = '#FFFFFF';
+        const data = await response.json();
+        if (data && data.success) {
+          console.log('Тема успешно сохранена в БД:', themeMode);
+        } else {
+          console.error('Ошибка сохранения темы в БД:', data?.error);
+        }
+      } catch (apiError) {
+        console.error('Ошибка API при сохранении темы:', apiError);
       }
       
-      
-      try {
-        localStorage.setItem('themeData', JSON.stringify(themeData));
-        sessionStorage.setItem('themeData', JSON.stringify(themeData));
-      } catch (e) {
-        console.error('Error saving theme data JSON:', e);
-      }
-      
-      setSettings(newSettings);
-      
-      
-      const response = await ProfileService.updateSettings(newSettings);
-      
-      if (response.success) {
-        setSuccess(true);
-        showNotification('success', `Тема "${theme}" применена`);
-        
-        
-        window.dispatchEvent(new Event('storage'));
-      } else {
-        throw new Error('Failed to apply theme');
-      }
+      showNotification('success', `Тема "${theme}" применена`);
+      window.dispatchEvent(new Event('storage'));
       
       setSaving(false);
     } catch (error) {
@@ -3342,90 +3110,7 @@ const SettingsPage = () => {
     }
   };
   
-  
-  const handleTogglePushNotifications = async () => {
-    try {
-      setSavingNotificationPrefs(true);
-      
-      
-      if (!pushNotificationSupported) {
-        console.error('Push-уведомления не поддерживаются в этом браузере');
-        showNotification('error', 'Ваш браузер не поддерживает push-уведомления');
-        setSavingNotificationPrefs(false);
-        return;
-      }
-      
-      const newPushEnabled = !notificationPrefs.pushNotificationsEnabled;
-      console.log('Переключение push-уведомлений на:', newPushEnabled);
-      
-      try {
-        if (newPushEnabled) {
-          
-          if (window.PushNotifications) {
-            console.log('Инициализация push-уведомлений...');
-            const success = await window.PushNotifications.initialize();
-            if (!success) {
-              console.error('Не удалось инициализировать push-уведомления');
-              showNotification('error', 'Не удалось включить push-уведомления. Возможно, вы отклонили разрешение.');
-              setSavingNotificationPrefs(false);
-              return;
-            }
-            console.log('Push-уведомления успешно инициализированы');
-            setPushSubscriptionStatus(true);
-          } else {
-            console.error('window.PushNotifications не найден');
-            showNotification('error', 'Модуль push-уведомлений не загружен');
-            setSavingNotificationPrefs(false);
-            return;
-          }
-        } else {
-          
-          if (window.PushNotifications && pushSubscriptionStatus) {
-            console.log('Отписка от push-уведомлений...');
-            const registration = await navigator.serviceWorker.ready;
-            const success = await window.PushNotifications.unsubscribe(registration);
-            if (success) {
-              console.log('Успешная отписка от push-уведомлений');
-              setPushSubscriptionStatus(false);
-            } else {
-              console.error('Не удалось отписаться от push-уведомлений');
-            }
-          }
-        }
-        
-        
-        console.log('Отправка настроек на сервер...');
-        const response = await axios.post('/api/notifications/preferences', {
-          push_notifications_enabled: newPushEnabled,
-          telegram_notifications_enabled: notificationPrefs.telegramNotificationsEnabled
-        });
-        
-        console.log('Ответ сервера при изменении настроек push-уведомлений:', response.data);
-        
-        if (response.data && response.data.success) {
-          setNotificationPrefs({
-            ...notificationPrefs,
-            pushNotificationsEnabled: newPushEnabled
-          });
-          
-          showNotification('success', newPushEnabled ? 
-            'Push-уведомления включены' : 
-            'Push-уведомления отключены');
-        } else {
-          throw new Error(response.data?.error || response.data?.message || 'Ошибка сохранения настроек');
-        }
-      } catch (apiError) {
-        console.error('Ошибка API при переключении push-уведомлений:', apiError);
-        showNotification('error', apiError.message || 'Не удалось изменить настройки push-уведомлений');
-      }
-      
-      setSavingNotificationPrefs(false);
-    } catch (error) {
-      console.error('Ошибка при переключении push-уведомлений:', error);
-      showNotification('error', error.message || 'Не удалось изменить настройки push-уведомлений');
-      setSavingNotificationPrefs(false);
-    }
-  };
+    
   
   
   const handleToggleTelegramNotifications = async () => {
@@ -3527,88 +3212,7 @@ const SettingsPage = () => {
       setSavingTelegramId(false);
     }
   };
-  
-  
-  const checkElementStatus = async () => {
-    try {
-      
-      if (!loadingElementStatus && elementConnected !== null) {
-        return elementConnected;
-      }
-      
-      setLoadingElementStatus(true);
-      const response = await axios.get('/api/profile/element/status');
-      
-      const isConnected = response.data && response.data.connected;
-      if (isConnected) {
-        setElementConnected(true);
-      } else {
-        setElementConnected(false);
-      }
-      setLoadingElementStatus(false);
-      return isConnected;
-    } catch (error) {
-      console.error('Ошибка при проверке статуса Element:', error);
-      setElementConnected(false);
-      setLoadingElementStatus(false);
-      return false;
-    }
-  };
-  
-  
-  const generateElementToken = async () => {
-    try {
-      setElementLinking(true);
-      
-      
-      const randomToken = Math.random().toString(36).substring(2, 15) + 
-                          Math.random().toString(36).substring(2, 15);
-      
-      setElementToken(randomToken);
-      showNotification('info', 'Перейдите по ссылке, чтобы привязать Element аккаунт');
-      
-    } catch (error) {
-      console.error('Ошибка при генерации токена Element:', error);
-      showNotification('error', 'Не удалось сгенерировать токен для Element');
-      setElementLinking(false);
-    }
-  };
-  
-  
-  const handleLinkElement = () => {
-    generateElementToken();
-    
-    
-    const checkInterval = setInterval(() => {
-      checkElementStatus().then(isConnected => {
-        if (isConnected) {
-          
-          clearInterval(checkInterval);
-          setElementLinking(false);
-          setElementToken('');
-          showNotification('success', 'Element аккаунт успешно подключен!');
-        }
-      });
-    }, 2000); 
-    
-    
-    localStorage.setItem('element_auth_pending', 'true');
-    
-    
-    setTimeout(() => {
-      clearInterval(checkInterval);
-      localStorage.removeItem('element_auth_pending');
-    }, 120000);
-  };
-  
-  
-  const handleCancelElementLinking = () => {
-    setElementToken('');
-    setElementLinking(false);
-    
-    localStorage.removeItem('element_auth_pending');
-  };
-  
+
   
   const handleClearActiveBadge = async () => {
     try {
@@ -3840,13 +3444,10 @@ const SettingsPage = () => {
     };
 
     const handlePresetColorClick = (color) => {
-
       if (!color || color.trim() === '') {
         setStatusColor('#D0BCFF');
         return;
       }
-      
-
       setStatusColor(color);
     };
     
@@ -4156,7 +3757,7 @@ const SettingsPage = () => {
                     alignItems: 'center' 
                   }}
                 >
-                  {!isUltimate && presetColors.map(color => (
+                  {presetColors.map(color => (
                     <Box
                       key={color}
                       onClick={() => handlePresetColorClick(color)}
@@ -4179,31 +3780,6 @@ const SettingsPage = () => {
                       }}
                     />
                   ))}
-                  
-                  {/* Color input for all users */}
-                  <TextField
-                    label="HEX код цвета"
-                    value={statusColor}
-                    onChange={(e) => {
-
-                      handlePresetColorClick(e.target.value);
-                    }}
-                    size="small"
-                    placeholder="#RRGGBB"
-                    sx={{ ml: 1, width: { xs: '100%', sm: 150 }, mt: { xs: 1, sm: 0 } }}
-                    InputProps={{
-                      startAdornment: (
-                        <Box sx={{ 
-                          width: 16, 
-                          height: 16, 
-                          borderRadius: '50%', 
-                          bgcolor: statusColor || '#D0BCFF',
-                          mr: 1,
-                          border: '1px solid rgba(255,255,255,0.2)'
-                        }} />
-                      ),
-                    }}
-                  />
                   
                   {isUltimate && (
                     <Button 
@@ -4294,12 +3870,14 @@ const SettingsPage = () => {
                         label="HEX код"
                         value={statusColor}
                         onChange={(e) => {
-                          if (/^#([0-9A-F]{3}){1,2}$/i.test(e.target.value)) {
-                            handlePresetColorClick(e.target.value);
+                          const value = e.target.value;
+                          if (value === '' || /^#([0-9A-F]{3}){1,2}$/i.test(value)) {
+                            handlePresetColorClick(value || '#D0BCFF');
                           }
                         }}
                         fullWidth
                         margin="normal"
+                        placeholder="#RRGGBB"
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
@@ -4308,6 +3886,37 @@ const SettingsPage = () => {
                           ),
                         }}
                       />
+
+                      <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
+                        Предустановленные цвета
+                      </Typography>
+                      
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                        {[
+                          '#000000', '#FFFFFF', '#F44336', '#E91E63', '#9C27B0', '#673AB7',
+                          '#3F51B5', '#2196F3', '#03A9F4', '#00BCD4', '#009688', '#4CAF50',
+                          '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722'
+                        ].map((presetColor) => (
+                          <Box
+                            key={presetColor}
+                            onClick={() => handlePresetColorClick(presetColor)}
+                            sx={{
+                              height: 32,
+                              width: 32,
+                              backgroundColor: presetColor,
+                              borderRadius: 1,
+                              cursor: 'pointer',
+                              border: '1px solid rgba(255, 255, 255, 0.2)',
+                              transform: statusColor === presetColor ? 'scale(1.1)' : 'scale(1)',
+                              transition: 'all 0.2s ease',
+                              '&:hover': {
+                                transform: 'scale(1.1)',
+                                boxShadow: '0 0 10px rgba(0,0,0,0.2)'
+                              },
+                            }}
+                          />
+                        ))}
+                      </Box>
                     </DialogContent>
                     
                     <DialogActions sx={{ p: 2, pt: 1 }}>
@@ -4336,7 +3945,7 @@ const SettingsPage = () => {
                       'Оформите подписку Ultimate, чтобы выбрать любой цвет для вашего профиля!'}
                   </Typography>
                 </Box>
-                
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
                 <Button
                   variant="contained"
                   color="primary"
@@ -4344,10 +3953,11 @@ const SettingsPage = () => {
                   disabled={isSaving}
                   startIcon={isSaving ? <CircularProgress size={20} /> : <CheckIcon />}
                   fullWidth
-                  sx={{ mt: 1 }}
+                  sx={{ mt: 1, width: 'auto'}}
                 >
                   {isSaving ? 'Сохранение...' : 'Сохранить статус'}
                 </Button>
+                </Box>
               </>
             )}
           </>
@@ -4355,7 +3965,7 @@ const SettingsPage = () => {
       </Box>
     );
   };
-  
+     
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -4363,6 +3973,158 @@ const SettingsPage = () => {
       </Box>
     );
   }
+  
+  const handleDeleteChannelSuccess = (data) => {
+    showNotification('success', 'Канал успешно удален');
+    // После удаления канала перенаправляем на главную страницу
+    window.location.href = '/';
+  };
+  
+  const handleDeleteAvatar = async () => {
+    try {
+      const response = await axios.post('/api/profile/delete-avatar');
+      if (response.data.success) {
+        setAvatarPreview('');
+        setAvatarFile(null);
+        showNotification('success', 'Аватар успешно удален');
+        if (updateUserData) {
+          updateUserData({
+            ...user,
+            photo: null
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting avatar:', error);
+      showNotification('error', error.response?.data?.error || 'Ошибка при удалении аватара');
+    }
+  };
+  
+  const handleDeleteBanner = async () => {
+    try {
+      const response = await axios.post('/api/profile/delete-banner');
+      if (response.data.success) {
+        setBannerPreview('');
+        setBannerFile(null);
+        showNotification('success', 'Баннер успешно удален');
+        if (updateUserData) {
+          updateUserData({
+            ...user,
+            banner: null
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting banner:', error);
+      showNotification('error', error.response?.data?.error || 'Ошибка при удалении баннера');
+    }
+  };
+  
+
+
+
+  const handleToggleDecoration = async (decorationId, isActive) => {
+    try {
+      const response = await fetch('/api/decorations/toggle', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          decoration_id: decorationId,
+          is_active: isActive
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to toggle decoration');
+      
+      // Обновляем список декораций
+      fetchUserDecorations();
+    } catch (error) {
+      console.error('Error toggling decoration:', error);
+    }
+  };
+
+  const renderDecorationSettings = () => {
+    if (loadingDecorations) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+          <CircularProgress />
+        </Box>
+      );
+    }
+
+    if (userDecorations.length === 0) {
+      return (
+        <Typography color="textSecondary">
+          У вас пока нет декораций
+        </Typography>
+      );
+    }
+
+    return userDecorations.map(item => {
+      const decoration = item.decoration;
+      return (
+        <Paper
+          key={decoration.id}
+          sx={{
+            p: 2,
+            mb: 2,
+            backgroundColor: 'background.paper',
+            borderRadius: 2
+          }}
+        >
+          <DecorationPreview decoration={decoration}>
+            {decoration.item_path && (() => {
+              const [path, ...styles] = decoration.item_path.split(';');
+              const styleObj = styles.reduce((acc, style) => {
+                const [key, value] = style.split(':').map(s => s.trim());
+                return { ...acc, [key]: value };
+              }, {});
+              
+              return (
+                <DecorationItem
+                  src={path}
+                  alt=""
+                  customStyles={styleObj}
+                />
+              );
+            })()}
+          </DecorationPreview>
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            mt: 1 
+          }}>
+            <Typography variant="subtitle1">
+              {decoration.name}
+            </Typography>
+            <IOSSwitch
+              checked={item.is_active}
+              onChange={(e) => handleToggleDecoration(decoration.id, e.target.checked)}
+            />
+          </Box>
+        </Paper>
+      );
+    });
+  };
+  
+  const handleGlobalProfileBackgroundToggle = async (event) => {
+    const enabled = event.target.checked;
+    // Сохраняем настройку на сервере
+    await axios.post('/api/user/settings/global-profile-bg', { enabled });
+    setGlobalProfileBackgroundEnabled(enabled);
+    if (enabled && profileData?.user?.profile_background_url) {
+      setProfileBackground(profileData.user.profile_background_url);
+      localStorage.setItem('myProfileBackgroundUrl', profileData.user.profile_background_url);
+      document.cookie = `myProfileBackgroundUrl=${encodeURIComponent(profileData.user.profile_background_url)}; path=/; max-age=${60*60*24*365}`;
+    } else {
+      clearProfileBackground();
+      localStorage.removeItem('myProfileBackgroundUrl');
+      document.cookie = 'myProfileBackgroundUrl=; path=/; max-age=0';
+    }
+  };
   
   return (
     <motion.div
@@ -4453,9 +4215,8 @@ const SettingsPage = () => {
                         }
                       }}>
                         <Avatar
-                          src={avatarPreview}
-                          alt={name}
-                          sx={{ 
+                          src={avatarPreview || (user?.photo ? `/static/uploads/avatar/${user.id}/${user.photo}` : undefined)}
+                          sx={{
                             width: '100%',
                             height: '100%',
                           }}
@@ -4474,7 +4235,11 @@ const SettingsPage = () => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
+                            gap: 1,
                             borderRadius: '50%',
+                            '&:hover': {
+                              opacity: 1
+                            }
                           }}
                         >
                           <label htmlFor="avatar-input">
@@ -4482,6 +4247,12 @@ const SettingsPage = () => {
                               <PhotoCameraIcon />
                             </IconButton>
                           </label>
+                          <IconButton
+                            onClick={handleDeleteAvatar}
+                            sx={{ bgcolor: 'rgba(0, 0, 0, 0.6)', color: '#fff', p: 1 }}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
                           <FileInput
                             id="avatar-input"
                             type="file"
@@ -4509,20 +4280,20 @@ const SettingsPage = () => {
                         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
                         border: '1px solid rgba(255,255,255,0.1)',
                       }}>
-                      <Box 
-                        component="img"
-                        src={bannerPreview}
-                        alt="Banner"
-                        sx={{ 
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover'
-                        }}
-                        onError={(e) => {
-                          e.target.onerror = null; 
-                          e.target.src = generatePlaceholder(800, 200, 'Banner', '#424242', '#ffffff');
-                        }}
-                      />
+                        <Box 
+                          component="img"
+                          src={bannerPreview || (user?.banner ? `/static/uploads/banner/${user.id}/${user.banner}` : undefined)}
+                          alt="Banner"
+                          sx={{ 
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                          }}
+                          onError={(e) => {
+                            e.target.onerror = null; 
+                            e.target.src = generatePlaceholder(800, 200, 'Banner', '#424242', '#ffffff');
+                          }}
+                        />
                         <Box 
                           sx={{ 
                             position: 'absolute',
@@ -4536,22 +4307,29 @@ const SettingsPage = () => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
+                            gap: 2,
                             '&:hover': {
                               opacity: 1
                             }
                           }}
                         >
-                        <label htmlFor="banner-input">
+                          <label htmlFor="banner-input">
                             <IconButton component="span" sx={{ bgcolor: 'rgba(0, 0, 0, 0.6)', color: '#fff' }}>
-                            <PhotoCameraIcon />
+                              <PhotoCameraIcon />
+                            </IconButton>
+                          </label>
+                          <IconButton
+                            onClick={handleDeleteBanner}
+                            sx={{ bgcolor: 'rgba(0, 0, 0, 0.6)', color: '#fff' }}
+                          >
+                            <DeleteIcon />
                           </IconButton>
-                        </label>
-                        <FileInput
-                          id="banner-input"
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleBannerChange(e.target.files[0])}
-                        />
+                          <FileInput
+                            id="banner-input"
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleBannerChange(e.target.files[0])}
+                          />
                         </Box>
                       </Box>
                       
@@ -4616,8 +4394,21 @@ const SettingsPage = () => {
                   subscription={profileData?.subscription} 
                   onStatusUpdate={handleStatusUpdate}
                 />
-                
-                <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+
+
+
+                <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                <Button
+                    variant="contained"
+                    color="primary"
+
+                    startIcon={<FavoriteIcon />}
+                    onClick={() => setConnectionModalOpen(true)}
+                    sx={{
+                    }}
+                  >
+                    Коннект
+                  </Button>
                   <Button
                     variant="contained"
                     color="primary"
@@ -4742,11 +4533,8 @@ const SettingsPage = () => {
                         onChange={(e) => setNewSocialName(e.target.value)}
                         label="Социальная сеть"
                       >
-                        <MenuItem value="Element">Element</MenuItem>
-                        <MenuItem value="Aumbent">Aumbent</MenuItem>
                         <MenuItem value="VK">ВКонтакте</MenuItem>
                         <MenuItem value="TikTok">TikTok</MenuItem>
-
                         <MenuItem value="Telegram">Telegram</MenuItem>
                         <MenuItem value="YouTube">YouTube</MenuItem>
                         <MenuItem value="Website">Веб-сайт</MenuItem>
@@ -4935,99 +4723,84 @@ const SettingsPage = () => {
             <Divider sx={{ my: 3 }} />
             
             
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Настройка цветов интерфейса
-            </Typography>
-            
-            <SettingsCard>
-              <SettingsCardContent>
-                <SectionTitle variant="h5">
-                  <PaletteIcon />
-                  Цветовая схема
-                </SectionTitle>
-                
-                <Box sx={{ textAlign: 'center', my: 4 }}>
-                  <Typography variant="h4" color="primary" fontWeight="600" gutterBottom>
-                    Скоро
-                  </Typography>
-                  <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-                    Новые возможности кастомизации внешнего вида появятся в ближайшем обновлении
-                  </Typography>
-                </Box>
-              </SettingsCardContent>
-            </SettingsCard>
 
-            <SettingsCard sx={{ mt: 3 }}>
-              <SettingsCardContent>
-                <SectionTitle variant="h5">
-                  <PaletteIcon />
-                  Сезонные профили
-                </SectionTitle>
-                
-                <Typography variant="body2" sx={{ mb: 3, color: 'text.secondary' }}>
-                  Скоро вы сможете выбрать сезонное оформление для своего профиля. Оформление будет автоматически меняться в зависимости от времени года.
-                </Typography>
-                
-                <Grid container spacing={3}>
-                  {[
-                    { id: 'winter', name: 'Зима', color: '#E3F2FD', icon: '❄️', disabled: true },
-                    { id: 'spring', name: 'Весна', color: '#E8F5E9', icon: '🌸', disabled: true },
-                    { id: 'summer', name: 'Лето', color: '#FFF3E0', icon: '☀️', disabled: true },
-                    { id: 'autumn', name: 'Осень', color: '#FBE9E7', icon: '🍂', disabled: true }
-                  ].map((season) => (
-                    <Grid item xs={12} sm={6} md={3} key={season.id}>
-                      <Card 
-                        sx={{ 
-                          position: 'relative',
-                          height: '100%',
-                          borderRadius: 2,
-                          background: `linear-gradient(145deg, ${alpha(theme.palette.background.paper, 0.8)}, ${alpha(theme.palette.background.paper, 0.9)})`,
-                          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                          overflow: 'hidden',
-                          transition: 'all 0.3s ease',
-                          opacity: season.disabled ? 0.7 : 1,
-                          '&:hover': { 
-                            transform: season.disabled ? 'none' : 'translateY(-5px)',
-                            boxShadow: season.disabled ? theme.shadows[1] : theme.shadows[4]
-                          }
-                        }}
-                      >
-                        <Box 
-                          sx={{ 
-                            height: 120, 
-                            background: `linear-gradient(to bottom, ${season.color}, ${alpha(theme.palette.background.paper, 0.5)})`,
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            fontSize: '3rem'
-                          }}
-                        >
-                          {season.icon}
-                        </Box>
-                        <CardContent sx={{ textAlign: 'center' }}>
-                          <Typography variant="h6" gutterBottom>
-                            {season.name}
-                          </Typography>
-                          <Chip 
-                            label="Скоро" 
-                            size="small" 
-                            color="primary" 
-                            variant="outlined"
-                            sx={{ mt: 1 }}
+      {/* Декорации профиля */}
+      <Box sx={{ mt: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Декорации профиля
+        </Typography>
+        <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+          Отображается в Лидерборде, поиске, при переводе и т.д.
+        </Typography>
+        
+        {loadingDecorations ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+            <CircularProgress />
+          </Box>
+        ) : userDecorations.length === 0 ? (
+          <Paper sx={{ p: 3, textAlign: 'center', bgcolor: 'background.paper' }}>
+            <Typography color="textSecondary">
+              У вас пока нет декораций
+            </Typography>
+          </Paper>
+        ) : (
+          <Grid container spacing={2}>
+            {userDecorations.map(item => {
+              const decoration = item.decoration;
+              return (
+                <Grid item xs={12} md={6} key={decoration.id}>
+                  <Paper 
+                    sx={{ 
+                      p: 2,
+                      bgcolor: 'background.paper',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      height: '100%',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: (theme) => theme.shadows[4]
+                      }
+                    }}
+                  >
+                    <DecorationPreview decoration={decoration}>
+                      {decoration.item_path && (() => {
+                        const [path, ...styles] = decoration.item_path.split(';');
+                        const styleObj = styles.reduce((acc, style) => {
+                          const [key, value] = style.split(':').map(s => s.trim());
+                          return { ...acc, [key]: value };
+                        }, {});
+                        
+                        return (
+                          <DecorationItem
+                            src={path}
+                            alt=""
+                            customStyles={styleObj}
                           />
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  ))}
+                        );
+                      })()}
+                    </DecorationPreview>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center',
+                      mt: 1 
+                    }}>
+                      <Box>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                          {decoration.name} 
+                        </Typography>
+                      </Box>
+                      <IOSSwitch
+                        checked={item.is_active}
+                        onChange={(e) => handleToggleDecoration(decoration.id, e.target.checked)}
+                      />
+                    </Box>
+                  </Paper>
                 </Grid>
-                
-                <Box sx={{ textAlign: 'center', mt: 4 }}>
-                  <Typography variant="body2" color="text.disabled">
-                    Сезонные профили станут доступны в ближайшем обновлении
-                  </Typography>
-                </Box>
-              </SettingsCardContent>
-            </SettingsCard>
+              );
+            })}
+          </Grid>
+        )}
+      </Box>
             
             <SettingsCard sx={{ mt: 3 }}>
               <SettingsCardContent>
@@ -5036,7 +4809,114 @@ const SettingsPage = () => {
                   Дополнительные настройки
                 </SectionTitle>
                 
-                
+                {/* Profile background upload for Ultimate */}
+                {profileData?.subscription?.type === 'ultimate' && (
+                  <Box sx={{ mt: 3 }}>
+                    <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
+                      Фоновая картинка профиля
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      {profileData.user?.profile_background_url ? (
+                        <Box sx={{ position: 'relative' }}>
+                          <Avatar
+                            variant="rounded"
+                            src={profileData.user.profile_background_url}
+                            alt="Profile Background"
+                            sx={{ width: 96, height: 96, borderRadius: 3, boxShadow: 2 }}
+                          />
+                          <IconButton
+                            size="small"
+                            color="error"
+                            sx={{ position: 'absolute', top: 0, right: 0, bgcolor: 'rgba(0,0,0,0.5)' }}
+                            onClick={async () => {
+                              try {
+                                await axios.delete('/api/profile/background');
+                                showNotification('success', 'Фон успешно удалён');
+                                // Обновить профиль
+                                if (fetchProfileData) fetchProfileData();
+                              } catch (e) {
+                                showNotification('error', e?.response?.data?.error || 'Ошибка удаления фона');
+                              }
+                            }}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      ) : (
+                        <Avatar
+                          variant="rounded"
+                          sx={{ width: 96, height: 96, borderRadius: 3, bgcolor: 'background.default', color: 'text.disabled', boxShadow: 1 }}
+                        >
+                          <PhotoCameraIcon fontSize="large" />
+                        </Avatar>
+                      )}
+                      <Box>
+                        <Button
+                          variant="contained"
+                          component="label"
+                          startIcon={<PhotoCameraIcon />}
+                        >
+                          Загрузить фон
+                          <input
+                            type="file"
+                            accept="image/png, image/jpeg, image/jpg, image/gif"
+                            hidden
+                            onChange={async (e) => {
+                              const file = e.target.files[0];
+                              if (!file) return;
+                              const formData = new FormData();
+                              formData.append('background', file);
+                              try {
+                                await axios.post('/api/profile/background', formData, {
+                                  headers: { 'Content-Type': 'multipart/form-data' }
+                                });
+                                showNotification('success', 'Фон успешно загружен');
+                                if (fetchProfileData) fetchProfileData();
+                              } catch (e) {
+                                showNotification('error', e?.response?.data?.error || 'Ошибка загрузки фона');
+                              }
+                            }}
+                          />
+                        </Button>
+                        <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary' }}>
+                          Только для подписки Ultimate. PNG, JPG, GIF. До 5MB.
+                        </Typography>
+                      </Box>
+                    </Box>
+                    {/* Экспериментальная функция: глобальные обои профиля */}
+                    {profileData.user?.profile_background_url && (
+                      <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <IOSSwitch
+                          checked={globalProfileBackgroundEnabled}
+                          onChange={handleGlobalProfileBackgroundToggle}
+                          inputProps={{ 'aria-label': 'Экспериментальная функция: Глобальные обои профиля' }}
+                        />
+                        <Box>
+                          <Typography variant="body2" fontWeight={500}>
+                            Экспериментальная функция: Глобальные обои профиля
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                            При включении ваша фоновая картинка будет использоваться по всему сайту (кроме чужих профилей с их обоями)
+                          </Typography>
+                        </Box>
+                      </Box>
+                    )}
+                    {/* Accent Color Picker */}
+                    <Box sx={{ mt: 2 }}>
+                      <AccentColorBlock />
+                    </Box>
+                    {/* Экспериментальная функция: глобальные обои профиля */}
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      sx={{ mt: 1, borderRadius: 2, fontWeight: 500 }}
+                      onClick={() => setKonnectModalOpen(true)}
+                    >
+                      Экспорт / Импорт профиля (.konnect)
+                    </Button>
+                    <ProfileKonnectModal open={konnectModalOpen} onClose={() => setKonnectModalOpen(false)} />
+                  </Box>
+                )}
               </SettingsCardContent>
             </SettingsCard>
           </Box>
@@ -5153,63 +5033,7 @@ const SettingsPage = () => {
                 </SectionTitle>
                 
                 <List disablePadding>
-                  {/* Element аккаунт */}
-                  <ListItem 
-                    sx={{ 
-                      py: 1.5, 
-                      px: 2, 
-                  borderRadius: 2,
-                  bgcolor: alpha(theme.palette.background.default, 0.4),
-                      border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                      mb: 1
-                    }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 40 }}>
-                      <ElementIcon sx={{ color: elementConnected ? '#D0BCFF' : '#777' }} />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Element"
-                      primaryTypographyProps={{ fontWeight: 500 }}
-                      secondary={loadingElementStatus ? "Проверка статуса..." : (elementConnected ? "Подключен" : "Не подключен")}
-                    />
-                          {loadingElementStatus ? (
-                      <CircularProgress size={24} sx={{ color: '#D0BCFF' }} />
-                    ) : (
-                      elementLinking ? (
-                        <IconButton 
-                          edge="end" 
-                          color="error" 
-                          onClick={handleCancelElementLinking}
-                          size="small"
-                        >
-                          <CloseIcon fontSize="small" />
-                        </IconButton>
-                    ) : (
-                      <Button
-                          variant="contained"
-                          size="small"
-                          onClick={elementConnected ? null : handleLinkElement}
-                          disabled={elementConnected}
-                          sx={{
-                            bgcolor: elementConnected ? 'transparent' : 'rgba(208, 188, 255, 0.1)',
-                            color: elementConnected ? 'success.main' : '#D0BCFF',
-                            border: elementConnected ? 'none' : '1px solid rgba(208, 188, 255, 0.3)',
-                            boxShadow: 'none',
-                            minWidth: 'auto',
-                            px: 2,
-                            '&:hover': {
-                              bgcolor: 'rgba(208, 188, 255, 0.2)',
-                            }
-                          }}
-                        >
-                          {elementConnected ? (
-                            <CheckIcon fontSize="small" />
-                          ) : 'Подключить'}
-                      </Button>
-                      )
-                    )}
-                  </ListItem>
-                  
+               
                   {/* Telegram аккаунт */}
                   <ListItem 
                     sx={{ 
@@ -5429,7 +5253,6 @@ const SettingsPage = () => {
                       </>
                     )}
                     
-                    {/* Purchased Badges Section */}
                     {purchasedBadges.length > 0 && (
                       <>
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, mt: 3 }}>
@@ -5910,63 +5733,94 @@ const SettingsPage = () => {
           activeTab={activeTab} 
           onTabChange={handleTabChange}
           user={user}
-        />
+          />
         
-        <Box sx={{ mt: 4, borderTop: '1px solid rgba(255, 255, 255, 0.12)', pt: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Безопасность и устройства
-          </Typography>
+          <Box sx={{ mt: 4, borderTop: '1px solid rgba(255, 255, 255, 0.12)', pt: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Безопасность и устройства
+            </Typography>
+            
+            <Button
+              variant="contained"
+              onClick={handleOpenSessionManager}
+              sx={{ 
+                mt: 2, 
+                borderRadius: 2,
+                py: 1.8,
+                justifyContent: 'flex-start',
+                textTransform: 'none',
+                backgroundColor: 'rgba(16, 16, 16, 0.9)',
+                backgroundImage: 'linear-gradient(45deg, rgba(16, 16, 16, 0.9), rgba(22, 22, 22, 0.9))',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
+                border: '1px solid rgba(208, 188, 255, 0.1)',
+                color: '#fff',
+                '&:hover': {
+                  backgroundColor: 'rgba(22, 22, 22, 0.9)',
+                  backgroundImage: 'linear-gradient(45deg, rgba(22, 22, 22, 0.9), rgba(30, 30, 30, 0.9))',
+                  boxShadow: '0 6px 16px rgba(0, 0, 0, 0.5)',
+                  transform: 'translateY(-2px)',
+                  transition: 'all 0.3s ease'
+                },
+                width: '100%'
+              }}
+              startIcon={
+                <DevicesIcon sx={{ 
+                  color: '#d0bcff',
+                  fontSize: '1.5rem'
+                }} />
+              }
+            >
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'flex-start',
+                ml: 1
+              }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 500, color: '#fff' }}>
+                  Управление сессиями
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#d0bcff' }}>
+                  Устройства, подключенные к аккаунту
+                </Typography>
+              </Box>
+            </Button>
+          </Box>
           
-          <Button
-            variant="contained"
-            onClick={handleOpenSessionManager}
-            sx={{ 
-              mt: 2, 
-              borderRadius: 2,
-              py: 1.8,
-              justifyContent: 'flex-start',
-              textTransform: 'none',
-              backgroundColor: 'rgba(16, 16, 16, 0.9)',
-              backgroundImage: 'linear-gradient(45deg, rgba(16, 16, 16, 0.9), rgba(22, 22, 22, 0.9))',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
-              border: '1px solid rgba(208, 188, 255, 0.1)',
-              color: '#fff',
-              '&:hover': {
-                backgroundColor: 'rgba(22, 22, 22, 0.9)',
-                backgroundImage: 'linear-gradient(45deg, rgba(22, 22, 22, 0.9), rgba(30, 30, 30, 0.9))',
-                boxShadow: '0 6px 16px rgba(0, 0, 0, 0.5)',
-                transform: 'translateY(-2px)',
-                transition: 'all 0.3s ease'
-              },
-              width: '100%'
-            }}
-            startIcon={
-              <DevicesIcon sx={{ 
-                color: '#d0bcff',
-                fontSize: '1.5rem'
-              }} />
-            }
-          >
-            <Box sx={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'flex-start',
-              ml: 1
-            }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 500, color: '#fff' }}>
-                Управление сессиями
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#d0bcff' }}>
-                Устройства, подключенные к аккаунту
-              </Typography>
+          {/* Session Manager Dialog */}
+          <SessionManager 
+            open={sessionManagerOpen} 
+            onClose={handleCloseSessionManager} 
+          />
+  
+          {/* Добавляем кнопку удаления канала только если это канал */}
+          {profileData?.user?.account_type === 'channel' && (
+            <Box sx={{ mt: 4, mb: 4, textAlign: 'center' }}>
+              <Button
+                onClick={() => setDeleteChannelDialogOpen(true)}
+                sx={{
+                  color: 'text.secondary',
+                  '&:hover': {
+                    color: 'error.main',
+                  },
+                }}
+              >
+                Удалить канал
+              </Button>
             </Box>
-          </Button>
-        </Box>
-        
-        {/* Session Manager Dialog */}
-        <SessionManager 
-          open={sessionManagerOpen} 
-          onClose={handleCloseSessionManager} 
+          )}
+  
+          <DeleteChannelDialog
+            open={deleteChannelDialogOpen}
+            onClose={() => setDeleteChannelDialogOpen(false)}
+            channelId={profileData?.user?.id}
+            onDelete={handleDeleteChannelSuccess}
+          />
+  
+          {/* Add this button where you want it to appear */}
+  
+               <ConnectionModal 
+            open={connectionModalOpen}
+            onClose={() => setConnectionModalOpen(false)}
         />
       </SettingsContainer>
     </motion.div>
@@ -5981,8 +5835,8 @@ const ThemeSelector = ({ onThemeSelect }) => {
   
   const themes = [
     {
-      id: 'dark',
-      name: 'Темная тема',
+      id: 'default',
+      name: 'По умолчанию',
       bg: '#131313',
       paper: '#1c1c1c',
       primary: '#D0BCFF',
@@ -5991,16 +5845,16 @@ const ThemeSelector = ({ onThemeSelect }) => {
     {
       id: 'light',
       name: 'Светлая тема',
-      bg: '#f5f5f5',
+      bg: '#ffffff',
       paper: '#ffffff',
       primary: '#8c52ff',
-      textColor: '#121212'
+      textColor: '#000000'
     },
     {
       id: 'contrast',
       name: 'Контрастная',
-      bg: '#080808',
-      paper: '#101010',
+      bg: '#000000',
+      paper: '#000000',
       primary: '#7B46E3',
       textColor: '#FFFFFF'
     }
@@ -6071,4 +5925,117 @@ const handleCloseSessionManager = () => {
   setSessionManagerOpen(false);
 };
 
+function AccentColorBlock() {
+  const [pendingAccentColor, setPendingAccentColor] = useState(() => localStorage.getItem('accentColorOverride') || '#d0bcff');
+  const [pendingTextColorMode, setPendingTextColorMode] = useState(() => localStorage.getItem('accentTextColorMode') || 'light');
+  const [appliedAccentColor, setAppliedAccentColor] = useState(() => localStorage.getItem('accentColorOverride') || '#d0bcff');
+  const [appliedTextColorMode, setAppliedTextColorMode] = useState(() => localStorage.getItem('accentTextColorMode') || 'light');
+  const [isApplying, setIsApplying] = useState(false);
+
+  const isChanged = pendingAccentColor !== appliedAccentColor || pendingTextColorMode !== appliedTextColorMode;
+
+  console.log('isChanged:', isChanged);
+  console.log('pendingAccentColor:', pendingAccentColor);
+  console.log('appliedAccentColor:', appliedAccentColor);
+
+  const handleApply = async () => {
+    console.log('handleApply вызван');
+    console.log('pendingAccentColor:', pendingAccentColor);
+    setIsApplying(true);
+    
+    try {
+      // Сохраняем в localStorage
+      localStorage.setItem('accentColorOverride', pendingAccentColor);
+      localStorage.setItem('primaryColor', pendingAccentColor);
+      console.log('localStorage установлен:', localStorage.getItem('primaryColor'));
+      
+      // Сохраняем в БД через API
+      const response = await fetch('/api/profile/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          primary_color: pendingAccentColor
+        })
+      });
+      
+      const data = await response.json();
+      if (data && data.success) {
+        console.log('Primary color успешно сохранен в БД:', pendingAccentColor);
+        
+        // Обновляем страницу после успешного сохранения
+        window.location.reload();
+      } else {
+        console.error('Ошибка сохранения primary color в БД:', data?.error);
+      }
+      
+      setAppliedAccentColor(pendingAccentColor);
+      setAppliedTextColorMode(pendingTextColorMode);
+      setIsApplying(false);
+      console.log('handleApply завершен');
+    } catch (error) {
+      console.error('Ошибка при сохранении primary color:', error);
+      setIsApplying(false);
+    }
+  };
+
+  const handleReset = () => {
+    setPendingAccentColor('#d0bcff');
+    setPendingTextColorMode('light');
+    localStorage.removeItem('accentColorOverride');
+    localStorage.removeItem('primaryColor');
+    setAppliedAccentColor('#d0bcff');
+    setAppliedTextColorMode('light');
+  };
+
+  return (
+    <Box sx={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, maxWidth: 340, mx: 'auto', mt: 0, mb: 2,
+      p: 0,
+      background: 'none',
+      borderRadius: 0
+    }}>
+      <Typography variant="h6" gutterBottom sx={{ mb: 1, fontWeight: 600 }}>Персонализация акцента</Typography>
+      <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+        <Typography variant="body2" gutterBottom>Цвет акцента</Typography>
+        <input
+          type="color"
+          value={pendingAccentColor}
+          onChange={e => setPendingAccentColor(e.target.value)}
+          style={{ width: 48, height: 48, border: 'none', background: 'none', cursor: 'pointer', borderRadius: 8 }}
+        />
+      </Box>
+      <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+        <Typography variant="body2" gutterBottom>Цвет текста в сайдбаре</Typography>
+        <ToggleButtonGroup
+          value={pendingTextColorMode}
+          exclusive
+          onChange={(_, val) => val && setPendingTextColorMode(val)}
+          size="small"
+          sx={{ mt: 1 }}
+        >
+          <ToggleButton value="light">Светлый текст</ToggleButton>
+          <ToggleButton value="dark">Тёмный текст</ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
+      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', width: '100%', mt: 2 }}>
+        <Button
+          size="medium"
+          variant="contained"
+          onClick={handleApply}
+          disabled={!isChanged || isApplying}
+          sx={{ minWidth: 100 }}
+        >
+          Применить
+        </Button>
+        <Button size="medium" variant="outlined" onClick={handleReset} sx={{ minWidth: 100 }}>
+          Сбросить
+        </Button>
+      </Box>
+    </Box>
+  );
+}
+
 export default SettingsPage;
+

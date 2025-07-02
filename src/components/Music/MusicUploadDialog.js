@@ -43,6 +43,7 @@ import {
   Album
 } from '@mui/icons-material';
 import axios from 'axios';
+import { styled } from '@mui/material/styles';
 
 
 const GENRES = [
@@ -57,6 +58,43 @@ const formatFileSize = (bytes) => {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
+
+// Новый стиль для диалога и внутренних карточек
+const StyledDialogPaper = styled('div')(({ theme }) => ({
+  background: 'rgba(255, 255, 255, 0.03)',
+  backdropFilter: 'blur(20px)',
+  borderRadius: 16,
+  boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+  border: '1px solid rgba(255,255,255,0.10)',
+  overflow: 'hidden',
+}));
+
+const StyledDialogContent = styled(DialogContent)(({ theme }) => ({
+  background: 'rgba(255,255,255,0.02)',
+  borderRadius: 12,
+  boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+  border: '1px solid rgba(255,255,255,0.07)',
+  margin: theme.spacing(2),
+  padding: theme.spacing(3, 2, 2, 2),
+}));
+
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  background: 'rgba(255,255,255,0.04)',
+  borderRadius: 12,
+  boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+  border: '1px solid rgba(255,255,255,0.07)',
+}));
+
+const StyledListItem = styled(ListItem)(({ theme, selected }) => ({
+  borderRadius: 10,
+  background: selected ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.02)',
+  border: '1px solid rgba(255,255,255,0.05)',
+  marginBottom: theme.spacing(0.5),
+  transition: 'background 0.2s',
+  '&:hover': {
+    background: 'rgba(255,255,255,0.10)',
+  },
+}));
 
 const MusicUploadDialog = ({ open, onClose, onSuccess }) => {
   
@@ -657,6 +695,12 @@ const MusicUploadDialog = ({ open, onClose, onSuccess }) => {
       PaperProps={{
         sx: {
           minHeight: '70vh',
+          background: 'rgba(255, 255, 255, 0.03)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '12px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+          border: '1px solid rgba(255,255,255,0.10)',
+          overflow: 'hidden',
           '@media (max-width: 600px)': {
             width: '100%',
             maxWidth: '100%',
@@ -666,77 +710,102 @@ const MusicUploadDialog = ({ open, onClose, onSuccess }) => {
         }
       }}
     >
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h6">
+      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px 16px 0 0', px: 3, py: 2 }}>
+        <Typography variant="h6" fontWeight={700}>
           {tracks.length > 0 
             ? `Загрузка треков (${tracks.length})`
             : 'Загрузка треков'
           }
         </Typography>
         {!loading && (
-          <IconButton onClick={onClose} size="small">
+          <IconButton onClick={onClose} size="small" sx={{ color: 'text.secondary', background: 'rgba(255,255,255,0.07)', '&:hover': { background: 'rgba(255,255,255,0.15)' } }}>
             <Close />
           </IconButton>
         )}
       </DialogTitle>
-      
-      <DialogContent sx={{ pb: 1 }}>
+      <StyledDialogContent>
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
             {error}
           </Alert>
         )}
-        
         {success && (
-          <Alert severity="success" sx={{ mb: 2 }}>
+          <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>
             {tracks.length > 1
               ? `${tracks.length} треков успешно загружено!`
               : 'Трек успешно загружен!'
             }
           </Alert>
         )}
-        
         {tracks.length === 0 ? (
           renderSelectFilesButton()
         ) : (
           <Grid container spacing={2}>
             <Grid item xs={12} md={3}>
-              {renderTrackList()}
-              <Box sx={{ mt: 2, textAlign: 'center' }}>
-                <Button
-                  variant="outlined"
-                  component="label"
-                  htmlFor="audio-upload-multi-add"
-                  startIcon={<Add />}
-                  fullWidth
-                  size="small"
-                  disabled={loading || loadingMetadata || tracks.length >= 10}
-                >
-                  Добавить еще
-                  <input
-                    id="audio-upload-multi-add"
-                    type="file"
-                    accept="audio/*"
-                    multiple
-                    hidden
-                    onChange={handleFileChange}
+              <StyledPaper variant="outlined" sx={{ height: '100%', overflow: 'auto', p: 1 }}>
+                <List dense sx={{ p: 0 }}>
+                  {tracks.map((track, index) => (
+                    <StyledListItem 
+                      key={index}
+                      selected={index === currentTrackIndex}
+                      button
+                      onClick={() => setCurrentTrackIndex(index)}
+                    >
+                      <ListItemAvatar>
+                        {track.coverPreview ? (
+                          <Avatar variant="rounded" src={track.coverPreview} sx={{ width: 44, height: 44, borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.10)' }} />
+                        ) : (
+                          <Avatar variant="rounded" sx={{ width: 44, height: 44, borderRadius: 2, background: 'rgba(255,255,255,0.08)' }}>
+                            <AudioFile />
+                          </Avatar>
+                        )}
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={<Typography variant="body2" fontWeight={600} noWrap>{track.title || 'Без названия'}</Typography>}
+                        secondary={<Typography variant="caption" color="text.secondary" noWrap>{track.artist || 'Неизвестный исполнитель'}</Typography>}
+                      />
+                    </StyledListItem>
+                  ))}
+                </List>
+                <Box sx={{ mt: 2, textAlign: 'center' }}>
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    htmlFor="audio-upload-multi-add"
+                    startIcon={<Add />}
+                    fullWidth
+                    size="small"
                     disabled={loading || loadingMetadata || tracks.length >= 10}
-                  />
-                </Button>
-              </Box>
+                    sx={{ borderRadius: 2 }}
+                  >
+                    Добавить еще
+                    <input
+                      id="audio-upload-multi-add"
+                      type="file"
+                      accept="audio/*"
+                      multiple
+                      hidden
+                      onChange={handleFileChange}
+                      disabled={loading || loadingMetadata || tracks.length >= 10}
+                    />
+                  </Button>
+                </Box>
+              </StyledPaper>
             </Grid>
             <Grid item xs={12} md={9}>
-              {renderTrackForm()}
+              <StyledPaper variant="outlined" sx={{ p: 3, minHeight: 320 }}>
+                {renderTrackForm()}
+              </StyledPaper>
             </Grid>
           </Grid>
         )}
-      </DialogContent>
-      
-      <DialogActions sx={{ p: 2, pt: 0 }}>
+      </StyledDialogContent>
+      <DialogActions sx={{ p: 2, pt: 0, background: 'rgba(255,255,255,0.03)', borderTop: '1px solid rgba(255,255,255,0.07)', borderRadius: '0 0 16px 16px' }}>
         <Button 
           onClick={onClose} 
           disabled={loading}
           color="inherit"
+          sx={{ borderRadius: 2, px: 3 }}
         >
           Отмена
         </Button>
@@ -745,6 +814,7 @@ const MusicUploadDialog = ({ open, onClose, onSuccess }) => {
           variant="contained" 
           disabled={loading || tracks.length === 0}
           startIcon={loading ? <CircularProgress size={20} /> : <CloudUpload />}
+          sx={{ borderRadius: 2, px: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.10)' }}
         >
           {loading ? (
             <>

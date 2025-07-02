@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext, useMemo, useCallback } from 'react';
 import { 
   Box, 
   Button, 
@@ -69,119 +69,140 @@ const ClickButton = styled(Button)(({ theme }) => ({
   justifyContent: 'center',
   alignItems: 'center',
   gap: theme.spacing(1),
-  background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 50%, ${theme.palette.primary.light} 100%)`,
-  boxShadow: `0 8px 32px ${alpha(theme.palette.primary.main, 0.4)}, 0 16px 48px ${alpha(theme.palette.primary.dark, 0.2)}`,
-  transition: 'all 0.2s ease-in-out',
+  background: theme.palette.primary.main,
+  border: `3px solid ${alpha(theme.palette.primary.light, 0.3)}`,
+  boxShadow: `0 10px 30px ${alpha(theme.palette.primary.main, 0.25)}, 
+              0 20px 60px ${alpha(theme.palette.primary.dark, 0.15)},
+              inset 0 1px 0 ${alpha('#ffffff', 0.1)}`,
+  transition: 'all 0.15s ease-out',
   overflow: 'hidden',
   position: 'relative',
-  '&:active': {
-    transform: 'scale(0.95)',
-    boxShadow: `0 4px 16px ${alpha(theme.palette.primary.main, 0.3)}`,
+  color: '#ffffff',
+  fontWeight: 600,
+  
+  '&:hover': {
+    background: theme.palette.primary.dark,
+    transform: 'translateY(-2px)',
+    boxShadow: `0 15px 40px ${alpha(theme.palette.primary.main, 0.35)}, 
+                0 25px 70px ${alpha(theme.palette.primary.dark, 0.2)},
+                inset 0 1px 0 ${alpha('#ffffff', 0.15)}`,
   },
+  
+  '&:active': {
+    transform: 'translateY(1px) scale(0.98)',
+    boxShadow: `0 5px 15px ${alpha(theme.palette.primary.main, 0.4)}, 
+                inset 0 2px 4px ${alpha('#000000', 0.1)}`,
+    transition: 'all 0.05s ease-out',
+  },
+  
+  // Ripple effect on click
   '&::after': {
     content: '""',
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: 'radial-gradient(circle, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 70%)',
+    top: '50%',
+    left: '50%',
+    width: 0,
+    height: 0,
+    borderRadius: '50%',
+    background: alpha('#ffffff', 0.3),
+    transform: 'translate(-50%, -50%)',
+    transition: 'width 0.3s ease, height 0.3s ease, opacity 0.3s ease',
     opacity: 0,
-    transition: 'opacity 0.3s ease-in-out',
+    pointerEvents: 'none',
   },
-  '&:hover::after': {
+  
+  '&.clicked::after': {
+    width: '300px',
+    height: '300px',
     opacity: 1,
+    transition: 'width 0.4s ease, height 0.4s ease, opacity 0.4s ease',
   },
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: -10,
-    left: -10,
-    right: -10,
-    bottom: -10,
-    background: `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.4)} 0%, ${alpha(theme.palette.primary.main, 0.1)} 50%)`,
-    borderRadius: 30,
-    opacity: 0,
-    zIndex: -1,
-    transition: 'opacity 0.3s ease-in-out',
-  },
-  '&:hover::before': {
-    opacity: 0.6,
-    animation: 'pulse 1.5s infinite',
-  },
-  '@keyframes pulse': {
-    '0%': {
-      transform: 'scale(1)',
-      opacity: 0.6,
-    },
-    '50%': {
-      transform: 'scale(1.05)',
-      opacity: 0.8,
-    },
-    '100%': {
-      transform: 'scale(1)',
-      opacity: 0.6,
-    }
-  },
+  
   [theme.breakpoints.down('sm')]: {
     height: 160,
+    borderRadius: 20,
   },
 }));
 
 const BalanceCard = styled(Card)(({ theme }) => ({
-  borderRadius: 16,
+  borderRadius: 20,
   background: theme.palette.mode === 'dark' 
-    ? alpha(theme.palette.background.paper, 0.8) 
-    : alpha(theme.palette.grey[100], 0.8),
-  backdropFilter: 'blur(8px)',
-  boxShadow: theme.shadows[4],
+    ? alpha(theme.palette.background.paper, 0.95) 
+    : alpha(theme.palette.grey[50], 0.95),
+  backdropFilter: 'blur(20px)',
+  border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+  boxShadow: `0 8px 24px ${alpha(theme.palette.common.black, 0.1)}, 
+              0 2px 8px ${alpha(theme.palette.common.black, 0.05)}`,
   position: 'relative',
   overflow: 'hidden',
+  
   '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 5,
-    background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-  },
-  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-  '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: theme.shadows[8],
-  }
-}));
-
-const UpgradeCard = styled(Card)(({ theme, disabled }) => ({
-  borderRadius: 16,
-  boxShadow: theme.shadows[2],
-  background: disabled 
-    ? theme.palette.mode === 'dark' ? alpha(theme.palette.grey[900], 0.8) : alpha(theme.palette.grey[200], 0.8)
-    : theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.8) : alpha(theme.palette.grey[50], 0.8),
-  transition: 'all 0.3s ease-in-out',
-  position: 'relative',
-  opacity: disabled ? 0.7 : 1,
-  overflow: 'hidden',
-  '&:hover': {
-    transform: disabled ? 'none' : 'translateY(-4px)',
-    boxShadow: disabled ? theme.shadows[2] : theme.shadows[8],
-  },
-  '&::after': {
     content: '""',
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     height: 4,
-    background: disabled 
-      ? 'transparent' 
-      : `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-    opacity: 0,
-    transition: 'opacity 0.3s ease',
+    background: theme.palette.primary.main,
+    borderRadius: '20px 20px 0 0',
   },
-  '&:hover::after': {
-    opacity: disabled ? 0 : 1,
+  
+  transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+  
+  '&:hover': {
+    transform: 'translateY(-2px)',
+    boxShadow: `0 12px 32px ${alpha(theme.palette.common.black, 0.15)}, 
+                0 4px 12px ${alpha(theme.palette.common.black, 0.08)}`,
+    '&::before': {
+      height: 6,
+    }
+  }
+}));
+
+const UpgradeCard = styled(Card)(({ theme, disabled }) => ({
+  borderRadius: 18,
+  background: disabled 
+    ? theme.palette.mode === 'dark' 
+      ? alpha(theme.palette.grey[900], 0.6) 
+      : alpha(theme.palette.grey[300], 0.6)
+    : theme.palette.mode === 'dark' 
+      ? alpha(theme.palette.background.paper, 0.95) 
+      : alpha(theme.palette.grey[50], 0.95),
+  backdropFilter: 'blur(16px)',
+  border: disabled 
+    ? `1px solid ${alpha(theme.palette.divider, 0.3)}` 
+    : `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+  boxShadow: disabled 
+    ? `0 4px 12px ${alpha(theme.palette.common.black, 0.05)}`
+    : `0 6px 20px ${alpha(theme.palette.common.black, 0.1)}, 
+       0 2px 6px ${alpha(theme.palette.common.black, 0.05)}`,
+  transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+  position: 'relative',
+  opacity: disabled ? 0.6 : 1,
+  overflow: 'hidden',
+  
+  '&:hover': {
+    transform: disabled ? 'none' : 'translateY(-2px)',
+    boxShadow: disabled 
+      ? `0 4px 12px ${alpha(theme.palette.common.black, 0.05)}`
+      : `0 10px 28px ${alpha(theme.palette.common.black, 0.15)}, 
+         0 4px 10px ${alpha(theme.palette.common.black, 0.08)}`,
+    '&::after': {
+      opacity: disabled ? 0 : 1,
+    }
+  },
+  
+  '&::after': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 3,
+    background: disabled ? 'transparent' : theme.palette.primary.main,
+    borderRadius: '18px 18px 0 0',
+    opacity: 0,
+    transition: 'all 0.3s ease',
   }
 }));
 
@@ -232,36 +253,20 @@ const ClickerPage = () => {
   const [touchActive, setTouchActive] = useState(false);
   const rapidClickIntervalRef = useRef(null);
   const [rapidClicksEnabled, setRapidClicksEnabled] = useState(false);
+  const handleClickRef = useRef(null); // Ref для handleClick
   
   
   const [leaderboardData, setLeaderboardData] = useState([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(true);
   
   
+  
   const isInitialRender = useRef(true);
   
   
+    
   useEffect(() => {
-    
     fetchBalance();
-    
-    
-    const fetchUserIdIfNeeded = async () => {
-      if (!user?.id) {
-        try {
-          const response = await axios.get('/api/auth/check');
-          if (response.data && response.data.user && response.data.user.id) {
-            console.log("Получили ID пользователя напрямую:", response.data.user.id);
-            
-            window._tempUserId = response.data.user.id;
-          }
-        } catch (error) {
-          console.error("Не удалось получить ID пользователя:", error);
-        }
-      }
-    };
-    
-    fetchUserIdIfNeeded();
     fetchLeaderboard();
     
     
@@ -269,7 +274,7 @@ const ClickerPage = () => {
       if (pendingClicksRef.current > 0) {
         sendBatchedClicks();
       }
-    }, 1000);
+    }, 2000); // Увеличили интервал с 1000 до 2000мс
     
     return () => {
       clearInterval(intervalId);
@@ -294,7 +299,7 @@ const ClickerPage = () => {
         console.log(`Прошло ${timeSinceLastClick}мс с последнего клика, отправляем ${pendingClicksRef.current} кликов`);
         sendBatchedClicks();
       }
-    }, 300); 
+    }, 500); // Увеличили интервал с 300 до 500мс
     
     return () => {
       if (batchTimerRef.current) {
@@ -325,7 +330,37 @@ const ClickerPage = () => {
       }
       
       if (secondsElapsed >= 1) {
-        handleAutoClick(secondsElapsed);
+        // Встроенная логика автоклика
+        const autoClickUpgrade = upgrades.find(u => u.type === 'auto_click');
+        if (autoClickUpgrade && autoClickUpgrade.level > 0) {
+          // Выполняем автоклик напрямую
+          const currentTime = Math.floor(Date.now() / 1000);
+          const currentMinute = Math.floor(currentTime / 60);
+          const challenge = `react_clicker_${user?.id}_${currentMinute}`;
+          
+          axios.post('/api/clicker/get-token', {
+            action: 'auto_click',
+            challenge: challenge
+          }).then(tokenResponse => {
+            if (tokenResponse.data.success) {
+              const { token, timestamp } = tokenResponse.data;
+              return axios.post('/api/clicker/auto-click', { 
+                seconds: secondsElapsed,
+                auto_click_token: token,
+                timestamp: timestamp
+              });
+            }
+          }).then(response => {
+            if (response?.data.success) {
+              setBalance(response.data.balance);
+              setTotalEarned(prev => prev + response.data.earned);
+            }
+          }).catch(error => {
+            if (error.response?.status === 429 || error.response?.status === 403) {
+              console.warn('Автоклик временно недоступен:', error.response.data.message);
+            }
+          });
+        }
         setLastAutoClick(now);
       }
     };
@@ -349,9 +384,9 @@ const ClickerPage = () => {
         clearInterval(autoClickIntervalRef.current);
       }
     };
-  }, [lastAutoClick, autoClickerPaused]); 
+  }, [lastAutoClick, autoClickerPaused, upgrades, user?.id]);
   
-  const fetchBalance = async () => {
+  const fetchBalance = useCallback(async () => {
     try {
       const response = await axios.get('/api/clicker/balance');
       console.log('Получены данные баланса:', response.data);
@@ -381,9 +416,9 @@ const ClickerPage = () => {
     } catch (error) {
       console.error('Error fetching clicker balance:', error);
     }
-  };
+  }, []);
   
-  const fetchLeaderboard = async () => {
+  const fetchLeaderboard = useCallback(async () => {
     try {
       setLeaderboardLoading(true);
       const response = await axios.get('/api/clicker/leaderboard');
@@ -394,10 +429,10 @@ const ClickerPage = () => {
     } finally {
       setLeaderboardLoading(false);
     }
-  };
+  }, []);
   
   
-  const sendBatchedClicks = async () => {
+  const sendBatchedClicks = useCallback(async () => {
     if (pendingClicksRef.current === 0 || isSendingBatch) return;
     
     setIsSendingBatch(true);
@@ -407,17 +442,32 @@ const ClickerPage = () => {
     console.log(`ОТПРАВЛЯЕМ ${clicksToSend} КЛИКОВ НА СЕРВЕР`);
     
     try {
+      // Проверяем наличие пользователя
+      if (!user?.id) {
+        console.error('User ID not available for token request');
+        return;
+      }
       
-      const timestamp = Math.floor(Date.now() / 1000);
+      // Получаем безопасный токен с сервера
+      const currentTime = Math.floor(Date.now() / 1000);
+      const currentMinute = Math.floor(currentTime / 60);
+      const challenge = `react_clicker_${user.id}_${currentMinute}`;
       
-      const userId = user?.id || window._tempUserId || (await fetchUserId()) || 'guest';
-      const clickToken = `clicker_${userId}_${timestamp}_${Math.random().toString(36).substring(2, 10)}`;
+      const tokenResponse = await axios.post('/api/clicker/get-token', {
+        action: 'click',
+        challenge: challenge
+      });
       
-      console.log(`Используем ID пользователя для токена: ${userId}`);
+      if (!tokenResponse.data.success) {
+        console.error('Не удалось получить токен:', tokenResponse.data.message);
+        return;
+      }
+      
+      const { token, timestamp } = tokenResponse.data;
       
       const response = await axios.post('/api/clicker/click', { 
         clicks: clicksToSend,
-        click_token: clickToken,
+        click_token: token,
         timestamp: timestamp
       });
       
@@ -429,107 +479,58 @@ const ClickerPage = () => {
       }
     } catch (error) {
       console.error('Ошибка при обработке кликов:', error);
+      if (error.response?.status === 429) {
+        toast.error(error.response.data.message || 'Превышен лимит запросов');
+      } else if (error.response?.status === 403) {
+        toast.error('Ошибка безопасности. Попробуйте перезагрузить страницу.');
+      }
     } finally {
       setIsSendingBatch(false);
     }
-  };
+  }, [user?.id, isSendingBatch]);
+  
+
   
   
-  const fetchUserId = async () => {
-    try {
-      const response = await axios.get('/api/auth/check');
-      if (response.data && response.data.user && response.data.user.id) {
-        window._tempUserId = response.data.user.id;
-        return response.data.user.id;
-      }
-    } catch (error) {
-      console.error("Не удалось получить ID пользователя:", error);
-    }
-    return null;
-  };
+
   
   
-  const handleClick = () => {
-    
-    lastClickTimeRef.current = Date.now();
-    
-    
-    if (!autoClickerPaused && getUpgrade('auto_click').level > 0) {
-      setAutoClickerPaused(true);
-    }
-    
-    
-    pendingClicksRef.current += 1;
-    
-    
-    const x = Math.random() * 80 + 10; 
-    const y = Math.random() * 80 + 10; 
-    
-    
-    
-    const multiplier = getUpgrade('multiplier').level > 0 ? getUpgrade('multiplier').power : 1.0;
-    const clickPowerValue = getUpgrade('click_power').level > 0 ? getUpgrade('click_power').power : clickPower;
-    const pointsPerClick = clickPowerValue * multiplier;
-    
-    console.log(`Клик: сила=${clickPowerValue}, множитель=${multiplier}, итого=${pointsPerClick}`);
-    
-    
-    const newEffect = {
-      amount: pointsPerClick,
-      position: { x, y },
-      id: Date.now() + Math.random() 
-    };
-    
-    setClickEffects(prev => [...prev, newEffect]);
-    
-    
-    setTimeout(() => {
-      setClickEffects(prev => prev.filter(effect => effect.id !== newEffect.id));
-    }, 1000);
-    
-    
-    setBalance(prev => prev + pointsPerClick);
-    
-    
-    if (pendingClicksRef.current % 10 === 0) {
-      console.log(`Накоплено ${pendingClicksRef.current} кликов`);
-    }
-  };
-  
-  
-  useEffect(() => {
-    const buttonElement = document.querySelector('.click-button');
-    if (!buttonElement) return;
-    
-    const touchStartHandler = (e) => {
+  // Touch handlers - объявляем вне useEffect
+  const touchStartHandler = useCallback((e) => {
       e.preventDefault();
       touchStartTimeRef.current = Date.now();
       setTouchActive(true);
       
-      
-      handleClick();
-      
+    if (handleClickRef.current) {
+      handleClickRef.current();
+    }
       
       if (rapidClicksEnabled) {
-        clearRapidClickInterval();
-        rapidClickIntervalRef.current = setInterval(() => {
-          handleClick();
-        }, 100);
-      }
-    };
-    
-    const touchEndHandler = (e) => {
-      e.preventDefault();
-      setTouchActive(false);
-      clearRapidClickInterval();
-    };
-    
-    const clearRapidClickInterval = () => {
       if (rapidClickIntervalRef.current) {
         clearInterval(rapidClickIntervalRef.current);
         rapidClickIntervalRef.current = null;
       }
-    };
+      
+        rapidClickIntervalRef.current = setInterval(() => {
+        if (handleClickRef.current) {
+          handleClickRef.current();
+      }
+      }, 150); // Увеличили интервал с 100 до 150мс
+    }
+  }, [rapidClicksEnabled]);
+    
+  const touchEndHandler = useCallback((e) => {
+      e.preventDefault();
+      setTouchActive(false);
+      if (rapidClickIntervalRef.current) {
+        clearInterval(rapidClickIntervalRef.current);
+        rapidClickIntervalRef.current = null;
+      }
+  }, []);
+
+  useEffect(() => {
+    const buttonElement = document.querySelector('.click-button');
+    if (!buttonElement) return;
     
     buttonElement.addEventListener('touchstart', touchStartHandler, { passive: false });
     buttonElement.addEventListener('touchend', touchEndHandler, { passive: false });
@@ -539,36 +540,48 @@ const ClickerPage = () => {
       buttonElement.removeEventListener('touchstart', touchStartHandler);
       buttonElement.removeEventListener('touchend', touchEndHandler);
       buttonElement.removeEventListener('touchcancel', touchEndHandler);
-      clearRapidClickInterval();
-    };
-  }, [rapidClicksEnabled]);
-  
-  
-  useEffect(() => {
-    return () => {
       if (rapidClickIntervalRef.current) {
         clearInterval(rapidClickIntervalRef.current);
         rapidClickIntervalRef.current = null;
       }
     };
-  }, []);
+  }, [touchStartHandler, touchEndHandler]);
   
-  const handleAutoClick = async (seconds) => {
+  
+
+  
+  const handleAutoClick = useCallback(async (seconds) => {
     const autoClickUpgrade = upgrades.find(u => u.type === 'auto_click');
     if (!autoClickUpgrade || autoClickUpgrade.level === 0) return;
     
     try {
+      // Проверяем наличие пользователя
+      if (!user?.id) {
+        console.error('User ID not available for auto-click token request');
+        return;
+      }
       
-      const timestamp = Math.floor(Date.now() / 1000);
+      // Получаем безопасный токен для автоклика
+      const currentTime = Math.floor(Date.now() / 1000);
+      const currentMinute = Math.floor(currentTime / 60);
+      const challenge = `react_clicker_${user.id}_${currentMinute}`;
       
-      const userId = user?.id || window._tempUserId || (await fetchUserId()) || 'guest';
-      const autoClickToken = `auto_${userId}_${timestamp}_${Math.random().toString(36).substring(2, 7)}`;
+      const tokenResponse = await axios.post('/api/clicker/get-token', {
+        action: 'auto_click',
+        challenge: challenge
+      });
+      
+      if (!tokenResponse.data.success) {
+        console.error('Не удалось получить токен автоклика:', tokenResponse.data.message);
+        return;
+      }
+      
+      const { token, timestamp } = tokenResponse.data;
       
       const response = await axios.post('/api/clicker/auto-click', { 
         seconds,
-        auto_click_token: autoClickToken,
-        timestamp: timestamp,
-        silent_request: true 
+        auto_click_token: token,
+        timestamp: timestamp
       });
       
       if (response.data.success) {
@@ -576,12 +589,14 @@ const ClickerPage = () => {
         setTotalEarned(prev => prev + response.data.earned);
       }
     } catch (error) {
-      
-      
+      // Не логируем ошибки автоклика, чтобы не засорять консоль
+      if (error.response?.status === 429 || error.response?.status === 403) {
+        console.warn('Автоклик временно недоступен:', error.response.data.message);
     }
-  };
+    }
+  }, [upgrades, user?.id]);
   
-  const handleBuyUpgrade = async (upgradeType) => {
+  const handleBuyUpgrade = useCallback(async (upgradeType) => {
     try {
       const response = await axios.post('/api/clicker/buy-upgrade', { 
         upgrade_type: upgradeType
@@ -620,9 +635,9 @@ const ClickerPage = () => {
         toast.error('Ошибка при покупке улучшения');
       }
     }
-  };
+  }, [upgrades, userPoints]);
   
-  const handleWithdrawPoints = async () => {
+  const handleWithdrawPoints = useCallback(async () => {
     try {
       const amount = parseInt(withdrawAmount);
       if (isNaN(amount) || amount < minWithdrawal) {
@@ -645,12 +660,201 @@ const ClickerPage = () => {
         alert('Произошла ошибка при выводе баллов');
       }
     }
-  };
+  }, [withdrawAmount, minWithdrawal]);
   
   
-  const getUpgrade = (type) => upgrades.find(u => u.type === type) || { level: 0, power: 0, next_level_cost: 0 };
-  
-  const renderClickSection = () => (
+  const getUpgrade = useCallback((type) => 
+    upgrades.find(u => u.type === type) || { level: 0, power: 0, next_level_cost: 0 }, 
+    [upgrades]
+  );
+
+  // Мемоизируем дорогие вычисления
+  const clickPowerWithMultiplier = useMemo(() => {
+    const multiplierUpgrade = upgrades.find(u => u.type === 'multiplier');
+    const multiplier = multiplierUpgrade && multiplierUpgrade.level > 0 ? multiplierUpgrade.power : 1.0;
+    return clickPower * multiplier;
+  }, [clickPower, upgrades]);
+
+  const autoClickUpgrade = useMemo(() => 
+    upgrades.find(u => u.type === 'auto_click') || { level: 0, power: 0 }, 
+    [upgrades]
+  );
+
+  // Мемоизируем обработчик кликов
+  const handleClick = useCallback(() => {
+    // Add click animation to button
+    const clickButton = document.querySelector('.click-button');
+    if (clickButton) {
+      clickButton.classList.add('clicked');
+      setTimeout(() => {
+        clickButton.classList.remove('clicked');
+      }, 400);
+    }
+    
+    lastClickTimeRef.current = Date.now();
+    
+    if (!autoClickerPaused && getUpgrade('auto_click').level > 0) {
+      setAutoClickerPaused(true);
+    }
+    
+    pendingClicksRef.current += 1;
+    
+    const x = Math.random() * 80 + 10; 
+    const y = Math.random() * 80 + 10; 
+    
+    const pointsPerClick = clickPowerWithMultiplier;
+    
+    const newEffect = {
+      amount: pointsPerClick,
+      position: { x, y },
+      id: Date.now() + Math.random() 
+    };
+    
+    setClickEffects(prev => [...prev, newEffect]);
+    
+    setTimeout(() => {
+      setClickEffects(prev => prev.filter(effect => effect.id !== newEffect.id));
+    }, 1000);
+    
+    setBalance(prev => prev + pointsPerClick);
+  }, [autoClickerPaused, getUpgrade, clickPowerWithMultiplier]);
+
+  // Сохраняем handleClick в ref для использования в touch handlers
+  useEffect(() => {
+    handleClickRef.current = handleClick;
+  }, [handleClick]);
+
+  // Оптимизированные обработчики навигации и действий - объявляем до useMemo
+  const handleRapidClicksChange = useCallback((e) => {
+    setRapidClicksEnabled(e.target.checked);
+  }, []);
+
+  const handleWithdrawalChange = useCallback((e) => {
+    setWithdrawAmount(e.target.value);
+  }, []);
+
+  const handleNavigateToClick = useCallback(() => setActiveSection('click'), []);
+  const handleNavigateToShop = useCallback(() => setActiveSection('shop'), []);
+  const handleNavigateToStats = useCallback(() => setActiveSection('stats'), []);
+  const handleNavigateToLeaderboard = useCallback(() => setActiveSection('leaderboard'), []);
+  const handleOpenWithdrawDialog = useCallback(() => setWithdrawDialogOpen(true), []);
+  const handleCloseWithdrawDialog = useCallback(() => setWithdrawDialogOpen(false), []);
+
+  // Отдельный мемоизированный компонент для эффектов кликов
+  const ClickEffects = useMemo(() => 
+    clickEffects.map(effect => (
+      <Box
+        key={effect.id}
+        sx={{
+          position: 'absolute',
+          left: `${effect.position.x}%`,
+          top: `${effect.position.y}%`,
+          transform: 'translate(-50%, -50%)',
+          color: '#ffffff',
+          animation: 'floatUp 1.2s cubic-bezier(0.25, 0.8, 0.25, 1) forwards',
+          fontWeight: '700',
+          fontSize: '1.3rem',
+          pointerEvents: 'none',
+          zIndex: 10,
+          textShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.6)}, 
+                      0 0 12px ${alpha(theme.palette.primary.light, 0.4)}`,
+          filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.3))',
+          '@keyframes floatUp': {
+            '0%': {
+              opacity: 1,
+              transform: 'translate(-50%, -50%) scale(0.6) rotateY(0deg)',
+              filter: 'blur(0px) drop-shadow(0 0 6px rgba(255,255,255,0.3))'
+            },
+            '20%': {
+              opacity: 1,
+              transform: 'translate(-50%, -70%) scale(1.4) rotateY(5deg)',
+              filter: 'blur(0px) drop-shadow(0 0 8px rgba(255,255,255,0.5))'
+            },
+            '60%': {
+              opacity: 0.8,
+              transform: 'translate(-50%, -120%) scale(1.1) rotateY(-2deg)',
+              filter: 'blur(0.5px) drop-shadow(0 0 4px rgba(255,255,255,0.3))'
+            },
+            '100%': {
+              opacity: 0,
+              transform: 'translate(-50%, -180%) scale(0.8) rotateY(0deg)',
+              filter: 'blur(1px) drop-shadow(0 0 2px rgba(255,255,255,0.1))'
+            }
+          }
+        }}
+      >
+        +{effect.amount.toFixed(3)}
+      </Box>
+    )), [clickEffects, theme]);
+
+  // Отдельные мемоизированные кнопки - ОБЪЯВЛЯЕМ ДО ИСПОЛЬЗОВАНИЯ
+  const UpgradeButton = useMemo(() => (
+    <Button 
+      fullWidth 
+      variant="outlined" 
+      color="primary"
+      size="large"
+      onClick={handleNavigateToShop}
+      startIcon={<UpgradeIcon />}
+      sx={{ 
+        borderRadius: 16, 
+        py: 2,
+        borderWidth: 2,
+        fontWeight: 600,
+        textTransform: 'none',
+        background: alpha(theme.palette.primary.main, 0.05),
+        backdropFilter: 'blur(8px)',
+        transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+        '&:hover': {
+          borderWidth: 2,
+          background: alpha(theme.palette.primary.main, 0.1),
+          transform: 'translateY(-2px)',
+          boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.2)}`
+        }
+      }}
+    >
+      Улучшения
+    </Button>
+  ), [handleNavigateToShop, theme]);
+
+  // Изолированная кнопка вывода - ререндерится только при пересечении минимального порога
+  const WithdrawButton = useMemo(() => {
+    const canWithdraw = balance >= minWithdrawal;
+    
+    return (
+      <Button 
+        fullWidth 
+        variant="contained" 
+        color="secondary"
+        size="large"
+        onClick={handleOpenWithdrawDialog}
+        startIcon={<MonetizationOnIcon />}
+        disabled={!canWithdraw}
+        sx={{ 
+          borderRadius: 16, 
+          py: 2,
+          fontWeight: 600,
+          textTransform: 'none',
+          boxShadow: `0 6px 20px ${alpha(theme.palette.secondary.main, 0.3)}`,
+          transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+          '&:hover': {
+            transform: 'translateY(-2px)',
+            boxShadow: `0 10px 28px ${alpha(theme.palette.secondary.main, 0.4)}`
+          },
+          '&:disabled': {
+            opacity: 0.6,
+            transform: 'none',
+            boxShadow: 'none'
+          }
+        }}
+      >
+        Вывести баллы
+      </Button>
+    );
+  }, [handleOpenWithdrawDialog, balance >= minWithdrawal, minWithdrawal, theme]);
+
+  // Оптимизированная render секция с мемоизацией
+  const renderClickSection = useMemo(() => (
     <Box>
       <BalanceCard elevation={3} sx={{ mb: 2 }}>
         <CardContent sx={{ textAlign: 'center' }}>
@@ -660,10 +864,8 @@ const ClickerPage = () => {
           <Typography variant="h3" sx={{ 
             fontWeight: 'bold', 
             mb: 2,
-            background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            display: 'inline-block'
+            color: theme.palette.primary.main,
+            textShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.3)}`
           }}>
             {balance.toFixed(3)}
           </Typography>
@@ -750,7 +952,7 @@ const ClickerPage = () => {
               </Box>
               <Switch 
                 checked={rapidClicksEnabled} 
-                onChange={(e) => setRapidClicksEnabled(e.target.checked)}
+                onChange={handleRapidClicksChange}
                 color="primary"
               />
             </Paper>
@@ -765,107 +967,70 @@ const ClickerPage = () => {
           className="click-button"
           disableRipple
         >
-          <TouchAppIcon sx={{ 
-            fontSize: 48,
-            filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.5))'
-          }} />
-          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Нажми для дохода</Typography>
-          <Typography variant="body2" sx={{ 
-            bgcolor: alpha(theme.palette.background.paper, 0.2),
-            px: 2, 
-            py: 0.5, 
-            borderRadius: 4,
-            boxShadow: '0 0 10px rgba(0,0,0,0.1)'
+          <Box sx={{
+            width: 60,
+            height: 60,
+            minWidth: 60,
+            minHeight: 60,
+            borderRadius: '50%',
+            background: alpha('#ffffff', 0.15),
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            mb: 1,
+            backdropFilter: 'blur(8px)',
+            border: `2px solid ${alpha('#ffffff', 0.2)}`,
+            transition: 'all 0.3s ease',
+            flexShrink: 0
           }}>
-            
-            +{(() => {
-              const multiplierUpgrade = upgrades.find(u => u.type === 'multiplier');
-              const multiplier = multiplierUpgrade && multiplierUpgrade.level > 0 ? multiplierUpgrade.power : 1.0;
-              return (clickPower * multiplier).toFixed(3);
-            })()} за клик
+          <TouchAppIcon sx={{ 
+              fontSize: 32,
+              width: 32,
+              height: 32,
+              color: '#ffffff',
+              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+              flexShrink: 0
+            }} />
+          </Box>
+          <Typography variant="h5" sx={{ 
+            fontWeight: 700, 
+            mb: 1,
+            textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+            letterSpacing: 0.5
+          }}>
+            КЛИК
+          </Typography>
+          <Typography variant="body1" sx={{ 
+            bgcolor: alpha('#ffffff', 0.15),
+            px: 3, 
+            py: 1, 
+            borderRadius: 20,
+            backdropFilter: 'blur(8px)',
+            border: `1px solid ${alpha('#ffffff', 0.2)}`,
+            fontWeight: 600,
+            fontSize: '0.9rem',
+            textShadow: '0 1px 2px rgba(0,0,0,0.2)'
+          }}>
+            +{clickPowerWithMultiplier.toFixed(3)} за клик
           </Typography>
           
           
-          {clickEffects.map(effect => (
-            <Box
-              key={effect.id}
-              sx={{
-                position: 'absolute',
-                left: `${effect.position.x}%`,
-                top: `${effect.position.y}%`,
-                transform: 'translate(-50%, -50%)',
-                color: theme.palette.secondary.light,
-                animation: 'moveUp 1s ease-out forwards',
-                fontWeight: 'bold',
-                fontSize: '1.2rem',
-                pointerEvents: 'none',
-                zIndex: 10,
-                textShadow: '0 0 5px rgba(0,0,0,0.5)',
-                '@keyframes moveUp': {
-                  '0%': {
-                    opacity: 1,
-                    transform: 'translate(-50%, -50%) scale(0.8)'
-                  },
-                  '50%': {
-                    opacity: 1,
-                    transform: 'translate(-50%, -100%) scale(1.2)'
-                  },
-                  '100%': {
-                    opacity: 0,
-                    transform: 'translate(-50%, -200%) scale(1)'
-                  }
-                }
-              }}
-            >
-              +{effect.amount.toFixed(3)}
-            </Box>
-          ))}
+          {ClickEffects}
         </ClickButton>
       </Box>
 
       <Grid container spacing={2}>
         <Grid item xs={12} sm={6}>
-          <Button 
-            fullWidth 
-            variant="outlined" 
-            color="primary"
-            size="large"
-            onClick={() => setActiveSection('shop')}
-            startIcon={<UpgradeIcon />}
-            sx={{ 
-              borderRadius: 8, 
-              py: 1.5,
-              borderWidth: 2,
-              '&:hover': {
-                borderWidth: 2
-              }
-            }}
-          >
-            Улучшения
-          </Button>
+          {UpgradeButton}
         </Grid>
         <Grid item xs={12} sm={6}>
-          <Button 
-            fullWidth 
-            variant="contained" 
-            color="secondary"
-            size="large"
-            onClick={() => setWithdrawDialogOpen(true)}
-            startIcon={<MonetizationOnIcon />}
-            disabled={balance < minWithdrawal}
-            sx={{ 
-              borderRadius: 8, 
-              py: 1.5
-            }}
-          >
-            Вывести баллы
-          </Button>
+          {WithdrawButton}
         </Grid>
       </Grid>
     </Box>
-  );
+  ), [balance, clickPower, totalEarned, autoClickerPaused, rapidClicksEnabled, clickPowerWithMultiplier, getUpgrade, handleRapidClicksChange, handleClick, ClickEffects]);
   
-  const renderShopSection = () => (
+  const renderShopSection = useMemo(() => (
     <Box>
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={6}>
@@ -876,10 +1041,7 @@ const ClickerPage = () => {
               </Typography>
               <Typography variant="h4" sx={{ 
                 fontWeight: 'bold',
-                background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                display: 'inline-block'
+                color: theme.palette.primary.main
               }}>
                 {balance.toFixed(3)}
               </Typography>
@@ -1161,9 +1323,9 @@ const ClickerPage = () => {
         </Grid>
       </Grid>
     </Box>
-  );
+  ), [upgrades, userPoints, getUpgrade, handleBuyUpgrade]);
   
-  const renderStatsSection = () => (
+  const renderStatsSection = useMemo(() => (
     <Box>
       <Typography variant="h5" sx={{ mb: 2, fontWeight: 'medium' }}>
         Статистика
@@ -1277,7 +1439,7 @@ const ClickerPage = () => {
         variant="outlined" 
         color="primary"
         size="large"
-        onClick={() => setActiveSection('click')}
+        onClick={handleNavigateToClick}
         startIcon={<TouchAppIcon />}
         sx={{ 
           borderRadius: 8, 
@@ -1291,10 +1453,10 @@ const ClickerPage = () => {
         Вернуться к клику
       </Button>
     </Box>
-  );
+  ), [balance, totalEarned, totalWithdrawn, upgrades, getUpgrade, handleNavigateToClick]);
   
   
-  const renderLeaderboardSection = () => (
+  const renderLeaderboardSection = useMemo(() => (
     <Box>
       <Typography variant="h5" sx={{ 
         mb: 3, 
@@ -2003,7 +2165,7 @@ const ClickerPage = () => {
             <Button
               variant="outlined"
               color="primary"
-              onClick={() => setActiveSection('click')}
+              onClick={handleNavigateToClick}
               startIcon={<ArrowBackIcon />}
               sx={{
                 borderRadius: 2,
@@ -2017,34 +2179,28 @@ const ClickerPage = () => {
         </>
       )}
     </Box>
-  );
+  ), [leaderboardData, leaderboardLoading, handleNavigateToClick]);
   
   
-  const renderActiveSection = () => {
+  const renderActiveSection = useMemo(() => {
     switch (activeSection) {
       case 'shop':
-        return renderShopSection();
+        return renderShopSection;
       case 'stats':
-        return renderStatsSection();
+        return renderStatsSection;
       case 'leaderboard':
-        return renderLeaderboardSection();
+        return renderLeaderboardSection;
       default:
-        return renderClickSection();
+        return renderClickSection;
     }
-  };
+  }, [activeSection, renderShopSection, renderStatsSection, renderLeaderboardSection, renderClickSection]);
   
-  return (
-    <Container maxWidth="sm" sx={{ mb: isMobile ? 10 : 4, pt: 2 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
-          Кликер
-        </Typography>
-        
-        {!isMobile && (
+  // Мемоизированная навигация
+  const navigationButtons = useMemo(() => !isMobile && (
           <Box>
             <Button 
               variant={activeSection === 'click' ? 'contained' : 'text'} 
-              onClick={() => setActiveSection('click')}
+        onClick={handleNavigateToClick}
               sx={{ mx: 0.5 }}
               startIcon={<TouchAppIcon />}
             >
@@ -2052,7 +2208,7 @@ const ClickerPage = () => {
             </Button>
             <Button 
               variant={activeSection === 'shop' ? 'contained' : 'text'} 
-              onClick={() => setActiveSection('shop')}
+        onClick={handleNavigateToShop}
               sx={{ mx: 0.5 }}
               startIcon={<CategoryIcon />}
             >
@@ -2060,7 +2216,7 @@ const ClickerPage = () => {
             </Button>
             <Button 
               variant={activeSection === 'stats' ? 'contained' : 'text'} 
-              onClick={() => setActiveSection('stats')}
+        onClick={handleNavigateToStats}
               sx={{ mx: 0.5 }}
               startIcon={<TimelineIcon />}
             >
@@ -2068,22 +2224,68 @@ const ClickerPage = () => {
             </Button>
             <Button 
               variant={activeSection === 'leaderboard' ? 'contained' : 'text'} 
-              onClick={() => setActiveSection('leaderboard')}
+        onClick={handleNavigateToLeaderboard}
               sx={{ mx: 0.5 }}
               startIcon={<LeaderboardIcon />}
             >
               Лидеры
             </Button>
           </Box>
-        )}
+  ), [isMobile, activeSection, handleNavigateToClick, handleNavigateToShop, handleNavigateToStats, handleNavigateToLeaderboard]);
+
+  // Мемоизированный хедер - НЕ РЕРЕНДЕРИТСЯ при кликах
+  const HeaderSection = useMemo(() => (
+    <Box sx={{ 
+      display: 'flex', 
+      alignItems: 'center', 
+      mb: 4,
+      background: alpha(theme.palette.primary.main, 0.05),
+      backdropFilter: 'blur(10px)',
+      borderRadius: 3,
+      p: { xs: 2, sm: 3 },
+      border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`
+    }}>
+      <Box sx={{ 
+        width: 48, 
+        height: 48, 
+        borderRadius: 2, 
+        background: theme.palette.primary.main,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        mr: 2,
+        boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.3)}`
+      }}>
+        <TouchAppIcon sx={{ color: '#ffffff', fontSize: 28 }} />
       </Box>
+      <Typography variant="h4" sx={{ 
+        flexGrow: 1, 
+        fontWeight: 700,
+        color: theme.palette.primary.main,
+        letterSpacing: 1,
+        textShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.2)}`
+      }}>
+        Кликер
+      </Typography>
       
-      {renderActiveSection()}
+      {navigationButtons}
+    </Box>
+  ), [theme, navigationButtons]);
+
+  return (
+    <Container maxWidth="sm" sx={{ 
+      mb: isMobile ? 12 : 4, 
+      pt: 2,
+      px: { xs: 2, sm: 3 } 
+    }}>
+      {HeaderSection}
+      
+      {renderActiveSection}
       
       
       <Dialog
         open={withdrawDialogOpen}
-        onClose={() => setWithdrawDialogOpen(false)}
+        onClose={handleCloseWithdrawDialog}
         PaperProps={{
           sx: {
             borderRadius: 4,
@@ -2108,14 +2310,14 @@ const ClickerPage = () => {
             type="number"
             fullWidth
             value={withdrawAmount}
-            onChange={(e) => setWithdrawAmount(e.target.value)}
+            onChange={handleWithdrawalChange}
             inputProps={{ min: minWithdrawal }}
             variant="outlined"
           />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3 }}>
           <Button 
-            onClick={() => setWithdrawDialogOpen(false)} 
+            onClick={handleCloseWithdrawDialog} 
             color="inherit"
           >
             Отмена

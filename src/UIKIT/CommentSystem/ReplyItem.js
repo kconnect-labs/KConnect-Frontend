@@ -20,6 +20,7 @@ import ReplyIcon from '@mui/icons-material/Reply';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import { formatTimeAgo } from '../../utils/dateUtils';
+import { useLanguage } from '../../context/LanguageContext';
 
 const StyledReplyCard = styled(Box)(({ theme }) => ({
   backgroundColor: 'rgba(32, 32, 36, 0.4)',
@@ -97,6 +98,7 @@ const ReplyItem = ({
   const [imageError, setImageError] = useState(false);
   const [imageFallback, setImageFallback] = useState(null);
   const menuOpen = Boolean(menuAnchorEl);
+  const { t } = useLanguage();
 
   const handleMenuOpen = (event) => {
     event.stopPropagation();
@@ -325,7 +327,7 @@ const ReplyItem = ({
                     <ListItemIcon>
                       <ReplyIcon fontSize="small" sx={{ color: 'text.secondary' }} />
                     </ListItemIcon>
-                    <ListItemText primary="Ответить" />
+                    <ListItemText primary={t('comment.menu.reply')} />
                   </MenuItem>
                   
                   <MenuItem 
@@ -346,7 +348,7 @@ const ReplyItem = ({
                     <ListItemIcon>
                       <DeleteIcon fontSize="small" sx={{ color: '#f44336' }} />
                     </ListItemIcon>
-                    <ListItemText primary="Удалить" />
+                    <ListItemText primary={t('comment.menu.delete')} />
                   </MenuItem>
                 </Menu>
               </>
@@ -424,13 +426,13 @@ const ReplyItem = ({
               }}
             >
               <Typography sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                Ошибка загрузки медиа
+                {t('comment.media.error')}
               </Typography>
               <Typography sx={{ fontSize: '0.75rem', opacity: 0.8, wordBreak: 'break-all' }}>
                 {reply.image && reply.image.includes('/static/uploads/') && 
                  reply.image.indexOf('/static/uploads/') !== reply.image.lastIndexOf('/static/uploads/') 
-                  ? 'Ошибка в пути к файлу (дублирование)' 
-                  : reply.image || 'URL недоступен'}
+                  ? t('comment.media.duplicate_path') 
+                  : reply.image || t('comment.media.url_unavailable')}
               </Typography>
             </Box>
           )}
@@ -438,7 +440,7 @@ const ReplyItem = ({
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 0.5 }}>
             <ActionButton 
               active={reply.user_liked} 
-              onClick={() => onLike(reply.id)}
+              onClick={() => onLike()}
             >
               {reply.user_liked ? (
                 <FavoriteIcon sx={{ color: '#8c52ff', fontSize: 12 }} />
@@ -461,7 +463,7 @@ const ReplyItem = ({
             <ActionButton onClick={() => onReply(reply)}>
               <CommentOutlinedIcon sx={{ fontSize: 12, color: 'text.secondary' }} />
               <Typography variant="caption" sx={{ ml: 0.5, fontSize: '0.7rem', color: 'text.secondary' }}>
-                Ответить
+                {t('comment.menu.reply')}
               </Typography>
             </ActionButton>
           </Box>

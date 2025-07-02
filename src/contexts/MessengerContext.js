@@ -311,7 +311,7 @@ export const MessengerProvider = ({ children }) => {
   }, []);
   
   
-  const API_URL = `${window.location.protocol}//${window.location.host}/apiMes`;
+  const API_URL = 'https://k-connect.ru/apiMes';
   
   
   const pingIntervalRef = useRef(null);

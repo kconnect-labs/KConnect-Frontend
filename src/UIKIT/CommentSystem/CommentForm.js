@@ -10,6 +10,7 @@ import { styled } from '@mui/material/styles';
 import SendIcon from '@mui/icons-material/Send';
 import ImageIcon from '@mui/icons-material/Image';
 import CloseIcon from '@mui/icons-material/Close';
+import { useLanguage } from '../../context/LanguageContext';
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
@@ -53,6 +54,7 @@ const CommentForm = ({
   disabled,
   error
 }) => {
+  const { t } = useLanguage();
   return (
     <Box>
       {error && (
@@ -69,7 +71,7 @@ const CommentForm = ({
         inputRef={fileInputRef}
         fullWidth
         size="small"
-        placeholder="Написать комментарий..."
+        placeholder={t('comment.form.placeholder')}
         value={commentText || ''}
         onChange={(e) => typeof setCommentText === 'function' ? setCommentText(e.target.value) : null}
         disabled={isSubmitting || disabled}

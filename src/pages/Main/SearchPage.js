@@ -18,6 +18,7 @@ import { ThemeSettingsContext } from '../../App';
 import { AuthContext } from '../../context/AuthContext';
 import { searchService, profileService } from '../../services';
 import SimpleImageViewer from '../../components/SimpleImageViewer';
+import { motion } from 'framer-motion';
 
 
 const StyledSearchBox = styled(Box)(({ theme }) => ({
@@ -27,7 +28,6 @@ const StyledSearchBox = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2),
   marginBottom: theme.spacing(2),
   borderRadius: theme.shape.borderRadius,
-  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
   backgroundColor: theme.palette.background.paper,
 }));
 
@@ -55,6 +55,79 @@ const TabPanel = (props) => {
       {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
     </div>
   );
+};
+
+// Добавляем стили для карточки пользователя
+const UserCard = styled(motion.div)(({ theme, decoration }) => {
+  // Определяем тип фона (градиент, изображение или цвет)
+  const isGradient = decoration?.background?.includes('linear-gradient');
+  const isImage = decoration?.background?.includes('/');
+  const isHexColor = decoration?.background?.startsWith('#');
+  const isLightBackground = isHexColor && isLightColor(decoration?.background);
+
+  const hasCustomBackground = !!decoration?.background;
+
+  return {
+    display: 'flex',
+    alignItems: 'center',
+    padding: theme.spacing(2),
+    borderRadius: theme.spacing(2),
+    marginBottom: theme.spacing(1.5),
+    backdropFilter: hasCustomBackground ? 'none' : 'blur(20px)',
+    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+    position: 'relative',
+    overflow: 'hidden',
+    background: hasCustomBackground ? (
+      isImage ? `url(${decoration.background})` : decoration.background
+    ) : 'rgba(255, 255, 255, 0.03)',
+    backgroundSize: isImage ? 'cover' : 'auto',
+    backgroundPosition: isImage ? 'center' : 'auto',
+    color: isLightBackground ? 'rgba(0, 0, 0, 0.87)' : theme.palette.text.primary,
+    '& .MuiTypography-root': {
+      color: isLightBackground ? 'rgba(0, 0, 0, 0.87)' : 'inherit',
+    },
+    '& .MuiTypography-colorTextSecondary': {
+      color: isLightBackground ? 'rgba(0, 0, 0, 0.6)' : theme.palette.text.secondary,
+    },
+    '&:hover': {
+      transform: 'translateY(-3px)',
+      boxShadow: theme.shadows[6],
+    },
+    '&::before': isGradient ? {
+      content: '""',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: decoration.background,
+      opacity: 0.15,
+      zIndex: 0,
+    } : {},
+  };
+});
+
+const DecorationItem = styled('img')({
+  position: 'absolute',
+  right: 0,
+  height: 'max-content',
+  maxHeight: 120,
+  opacity: 1,
+  pointerEvents: 'none',
+  zIndex: 1,
+});
+
+// Функция для проверки светлого фона
+const isLightColor = (color) => {
+  if (!color || !color.startsWith('#')) {
+    return false;
+  }
+  const hex = color.replace('#', '');
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 128;
 };
 
 const SearchPage = () => {
@@ -386,7 +459,7 @@ const SearchPage = () => {
   return (
     <Container maxWidth="lg" sx={{ pt: 2, pb: 8 }}>
       <StyledSearchBox sx={{ 
-        background: `linear-gradient(145deg, ${themeSettings.paperColor} 0%, rgba(26, 26, 26, 0.9) 100%)`
+        background: `unset`
       }}>
         <form onSubmit={handleSearchSubmit}>
           <TextField
@@ -481,109 +554,121 @@ const SearchPage = () => {
                     </Box>
                     <Paper sx={{ 
                       borderRadius: 2,
-                      background: `linear-gradient(145deg, ${themeSettings.paperColor} 0%, rgba(26, 26, 26, 0.9) 100%)`,
+                      background: `unset`,
                       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
                     }}>
                       <List>
                         {users.slice(0, 4).map((user, index) => (
-                          <React.Fragment key={user.id}>
-                            <ListItem
-                              alignItems="flex-start"
-                              secondaryAction={
-                                isAuthenticated && user.id !== (user?.id) && (
-                                  <Button
-                                    variant="outlined"
-                                    size="small"
-                                    color="primary"
-                                    onClick={() => handleFollowToggle(user.id)}
-                                    startIcon={followingStatus[user.id] ? <PersonRemoveIcon /> : <PersonAddIcon />}
-                                    sx={{
-                                      borderRadius: 6,
-                                      textTransform: 'none',
-                                      borderColor: followingStatus[user.id] ? 'rgba(255, 255, 255, 0.2)' : '#D0BCFF',
-                                      color: followingStatus[user.id] ? 'text.secondary' : '#D0BCFF',
+                          <UserCard
+                            key={user.id}
+                            decoration={user.decoration}
+                            component={motion.div}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, delay: index * 0.1 }}
+                            onClick={() => navigate(`/profile/${user.username}`)}
+                          >
+                            {user.decoration?.item_path && (() => {
+                              const [path, ...styles] = user.decoration.item_path.split(';');
+                              const styleObj = styles.reduce((acc, style) => {
+                                const [key, value] = style.split(':').map(s => s.trim());
+                                // Уменьшаем размеры в два раза для height
+                                if (key === 'height') {
+                                  const numValue = parseInt(value);
+                                  if (!isNaN(numValue)) {
+                                    return { ...acc, [key]: `${numValue / 2}px` };
+                                  }
+                                }
+                                return { ...acc, [key]: value };
+                              }, {});
+                              
+                              return (
+                                <DecorationItem
+                                  src={path}
+                                  style={styleObj}
+                                  alt=""
+                                />
+                              );
+                            })()}
+                            <Box sx={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', width: '100%' }}>
+                              <Avatar 
+                                src={user.photo && user.photo !== 'avatar.png' 
+                                  ? user.photo.startsWith('/') ? user.photo : `/static/uploads/avatar/${user.id}/${user.photo}` 
+                                  : `/static/uploads/avatar/system/avatar.png`}
+                                alt={user.name}
+                                component={Link}
+                                to={`/profile/${user.username}`}
+                                sx={{ 
+                                  width: 50, 
+                                  height: 50, 
+                                  marginRight: 2,
+                                  border: '2px solid #D0BCFF'
+                                }}
+                                onError={(e) => {
+                                  console.error(`Failed to load avatar for ${user.username}`);
+                                  e.target.onerror = null; 
+                                  e.target.src = `/static/uploads/avatar/system/avatar.png`;
+                                }}
+                              />
+
+                              <Box sx={{ flex: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                  <Typography 
+                                    component={Link}
+                                    to={`/profile/${user.username}`}
+                                    variant="subtitle1"
+                                    sx={{ 
+                                      fontWeight: 'bold',
+                                      textDecoration: 'none',
+                                      color: 'text.primary',
+                                      '&:hover': {
+                                        textDecoration: 'underline',
+                                      }
                                     }}
                                   >
-                                    {followingStatus[user.id] ? 'Отписаться' : 'Подписаться'}
-                                  </Button>
-                                )
-                              }
-                            >
-                              <ListItemAvatar>
-                                <Avatar 
-                                  src={user.photo && user.photo !== 'avatar.png' 
-                                    ? user.photo.startsWith('/') ? user.photo : `/static/uploads/avatar/${user.id}/${user.photo}` 
-                                    : `/static/uploads/avatar/system/avatar.png`}
-                                  alt={user.name}
-                                  component={Link}
-                                  to={`/profile/${user.username}`}
-                                  sx={{ 
-                                    width: 50, 
-                                    height: 50, 
-                                    marginRight: 1,
-                                    border: '2px solid #D0BCFF'
-                                  }}
-                                  onError={(e) => {
-                                    console.error(`Failed to load avatar for ${user.username}`);
-                                    e.target.onerror = null; 
-                                    e.target.src = `/static/uploads/avatar/system/avatar.png`;
-                                  }}
-                                />
-                              </ListItemAvatar>
-                              <ListItemText
-                                primary={
-                                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <Typography 
-                                      component={Link}
-                                      to={`/profile/${user.username}`}
-                                      variant="subtitle1"
+                                    {user.name}
+                                  </Typography>
+                                  {user.verification_status === 'verified' && (
+                                    <VerifiedIcon 
                                       sx={{ 
-                                        fontWeight: 'bold',
-                                        textDecoration: 'none',
-                                        color: 'text.primary',
-                                        '&:hover': {
-                                          textDecoration: 'underline',
-                                        }
-                                      }}
-                                    >
-                                      {user.name}
-                                    </Typography>
-                                    {user.verification_status === 'verified' && (
-                                      <VerifiedIcon 
-                                        sx={{ 
-                                          fontSize: 16, 
-                                          ml: 0.5, 
-                                          color: '#D0BCFF' 
-                                        }} 
-                                      />
-                                    )}
-                                  </Box>
-                                }
-                                secondary={
-                                  <>
-                                    <Typography
-                                      component="span"
-                                      variant="body2"
-                                      color="text.secondary"
-                                    >
-                                      @{user.username}
-                                    </Typography>
-                                    {user.about && (
-                                      <Typography
-                                        component="div"
-                                        variant="body2"
-                                        color="text.secondary"
-                                        sx={{ mt: 0.5 }}
-                                      >
-                                        {user.about}
-                                      </Typography>
-                                    )}
-                                  </>
-                                }
-                              />
-                            </ListItem>
-                            {index < users.length - 1 && <Divider variant="inset" component="li" />}
-                          </React.Fragment>
+                                        fontSize: 16, 
+                                        ml: 0.5, 
+                                        color: '#D0BCFF' 
+                                      }} 
+                                    />
+                                  )}
+                                </Box>
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                >
+                                  @{user.username}
+                                </Typography>
+                              </Box>
+
+                              {isAuthenticated && user.id !== (user?.id) && (
+                                <Button
+                                  variant="outlined"
+                                  size="small"
+                                  color="primary"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleFollowToggle(user.id);
+                                  }}
+                                  startIcon={followingStatus[user.id] ? <PersonRemoveIcon /> : <PersonAddIcon />}
+                                  sx={{
+                                    borderRadius: 6,
+                                    textTransform: 'none',
+                                    borderColor: followingStatus[user.id] ? 'rgba(255, 255, 255, 0.2)' : '#D0BCFF',
+                                    color: followingStatus[user.id] ? 'text.secondary' : '#D0BCFF',
+                                    zIndex: 2
+                                  }}
+                                >
+                                  {followingStatus[user.id] ? 'Отписаться' : 'Подписаться'}
+                                </Button>
+                              )}
+                            </Box>
+                          </UserCard>
                         ))}
                       </List>
                     </Paper>
@@ -822,104 +907,116 @@ const SearchPage = () => {
               }}>
                 <List>
                   {users.map((user, index) => (
-                    <React.Fragment key={user.id}>
-                      <ListItem
-                        alignItems="flex-start"
-                        secondaryAction={
-                          isAuthenticated && user.id !== (user?.id) && (
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              color="primary"
-                              onClick={() => handleFollowToggle(user.id)}
-                              startIcon={followingStatus[user.id] ? <PersonRemoveIcon /> : <PersonAddIcon />}
-                              sx={{
-                                borderRadius: 6,
-                                textTransform: 'none',
-                                borderColor: followingStatus[user.id] ? 'rgba(255, 255, 255, 0.2)' : '#D0BCFF',
-                                color: followingStatus[user.id] ? 'text.secondary' : '#D0BCFF',
+                    <UserCard
+                      key={user.id}
+                      decoration={user.decoration}
+                      component={motion.div}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      onClick={() => navigate(`/profile/${user.username}`)}
+                    >
+                      {user.decoration?.item_path && (() => {
+                        const [path, ...styles] = user.decoration.item_path.split(';');
+                        const styleObj = styles.reduce((acc, style) => {
+                          const [key, value] = style.split(':').map(s => s.trim());
+                          // Уменьшаем размеры в два раза для height
+                          if (key === 'height') {
+                            const numValue = parseInt(value);
+                            if (!isNaN(numValue)) {
+                              return { ...acc, [key]: `${numValue / 2}px` };
+                            }
+                          }
+                          return { ...acc, [key]: value };
+                        }, {});
+                        
+                        return (
+                          <DecorationItem
+                            src={path}
+                            style={styleObj}
+                            alt=""
+                          />
+                        );
+                      })()}
+                      <Box sx={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', width: '100%' }}>
+                        <Avatar 
+                          src={user.photo && user.photo !== 'avatar.png' 
+                            ? user.photo.startsWith('/') ? user.photo : `/static/uploads/avatar/${user.id}/${user.photo}` 
+                            : `/static/uploads/avatar/system/avatar.png`}
+                          alt={user.name}
+                          component={Link}
+                          to={`/profile/${user.username}`}
+                          sx={{ 
+                            width: 50, 
+                            height: 50, 
+                            marginRight: 2,
+                            border: '2px solid #D0BCFF'
+                          }}
+                          onError={(e) => {
+                            console.error(`Failed to load avatar for ${user.username}`);
+                            e.target.onerror = null; 
+                            e.target.src = `/static/uploads/avatar/system/avatar.png`;
+                          }}
+                        />
+
+                        <Box sx={{ flex: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Typography 
+                              component={Link}
+                              to={`/profile/${user.username}`}
+                              variant="subtitle1"
+                              sx={{ 
+                                fontWeight: 'bold',
+                                textDecoration: 'none',
+                                color: 'text.primary',
+                                '&:hover': {
+                                  textDecoration: 'underline',
+                                }
                               }}
                             >
-                              {followingStatus[user.id] ? 'Отписаться' : 'Подписаться'}
-                            </Button>
-                          )
-                        }
-                      >
-                        <ListItemAvatar>
-                          <Avatar 
-                            src={user.photo && user.photo !== 'avatar.png' 
-                              ? user.photo.startsWith('/') ? user.photo : `/static/uploads/avatar/${user.id}/${user.photo}` 
-                              : `/static/uploads/avatar/system/avatar.png`}
-                            alt={user.name}
-                            component={Link}
-                            to={`/profile/${user.username}`}
-                            sx={{ 
-                              width: 50, 
-                              height: 50, 
-                              marginRight: 1,
-                              border: '2px solid #D0BCFF'
-                            }}
-                            onError={(e) => {
-                              console.error(`Failed to load avatar for ${user.username}`);
-                              e.target.onerror = null; 
-                              e.target.src = `/static/uploads/avatar/system/avatar.png`;
-                            }}
-                          />
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Typography 
-                                component={Link}
-                                to={`/profile/${user.username}`}
-                                variant="subtitle1"
+                              {user.name}
+                            </Typography>
+                            {user.verification_status === 'verified' && (
+                              <VerifiedIcon 
                                 sx={{ 
-                                  fontWeight: 'bold',
-                                  textDecoration: 'none',
-                                  color: 'text.primary',
-                                  '&:hover': {
-                                    textDecoration: 'underline',
-                                  }
-                                }}
-                              >
-                                {user.name}
-                              </Typography>
-                              {user.verification_status === 'verified' && (
-                                <VerifiedIcon 
-                                  sx={{ 
-                                    fontSize: 16, 
-                                    ml: 0.5, 
-                                    color: '#D0BCFF' 
-                                  }} 
-                                />
-                              )}
-                            </Box>
-                          }
-                          secondary={
-                            <>
-                              <Typography
-                                component="span"
-                                variant="body2"
-                                color="text.secondary"
-                              >
-                                @{user.username}
-                              </Typography>
-                              {user.about && (
-                                <Typography
-                                  component="div"
-                                  variant="body2"
-                                  color="text.secondary"
-                                  sx={{ mt: 0.5 }}
-                                >
-                                  {user.about}
-                                </Typography>
-                              )}
-                            </>
-                          }
-                        />
-                      </ListItem>
-                      {index < users.length - 1 && <Divider variant="inset" component="li" />}
-                    </React.Fragment>
+                                  fontSize: 16, 
+                                  ml: 0.5, 
+                                  color: '#D0BCFF' 
+                                }} 
+                              />
+                            )}
+                          </Box>
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                          >
+                            @{user.username}
+                          </Typography>
+                        </Box>
+
+                        {isAuthenticated && user.id !== (user?.id) && (
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            color="primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleFollowToggle(user.id);
+                            }}
+                            startIcon={followingStatus[user.id] ? <PersonRemoveIcon /> : <PersonAddIcon />}
+                            sx={{
+                              borderRadius: 6,
+                              textTransform: 'none',
+                              borderColor: followingStatus[user.id] ? 'rgba(255, 255, 255, 0.2)' : '#D0BCFF',
+                              color: followingStatus[user.id] ? 'text.secondary' : '#D0BCFF',
+                              zIndex: 2
+                            }}
+                          >
+                            {followingStatus[user.id] ? 'Отписаться' : 'Подписаться'}
+                          </Button>
+                        )}
+                      </Box>
+                    </UserCard>
                   ))}
                 </List>
                 
@@ -970,7 +1067,7 @@ const SearchPage = () => {
                       transition: 'transform 0.2s',
                       '&:hover': {
                         transform: 'translateY(-2px)',
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                        boxShadow: '0  12px rgba(0, 0, 0, 0.15)',
                       }
                     }}
                   >

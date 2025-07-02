@@ -93,6 +93,11 @@ import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';
 import QueueMusicIcon from '@mui/icons-material/QueueMusic';
 import AddIcon from '@mui/icons-material/Add';
 import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
+import CloseIcon from '@mui/icons-material/Close';
+import VpnKeyIcon from '@mui/icons-material/VpnKey';
+import StarsIcon from '@mui/icons-material/Stars';
+import DecorationMenu from '../../UIKIT/DecorationMenu';
+import VerifiedIcon from '@mui/icons-material/Verified';
 
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
@@ -174,7 +179,6 @@ const ModeratorPage = () => {
   const [deleteBadgeDialogOpen, setDeleteBadgeDialogOpen] = useState(false);
   const [deleteArtistDialogOpen, setDeleteArtistDialogOpen] = useState(false);
   const [editArtistDialogOpen, setEditArtistDialogOpen] = useState(false);
-  const [createArtistDialogOpen, setCreateArtistDialogOpen] = useState(false);
   const [manageArtistTracksDialogOpen, setManageArtistTracksDialogOpen] = useState(false);
   const [artistTracks, setArtistTracks] = useState([]);
   const [searchableTracksList, setSearchableTracksList] = useState([]);
@@ -300,6 +304,479 @@ const ModeratorPage = () => {
   const [selectedMedal, setSelectedMedal] = useState('');
   const [medalDescription, setMedalDescription] = useState('');
   
+  // --- СТЕЙТЫ ДЛЯ КЛЮЧЕЙ ---
+  const [modKeys, setModKeys] = useState([]);
+  const [modKeysLoading, setModKeysLoading] = useState(false);
+  const [modKeysLoadingMore, setModKeysLoadingMore] = useState(false);
+  const [modKeysError, setModKeysError] = useState(null);
+  const [modKeysPage, setModKeysPage] = useState(1);
+  const [modKeysTotal, setModKeysTotal] = useState(0);
+  const [modKeysHasNext, setModKeysHasNext] = useState(false);
+  const [modKeysDialogOpen, setModKeysDialogOpen] = useState(false);
+  const [modKeysCreateLoading, setModKeysCreateLoading] = useState(false);
+  const [modKeysCreateError, setModKeysCreateError] = useState(null);
+  const [modKeysCreateSuccess, setModKeysCreateSuccess] = useState(null);
+  const [modKeysForm, setModKeysForm] = useState({
+    type: 'points',
+    points: 1000,
+    subscription_type: 'basic',
+    subscription_duration_days: 30,
+    max_uses: 1,
+    count: 1,
+    expires_days: 30,
+    description: ''
+  });
+  const [modKeysDeleting, setModKeysDeleting] = useState({});
+  const modKeysLoaderRef = useRef(null);
+  const [generatedKeys, setGeneratedKeys] = useState([]);
+  
+  const [decorationMenuOpen, setDecorationMenuOpen] = useState(false);
+  const [selectedUserForDecorations, setSelectedUserForDecorations] = useState(null);
+  
+  // --- ЗАГРУЗКА КЛЮЧЕЙ ---
+  const fetchModKeys = useCallback(async (page = 1, append = false) => {
+    if (page === 1) setModKeysLoading(true);
+    else setModKeysLoadingMore(true);
+    setModKeysError(null);
+    try {
+      const res = await axios.get(`/api/moderator/keys?page=${page}&per_page=20`);
+      if (res.data && res.data.success) {
+        setModKeysTotal(res.data.total);
+        setModKeysPage(res.data.page);
+        setModKeysHasNext(res.data.has_next);
+        setModKeys((prev) => {
+          const newKeys = res.data.keys || [];
+          let merged;
+          if (append) {
+            // Исключаем дубли по id
+            const ids = new Set(prev.map(k => k.id));
+            merged = [...prev, ...newKeys.filter(k => !ids.has(k.id))];
+          } else {
+            merged = newKeys;
+          }
+          // Сортировка по created_at (сначала новые)
+          return merged.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        });
+      } else {
+        setModKeysError('Ошибка загрузки ключей');
+      }
+    } catch (e) {
+      setModKeysError('Ошибка загрузки ключей');
+    } finally {
+      setModKeysLoading(false);
+      setModKeysLoadingMore(false);
+    }
+  }, []);
+  
+  useEffect(() => {
+    fetchModKeys(1, false);
+  }, [fetchModKeys]);
+  
+  // --- INFINITE SCROLL ---
+  useEffect(() => {
+    if (!modKeysHasNext || modKeysLoading || modKeysLoadingMore) return;
+    const observer = new window.IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        fetchModKeys(modKeysPage + 1, true);
+      }
+    }, { threshold: 1 });
+    if (modKeysLoaderRef.current) {
+      observer.observe(modKeysLoaderRef.current);
+    }
+    return () => {
+      if (modKeysLoaderRef.current) observer.unobserve(modKeysLoaderRef.current);
+    };
+  // eslint-disable-next-line
+  }, [modKeysHasNext, modKeysLoading, modKeysLoadingMore, modKeysPage, fetchModKeys]);
+  
+  // --- СОЗДАНИЕ КЛЮЧА ---
+  const handleOpenCreateKeyDialog = () => {
+    setModKeysForm({
+      type: 'points',
+      points: 1000,
+      subscription_type: 'basic',
+      subscription_duration_days: 30,
+      max_uses: 1,
+      count: 1,
+      expires_days: 30,
+      description: ''
+    });
+    setGeneratedKeys([]);
+    setModKeysCreateError(null);
+    setModKeysCreateSuccess(null);
+    setModKeysDialogOpen(true);
+  };
+  const handleCloseCreateKeyDialog = () => {
+    setModKeysDialogOpen(false);
+  };
+  const handleModKeysFormChange = (e) => {
+    const { name, value } = e.target;
+    setModKeysForm((prev) => ({ ...prev, [name]: value }));
+  };
+  const handleCreateKey = async () => {
+    setModKeysCreateLoading(true);
+    setModKeysCreateError(null);
+    setModKeysCreateSuccess(null);
+    try {
+      const payload = {
+        key_type: modKeysForm.type,
+        points_value: modKeysForm.type === 'points' ? Number(modKeysForm.points) : undefined,
+        subscription_type: modKeysForm.type === 'subscription' ? modKeysForm.subscription_type : undefined,
+        subscription_duration_days: modKeysForm.type === 'subscription' ? Number(modKeysForm.subscription_duration_days) : undefined,
+        max_uses: Number(modKeysForm.max_uses),
+        count: Number(modKeysForm.count),
+        expires_days: Number(modKeysForm.expires_days),
+        description: modKeysForm.description
+      };
+      // Удаляем undefined поля
+      Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
+      const res = await axios.post('/api/moderator/keys/generate', payload);
+      if (res.data && res.data.success) {
+        // Если вернулся массив ключей (keys), показываем их все
+        if (Array.isArray(res.data.keys)) {
+          setGeneratedKeys(res.data.keys.map(k => k.key || k));
+        } else if (res.data.key && res.data.key.key) {
+          setGeneratedKeys([res.data.key.key]);
+        }
+        setModKeysCreateSuccess('Ключ(и) успешно созданы!');
+        setModKeysCreateError(null);
+        fetchModKeys();
+      } else {
+        setModKeysCreateError(res.data?.error || 'Ошибка создания ключа');
+      }
+    } catch (e) {
+      setModKeysCreateError(e.response?.data?.error || 'Ошибка создания ключа');
+    } finally {
+      setModKeysCreateLoading(false);
+    }
+  };
+  
+  // --- УДАЛЕНИЕ КЛЮЧА ---
+  const handleDeleteKey = async (keyId) => {
+    setModKeysDeleting((prev) => ({ ...prev, [keyId]: true }));
+    try {
+      await axios.delete(`/api/moderator/keys/${keyId}`);
+      fetchModKeys();
+      showNotification('success', 'Ключ удалён');
+    } catch (e) {
+      showNotification('error', e.response?.data?.error || 'Ошибка удаления ключа');
+    } finally {
+      setModKeysDeleting((prev) => ({ ...prev, [keyId]: false }));
+    }
+  };
+  
+  // --- КОПИРОВАНИЕ КЛЮЧА ---
+  const handleCopyKey = (key) => {
+    navigator.clipboard.writeText(key.key).then(() => {
+      showNotification('success', 'Ключ скопирован');
+    });
+  };
+  
+  // --- UI СЕКЦИЯ КЛЮЧЕЙ ---
+  const renderModKeysSection = () => (
+    <Box sx={{ mt: 4, mb: 2 }}>
+      <Typography variant="h6" sx={{ mb: 2, fontWeight: 700, color: 'primary.light' }}>
+        Управление ключами
+      </Typography>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleOpenCreateKeyDialog}
+        sx={{ mb: 2, fontWeight: 600, borderRadius: 2 }}
+        fullWidth={true}
+      >
+        Создать ключ
+      </Button>
+      {modKeysLoading && modKeys.length === 0 ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+          <CircularProgress size={28} />
+        </Box>
+      ) : modKeysError ? (
+        <Alert severity="error">{modKeysError}</Alert>
+      ) : (
+        <Grid container spacing={2}>
+          {modKeys.length === 0 ? (
+            <Grid item xs={12}>
+              <Alert severity="info">Нет созданных ключей</Alert>
+            </Grid>
+          ) : (
+            modKeys.map((key, idx) => (
+              <Grid item xs={12} sm={6} md={4} key={key.id}>
+                <Paper sx={{ p: 2, borderRadius: 2, bgcolor: 'rgba(18,18,18,0.95)', display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'primary.main', wordBreak: 'break-all' }}>
+                      {key.key}
+                    </Typography>
+                    <IconButton size="small" onClick={() => handleCopyKey(key)}>
+                      <ContentCopyIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Тип: {key.key_type === 'points' ? 'Баллы' : 'Подписка'}
+                  </Typography>
+                  {key.key_type === 'points' && (
+                    <Typography variant="body2" color="text.secondary">
+                      Баллы: <b>{key.points_value}</b>
+                    </Typography>
+                  )}
+                  {key.key_type === 'subscription' && (
+                    <Typography variant="body2" color="text.secondary">
+                      Подписка: <b>{key.subscription_type}</b>
+                    </Typography>
+                  )}
+                  <Typography variant="body2" color="text.secondary">
+                    Использовано: <b>{key.current_uses}/{key.max_uses}</b>
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Создан: {key.created_at ? new Date(key.created_at).toLocaleDateString() : '-'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Действителен до: {key.expires_at ? new Date(key.expires_at).toLocaleDateString() : '-'}
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      onClick={() => handleDeleteKey(key.id)}
+                      disabled={modKeysDeleting[key.id]}
+                      fullWidth
+                    >
+                      {modKeysDeleting[key.id] ? <CircularProgress size={18} /> : 'Удалить'}
+                    </Button>
+                  </Box>
+                </Paper>
+                {/* Внизу последней карточки — ref для infinite scroll */}
+                {idx === modKeys.length - 1 && modKeysHasNext && (
+                  <div ref={modKeysLoaderRef} style={{ height: 1 }} />
+                )}
+              </Grid>
+            ))
+          )}
+          {/* Лоадер подгрузки */}
+          {modKeysLoadingMore && (
+            <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+              <CircularProgress size={24} />
+            </Grid>
+          )}
+        </Grid>
+      )}
+      {/* Диалог создания ключа */}
+      <StyledDialog open={modKeysDialogOpen} onClose={handleCloseCreateKeyDialog} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ bgcolor: 'rgba(18,18,18,0.95)', color: '#fff' }}>
+          Генерация ключа
+          {!modKeysCreateLoading && (
+            <IconButton
+              aria-label="close"
+              onClick={handleCloseCreateKeyDialog}
+              sx={{ position: 'absolute', right: 8, top: 8, color: '#fff' }}
+            >
+              <CloseIcon />
+            </IconButton>
+          )}
+        </DialogTitle>
+        <DialogContent sx={{ bgcolor: 'rgba(18,18,18,0.95)' }}>
+          <Box sx={{ mt: 1 }}>
+            {generatedKeys.length > 0 ? (
+              <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                  <Typography variant="subtitle1" fontWeight="bold" color="#fff">
+                    Сгенерированный ключ:
+                  </Typography>
+                  <Button
+                    size="small"
+                    startIcon={<ContentCopyIcon />}
+                    onClick={() => navigator.clipboard.writeText(generatedKeys.join('\n'))}
+                    sx={{ color: '#fff', borderColor: '#fff' }}
+                    variant="outlined"
+                  >
+                    Копировать
+                  </Button>
+                </Box>
+                <Paper variant="outlined" sx={{ p: 2, maxHeight: 200, overflow: 'auto', bgcolor: 'rgba(30,30,30,0.8)' }}>
+                  {generatedKeys.map((key, index) => (
+                    <Typography key={index} variant="body2" fontFamily="monospace" sx={{ mb: 0.5, color: '#fff' }}>
+                      {key}
+                    </Typography>
+                  ))}
+                </Paper>
+                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+                  <Button variant="outlined" onClick={() => setGeneratedKeys([])} sx={{ color: '#fff', borderColor: '#fff' }}>
+                    Сгенерировать еще
+                  </Button>
+                </Box>
+              </Box>
+            ) : (
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <FormControl fullWidth>
+                    <InputLabel sx={{ color: '#fff' }}>Тип ключа</InputLabel>
+                    <Select
+                      value={modKeysForm.type}
+                      label="Тип ключа"
+                      name="type"
+                      onChange={handleModKeysFormChange}
+                      sx={{ color: '#fff', '.MuiOutlinedInput-notchedOutline': { borderColor: '#444' }, '.MuiSvgIcon-root': { color: '#fff' } }}
+                    >
+                      <MenuItem value="points">Баллы</MenuItem>
+                      <MenuItem value="subscription">Подписка</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                {modKeysForm.type === 'points' ? (
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      label="Количество баллов"
+                      name="points"
+                      type="number"
+                      fullWidth
+                      value={modKeysForm.points}
+                      onChange={handleModKeysFormChange}
+                      InputProps={{ inputProps: { min: 1 } }}
+                      sx={{ input: { color: '#fff' }, label: { color: '#fff' } }}
+                    />
+                  </Grid>
+                ) : (
+                  <>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <InputLabel sx={{ color: '#fff' }}>Тип подписки</InputLabel>
+                        <Select
+                          value={modKeysForm.subscription_type}
+                          label="Тип подписки"
+                          name="subscription_type"
+                          onChange={handleModKeysFormChange}
+                          sx={{ color: '#fff', '.MuiOutlinedInput-notchedOutline': { borderColor: '#444' }, '.MuiSvgIcon-root': { color: '#fff' } }}
+                        >
+                          <MenuItem value="basic">Базовая</MenuItem>
+                          <MenuItem value="premium">Премиум</MenuItem>
+                          <MenuItem value="ultimate">Ультимейт</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        label="Срок действия подписки (дней)"
+                        name="subscription_duration_days"
+                        type="number"
+                        fullWidth
+                        value={modKeysForm.subscription_duration_days}
+                        onChange={handleModKeysFormChange}
+                        InputProps={{ inputProps: { min: 1 } }}
+                        sx={{ input: { color: '#fff' }, label: { color: '#fff' } }}
+                      />
+                    </Grid>
+                  </>
+                )}
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Макс. число использований"
+                    name="max_uses"
+                    type="number"
+                    fullWidth
+                    value={modKeysForm.max_uses}
+                    onChange={handleModKeysFormChange}
+                    InputProps={{ inputProps: { min: 1 } }}
+                    helperText="Сколько раз можно использовать ключ"
+                    sx={{ input: { color: '#fff' }, label: { color: '#fff' } }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Количество ключей"
+                    name="count"
+                    type="number"
+                    fullWidth
+                    value={modKeysForm.count}
+                    onChange={handleModKeysFormChange}
+                    InputProps={{ inputProps: { min: 1, max: 100 } }}
+                    helperText="От 1 до 100 ключей"
+                    sx={{ input: { color: '#fff' }, label: { color: '#fff' } }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Срок действия (дней)"
+                    name="expires_days"
+                    type="number"
+                    fullWidth
+                    value={modKeysForm.expires_days}
+                    onChange={handleModKeysFormChange}
+                    InputProps={{ inputProps: { min: 0 } }}
+                    helperText="0 = бессрочно"
+                    sx={{ input: { color: '#fff' }, label: { color: '#fff' } }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Описание"
+                    name="description"
+                    fullWidth
+                    multiline
+                    rows={2}
+                    value={modKeysForm.description}
+                    onChange={handleModKeysFormChange}
+                    helperText="Необязательное описание для модераторов"
+                    sx={{ input: { color: '#fff' }, label: { color: '#fff' } }}
+                  />
+                </Grid>
+                {modKeysCreateError && (
+                  <Grid item xs={12}>
+                    <Alert severity="error">{modKeysCreateError}</Alert>
+                  </Grid>
+                )}
+                {modKeysCreateSuccess && (
+                  <Grid item xs={12}>
+                    <Alert severity="success">{modKeysCreateSuccess}</Alert>
+                  </Grid>
+                )}
+              </Grid>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ bgcolor: 'rgba(18,18,18,0.95)' }}>
+          {generatedKeys.length === 0 && (
+            <>
+              <Button onClick={handleCloseCreateKeyDialog} disabled={modKeysCreateLoading} sx={{ color: '#fff' }}>
+                Отмена
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleCreateKey}
+                disabled={modKeysCreateLoading}
+                startIcon={modKeysCreateLoading ? <CircularProgress size={20} /> : null}
+              >
+                {modKeysCreateLoading ? 'Генерация...' : 'Сгенерировать'}
+              </Button>
+            </>
+          )}
+          {generatedKeys.length > 0 && (
+            <Button
+              onClick={() => {
+                setModKeysDialogOpen(false);
+                setGeneratedKeys([]);
+              }}
+              sx={{ color: '#fff' }}
+            >
+              Закрыть
+            </Button>
+          )}
+        </DialogActions>
+      </StyledDialog>
+      {modKeysHasNext && !modKeysLoadingMore && (
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={() => fetchModKeys(modKeysPage + 1, true)}
+          sx={{ mt: 2, mb: 2, width: '100%' }}
+        >
+          Отобразить ещё
+        </Button>
+      )}
+    </Box>
+  );
+
   useEffect(() => {
     checkModeratorStatus();
     
@@ -757,56 +1234,36 @@ const ModeratorPage = () => {
     }
   };
 
+  const BUG_STATUSES = ['Открыт', 'В обработке', 'Решено'];
+
   const fetchBugReports = async (loadMore = false, searchQuery = search.bugReports) => {
     try {
-      
       if (!permissions.manage_bug_reports && !permissions.delete_bug_reports) {
-        console.error('No permission to view bug reports');
         showNotification('error', 'У вас нет прав на просмотр баг-репортов');
         return;
       }
-      
       if (!hasMore.bugReports && loadMore) return;
-      
+      if (loadingMore) return;
       loadMore ? setLoadingMore(true) : setLoading(true);
-      const currentPage = loadMore ? pageStates.bugReports : 1;
-      
-      console.log(`[DEBUG] Fetching bug reports: page=${currentPage}, search=${searchQuery}`);
-      
+      const currentPage = loadMore ? pageStates.bugReports + 1 : 1;
       const response = await axios.get(`/api/moderator/bug-reports?page=${currentPage}&per_page=${rowsPerPage}${searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : ''}`);
-      
-      console.log('[DEBUG] Bug reports API response:', response.data);
-      
-      
       if (response.data && response.data.bug_reports) {
         const newReports = response.data.bug_reports;
-        console.log(`[DEBUG] Bug reports found: ${newReports.length}`);
-        
         if (loadMore) {
           setBugReports(prevReports => [...prevReports, ...newReports]);
+          setPageStates(prev => ({ ...prev, bugReports: currentPage }));
         } else {
           setBugReports(newReports);
+          setPageStates(prev => ({ ...prev, bugReports: 1 }));
         }
-        
-        
         setHasMore(prev => ({
           ...prev,
           bugReports: newReports.length === rowsPerPage
         }));
-        
-        if (loadMore) {
-          setPageStates(prev => ({
-            ...prev,
-            bugReports: prev.bugReports + 1
-          }));
-        }
       } else {
-        console.error('[DEBUG] Invalid bug reports response format:', response.data);
         showNotification('error', 'Неверный формат ответа от сервера');
       }
     } catch (error) {
-      console.error('Error fetching bug reports:', error);
-      console.error('Error response:', error.response?.data);
       showNotification('error', error.response?.data?.error || 'Не удалось загрузить баг-репорты');
     } finally {
       loadMore ? setLoadingMore(false) : setLoading(false);
@@ -815,53 +1272,32 @@ const ModeratorPage = () => {
 
   const fetchBadges = async (loadMore = false, searchQuery = search.badges) => {
     try {
-      
       if (!permissions.edit_badges && !permissions.delete_badges) {
-        console.error('No permission to view badges');
         showNotification('error', 'У вас нет прав на просмотр бейджиков');
         return;
       }
-      
       if (!hasMore.badges && loadMore) return;
-      
+      if (loadingMore) return;
       loadMore ? setLoadingMore(true) : setLoading(true);
-      const currentPage = loadMore ? pageStates.badges : 1;
-      
-      console.log(`[DEBUG] Fetching badges: page=${currentPage}, search=${searchQuery}`);
-      
+      const currentPage = loadMore ? pageStates.badges + 1 : 1;
       const response = await axios.get(`/api/moderator/badges?page=${currentPage}&per_page=${rowsPerPage}${searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : ''}`);
-      
-      console.log('[DEBUG] Badges API response:', response.data);
-      
       if (response.data && response.data.badges) {
         const newBadges = response.data.badges;
-        console.log(`[DEBUG] Badges found: ${newBadges.length}`);
-        
         if (loadMore) {
           setBadges(prevBadges => [...prevBadges, ...newBadges]);
+          setPageStates(prev => ({ ...prev, badges: currentPage }));
         } else {
           setBadges(newBadges);
+          setPageStates(prev => ({ ...prev, badges: 1 }));
         }
-        
-        
         setHasMore(prev => ({
           ...prev,
           badges: newBadges.length === rowsPerPage
         }));
-        
-        if (loadMore) {
-          setPageStates(prev => ({
-            ...prev,
-            badges: prev.badges + 1
-          }));
-        }
       } else {
-        console.error('[DEBUG] Invalid badges response format:', response.data);
         showNotification('error', 'Неверный формат ответа от сервера при загрузке бейджиков');
       }
     } catch (error) {
-      console.error('Error fetching badges:', error);
-      console.error('Error response:', error.response?.data);
       showNotification('error', error.response?.data?.error || 'Не удалось загрузить бейджики');
     } finally {
       loadMore ? setLoadingMore(false) : setLoading(false);
@@ -871,34 +1307,25 @@ const ModeratorPage = () => {
   const fetchArtists = async (loadMore = false, searchQuery = search.artists) => {
     try {
       if (!hasMore.artists && loadMore) return;
-      
+      if (loadingMore) return;
       loadMore ? setLoadingMore(true) : setLoading(true);
-      const currentPage = loadMore ? pageStates.artists : 1;
-      
+      const currentPage = loadMore ? pageStates.artists + 1 : 1;
       const response = await axios.get(`/api/moderator/artists?page=${currentPage}&per_page=${rowsPerPage}${searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : ''}`);
-      
       if (response.data && response.data.artists) {
         const newArtists = response.data.artists;
         if (loadMore) {
           setArtists(prevArtists => [...prevArtists, ...newArtists]);
+          setPageStates(prev => ({ ...prev, artists: currentPage }));
         } else {
           setArtists(newArtists);
+          setPageStates(prev => ({ ...prev, artists: 1 }));
         }
-        
         setHasMore(prev => ({
           ...prev,
           artists: newArtists.length === rowsPerPage
         }));
-        
-        if (loadMore) {
-          setPageStates(prev => ({
-            ...prev,
-            artists: prev.artists + 1
-          }));
-        }
       }
     } catch (error) {
-      console.error('Error fetching artists:', error);
       showNotification('error', 'Не удалось загрузить артистов');
     } finally {
       loadMore ? setLoadingMore(false) : setLoading(false);
@@ -1479,7 +1906,7 @@ const ModeratorPage = () => {
                   onClick={() => navigate(`/post/${post.id}`)}
                 >
                   <img 
-                    src={post.image.startsWith('/') ? post.image : `/static/uploads/posts/${post.id}/${post.image}`} 
+                    src={post.image.startsWith('/') ? post.image : `/static/uploads/post/${post.id}/${post.image}`} 
                     alt="Post attachment" 
                     style={{ width: '100%', height: 'auto', borderRadius: '8px' }} 
                   />
@@ -1510,7 +1937,7 @@ const ModeratorPage = () => {
 
   
   const copyTrackLink = (track) => {
-    const trackLink = `${window.location.origin}/music?track=${track.id}`;
+    const trackLink = `${window.location.origin}/music/track/${track.id}`;
     navigator.clipboard.writeText(trackLink)
       .then(() => {
         showNotification('success', 'Ссылка на трек скопирована в буфер обмена');
@@ -1523,7 +1950,7 @@ const ModeratorPage = () => {
 
   
   const openTrack = (track) => {
-    navigate(`/music?track=${track.id}`);
+    navigate(`/music/track/${track.id}`);
   };
 
   
@@ -1803,6 +2230,14 @@ const ModeratorPage = () => {
                           </IconButton>
                         </Tooltip>
                       )}
+                      <Tooltip title="Управление декорациями">
+                        <IconButton
+                          size="small"
+                          onClick={() => openDecorationMenu(user)}
+                        >
+                          <StarsIcon />
+                        </IconButton>
+                      </Tooltip>
                     </Box>
                   </TableCell>
                 </TableRow>
@@ -3006,6 +3441,13 @@ const ModeratorPage = () => {
                     icon={<DeleteIcon />}
                   />
                 </Grid>
+                <Grid item xs={12} sm={6}>
+                  <PermissionItem 
+                    title="Генерация ключей" 
+                    enabled={permissions.can_generate_keys}
+                    icon={<VpnKeyIcon sx={{ color: permissions.can_generate_keys ? 'gold' : 'grey.600' }} />}
+                  />
+                </Grid>
               </Grid>
             </CardContent>
           </Card>
@@ -3150,6 +3592,10 @@ const ModeratorPage = () => {
               )}
             </CardContent>
           </Card>
+        </Grid>
+        
+        <Grid item xs={12}>
+          {renderModKeysSection()}
         </Grid>
       </Grid>
     );
@@ -3520,7 +3966,7 @@ const ModeratorPage = () => {
     setEditArtistAvatar(null);
     setEditArtistAvatarPreview('');
     setEditArtistVerified(false);
-    setCreateArtistDialogOpen(true);
+    setEditArtistDialogOpen(true);
   };
 
   const renderArtists = () => {
@@ -3958,21 +4404,16 @@ const ModeratorPage = () => {
     }
   };
 
-  const openIssueMedalDialog = (user) => {
-    setMedalUser(user);
-    setSelectedMedal('skibiwin');
-    setMedalDescription('Повелитель Шкибиди');
-    setIssueMedalDialogOpen(true);
-    fetchAvailableMedals();
-  };
-
   const fetchAvailableMedals = async () => {
     try {
       setLoadingMedals(true);
+      console.log('Fetching available medals...');
       const response = await axios.get('/api/moderator/medals/available');
+      console.log('Medals response:', response.data);
       
       if (response.data.success) {
         setAvailableMedals(response.data.medals);
+        console.log('Set available medals:', response.data.medals);
       } else {
         throw new Error(response.data.error || 'Failed to fetch available medals');
       }
@@ -3982,6 +4423,15 @@ const ModeratorPage = () => {
     } finally {
       setLoadingMedals(false);
     }
+  };
+
+  const openIssueMedalDialog = (user) => {
+    console.log('Opening medal dialog for user:', user);
+    setMedalUser(user);
+    setSelectedMedal('');
+    setMedalDescription('');
+    setIssueMedalDialogOpen(true);
+    fetchAvailableMedals();
   };
 
   const handleIssueMedal = async () => {
@@ -4008,6 +4458,16 @@ const ModeratorPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const openDecorationMenu = (user) => {
+    setSelectedUserForDecorations(user);
+    setDecorationMenuOpen(true);
+  };
+
+  const handleCloseDecorationMenu = () => {
+    setDecorationMenuOpen(false);
+    setSelectedUserForDecorations(null);
   };
 
   return (
@@ -4111,7 +4571,7 @@ const ModeratorPage = () => {
                 {selectedPost.image && (
                   <Box sx={{ mt: 1, maxWidth: '100%', maxHeight: 200, overflow: 'hidden', borderRadius: 1 }}>
                     <img 
-                      src={selectedPost.image.startsWith('/') ? selectedPost.image : `/static/uploads/posts/${selectedPost.id}/${selectedPost.image}`}
+                      src={selectedPost.image.startsWith('/') ? selectedPost.image : `/static/uploads/post/${selectedPost.id}/${selectedPost.image}`}
                       alt="Post attachment" 
                       style={{ width: '100%', height: 'auto', borderRadius: '4px' }} 
                     />
@@ -5340,10 +5800,10 @@ const ModeratorPage = () => {
           />
           <Box sx={{ position: 'relative', zIndex: 1 }}>
             <Typography variant="h5" fontWeight="bold" color="primary.light">
-              Редактирование артиста
+              {selectedArtist ? 'Редактирование артиста' : 'Создание нового артиста'}
             </Typography>
             <Typography variant="caption" color="rgba(255,255,255,0.6)">
-              Измените данные артиста и сохраните изменения
+              {selectedArtist ? 'Измените данные артиста и сохраните изменения' : 'Заполните данные нового артиста'}
             </Typography>
           </Box>
         </Box>
@@ -5603,300 +6063,7 @@ const ModeratorPage = () => {
               }
             }}
           >
-            Сохранить
-          </Button>
-        </DialogActions>
-      </StyledDialog>
-      
-      
-      <StyledDialog open={createArtistDialogOpen} onClose={() => setCreateArtistDialogOpen(false)} fullWidth maxWidth="sm">
-        <Box 
-          sx={{
-            position: 'relative',
-            overflow: 'hidden',
-            p: 2,
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-            background: 'linear-gradient(90deg, rgba(63,81,181,0.2) 0%, rgba(0,0,0,0) 100%)'
-          }}
-        >
-          <Box 
-            sx={{ 
-              position: 'absolute',
-              top: -50,
-              right: -50,
-              width: 150,
-              height: 150,
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(63,81,181,0.2) 0%, rgba(63,81,181,0) 70%)',
-              zIndex: 0
-            }} 
-          />
-          <Box sx={{ position: 'relative', zIndex: 1 }}>
-            <Typography variant="h5" fontWeight="bold" color="primary.light">
-              Создание нового артиста
-            </Typography>
-            <Typography variant="caption" color="rgba(255,255,255,0.6)">
-              Введите данные нового артиста и сохраните изменения
-            </Typography>
-          </Box>
-        </Box>
-        
-        <DialogContent sx={{ p: 3, pt: 3, bgcolor: 'transparent' }}>
-          <Grid container spacing={2.5}>
-            <Grid item xs={12}>
-              <TextField
-                autoFocus
-                label="Имя артиста"
-                type="text"
-                fullWidth
-                value={editArtistName}
-                onChange={(e) => setEditArtistName(e.target.value)}
-                variant="outlined"
-                size="small"
-                InputProps={{
-                  sx: {
-                    borderRadius: 2,
-                    backgroundColor: 'rgba(255,255,255,0.05)',
-                    color: 'rgba(255,255,255,0.87)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(255,255,255,0.1)',
-                    },
-                    '&.Mui-focused': {
-                      backgroundColor: 'rgba(63,81,181,0.15)',
-                      boxShadow: '0 0 0 2px rgba(63, 81, 181, 0.3)'
-                    }
-                  }
-                }}
-                InputLabelProps={{
-                  sx: { color: 'rgba(255,255,255,0.7)' }
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'rgba(255,255,255,0.2)'
-                  },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'rgba(255,255,255,0.3)'
-                  },
-                  '& .Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'primary.main'
-                  }
-                }}
-              />
-            </Grid>
-            
-            <Grid item xs={12}>
-              <TextField
-                label="Биография"
-                type="text"
-                fullWidth
-                multiline
-                rows={4}
-                value={editArtistBio}
-                onChange={(e) => setEditArtistBio(e.target.value)}
-                variant="outlined"
-                size="small"
-                helperText="Краткая информация об артисте"
-                FormHelperTextProps={{
-                  sx: { color: 'rgba(255,255,255,0.5)' }
-                }}
-                InputProps={{
-                  sx: {
-                    borderRadius: 2,
-                    backgroundColor: 'rgba(255,255,255,0.05)',
-                    color: 'rgba(255,255,255,0.87)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(255,255,255,0.1)',
-                    },
-                    '&.Mui-focused': {
-                      backgroundColor: 'rgba(63,81,181,0.15)',
-                      boxShadow: '0 0 0 2px rgba(63, 81, 181, 0.3)'
-                    }
-                  }
-                }}
-                InputLabelProps={{
-                  sx: { color: 'rgba(255,255,255,0.7)' }
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'rgba(255,255,255,0.2)'
-                  },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'rgba(255,255,255,0.3)'
-                  },
-                  '& .Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'primary.main'
-                  }
-                }}
-              />
-            </Grid>
-            
-            <Grid item xs={12}>
-              <Paper 
-                elevation={0} 
-                sx={{ 
-                  p: 1.5, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'space-between',
-                  borderRadius: 2,
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <VerifiedUserIcon 
-                    color={editArtistVerified ? "primary" : "disabled"} 
-                    sx={{ mr: 1.5 }} 
-                  />
-                  <Typography variant="subtitle1" color="rgba(255, 255, 255, 0.87)">
-                    Верифицированный артист
-                  </Typography>
-                </Box>
-                <Switch 
-                  checked={editArtistVerified}
-                  onChange={(e) => setEditArtistVerified(e.target.checked)}
-                  color="primary"
-                  sx={{ 
-                    '& .MuiSwitch-switchBase.Mui-checked': {
-                      color: '#3f51b5',
-                      '&:hover': {
-                        backgroundColor: 'rgba(63, 81, 181, 0.08)',
-                      },
-                    },
-                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                      backgroundColor: '#3f51b5',
-                    },
-                  }}
-                />
-              </Paper>
-            </Grid>
-            
-            <Grid item xs={12}>
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  alignItems: 'center',
-                  p: 3,
-                  borderRadius: 2,
-                  border: '1px dashed rgba(255, 255, 255, 0.2)',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}
-              >
-                <Box sx={{ position: 'relative', zIndex: 1, width: '100%', textAlign: 'center' }}>
-                  {editArtistAvatarPreview ? (
-                    <>
-                      <Box sx={{ mb: 2, position: 'relative', display: 'inline-block' }}>
-                        <Avatar 
-                          src={editArtistAvatarPreview} 
-                          alt="Предпросмотр"
-                          sx={{ 
-                            width: 150, 
-                            height: 150, 
-                            borderRadius: '50%',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                          }}
-                        />
-                        <Fade in timeout={500}>
-                          <Box 
-                            sx={{ 
-                              position: 'absolute', 
-                              top: -8, 
-                              right: -8, 
-                              background: 'rgba(0,0,0,0.5)',
-                              borderRadius: '50%',
-                              boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
-                            }}
-                          >
-                            <IconButton 
-                              size="small" 
-                              color="error" 
-                              onClick={() => {
-                                setEditArtistAvatar(null);
-                                setEditArtistAvatarPreview('');
-                              }}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Box>
-                        </Fade>
-                      </Box>
-                    </>
-                  ) : (
-                    <Typography variant="body2" color="rgba(255,255,255,0.6)" align="center" sx={{ mb: 2 }}>
-                      Загрузите новое изображение артиста
-                    </Typography>
-                  )}
-                  
-                  <Button 
-                    component="label" 
-                    variant="outlined" 
-                    startIcon={<FileUploadIcon />}
-                    sx={{ 
-                      borderRadius: 8,
-                      py: 0.5,
-                      px: 2,
-                      background: 'rgba(63,81,181,0.1)',
-                      borderColor: 'rgba(63, 81, 181, 0.5)',
-                      color: 'rgba(255,255,255,0.87)',
-                      '&:hover': {
-                        background: 'rgba(63,81,181,0.2)',
-                        borderColor: 'primary.main',
-                      }
-                    }}
-                  >
-                    Загрузить изображение
-                    <input
-                      type="file"
-                      accept="image/*"
-                      hidden
-                      onChange={handleArtistImageChange}
-                    />
-                  </Button>
-                </Box>
-              </Box>
-            </Grid>
-          </Grid>
-        </DialogContent>
-        
-        <DialogActions sx={{ p: 2, px: 3, justifyContent: 'space-between', backgroundColor: 'rgba(0,0,0,0.4)' }}>
-          <Button 
-            onClick={() => setCreateArtistDialogOpen(false)} 
-            variant="outlined"
-            color="inherit"
-            sx={{ 
-              borderRadius: 8,
-              px: 3,
-              borderColor: 'rgba(255,255,255,0.2)',
-              color: 'rgba(255,255,255,0.7)',
-              '&:hover': {
-                borderColor: 'rgba(255,255,255,0.4)',
-                background: 'rgba(255,255,255,0.05)'
-              }
-            }}
-          >
-            Отмена
-          </Button>
-          <Button 
-            onClick={handleUpdateArtist} 
-            color="primary" 
-            variant="contained"
-            disabled={loading}
-            startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
-            sx={{ 
-              borderRadius: 8,
-              px: 4,
-              py: 0.75,
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
-              background: 'linear-gradient(45deg, #3f51b5 30%, #5c6bc0 90%)',
-              '&:hover': {
-                boxShadow: '0 6px 16px rgba(0, 0, 0, 0.5)',
-              }
-            }}
-          >
-            Сохранить
+            {selectedArtist ? 'Сохранить' : 'Создать'}
           </Button>
         </DialogActions>
       </StyledDialog>
@@ -6195,7 +6362,7 @@ const ModeratorPage = () => {
       <StyledDialog 
         open={issueMedalDialogOpen} 
         onClose={() => setIssueMedalDialogOpen(false)} 
-        maxWidth="sm"
+        maxWidth="md"
         fullWidth
       >
         <Box 
@@ -6261,23 +6428,69 @@ const ModeratorPage = () => {
           
           <Box sx={{ mt: 3 }}>
             <Typography variant="subtitle1" sx={{ mb: 2 }}>
-              Медаль для выдачи
+              Выберите медаль
             </Typography>
             
-            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-              <Card sx={{ width: 200, textAlign: 'center', p: 2, backgroundColor: 'rgba(0,0,0,0.2)' }}>
-                <CardMedia
-                  component="img"
-                  height="120"
-                  image="/static/medals/skibiwin.svg"
-                  alt="Повелитель Шкибиди"
-                  sx={{ objectFit: 'contain', mb: 1 }}
-                />
-                <Typography variant="body1" fontWeight="bold">
-                  Повелитель Шкибиди
+            {loadingMedals ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
+                <CircularProgress />
+              </Box>
+            ) : availableMedals.length > 0 ? (
+              <Grid container spacing={2}>
+                {availableMedals.map((medal) => (
+                  <Grid item xs={6} sm={4} md={3} key={medal.name}>
+                    <Card 
+                      sx={{ 
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        transform: selectedMedal === medal.name ? 'scale(1.05)' : 'scale(1)',
+                        border: selectedMedal === medal.name ? '2px solid #1976d2' : 'none',
+                        '&:hover': {
+                          transform: 'scale(1.05)',
+                          boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                        }
+                      }}
+                      onClick={() => {
+                        console.log('Selected medal:', medal);
+                        setSelectedMedal(medal.name);
+                        setMedalDescription(medal.description || '');
+                      }}
+                    >
+                      <CardMedia
+                        component="img"
+                        height="120"
+                        image={medal.image_path}
+                        alt={medal.name}
+                        sx={{ objectFit: 'contain', p: 1 }}
+                      />
+                      <CardContent sx={{ textAlign: 'center', p: 1 }}>
+                        <Typography variant="body2" noWrap>
+                          {medal.name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                          {medal.achievement}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            ) : (
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                py: 3,
+                bgcolor: 'rgba(0,0,0,0.2)',
+                borderRadius: 1
+              }}>
+                <EmojiEventsOutlinedIcon sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }} />
+                <Typography color="text.secondary">
+                  Нет доступных медалей
                 </Typography>
-              </Card>
-            </Box>
+              </Box>
+            )}
             
             <TextField
               fullWidth
@@ -6288,6 +6501,7 @@ const ModeratorPage = () => {
               variant="outlined"
               multiline
               rows={2}
+              disabled={!selectedMedal}
             />
           </Box>
         </DialogContent>
@@ -6314,7 +6528,7 @@ const ModeratorPage = () => {
             onClick={handleIssueMedal} 
             color="primary" 
             variant="contained"
-            disabled={loading}
+            disabled={loading || !selectedMedal}
             startIcon={loading ? <CircularProgress size={20} /> : <EmojiEventsOutlinedIcon />}
             sx={{ 
               borderRadius: 8,
@@ -6331,6 +6545,13 @@ const ModeratorPage = () => {
           </Button>
         </DialogActions>
       </StyledDialog>
+      
+      <DecorationMenu
+        open={decorationMenuOpen}
+        onClose={handleCloseDecorationMenu}
+        userId={selectedUserForDecorations?.id}
+        username={selectedUserForDecorations?.username}
+      />
       
       <Snackbar
         open={snackbar.open}

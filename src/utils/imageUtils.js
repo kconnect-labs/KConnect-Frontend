@@ -201,34 +201,55 @@ export const getCoverWithFallback = (path, type = 'album') => {
   }
 };
 
+// Кеш для доминантных цветов
+const colorCache = new Map();
+
 /**
  * Извлекает основной цвет из изображения
  * @param {string} imgSrc - Путь к изображению
  * @param {function} callback - Функция для возврата извлеченного цвета
  */
 export const extractDominantColor = (imgSrc, callback) => {
+  // Проверяем кеш
+  if (colorCache.has(imgSrc)) {
+    callback(colorCache.get(imgSrc));
+    return;
+  }
+
   const img = new Image();
   img.crossOrigin = 'Anonymous';
   
   img.onload = () => {
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    
-    context.drawImage(img, 0, 0);
-    
-    
-    const centerX = img.width / 2;
-    const centerY = img.height / 2;
-    const data = context.getImageData(centerX, centerY, 1, 1).data;
-    
-    
-    callback(`${data[0]}, ${data[1]}, ${data[2]}`);
+    try {
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      
+      context.drawImage(img, 0, 0);
+      
+      // Берем пиксель из центра изображения
+      const centerX = Math.floor(img.width / 2);
+      const centerY = Math.floor(img.height / 2);
+      const data = context.getImageData(centerX, centerY, 1, 1).data;
+      
+      // Возвращаем RGB значение
+      const color = `${data[0]}, ${data[1]}, ${data[2]}`;
+      
+      // Сохраняем в кеш
+      colorCache.set(imgSrc, color);
+      
+      callback(color);
+    } catch (error) {
+      console.error(`Error processing image: ${imgSrc}`, error);
+      callback(null);
+    }
   };
   
   img.onerror = () => {
     console.error(`Failed to load image: ${imgSrc}`);
+    // Сохраняем null в кеш, чтобы не пытаться загружать снова
+    colorCache.set(imgSrc, null);
     callback(null);
   };
   
@@ -602,4 +623,31 @@ export const generatePlaceholder = (width = 300, height = 150, text = '', bgColo
     
     return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}' viewBox='0 0 ${width} ${height}'%3E%3Crect width='${width}' height='${height}' fill='%23e0e0e0'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='16' text-anchor='middle' fill='%23666666'%3E${width}×${height}%3C/text%3E%3C/svg%3E`;
   }
+};
+
+/**
+ * Safely handles image loading errors to prevent infinite loops
+ * @param {Event} e - The error event
+ * @param {string} fallbackUrl - The fallback image URL
+ * @param {string} finalFallback - The final fallback (data URL or generated placeholder)
+ */
+export const handleImageError = (e, fallbackUrl = '/uploads/system/album_placeholder.jpg', finalFallback = null) => {
+  const img = e.target;
+  
+  // Prevent infinite loops by checking if we already tried the fallback
+  if (img.dataset.errorHandled === 'true') {
+    // If we already tried the fallback and it failed, use final fallback or hide the image
+    if (finalFallback) {
+      img.src = finalFallback;
+    } else {
+      // Generate a simple placeholder
+      img.src = generatePlaceholderImage('album');
+    }
+    img.dataset.errorHandled = 'final';
+    return;
+  }
+  
+  // Mark that we're trying the fallback
+  img.dataset.errorHandled = 'true';
+  img.src = fallbackUrl;
 }; 

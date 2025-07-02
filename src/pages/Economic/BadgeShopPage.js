@@ -32,7 +32,8 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel
+  InputLabel,
+  AlertTitle
 } from '@mui/material';
 import { styled, alpha } from '@mui/material/styles';
 import { AuthContext } from '../../context/AuthContext';
@@ -50,8 +51,9 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import { Fade } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import BadgeShopBottomNavigation from '../../components/BadgeShopBottomNavigation';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 const StyledCard = styled(Card)(({ theme }) => ({
   height: '100%',
@@ -62,8 +64,8 @@ const StyledCard = styled(Card)(({ theme }) => ({
   overflow: 'hidden',
   boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
   position: 'relative',
-  backgroundColor: theme.palette.mode === 'dark' ? alpha('#000', 0.8) : '#fff',
-  backdropFilter: 'blur(10px)',
+  background: 'rgba(255, 255, 255, 0.03)',
+  backdropFilter: 'blur(20px)',
   '&:hover': {
     transform: 'translateY(-6px)',
     boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
@@ -129,7 +131,8 @@ const BadgeCardContent = styled(CardContent)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'space-between',
-  background: theme.palette.background.paper,
+  background: 'rgba(255, 255, 255, 0.03)',
+  backdropFilter: 'blur(40px)',
   borderTop: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
   '&:last-child': {
     paddingBottom: theme.spacing(1.5),
@@ -661,6 +664,7 @@ const BadgeShopPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useContext(AuthContext);
   const [tabValue, setTabValue] = useState(0);
   const [sortOption, setSortOption] = useState('newest');
@@ -776,6 +780,19 @@ const BadgeShopPage = () => {
   useEffect(() => {
     fetchCreatedBadgesCount();
   }, [userSubscription]);
+
+  // Открытие бейджика по openBadgeId из state
+  useEffect(() => {
+    if (location.state && location.state.openBadgeId && badges.length > 0) {
+      const badgeToOpen = badges.find(b => String(b.id) === String(location.state.openBadgeId));
+      if (badgeToOpen) {
+        setSelectedBadge(badgeToOpen);
+        setOpenBadgeDialog(true);
+        // Очищаем state, чтобы при повторном заходе не открывалось снова
+        navigate('/badge-shop', { replace: true, state: {} });
+      }
+    }
+  }, [location.state, badges]);
 
   const getBadgeImageUrl = (imagePath) => {
     if (!imagePath) return '';
@@ -940,9 +957,23 @@ const BadgeShopPage = () => {
   };
 
   const handleBadgeClick = (badge) => {
-    console.log('Выбранный бейджик:', badge);
     setSelectedBadge(badge);
     setOpenBadgeDialog(true);
+  };
+
+  const handleCopyBadgeLink = () => {
+    const badgeLink = `${window.location.origin}/badge/${selectedBadge.id}`;
+    navigator.clipboard.writeText(badgeLink).then(() => {
+      // Show a temporary success message
+      const copyButton = document.getElementById('copy-badge-link');
+      if (copyButton) {
+        const originalText = copyButton.textContent;
+        copyButton.textContent = 'Скопировано!';
+        setTimeout(() => {
+          copyButton.textContent = originalText;
+        }, 2000);
+      }
+    });
   };
 
   const handleCloseBadgeDialog = () => {
@@ -1351,6 +1382,28 @@ const BadgeShopPage = () => {
               <BadgeDialogDescription variant="body1">
                 {selectedBadge.description || 'Описание отсутствует'}
               </BadgeDialogDescription>
+
+              <Button
+                id="copy-badge-link"
+                variant="outlined"
+                startIcon={<ContentCopyIcon />}
+                onClick={() => {
+                  const badgeLink = `${window.location.origin}/badge/${selectedBadge.id}`;
+                  navigator.clipboard.writeText(badgeLink).then(() => {
+                    const copyButton = document.getElementById('copy-badge-link');
+                    if (copyButton) {
+                      const originalText = copyButton.textContent;
+                      copyButton.textContent = 'Скопировано!';
+                      setTimeout(() => {
+                        copyButton.textContent = originalText;
+                      }, 2000);
+                    }
+                  });
+                }}
+                sx={{ mb: 2 }}
+              >
+                Ссылка
+              </Button>
 
               <StatsBox>
                 <StatItem>
@@ -1804,6 +1857,11 @@ const BadgeShopPage = () => {
                       />
                     </Box>
                   </Box>
+
+                  <Alert severity="warning" sx={{ mb: 2 }}>
+                    <AlertTitle>Важное уведомление</AlertTitle>
+                    Покупка бейджика является необратимой операцией. Пожалуйста, убедитесь, что вы хотите приобрести этот бейджик.
+                  </Alert>
                 </ContentBox>
               )}
               
@@ -1827,7 +1885,7 @@ const BadgeShopPage = () => {
                     </Typography>
                   </Box>
                   
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                     <Typography variant="body1">Ваш баланс после покупки:</Typography>
                     <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
                       {userPoints - selectedBadge.price} баллов
@@ -1938,7 +1996,7 @@ const BadgeShopPage = () => {
                           </Typography>
                           <Typography variant="h6" color="primary" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <AccountBalanceWalletIcon sx={{ mr: 1 }} />
-                            {userPoints - (selectedBadge?.price || 0)} баллов
+                            {userPoints - Math.ceil(selectedBadge?.price * 1.1)} баллов
                           </Typography>
                         </Box>
                       </Box>

@@ -27,6 +27,11 @@
   padding: 0;
 }
 
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+}
+
 body {
   font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -36,6 +41,36 @@ body {
   background-color: var(--background);
   color: var(--text-primary);
   min-height: 100vh;
+  height: 100vh;
+}
+
+/* Для мобильных устройств - исправляем проблему с 100vh */
+@supports (-webkit-touch-callout: none) {
+  body {
+    height: -webkit-fill-available;
+  }
+}
+
+#root {
+  height: 100vh;
+  min-height: 100vh;
+}
+
+/* Стили для фоновых изображений профиля */
+.profile-background-active {
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+  height: 100vh !important;
+  overflow: auto !important;
+}
+
+/* Для мобильных устройств с фоновыми изображениями */
+@supports (-webkit-touch-callout: none) {
+  .profile-background-active {
+    height: -webkit-fill-available !important;
+  }
 }
 
 code {

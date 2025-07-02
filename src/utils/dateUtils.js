@@ -6,6 +6,7 @@
  * The formatters in this file provide better timezone handling and should be preferred.
  */
 
+import { useLanguage } from '../context/LanguageContext';
 
 export const getLocalTimezoneOffset = () => {
   return new Date().getTimezoneOffset();
@@ -82,7 +83,6 @@ export const formatTimeAgo = (dateString) => {
   const date = parseDate(dateString);
   const now = new Date();
   
-  
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
   
   return formatTimeAgoDiff(diffInSeconds);
@@ -90,26 +90,39 @@ export const formatTimeAgo = (dateString) => {
 
 
 const formatTimeAgoDiff = (diffInSeconds) => {
+  const { t } = useLanguage();
+  
   if (diffInSeconds < 0) {
-    
-    return 'только что';
+    return t('post.time.just_now');
   } else if (diffInSeconds < 60) {
-    return 'только что';
+    return t('post.time.just_now');
   } else if (diffInSeconds < 3600) {
     const minutes = Math.floor(diffInSeconds / 60);
-    return `${minutes} ${getRussianWordForm(minutes, ['минуту', 'минуты', 'минут'])} назад`;
+    const minuteForm = minutes % 10 === 1 && minutes % 100 !== 11 
+      ? t('post.time.minute')
+      : ([2, 3, 4].includes(minutes % 10) && ![12, 13, 14].includes(minutes % 100))
+        ? t('post.time.minutes')
+        : t('post.time.minutes_many');
+    return `${minutes} ${minuteForm} ${t('post.time.ago')}`;
   } else if (diffInSeconds < 86400) {
     const hours = Math.floor(diffInSeconds / 3600);
-    return `${hours} ${getRussianWordForm(hours, ['час', 'часа', 'часов'])} назад`;
+    const hourForm = hours % 10 === 1 && hours % 100 !== 11
+      ? t('post.time.hour')
+      : ([2, 3, 4].includes(hours % 10) && ![12, 13, 14].includes(hours % 100))
+        ? t('post.time.hours')
+        : t('post.time.hours_many');
+    return `${hours} ${hourForm} ${t('post.time.ago')}`;
   } else if (diffInSeconds < 2592000) {
     const days = Math.floor(diffInSeconds / 86400);
-    return `${days} ${getRussianWordForm(days, ['день', 'дня', 'дней'])} назад`;
-  } else if (diffInSeconds < 31536000) {
-    const months = Math.floor(diffInSeconds / 2592000);
-    return `${months} ${getRussianWordForm(months, ['месяц', 'месяца', 'месяцев'])} назад`;
+    const dayForm = days % 10 === 1 && days % 100 !== 11
+      ? t('post.time.day')
+      : ([2, 3, 4].includes(days % 10) && ![12, 13, 14].includes(days % 100))
+        ? t('post.time.days')
+        : t('post.time.days_many');
+    return `${days} ${dayForm} ${t('post.time.ago')}`;
   } else {
-    const years = Math.floor(diffInSeconds / 31536000);
-    return `${years} ${getRussianWordForm(years, ['год', 'года', 'лет'])} назад`;
+    const date = new Date(Date.now() - (diffInSeconds * 1000));
+    return formatDateTimeShort(date.toISOString());
   }
 };
 

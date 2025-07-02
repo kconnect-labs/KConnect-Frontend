@@ -21,6 +21,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import { VerificationBadge } from '../../UIKIT';
 import { formatTimeAgo } from '../../utils/dateUtils';
+import { useLanguage } from '../../context/LanguageContext';
 
 const StyledCommentCard = styled(Box)(({ theme }) => ({
   backgroundColor: 'rgba(28, 28, 32, 0.4)',
@@ -103,6 +104,7 @@ const CommentItem = ({
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [imageError, setImageError] = useState(false);
   const menuOpen = Boolean(menuAnchorEl);
+  const { t } = useLanguage();
 
   const handleMenuOpen = (event) => {
     event.stopPropagation();
@@ -270,7 +272,7 @@ const CommentItem = ({
                     <ListItemIcon>
                       <ReplyIcon fontSize="small" sx={{ color: 'text.secondary' }} />
                     </ListItemIcon>
-                    <ListItemText primary="Ответить" />
+                    <ListItemText primary={t('comment.menu.reply')} />
                   </MenuItem>
                   
                   <MenuItem 
@@ -291,7 +293,7 @@ const CommentItem = ({
                     <ListItemIcon>
                       <DeleteIcon fontSize="small" sx={{ color: '#f44336' }} />
                     </ListItemIcon>
-                    <ListItemText primary="Удалить" />
+                    <ListItemText primary={t('comment.menu.delete')} />
                   </MenuItem>
                 </Menu>
               </>
@@ -359,13 +361,13 @@ const CommentItem = ({
               }}
             >
               <Typography sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                Ошибка загрузки медиа
+                {t('comment.media.error')}
               </Typography>
               <Typography sx={{ fontSize: '0.75rem', opacity: 0.8 }}>
                 {comment.image && comment.image.includes('/static/uploads/') && 
                  comment.image.indexOf('/static/uploads/') !== comment.image.lastIndexOf('/static/uploads/') 
-                  ? 'Ошибка в пути к файлу (дублирование)' 
-                  : comment.image || 'URL недоступен'}
+                  ? t('comment.media.duplicate_path') 
+                  : comment.image || t('comment.media.url_unavailable')}
               </Typography>
             </Box>
           )}
@@ -401,7 +403,7 @@ const CommentItem = ({
             <ActionButton onClick={onReply}>
               <ChatBubbleOutlineIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: 'text.secondary' }} />
               <Typography variant="caption" sx={{ ml: 0.5, fontSize: '0.75rem', color: 'text.secondary' }}>
-                Ответить
+                {t('comment.menu.reply')}
               </Typography>
             </ActionButton>
           </Box>

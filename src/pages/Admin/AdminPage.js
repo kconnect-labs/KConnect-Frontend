@@ -160,9 +160,10 @@ const AdminPage = () => {
   const [openKeyGenerationDialog, setOpenKeyGenerationDialog] = useState(false);
   const [generatedKeys, setGeneratedKeys] = useState([]);
   const [keyGenerationParams, setKeyGenerationParams] = useState({
-    key_type: 'points',
-    points_value: 100,
+    type: 'points',
+    points: 1000,
     subscription_type: 'basic',
+    subscription_duration_days: 30,
     max_uses: 1,
     count: 1,
     description: '',
@@ -1053,13 +1054,26 @@ const AdminPage = () => {
     try {
       setIsGeneratingKeys(true);
       
-      
-      if (keyGenerationParams.points_value <= 0 || keyGenerationParams.max_uses <= 0 || keyGenerationParams.count <= 0) {
-        showNotification('error', 'Все числовые значения должны быть больше нуля');
-        return;
+      // Проверка параметров в зависимости от типа ключа
+      if (keyGenerationParams.type === 'points') {
+        if (keyGenerationParams.points <= 0) {
+          showNotification('error', 'Количество баллов должно быть больше нуля');
+          return;
+        }
+      } else if (keyGenerationParams.type === 'subscription') {
+        if (keyGenerationParams.subscription_duration_days <= 0) {
+          showNotification('error', 'Срок действия подписки должен быть больше нуля');
+          return;
+        }
       }
+
+      // Добавляем логирование параметров
+      console.log('Отправляемые параметры:', keyGenerationParams);
       
       const response = await axios.post(`/api/admin/users/${user.id}/generate-keys`, keyGenerationParams);
+      
+      // Логируем ответ от сервера
+      console.log('Ответ сервера:', response.data);
       
       if (response.data.success) {
         setGeneratedKeys(response.data.keys);
@@ -1157,73 +1171,69 @@ const AdminPage = () => {
                     <TableRow>
                       <TableCell>Ключ</TableCell>
                       <TableCell>Тип</TableCell>
-                      <TableCell>Баллы/Подписка</TableCell>
-                      <TableCell>Использования</TableCell>
-                      <TableCell>Создан</TableCell>
-                      <TableCell>Истекает</TableCell>
+                      <TableCell>Значение</TableCell>
+                      <TableCell>Использований</TableCell>
                       <TableCell>Статус</TableCell>
-                      <TableCell>Описание</TableCell>
+                      <TableCell>Действия</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {redemptionKeys.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={8} align="center">
-                          <Typography variant="body2" color="textSecondary">
-                            Ключи не найдены
-                          </Typography>
+                    {redemptionKeys.map((key) => (
+                      <TableRow key={key.id}>
+                        <TableCell>{key.key}</TableCell>
+                        <TableCell align="center">
+                          {key.key_type === 'points' ? (
+                            <Chip
+                              icon={<MonetizationOnIcon style={{ color: '#7c4dff' }} />}
+                              label={`${key.points_value} баллов`}
+                              color="primary"
+                              variant="outlined"
+                              sx={{ fontWeight: 'bold', fontSize: 15, px: 1.5, bgcolor: 'rgba(124,77,255,0.08)' }}
+                            />
+                          ) : key.key_type === 'subscription' ? (
+                            <Chip
+                              icon={<VerifiedUserIcon style={{ color: '#4caf50' }} />}
+                              label={
+                                key.subscription_type === 'basic' ? 'Базовая' :
+                                key.subscription_type === 'premium' ? 'Премиум' :
+                                key.subscription_type === 'ultimate' ? 'Ультимейт' :
+                                key.subscription_type
+                              }
+                              color="success"
+                              variant="outlined"
+                              sx={{ fontWeight: 'bold', fontSize: 15, px: 1.5, bgcolor: 'rgba(76,175,80,0.08)' }}
+                            />
+                          ) : (
+                            '-'
+                          )}
+                        </TableCell>
+                        <TableCell>{key.current_uses}/{key.max_uses}</TableCell>
+                        <TableCell>
+                          {key.is_valid ? (
+                            <Chip 
+                              label="Активен" 
+                              color="success" 
+                              size="small"
+                            />
+                          ) : (
+                            <Chip 
+                              label="Использован" 
+                              color="error" 
+                              size="small"
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleDeleteKey(key.id)}
+                            color="error"
+                          >
+                            <DeleteIcon />
+                          </IconButton>
                         </TableCell>
                       </TableRow>
-                    ) : (
-                      redemptionKeys.map((key) => (
-                        <TableRow key={key.id}>
-                          <TableCell>
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <KeyIcon sx={{ mr: 1, color: 'primary.main', fontSize: 16 }} />
-                              <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                                {key.key}
-                              </Typography>
-                            </Box>
-                          </TableCell>
-                          <TableCell>
-                            <Chip
-                              size="small"
-                              label={key.key_type === 'points' ? 'Баллы' : 'Подписка'}
-                              color={key.key_type === 'points' ? 'primary' : 'secondary'}
-                              variant="outlined"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            {key.key_type === 'points' ? (
-                              `${key.points_value} баллов`
-                            ) : (
-                              <Chip
-                                size="small"
-                                label={key.subscription_type === 'basic' ? 'Базовая' : 
-                                       key.subscription_type === 'premium' ? 'Премиум' : 
-                                       key.subscription_type === 'ultimate' ? 'Ультимейт' : 
-                                       key.subscription_type}
-                                color="success"
-                              />
-                            )}
-                          </TableCell>
-                          <TableCell>{key.current_uses} / {key.max_uses}</TableCell>
-                          <TableCell>{new Date(key.created_at).toLocaleDateString()}</TableCell>
-                          <TableCell>
-                            {key.expires_at ? new Date(key.expires_at).toLocaleDateString() : 'Бессрочно'}
-                          </TableCell>
-                          <TableCell>
-                            <Chip 
-                              size="small" 
-                              label={key.is_valid ? 'Активен' : 'Недействителен'} 
-                              color={key.is_valid ? 'success' : 'error'} 
-                              variant="outlined"
-                            />
-                          </TableCell>
-                          <TableCell>{key.description || '-'}</TableCell>
-                        </TableRow>
-                      ))
-                    )}
+                    ))}
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -1326,12 +1336,19 @@ const AdminPage = () => {
                 <FormControl fullWidth>
                   <InputLabel>Тип ключа</InputLabel>
                   <Select
-                    value={keyGenerationParams.key_type}
+                    value={keyGenerationParams.type}
                     label="Тип ключа"
-                    onChange={(e) => setKeyGenerationParams({
-                      ...keyGenerationParams,
-                      key_type: e.target.value
-                    })}
+                    onChange={(e) => {
+                      const newType = e.target.value;
+                      setKeyGenerationParams({
+                        ...keyGenerationParams,
+                        type: newType,
+                        // Сбрасываем значения в зависимости от типа
+                        points: newType === 'points' ? 1000 : 0,
+                        subscription_type: newType === 'subscription' ? 'basic' : 'basic',
+                        subscription_duration_days: newType === 'subscription' ? 30 : 0
+                      });
+                    }}
                   >
                     <MenuItem value="points">Баллы</MenuItem>
                     <MenuItem value="subscription">Подписка</MenuItem>
@@ -1339,38 +1356,53 @@ const AdminPage = () => {
                 </FormControl>
               </Grid>
               
-              {keyGenerationParams.key_type === 'points' ? (
+              {keyGenerationParams.type === 'points' ? (
                 <Grid item xs={12} sm={6}>
                   <TextField
                     label="Количество баллов"
                     type="number"
                     fullWidth
-                    value={keyGenerationParams.points_value}
+                    value={keyGenerationParams.points}
                     onChange={(e) => setKeyGenerationParams({
                       ...keyGenerationParams,
-                      points_value: parseInt(e.target.value) || 0
+                      points: parseInt(e.target.value) || 0
                     })}
                     InputProps={{ inputProps: { min: 1 } }}
                   />
                 </Grid>
               ) : (
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Тип подписки</InputLabel>
-                    <Select
-                      value={keyGenerationParams.subscription_type}
-                      label="Тип подписки"
+                <>
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Тип подписки</InputLabel>
+                      <Select
+                        value={keyGenerationParams.subscription_type}
+                        label="Тип подписки"
+                        onChange={(e) => setKeyGenerationParams({
+                          ...keyGenerationParams,
+                          subscription_type: e.target.value
+                        })}
+                      >
+                        <MenuItem value="basic">Базовая</MenuItem>
+                        <MenuItem value="premium">Премиум</MenuItem>
+                        <MenuItem value="ultimate">Ультимейт</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      label="Срок действия подписки (дней)"
+                      type="number"
+                      fullWidth
+                      value={keyGenerationParams.subscription_duration_days}
                       onChange={(e) => setKeyGenerationParams({
                         ...keyGenerationParams,
-                        subscription_type: e.target.value
+                        subscription_duration_days: parseInt(e.target.value) || 30
                       })}
-                    >
-                      <MenuItem value="basic">Базовая</MenuItem>
-                      <MenuItem value="premium">Премиум</MenuItem>
-                      <MenuItem value="ultimate">Ультимейт</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
+                      InputProps={{ inputProps: { min: 1 } }}
+                    />
+                  </Grid>
+                </>
               )}
               
               <Grid item xs={12} sm={6}>

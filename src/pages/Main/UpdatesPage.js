@@ -71,7 +71,8 @@ const UpdatesPage = () => {
                   <Box sx={{ 
                     width: 2, 
                     height: 40, 
-                    bgcolor: 'rgba(208, 188, 255, 0.2)',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    backdropFilter: 'blur(20px)',
                     borderRadius: 4
                   }} />
                 </Box>
@@ -86,7 +87,8 @@ const UpdatesPage = () => {
         mt: 6, 
         p: 3, 
         borderRadius: '16px',
-        background: 'rgba(208, 188, 255, 0.05)',
+        background: 'rgba(255, 255, 255, 0.03)',
+        backdropFilter: 'blur(20px)',
         border: '1px solid rgba(208, 188, 255, 0.1)'
       }}>
         <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>

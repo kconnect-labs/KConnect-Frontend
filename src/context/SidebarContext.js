@@ -6,6 +6,7 @@ export const SidebarProvider = ({ children }) => {
   const [expandedMore, setExpandedMore] = useState(false);
   const [expandedAdminMod, setExpandedAdminMod] = useState(false);
   const [expandedShops, setExpandedShops] = useState(false);
+  const [expandedSocial, setExpandedSocial] = useState(false);
   
   const toggleExpandMore = useCallback(() => {
     setExpandedMore(prev => !prev);
@@ -18,15 +19,21 @@ export const SidebarProvider = ({ children }) => {
   const toggleExpandShops = useCallback(() => {
     setExpandedShops(prev => !prev);
   }, []);
+
+  const toggleExpandSocial = useCallback(() => {
+    setExpandedSocial(prev => !prev);
+  }, []);
   
   const value = useMemo(() => ({
     expandedMore,
     expandedAdminMod,
     expandedShops,
+    expandedSocial,
     toggleExpandMore,
     toggleExpandAdminMod,
-    toggleExpandShops
-  }), [expandedMore, expandedAdminMod, expandedShops, toggleExpandMore, toggleExpandAdminMod, toggleExpandShops]);
+    toggleExpandShops,
+    toggleExpandSocial
+  }), [expandedMore, expandedAdminMod, expandedShops, expandedSocial, toggleExpandMore, toggleExpandAdminMod, toggleExpandShops, toggleExpandSocial]);
   
   return (
     <SidebarContext.Provider value={value}>

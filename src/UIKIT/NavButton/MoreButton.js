@@ -5,13 +5,24 @@ import { Box, styled } from '@mui/material';
 
 const MoreButtonStyled = styled(NavItemStyled)(({ theme, active, themecolor }) => ({
   justifyContent: 'space-between',
-  paddingRight: theme.spacing(1.5),
-  marginTop: theme.spacing(0.5),
+  paddingRight: theme.spacing(1.8),
+  marginTop: theme.spacing(0.8),
   '& .arrow-icon': {
     transition: 'transform 0.3s ease',
     transform: active ? 'rotate(180deg)' : 'rotate(0deg)',
     color: active ? (themecolor || theme.palette.primary.main) : 
-      (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'),
+      (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.75)' : 'rgba(0, 0, 0, 0.75)'),
+    '& .MuiSvgIcon-root': {
+      fontSize: '1.1rem',
+      transition: 'all 0.3s ease',
+    }
+  },
+  '&:hover .arrow-icon': {
+    color: active ? (themecolor || theme.palette.primary.main) : 
+      (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.95)'),
+    '& .MuiSvgIcon-root': {
+      transform: 'scale(1.1)',
+    }
   }
 }));
 

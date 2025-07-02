@@ -1,223 +1,355 @@
 import React from 'react';
-import { Typography, Container, Paper, Divider } from '@mui/material';
-import { Link } from 'react-router-dom';
-import Header from '../../components/Layout/Header';
+import { Typography, Container, Paper, Divider, Box } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
+import { styled } from '@mui/material/styles';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import SecurityIcon from '@mui/icons-material/Security';
+import RuleIcon from '@mui/icons-material/Rule';
+
+const PageContainer = styled(Container)(({ theme }) => ({
+  paddingTop: theme.spacing(4),
+  paddingBottom: theme.spacing(8),
+  [theme.breakpoints.down('sm')]: {
+    paddingTop: theme.spacing(2),
+  },
+}));
+
+const RuleCard = styled(Paper)(({ theme }) => ({
+  marginBottom: theme.spacing(3),
+  borderRadius: theme.spacing(2),
+  overflow: 'hidden',
+  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+  transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+  '&:hover': {
+    transform: 'translateY(-5px)',
+    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)',
+  },
+}));
+
+const RuleCardHeader = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  padding: theme.spacing(2),
+  backgroundColor: 'rgba(208, 188, 255, 0.1)',
+}));
+
+const SectionTitle = styled(Typography)(({ theme }) => ({
+  position: 'relative',
+  display: 'inline-block',
+  marginBottom: theme.spacing(2),
+  fontWeight: 'bold',
+  color: theme.palette.primary.main,
+  '&::after': {
+    content: '""',
+    position: 'absolute',
+    bottom: -8,
+    left: 0,
+    width: '100%',
+    height: 3,
+    background: `linear-gradient(to right, ${theme.palette.primary.main}, transparent)`,
+    borderRadius: 4,
+  },
+}));
 
 const PrivacyPolicyPage = () => {
   return (
-    <div className="privacy-policy-page">
-      <Header title="Политика конфиденциальности" backButton />
-      
-      <Container maxWidth="md" style={{ marginBottom: '2rem' }}>
-        <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
-          <Link to="/rules" style={{ textDecoration: 'none', color: '#666' }}>
-            Правила сообщества
-          </Link>
-          <Link to="/privacy-policy" style={{ textDecoration: 'none', color: '#8c52ff', fontWeight: 'bold' }}>
-            Политика конфиденциальности
-          </Link>
-          <Link to="/terms-of-service" style={{ textDecoration: 'none', color: '#666' }}>
-            Условия использования
-          </Link>
-        </div>
+    <PageContainer maxWidth="lg">
+      <Paper
+        elevation={0}
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 3,
+          p: 2,
+          mb: 3,
+          borderRadius: 2,
+          background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(208, 188, 255, 0.1) 100%)',
+          border: '1px solid rgba(208, 188, 255, 0.2)'
+        }}
+      >
+        <Box 
+          component={RouterLink} 
+          to="/rules"
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            textDecoration: 'none',
+            color: 'text.primary',
+            fontWeight: 'medium',
+            py: 0.5,
+            px: 1.5,
+            borderRadius: 1,
+            '&:hover': { 
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            }
+          }}
+        >
+          <RuleIcon sx={{ mr: 1, fontSize: 20 }} />
+          <Typography variant="body2">Правила сообщества</Typography>
+        </Box>
         
-        <Paper style={{ padding: '24px' }}>
-          <Typography variant="h5" style={{ marginBottom: '8px', fontWeight: 'bold', color: '#8c52ff' }}>
-            Политика конфиденциальности К-Коннект
+        <Box 
+          component={RouterLink} 
+          to="/privacy-policy"
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            textDecoration: 'none',
+            color: 'primary.main',
+            fontWeight: 'medium',
+            py: 0.5,
+            px: 1.5,
+            borderRadius: 1,
+            backgroundColor: 'rgba(208, 188, 255, 0.15)',
+            '&:hover': { 
+              backgroundColor: 'rgba(208, 188, 255, 0.25)',
+            }
+          }}
+        >
+          <SecurityIcon sx={{ mr: 1, fontSize: 20 }} />
+          <Typography variant="body2">Политика конфиденциальности</Typography>
+        </Box>
+        
+        <Box 
+          component={RouterLink} 
+          to="/terms-of-service"
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            textDecoration: 'none',
+            color: 'text.primary',
+            fontWeight: 'medium',
+            py: 0.5,
+            px: 1.5,
+            borderRadius: 1,
+            '&:hover': { 
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            }
+          }}
+        >
+          <AssignmentIcon sx={{ mr: 1, fontSize: 20 }} />
+          <Typography variant="body2">Условия использования</Typography>
+        </Box>
+      </Paper>
+
+      <RuleCard>
+        <RuleCardHeader>
+          <SecurityIcon color="primary" fontSize="large" sx={{ mr: 2 }} />
+          <SectionTitle variant="h5">Политика конфиденциальности К-Коннект</SectionTitle>
+        </RuleCardHeader>
+        
+        <Box sx={{ p: 3 }}>
+          <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+              Последнее обновление: {new Date().toLocaleDateString()}
           </Typography>
           
-          <Typography variant="body2" color="textSecondary" style={{ marginBottom: '16px' }}>
-            Последнее обновление: {new Date().toLocaleDateString()}
-          </Typography>
-          
-          <Divider style={{ margin: '16px 0' }} />
+          <Divider sx={{ mb: 3 }} />
           
           <Typography variant="body1" paragraph>
-            Мы, команда К-Коннект, серьезно относимся к безопасности ваших личных данных. 
-            Эта политика конфиденциальности описывает, какую информацию мы собираем и как мы ее используем.
+            К-Коннект уважает вашу конфиденциальность и стремится защитить ваши персональные данные. 
+            Эта политика конфиденциальности объясняет, как мы собираем, используем и защищаем вашу информацию.
           </Typography>
           
-          <Typography variant="h6" style={{ marginTop: '24px', fontWeight: 'bold' }}>
-            1. Какую информацию мы собираем
+          <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
+            1. Собираемая информация
           </Typography>
           
           <Typography variant="body1" paragraph>
             Мы собираем следующие типы информации:
           </Typography>
           
-          <ul>
-            <li>
+          <Box component="ul" sx={{ pl: 2 }}>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
-                <strong>Информация аккаунта:</strong> имя, имя пользователя (username), адрес электронной почты, фотография профиля, информация о себе.
+                Информация, которую вы предоставляете при регистрации (имя, email, дата рождения).
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
-                <strong>Данные профиля:</strong> интересы, социальные ссылки, данные, которые вы решите указать в вашем профиле.
+                Контент, который вы публикуете на платформе.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
-                <strong>Контент:</strong> посты, комментарии, лайки, музыка и медиа, которые вы публикуете.
+                Информация об использовании сервиса (время активности, предпочтения).
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
-                <strong>Технические данные:</strong> IP-адрес, данные браузера, время доступа, данные устройства.
+                Техническая информация (IP-адрес, тип устройства, браузер).
               </Typography>
-            </li>
-            <li>
-              <Typography variant="body1">
-                <strong>Данные взаимодействия:</strong> подписки, взаимодействия с другими пользователями, настройки уведомлений.
-              </Typography>
-            </li>
-          </ul>
+            </Box>
+          </Box>
           
-          <Typography variant="h6" style={{ marginTop: '24px', fontWeight: 'bold' }}>
-            2. Как мы используем вашу информацию
+          <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
+            2. Использование информации
           </Typography>
           
           <Typography variant="body1" paragraph>
-            Ваша информация используется для:
+            Мы используем собранную информацию для:
           </Typography>
           
-          <ul>
-            <li>
+          <Box component="ul" sx={{ pl: 2 }}>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
-                Обеспечения функционирования платформы и предоставления вам доступа к ее функциям.
+                Предоставления и улучшения наших услуг.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
-                Улучшения, персонализации и развития нашего сервиса.
+                Персонализации вашего опыта использования платформы.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
-                Коммуникации с вами, включая отправку уведомлений, обновлений и технической информации.
+                Обеспечения безопасности и предотвращения мошенничества.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
-                Обеспечения безопасности и защиты сервиса от мошенничества и злоупотреблений.
+                Коммуникации с вами по вопросам сервиса.
               </Typography>
-            </li>
-          </ul>
+            </Box>
+          </Box>
           
-          <Typography variant="h6" style={{ marginTop: '24px', fontWeight: 'bold' }}>
-            3. Как мы делимся вашей информацией
+          <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
+            3. Защита информации
           </Typography>
           
           <Typography variant="body1" paragraph>
-            Мы не продаем ваши данные третьим лицам. Мы можем делиться информацией в следующих случаях:
+            Мы принимаем следующие меры для защиты вашей информации:
           </Typography>
           
-          <ul>
-            <li>
+          <Box component="ul" sx={{ pl: 2 }}>
+            <Box component="li" sx={{ mb: 1 }}>
+              <Typography variant="body1">
+                Шифрование данных при передаче и хранении.
+              </Typography>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
+              <Typography variant="body1">
+                Регулярное обновление систем безопасности.
+              </Typography>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
+              <Typography variant="body1">
+                Ограничение доступа к персональным данным.
+              </Typography>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
+              <Typography variant="body1">
+                Мониторинг и предотвращение несанкционированного доступа.
+              </Typography>
+            </Box>
+          </Box>
+          
+          <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
+            4. Обмен информацией
+          </Typography>
+          
+          <Typography variant="body1" paragraph>
+            Мы не продаем ваши персональные данные третьим лицам. Мы можем делиться информацией только в следующих случаях:
+          </Typography>
+          
+          <Box component="ul" sx={{ pl: 2 }}>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
                 С вашего явного согласия.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
-                Для выполнения требований законодательства.
+                Для выполнения юридических обязательств.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
-                С поставщиками услуг, которые помогают нам управлять сервисом (хостинг, аналитика и т.д.).
+                Для защиты наших прав и безопасности.
               </Typography>
-            </li>
-          </ul>
+            </Box>
+          </Box>
           
-          <Typography variant="h6" style={{ marginTop: '24px', fontWeight: 'bold' }}>
-            4. Безопасность ваших данных
-          </Typography>
-          
-          <Typography variant="body1" paragraph>
-            Мы внедряем необходимые технические и организационные меры для защиты ваших данных, включая:
-          </Typography>
-          
-          <ul>
-            <li>
-              <Typography variant="body1">
-                Шифрование передаваемых данных.
-              </Typography>
-            </li>
-            <li>
-              <Typography variant="body1">
-                Хранение паролей в защищенной форме.
-              </Typography>
-            </li>
-            <li>
-              <Typography variant="body1">
-                Регулярные обновления безопасности системы.
-              </Typography>
-            </li>
-          </ul>
-          
-          <Typography variant="h6" style={{ marginTop: '24px', fontWeight: 'bold' }}>
+          <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
             5. Ваши права
           </Typography>
           
           <Typography variant="body1" paragraph>
-            В зависимости от вашего местоположения, вы можете иметь следующие права:
+            Вы имеете право:
           </Typography>
           
-          <ul>
-            <li>
+          <Box component="ul" sx={{ pl: 2 }}>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
-                Доступ к вашим персональным данным.
+                Получить доступ к своим персональным данным.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
-                Исправление неточной или неполной информации.
+                Исправить неточные данные.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
-                Удаление ваших персональных данных.
+                Запросить удаление своих данных.
               </Typography>
-            </li>
-            <li>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
               <Typography variant="body1">
-                Ограничение обработки ваших данных.
+                Отозвать согласие на обработку данных.
               </Typography>
-            </li>
-            <li>
-              <Typography variant="body1">
-                Получение ваших данных в структурированном, машиночитаемом формате.
-              </Typography>
-            </li>
-          </ul>
+            </Box>
+          </Box>
           
-          <Typography variant="h6" style={{ marginTop: '24px', fontWeight: 'bold' }}>
-            6. Файлы Cookie и подобные технологии
+          <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
+            6. Cookies и отслеживание
           </Typography>
           
           <Typography variant="body1" paragraph>
-            Мы используем файлы cookie и подобные технологии для улучшения работы сервиса, анализа использования и персонализации. Вы можете управлять настройками файлов cookie через ваш браузер.
+            Мы используем cookies и аналогичные технологии для:
           </Typography>
           
-          <Typography variant="h6" style={{ marginTop: '24px', fontWeight: 'bold' }}>
-            7. Изменения в политике конфиденциальности
+          <Box component="ul" sx={{ pl: 2 }}>
+            <Box component="li" sx={{ mb: 1 }}>
+              <Typography variant="body1">
+                Сохранения ваших предпочтений.
+              </Typography>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
+              <Typography variant="body1">
+                Анализа использования сервиса.
+              </Typography>
+            </Box>
+            <Box component="li" sx={{ mb: 1 }}>
+              <Typography variant="body1">
+                Улучшения безопасности.
+              </Typography>
+            </Box>
+          </Box>
+          
+          <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
+            7. Изменения в политике
           </Typography>
           
           <Typography variant="body1" paragraph>
-            Мы можем обновлять нашу политику конфиденциальности время от времени. Мы уведомим вас о любых существенных изменениях через сервис К-Коннект или по электронной почте.
+            Мы можем обновлять эту политику конфиденциальности время от времени. Мы уведомим вас о существенных изменениях через сервис К-Коннект.
           </Typography>
           
-          <Typography variant="h6" style={{ marginTop: '24px', fontWeight: 'bold' }}>
-            8. Контактная информация
+          <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
+            8. Контакты
           </Typography>
           
           <Typography variant="body1" paragraph>
-            Если у вас есть вопросы, связанные с этой политикой или с обработкой ваших данных, пожалуйста, свяжитесь с нами через форму обратной связи в приложении или отправьте сообщение через раздел "Баг-репорты".
+            Если у вас есть вопросы о нашей политике конфиденциальности, пожалуйста, свяжитесь с нами через форму обратной связи в приложении или напишите на support@k-connect.ru.
           </Typography>
-        </Paper>
-      </Container>
-    </div>
+          
+          <Typography variant="body1" sx={{ mt: 4, fontStyle: 'italic' }}>
+            Используя К-Коннект, вы соглашаетесь с условиями этой политики конфиденциальности.
+          </Typography>
+        </Box>
+      </RuleCard>
+    </PageContainer>
   );
 };
 

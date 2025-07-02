@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import Lightbox from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import Thumbnails from 'yet-another-react-lightbox/plugins/thumbnails';
@@ -189,7 +190,9 @@ const SimpleImageViewer = ({ isOpen, onClose, images, initialIndex = 0 }) => {
     }
   }, [isOpen, isSwipingDown]);
 
-  return (
+  if (!isOpen) return null;
+
+  return ReactDOM.createPortal(
     <Lightbox
       open={isOpen}
       close={handleClose}
@@ -275,7 +278,8 @@ const SimpleImageViewer = ({ isOpen, onClose, images, initialIndex = 0 }) => {
           marginRight: "15px"
         }
       }}
-    />
+    />,
+    document.body
   );
 };
 
