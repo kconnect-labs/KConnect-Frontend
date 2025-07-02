@@ -1,2 +1,0 @@
-INFO:     Will watch for changes in these directories: ['/var/www/k-connect/frontend']
-ERROR:    [Errno 98] Address already in use
