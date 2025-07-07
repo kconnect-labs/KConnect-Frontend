@@ -1,18 +1,26 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { Paper, BottomNavigation as MuiBottomNavigation, BottomNavigationAction, alpha } from '@mui/material';
+import { Paper, BottomNavigation as MuiBottomNavigation, BottomNavigationAction, alpha, Badge } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import { useTheme } from '@mui/material/styles';
 import { ThemeSettingsContext } from '../App';
 
+import { useMessenger } from '../contexts/MessengerContext';
 
 export const BOTTOM_NAV_ID = 'app-bottom-navigation';
 
-const AppBottomNavigation = ({ user }) => {
+const AppBottomNavigation = ({ user, isMobile }) => {
+  // AppBottomNavigation рендерится только на мобильных устройствах
+  if (!isMobile) {
+    return null;
+  }
   const navigate = useNavigate();
   const location = useLocation();
   const [visibleInMessenger, setVisibleInMessenger] = useState(true);
   const { themeSettings } = useContext(ThemeSettingsContext);
+  const { unreadCounts } = useMessenger();
+  const totalUnread = Object.values(unreadCounts || {}).filter(c=>c>0).length;
+  console.log('📱 BottomNavigation: unreadCounts:', unreadCounts, 'totalUnread:', totalUnread);
   const theme = useTheme();
   
   
@@ -22,13 +30,11 @@ const AppBottomNavigation = ({ user }) => {
   useEffect(() => {
     const handleMessengerLayoutChange = (event) => {
       const { isInChat } = event.detail;
-      console.log('Bottom navigation received layout change event:', isInChat ? 'in chat' : 'not in chat');
+      console.log('BottomNavigation: Received messenger-layout-change event, isInChat:', isInChat);
       setVisibleInMessenger(!isInChat);
     };
     
-    
     document.addEventListener('messenger-layout-change', handleMessengerLayoutChange);
-    
     
     return () => {
       document.removeEventListener('messenger-layout-change', handleMessengerLayoutChange);
@@ -38,7 +44,7 @@ const AppBottomNavigation = ({ user }) => {
   
   const isInMessenger = location.pathname.startsWith('/messenger');
   if (isInMessenger && !visibleInMessenger) {
-    console.log('Bottom navigation hidden in messenger chat');
+    console.log('BottomNavigation: Hidden in messenger chat, visible state:', visibleInMessenger);
     return null;
   }
   
@@ -52,7 +58,11 @@ const AppBottomNavigation = ({ user }) => {
   if (isAuthPage || isSettingsPage || isBadgeShopPage) {
     return null;
   }
-  
+    
+  const isClickerPage = location.pathname.startsWith('/minigames/clicker');
+  if (isClickerPage) {
+    return null;
+  }
 
   const getCurrentValue = () => {
     const path = location.pathname;
@@ -172,7 +182,11 @@ const AppBottomNavigation = ({ user }) => {
         />
         <BottomNavigationAction 
           label="Мессенджер" 
-          icon={<Icon icon="solar:chat-round-dots-bold" width="28" height="28" />}
+          icon={totalUnread>0 ? (
+            <Badge badgeContent={totalUnread>99? '99+': totalUnread}
+               sx={{ '& .MuiBadge-badge': { backgroundColor:'#2f2f2f', border:'1px solid #b1b1b1', color:'#fff' } }}>
+              <Icon icon="solar:chat-round-dots-bold" width="28" height="28" />
+            </Badge>) : <Icon icon="solar:chat-round-dots-bold" width="28" height="28" />}
           sx={{ 
             minWidth: 'auto',
             '& .MuiBottomNavigationAction-label': {

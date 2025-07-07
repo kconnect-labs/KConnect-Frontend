@@ -125,7 +125,8 @@ const areEqual = (prevProps, nextProps) => {
     prevProps.active === nextProps.active &&
     prevProps.path === nextProps.path &&
     prevProps.text === nextProps.text &&
-    prevProps.isSpecial === nextProps.isSpecial
+    prevProps.isSpecial === nextProps.isSpecial &&
+    prevProps.icon === nextProps.icon
   );
 };
 

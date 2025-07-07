@@ -11,6 +11,7 @@ export { default as ProfileInfo } from './ProfileInfo';
 export { WallPostsTab, PostsTab } from './TabComponents';
 export { default as PostsFeed } from './PostsFeed';
 export { default as WallFeed } from './WallFeed';
+export { default as AttachmentsFeed } from './AttachmentsFeed';
 export { default as EquippedItem } from './EquippedItem';
 export { default as UserBanInfo } from './UserBanInfo';
 export { default as UserScamBadge } from './UserScamBadge';

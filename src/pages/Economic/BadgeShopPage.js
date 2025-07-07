@@ -2074,6 +2074,7 @@ const BadgeShopPage = () => {
       <BadgeShopBottomNavigation 
         tabValue={tabValue}
         onTabChange={(e, newValue) => setTabValue(newValue)}
+        isMobile={isMobile}
       />
     </Container>
   );

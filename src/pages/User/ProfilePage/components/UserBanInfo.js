@@ -20,8 +20,40 @@ const UserBanInfo = ({
 
   if (!userBanInfo) return null;
 
+  // Краткий блок для всех пользователей
+  if (showDetailed) {
+    return (
+      <Box sx={{ 
+        mt: 2,
+        p: 1.5,
+        borderRadius: '12px',
+        backgroundColor: 'rgba(211, 47, 47, 0.7)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(211, 47, 47, 0.8)',
+        boxShadow: '0 0 15px rgba(211, 47, 47, 0.4)',
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 1.5
+      }}>
+        <WarningIcon sx={{ fontSize: 22, mt: 0.5, color: 'white' }} />
+        <Box>
+          <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'white', mb: 0.5 }}>
+            {t('profile.ban.banned')}
+          </Typography>
+          <Typography variant="caption" sx={{ display: 'block', color: 'rgba(255,255,255,0.9)', mb: 0.5 }}>
+            {t('profile.ban.reason', { reason: userBanInfo.reason })}
+          </Typography>
+          <Typography variant="caption" sx={{ display: 'block', color: 'rgba(255,255,255,0.9)' }}>
+            {t('profile.ban.ends', { endDate: userBanInfo.end_date })}
+            {userBanInfo.remaining_days > 0 && ` (${t('profile.ban.days_left', { days: userBanInfo.remaining_days })})`}
+          </Typography>
+        </Box>
+      </Box>
+    );
+  }
+
   // Маленький бейдж с тултипом (для основного профиля)
-  if (showTooltip && !showDetailed) {
+  if (showTooltip) {
     return (
       <Tooltip 
         title={
@@ -67,56 +99,6 @@ const UserBanInfo = ({
           <Box component="span">{t('profile.ban.banned')}</Box>
         </Typography>
       </Tooltip>
-    );
-  }
-
-  // Подробный блок (для модераторов и админов)
-  if (showDetailed && (isCurrentUserModerator || (currentUser && currentUser.id === 3))) {
-    return (
-      <Box sx={{ 
-        mt: 2,
-        p: 1.5,
-        borderRadius: '12px',
-        backgroundColor: 'rgba(211, 47, 47, 0.7)',
-        backdropFilter: 'blur(10px)',
-        border: '1px solid rgba(211, 47, 47, 0.8)',
-        boxShadow: '0 0 15px rgba(211, 47, 47, 0.4)',
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: 1.5
-      }}>
-        <WarningIcon sx={{ fontSize: 22, mt: 0.5, color: 'white' }} />
-        <Box>
-          <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'white' }}>
-            {t('profile.ban.banned')}
-          </Typography>
-          <Typography variant="caption" sx={{ display: 'block', color: 'rgba(255,255,255,0.9)' }}>
-            {t('profile.ban.reason', { reason: userBanInfo.reason })}
-          </Typography>
-          <Typography variant="caption" sx={{ display: 'block', color: 'rgba(255,255,255,0.9)' }}>
-            {t('profile.ban.ends', { endDate: userBanInfo.end_date })}
-            {userBanInfo.remaining_days > 0 && ` (${t('profile.ban.days_left', { days: userBanInfo.remaining_days })})`}
-          </Typography>
-          
-          {currentUser && currentUser.id === 3 && (
-            <Box sx={{ mt: 1, pt: 1, borderTop: '1px dashed rgba(255, 255, 255, 0.4)' }}>
-              <Typography variant="caption" sx={{ display: 'block', fontStyle: 'italic', color: 'rgba(255,255,255,0.9)' }}>
-                {t('profile.ban.auto_ban', { admin: userBanInfo.admin ? `${userBanInfo.admin.name} (@${userBanInfo.admin.username})` : t('profile.ban.admin') })}
-              </Typography>
-              {userBanInfo.start_date && (
-                <Typography variant="caption" sx={{ display: 'block', fontStyle: 'italic', color: 'rgba(255,255,255,0.9)' }}>
-                  {t('profile.ban.start', { startDate: userBanInfo.start_date })}
-                </Typography>
-              )}
-              {userBanInfo.details && (
-                <Typography variant="caption" sx={{ display: 'block', fontStyle: 'italic', color: 'rgba(255,255,255,0.9)' }}>
-                  {t('profile.ban.details', { details: userBanInfo.details })}
-                </Typography>
-              )}
-            </Box>
-          )}
-        </Box>
-      </Box>
     );
   }
 

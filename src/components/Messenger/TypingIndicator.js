@@ -1,23 +1,25 @@
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 
 const TypingIndicator = ({ userIds = [], chatMembers = [] }) => {
-  if (!userIds.length) return null;
+  const typingText = useMemo(() => {
+    if (!userIds.length) return '';
+    
+    const typingUserNames = userIds.map(userId => {
+      const member = chatMembers.find(m => m.user_id === parseInt(userId));
+      const name = member?.name || member?.username || 'Кто-то';
+      return name.length > 6 ? name.substring(0, 6) + '...' : name;
+    });
+    
+    if (typingUserNames.length === 1) {
+      return `${typingUserNames[0]} печатает...`;
+    } else if (typingUserNames.length === 2) {
+      return `${typingUserNames[0]} и ${typingUserNames[1]} печатают...`;
+    } else {
+      return `${typingUserNames.length} человек печатают...`;
+    }
+  }, [userIds, chatMembers]);
   
-  
-  const typingUserNames = userIds.map(userId => {
-    const member = chatMembers.find(m => m.user_id === parseInt(userId));
-    return member?.name || member?.username || 'Кто-то';
-  });
-  
-  
-  let typingText = '';
-  if (typingUserNames.length === 1) {
-    typingText = `${typingUserNames[0]} печатает...`;
-  } else if (typingUserNames.length === 2) {
-    typingText = `${typingUserNames[0]} и ${typingUserNames[1]} печатают...`;
-  } else if (typingUserNames.length > 2) {
-    typingText = `${typingUserNames.length} человек печатают...`;
-  }
+  if (!typingText) return null;
   
   return (
     <div className="typing-indicator">

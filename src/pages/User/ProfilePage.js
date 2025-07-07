@@ -90,8 +90,7 @@ const ProfilePage = () => {
   
   const [fallbackAvatarUrl, setFallbackAvatarUrl] = useState('');
   
-  const [medals, setMedals] = useState([]);
-  const [loadingMedals, setLoadingMedals] = useState(false);
+
   
   const [selectedUsername, setSelectedUsername] = useState(null);
   const [usernameCardAnchor, setUsernameCardAnchor] = useState(null);
@@ -425,29 +424,7 @@ const ProfilePage = () => {
     }
   }, [user]);
 
-  useEffect(() => {
-    if (user && user.id) {
-      fetchUserMedals();
-    }
-  }, [user]);
 
-  const fetchUserMedals = async () => {
-    try {
-      setLoadingMedals(true);
-      const response = await axios.get(`/api/profile/${user.id}/medals`);
-      if (response.data.success) {
-        setMedals(response.data.medals || []);
-      } else {
-        console.error('Error fetching medals:', response.data.error);
-        setMedals([]);
-      }
-    } catch (error) {
-      console.error('Error fetching medals:', error);
-      setMedals([]);
-    } finally {
-      setLoadingMedals(false);
-    }
-  };
 
 
   const handleUsernameClick = (event, username) => {
@@ -727,14 +704,7 @@ const ProfilePage = () => {
                     </Typography>
                     <VerificationBadge status={user?.verification_status} size="small" />
                     
-                    {/* Добавляем значок подписки, если у пользователя есть подписка */}
-                    {user?.subscription && user.subscription.total_duration_months > 0 && (
-                      <SubscriptionBadge 
-                        duration={user.subscription.total_duration_months} 
-                        subscriptionDate={user.subscription.subscription_date}
-                        subscriptionType={user.subscription.type}
-                      />
-                    )}
+
 
                     {user?.achievement && (
                       <Box 
@@ -824,15 +794,6 @@ const ProfilePage = () => {
                       </Typography>
                     </>
                   )}
-
-                  <UserBanInfo 
-                    userBanInfo={userBanInfo}
-                    user={user}
-                    currentUser={currentUser}
-                    isCurrentUserModerator={isCurrentUserModerator}
-                    showTooltip={false}
-                    showDetailed={true}
-                  />
 
                   <UserScamBadge user={user} />
                   
@@ -1338,7 +1299,6 @@ const ProfilePage = () => {
           <TabPanel value={tabValue} index={3} sx={{ p: 0, mt: 1 }}>
             <ProfileInfo 
               user={user} 
-              medals={medals}
               onUsernameClick={handleUsernameClick}
             />
           </TabPanel>

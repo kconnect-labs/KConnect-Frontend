@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MessengerProvider, useMessenger } from '../../contexts/MessengerContext';
+import { useMessenger } from '../../contexts/MessengerContext';
 import ChatList from './ChatList';
 import ChatWindow from './ChatWindow';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -80,28 +80,7 @@ const MessengerContent = () => {
     }
   }, [activeChat, isMobileView]);
   
-  // Блокировка для каналов - показываем сообщение, что каналы не могут использовать мессенджер
-  if (isChannel) {
-    return (
-      <div className="messenger-blocked" style={{ 
-        padding: '30px', 
-        textAlign: 'center', 
-        color: '#888', 
-        display: 'flex', 
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%'
-      }}>
-        <Typography variant="h5" sx={{ mb: 2, color: '#aaa' }}>
-          Мессенджер недоступен
-        </Typography>
-        <Typography variant="body1">
-          Каналы не могут использовать личные сообщения.
-        </Typography>
-      </div>
-    );
-  }
+
   
   // Показать экран загрузки
   if (loading) {
@@ -272,13 +251,4 @@ const MessengerContent = () => {
   );
 };
 
-// Wrapper component that provides the MessengerContext
-const Messenger = () => {
-  return (
-    <MessengerProvider>
-      <MessengerContent />
-    </MessengerProvider>
-  );
-};
-
-export default Messenger; 
+export default MessengerContent; 

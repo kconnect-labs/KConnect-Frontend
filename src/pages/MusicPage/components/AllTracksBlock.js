@@ -146,7 +146,8 @@ const AllTracksBlock = () => {
     toggleLike,
     searchTracks,
     searchResults,
-    isSearching
+    isSearching,
+    forceLoadTracks
   } = useMusic();
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -224,7 +225,11 @@ const AllTracksBlock = () => {
 
   useEffect(() => {
     loadTracks();
-  }, [loadTracks]);
+    // Принудительно загружаем треки в MusicContext для секции 'all'
+    if (forceLoadTracks) {
+      forceLoadTracks('all');
+    }
+  }, [loadTracks, forceLoadTracks]);
 
   // Очистка при размонтировании компонента
   useEffect(() => {

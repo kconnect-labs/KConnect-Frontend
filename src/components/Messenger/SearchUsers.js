@@ -129,9 +129,7 @@ const SearchUsers = ({ onClose }) => {
   
   return (
     <div className="search-users">
-      <div className="search-header">
-        <h3>Поиск пользователей</h3>
-      </div>
+
       
       <div className="search-input-container">
         <input

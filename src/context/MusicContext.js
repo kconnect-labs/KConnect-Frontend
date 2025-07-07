@@ -134,6 +134,14 @@ export const MusicProvider = ({ children }) => {
     
     
     const fetchTracks = async () => {
+      const currentPath = window.location.pathname;
+      const isMusicPage = currentPath.startsWith('/music');
+      
+      if (!isMusicPage) {
+        console.log('Не на музыкальной странице, пропускаем загрузку треков');
+        return;
+      }
+      
       
       if (isLoadingRef.current === false && (
         (currentSection === 'all' && tracks.length > 0) ||
@@ -2457,6 +2465,70 @@ export const MusicProvider = ({ children }) => {
       document.body.style.height = '';
     }
   }, []);
+
+  // Функция для принудительной загрузки треков (для вызова при переходе на музыкальную страницу)
+  const forceLoadTracks = useCallback(async (section = null) => {
+    console.log('Принудительная загрузка треков для секции:', section || currentSection);
+    
+    const targetSection = section || currentSection;
+    
+    // Сбрасываем состояние загрузки
+    isLoadingRef.current = false;
+    
+    // Принудительно загружаем треки
+    try {
+      let url = '/api/music';
+      let params = { page: 1, per_page: 50 };
+      
+      if (targetSection === 'liked') {
+        url = '/api/music/liked';
+        isLoadingLikedTracksRef.current = false; // Сбрасываем флаг
+      } else if (targetSection === 'my-vibe') {
+        url = '/api/music/my-vibe';
+      } else if (targetSection === 'popular') {
+        params.sort = 'popular';
+      } else if (targetSection === 'new') {
+        params.sort = 'date';
+      } else if (targetSection === 'random') {
+        params.random = true;
+        params.nocache = Math.random();
+      }
+      
+      setIsLoading(true);
+      isLoadingRef.current = true;
+      
+      const response = await axios.get(url, { params });
+      
+      if (response.data && response.data.tracks) {
+        const receivedTracks = response.data.tracks;
+        
+        if (targetSection === 'all') {
+          setTracks(receivedTracks);
+        } else if (targetSection === 'popular') {
+          setPopularTracks(receivedTracks);
+        } else if (targetSection === 'liked') {
+          setLikedTracks(receivedTracks);
+        } else if (targetSection === 'new') {
+          setNewTracks(receivedTracks);
+        } else if (targetSection === 'random') {
+          const shuffledTracks = [...receivedTracks].sort(() => Math.random() - 0.5);
+          setRandomTracks(shuffledTracks);
+        } else if (targetSection === 'my-vibe') {
+          setMyVibeTracks(receivedTracks);
+        }
+        
+        setHasMoreTracks(receivedTracks.length >= 50);
+        setHasMoreByType(prev => ({ ...prev, [targetSection]: receivedTracks.length >= 50 }));
+        
+        console.log(`Принудительно загружено ${receivedTracks.length} треков для секции: ${targetSection}`);
+      }
+    } catch (error) {
+      console.error('Ошибка при принудительной загрузке треков:', error);
+    } finally {
+      setIsLoading(false);
+      isLoadingRef.current = false;
+    }
+  }, [currentSection]);
   
   
   const musicContextValue = {
@@ -2505,6 +2577,7 @@ export const MusicProvider = ({ children }) => {
     setPlaylistTracks,
     openFullScreenPlayer,
     closeFullScreenPlayer,
+    forceLoadTracks,
   };
 
   return (

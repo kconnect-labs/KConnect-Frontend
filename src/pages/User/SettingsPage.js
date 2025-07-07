@@ -5733,6 +5733,7 @@ const SettingsPage = () => {
           activeTab={activeTab} 
           onTabChange={handleTabChange}
           user={user}
+          isMobile={isMobile}
           />
         
           <Box sx={{ mt: 4, borderTop: '1px solid rgba(255, 255, 255, 0.12)', pt: 3 }}>

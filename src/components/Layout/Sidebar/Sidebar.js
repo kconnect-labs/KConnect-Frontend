@@ -68,7 +68,11 @@ const areEqual = (prevProps, nextProps) => {
 };
 
 
-const Sidebar = memo(() => {
+const Sidebar = memo(({ isMobile }) => {
+  // На мобильных устройствах сайдбар вообще не рендерится
+  if (isMobile) {
+    return null;
+  }
   const { user } = useContext(AuthContext);
   const { themeSettings } = useContext(ThemeSettingsContext);
   const [isModeratorUser, setIsModeratorUser] = useState(false);

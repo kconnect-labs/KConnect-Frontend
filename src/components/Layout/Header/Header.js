@@ -354,6 +354,8 @@ const Header = ({ toggleSidebar }) => {
   const [languageMenuAnchorEl, setLanguageMenuAnchorEl] = useState(null);
   const isLanguageMenuOpen = Boolean(languageMenuAnchorEl);
 
+  const [isInMessengerChat, setIsInMessengerChat] = useState(false);
+
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -1007,10 +1009,24 @@ const Header = ({ toggleSidebar }) => {
     </Menu>
   );
 
+  useEffect(() => {
+    const handleMessengerLayoutChange = (event) => {
+      const { isInChat } = event.detail;
+      console.log('Header: Received messenger-layout-change event, isInChat:', isInChat);
+      setIsInMessengerChat(isInChat);
+    };
+    
+    document.addEventListener('messenger-layout-change', handleMessengerLayoutChange);
+    
+    return () => {
+      document.removeEventListener('messenger-layout-change', handleMessengerLayoutChange);
+    };
+  }, []);
+
   return (
     <StyledAppBar 
       sx={{ 
-        display: isMusicPage && isMobile ? 'none' : 'block',
+        display: (isMusicPage && isMobile) || isInMessengerChat ? 'none' : 'block',
       }}
       style={themeValues.headerStyle}
     >
@@ -1023,42 +1039,43 @@ const Header = ({ toggleSidebar }) => {
         }
       }} />
       <StyledToolbar>
+        {/* Мобильный плеер рендерится только на мобильных устройствах */}
         {isMobile && currentTrack && (
-              <IconButton
-                color={showMobilePlayer ? 'primary' : 'inherit'}
+          <IconButton
+            color={showMobilePlayer ? 'primary' : 'inherit'}
             onClick={() => setShowMobilePlayer(v => !v)}
-                sx={{
-                  mr: 1,
-                  opacity: 0.6,
-                  transition: 'all 0.2s',
-                  '&:hover': { opacity: 1 },
-                  bgcolor: showMobilePlayer ? alpha(theme.palette.primary.main, 0.08) : 'transparent',
-                }}
-              >
-                <Icon icon="solar:music-note-2-bold" width="24" height="24" sx={{ color: theme.palette.primary.main }} />
-              </IconButton>
+            sx={{
+              mr: 1,
+              opacity: 0.6,
+              transition: 'all 0.2s',
+              '&:hover': { opacity: 1 },
+              bgcolor: showMobilePlayer ? alpha(theme.palette.primary.main, 0.08) : 'transparent',
+            }}
+          >
+            <Icon icon="solar:music-note-2-bold" width="24" height="24" sx={{ color: theme.palette.primary.main }} />
+          </IconButton>
         )}
-        {isMobile ? (
+        {isMobile && (
           <Collapse in={showMobilePlayer} timeout={300} unmountOnExit sx={{ width: '100%' }}>
             <Box sx={{ width: '100%' }}>
-                  <HeaderPlayer
-                    currentTrack={currentTrack}
-                    isPlaying={isPlaying}
-                    isMuted={isMuted}
-                    volume={volume}
-                    togglePlay={togglePlay}
-                    nextTrack={nextTrack}
-                    prevTrack={prevTrack}
-                    toggleMute={toggleMute}
-                    setVolume={setVolume}
-                    theme={theme}
-                    truncateTitle={truncateTitle}
-                    isMobile={true}
-                    onOpenFullscreen={openFullScreenPlayer}
-                  />
-                </Box>
-              </Collapse>
-        ) : null}
+              <HeaderPlayer
+                currentTrack={currentTrack}
+                isPlaying={isPlaying}
+                isMuted={isMuted}
+                volume={volume}
+                togglePlay={togglePlay}
+                nextTrack={nextTrack}
+                prevTrack={prevTrack}
+                toggleMute={toggleMute}
+                setVolume={setVolume}
+                theme={theme}
+                truncateTitle={truncateTitle}
+                isMobile={true}
+                onOpenFullscreen={openFullScreenPlayer}
+              />
+            </Box>
+          </Collapse>
+        )}
         {isMobile && showMobilePlayer ? null : (
           <>
             {isMobile ? (
@@ -1161,6 +1178,7 @@ const Header = ({ toggleSidebar }) => {
                   handleSearchItemClick={handleSearchItemClick}
                   toggleSearch={toggleSearch}
                 />
+                {/* Desktop плеер рендерится только на PC */}
                 {!showSearch && !isMobile && (
                   <HeaderPlayer
                     currentTrack={currentTrack}
@@ -1175,6 +1193,7 @@ const Header = ({ toggleSidebar }) => {
                     theme={theme}
                     truncateTitle={truncateTitle}
                     onOpenFullscreen={openFullScreenPlayer}
+                    isMobile={isMobile}
                   />
                 )}
               </Box>

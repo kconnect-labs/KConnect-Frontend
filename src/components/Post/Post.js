@@ -373,14 +373,12 @@ const Post = ({ post, onDelete, onOpenLightbox, isPinned: isPinnedPost, statusCo
       
       try {
         if (post.music) {
-          console.log('Processing music data:', post.music);
           let parsedTracks;
           
           if (typeof post.music === 'string') {
             try {
               parsedTracks = JSON.parse(post.music);
             } catch (parseError) {
-              console.error('Failed to parse music JSON:', parseError);
               parsedTracks = [];
             }
           } else if (Array.isArray(post.music)) {
@@ -395,7 +393,6 @@ const Post = ({ post, onDelete, onOpenLightbox, isPinned: isPinnedPost, statusCo
           setMusicTracks([]);
         }
       } catch (musicError) {
-        console.error('Error processing music data:', musicError);
         setMusicTracks([]);
       }
     }
@@ -1036,14 +1033,12 @@ const Post = ({ post, onDelete, onOpenLightbox, isPinned: isPinnedPost, statusCo
   
   useEffect(() => {
     if (post && post.id) {
-      console.log(`Post ${post.id} music data:`, post.music);
     }
   }, [post]);
   
   
   useEffect(() => {
     if (musicTracks.length > 0) {
-      console.log(`Rendering post ${post.id} with ${musicTracks.length} music tracks:`, musicTracks);
     }
   }, [musicTracks, post.id]);
 
@@ -1486,7 +1481,7 @@ const Post = ({ post, onDelete, onOpenLightbox, isPinned: isPinnedPost, statusCo
       
       const loadSpiderAnimation = async () => {
         try {
-          const response = await fetch('https://k-connect.ru/static/json/error/spider.json');
+          const response = await fetch('/static/json/error/spider.json');
           const animationData = await response.json();
           setSpiderAnimation(animationData);
         } catch (error) {

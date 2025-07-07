@@ -264,6 +264,9 @@ const ClickerPage = () => {
   const isInitialRender = useRef(true);
   
   
+  // ДОБАВИТЬ:
+  // Состояние для лимита кликов
+  const [clicksLimitReached, setClicksLimitReached] = useState(false);
     
   useEffect(() => {
     fetchBalance();
@@ -312,6 +315,11 @@ const ClickerPage = () => {
   useEffect(() => {
     
     const intervalHandler = () => {
+      // Проверяем лимит кликов
+      if (clicksLimitReached) {
+        return;
+      }
+      
       const now = Date.now();
       const secondsElapsed = (now - lastAutoClick) / 1000;
       const timeSinceLastManualClick = now - lastClickTimeRef.current;
@@ -354,9 +362,15 @@ const ClickerPage = () => {
             if (response?.data.success) {
               setBalance(response.data.balance);
               setTotalEarned(prev => prev + response.data.earned);
+              // Проверяем лимит
+              if (response.data.total_clicks >= response.data.clicks_limit) {
+                setClicksLimitReached(true);
+              }
             }
           }).catch(error => {
-            if (error.response?.status === 429 || error.response?.status === 403) {
+            if (error.response?.data?.message?.includes('лимита')) {
+              setClicksLimitReached(true);
+            } else if (error.response?.status === 429 || error.response?.status === 403) {
               console.warn('Автоклик временно недоступен:', error.response.data.message);
             }
           });
@@ -384,7 +398,7 @@ const ClickerPage = () => {
         clearInterval(autoClickIntervalRef.current);
       }
     };
-  }, [lastAutoClick, autoClickerPaused, upgrades, user?.id]);
+  }, [lastAutoClick, autoClickerPaused, upgrades, user?.id, clicksLimitReached]);
   
   const fetchBalance = useCallback(async () => {
     try {
@@ -399,6 +413,11 @@ const ClickerPage = () => {
       setUpgrades(response.data.upgrades);
       setMinWithdrawal(response.data.min_withdrawal);
       setUserPoints(response.data.user_points || 0);
+      
+      // Проверяем лимит кликов при загрузке
+      if (response.data.total_clicks >= 100000) {
+        setClicksLimitReached(true);
+      }
       
       
       if (response.data.upgrades && response.data.upgrades.length > 0) {
@@ -433,61 +452,43 @@ const ClickerPage = () => {
   
   
   const sendBatchedClicks = useCallback(async () => {
-    if (pendingClicksRef.current === 0 || isSendingBatch) return;
-    
+    if (pendingClicksRef.current === 0 || isSendingBatch || clicksLimitReached) return;
     setIsSendingBatch(true);
     const clicksToSend = pendingClicksRef.current;
     pendingClicksRef.current = 0;
-    
-    console.log(`ОТПРАВЛЯЕМ ${clicksToSend} КЛИКОВ НА СЕРВЕР`);
-    
     try {
-      // Проверяем наличие пользователя
-      if (!user?.id) {
-        console.error('User ID not available for token request');
-        return;
-      }
-      
-      // Получаем безопасный токен с сервера
+      if (!user?.id) return;
       const currentTime = Math.floor(Date.now() / 1000);
       const currentMinute = Math.floor(currentTime / 60);
       const challenge = `react_clicker_${user.id}_${currentMinute}`;
-      
       const tokenResponse = await axios.post('/api/clicker/get-token', {
         action: 'click',
         challenge: challenge
       });
-      
-      if (!tokenResponse.data.success) {
-        console.error('Не удалось получить токен:', tokenResponse.data.message);
-        return;
-      }
-      
+      if (!tokenResponse.data.success) return;
       const { token, timestamp } = tokenResponse.data;
-      
       const response = await axios.post('/api/clicker/click', { 
         clicks: clicksToSend,
         click_token: token,
         timestamp: timestamp
       });
-      
       if (response.data.success) {
-        console.log(`Сервер обработал ${response.data.clicks_processed} кликов`);
-        console.log(`Заработано: ${response.data.earned}, новый баланс: ${response.data.balance}`);
         setBalance(response.data.balance);
         setTotalEarned(prev => prev + response.data.earned);
+        // Проверяем лимит
+        if (response.data.total_clicks >= response.data.clicks_limit) {
+          setClicksLimitReached(true);
+        }
       }
     } catch (error) {
-      console.error('Ошибка при обработке кликов:', error);
-      if (error.response?.status === 429) {
-        toast.error(error.response.data.message || 'Превышен лимит запросов');
-      } else if (error.response?.status === 403) {
-        toast.error('Ошибка безопасности. Попробуйте перезагрузить страницу.');
+      if (error.response?.data?.message?.includes('лимита')) {
+        setClicksLimitReached(true);
+        toast.error(error.response.data.message);
       }
     } finally {
       setIsSendingBatch(false);
     }
-  }, [user?.id, isSendingBatch]);
+  }, [user?.id, isSendingBatch, clicksLimitReached]);
   
 
   
@@ -551,52 +552,45 @@ const ClickerPage = () => {
 
   
   const handleAutoClick = useCallback(async (seconds) => {
+    if (clicksLimitReached) return;
     const autoClickUpgrade = upgrades.find(u => u.type === 'auto_click');
     if (!autoClickUpgrade || autoClickUpgrade.level === 0) return;
-    
     try {
-      // Проверяем наличие пользователя
-      if (!user?.id) {
-        console.error('User ID not available for auto-click token request');
-        return;
-      }
-      
-      // Получаем безопасный токен для автоклика
+      if (!user?.id) return;
       const currentTime = Math.floor(Date.now() / 1000);
       const currentMinute = Math.floor(currentTime / 60);
       const challenge = `react_clicker_${user.id}_${currentMinute}`;
-      
       const tokenResponse = await axios.post('/api/clicker/get-token', {
         action: 'auto_click',
         challenge: challenge
       });
-      
-      if (!tokenResponse.data.success) {
-        console.error('Не удалось получить токен автоклика:', tokenResponse.data.message);
-        return;
-      }
-      
+      if (!tokenResponse.data.success) return;
       const { token, timestamp } = tokenResponse.data;
-      
       const response = await axios.post('/api/clicker/auto-click', { 
         seconds,
         auto_click_token: token,
         timestamp: timestamp
       });
-      
       if (response.data.success) {
         setBalance(response.data.balance);
         setTotalEarned(prev => prev + response.data.earned);
+        if (response.data.total_clicks >= response.data.clicks_limit) {
+          setClicksLimitReached(true);
+        }
       }
     } catch (error) {
-      // Не логируем ошибки автоклика, чтобы не засорять консоль
-      if (error.response?.status === 429 || error.response?.status === 403) {
-        console.warn('Автоклик временно недоступен:', error.response.data.message);
+      if (error.response?.data?.message?.includes('лимита')) {
+        setClicksLimitReached(true);
+        toast.error(error.response.data.message);
+      }
     }
-    }
-  }, [upgrades, user?.id]);
+  }, [upgrades, user?.id, clicksLimitReached]);
   
   const handleBuyUpgrade = useCallback(async (upgradeType) => {
+    if (clicksLimitReached) {
+      toast.error('Вы достигли лимита кликов, улучшения недоступны');
+      return;
+    }
     try {
       const response = await axios.post('/api/clicker/buy-upgrade', { 
         upgrade_type: upgradeType
@@ -635,7 +629,7 @@ const ClickerPage = () => {
         toast.error('Ошибка при покупке улучшения');
       }
     }
-  }, [upgrades, userPoints]);
+  }, [upgrades, userPoints, clicksLimitReached]);
   
   const handleWithdrawPoints = useCallback(async () => {
     try {
@@ -682,6 +676,7 @@ const ClickerPage = () => {
 
   // Мемоизируем обработчик кликов
   const handleClick = useCallback(() => {
+    if (clicksLimitReached) return;
     // Add click animation to button
     const clickButton = document.querySelector('.click-button');
     if (clickButton) {
@@ -796,6 +791,7 @@ const ClickerPage = () => {
       size="large"
       onClick={handleNavigateToShop}
       startIcon={<UpgradeIcon />}
+      disabled={clicksLimitReached}
       sx={{ 
         borderRadius: 16, 
         py: 2,
@@ -810,12 +806,17 @@ const ClickerPage = () => {
           background: alpha(theme.palette.primary.main, 0.1),
           transform: 'translateY(-2px)',
           boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.2)}`
+        },
+        '&:disabled': {
+          opacity: 0.6,
+          transform: 'none',
+          boxShadow: 'none'
         }
       }}
     >
       Улучшения
     </Button>
-  ), [handleNavigateToShop, theme]);
+  ), [handleNavigateToShop, theme, clicksLimitReached]);
 
   // Изолированная кнопка вывода - ререндерится только при пересечении минимального порога
   const WithdrawButton = useMemo(() => {
@@ -961,62 +962,84 @@ const ClickerPage = () => {
       </BalanceCard>
       
       <Box sx={{ position: 'relative', mb: 3 }}>
-        <ClickButton 
-          variant="contained" 
-          onClick={handleClick}
-          className="click-button"
-          disableRipple
-        >
-          <Box sx={{
-            width: 60,
-            height: 60,
-            minWidth: 60,
-            minHeight: 60,
-            borderRadius: '50%',
-            background: alpha('#ffffff', 0.15),
+        {clicksLimitReached ? (
+          <Paper sx={{ 
+            p: 4, 
+            borderRadius: 4, 
+            textAlign: 'center', 
+            bgcolor: alpha(theme.palette.error.main, 0.08), 
+            border: `2px solid ${alpha(theme.palette.error.main, 0.2)}`,
+            minHeight: 200,
             display: 'flex',
-            alignItems: 'center',
+            flexDirection: 'column',
             justifyContent: 'center',
-            mb: 1,
-            backdropFilter: 'blur(8px)',
-            border: `2px solid ${alpha('#ffffff', 0.2)}`,
-            transition: 'all 0.3s ease',
-            flexShrink: 0
+            alignItems: 'center'
           }}>
-          <TouchAppIcon sx={{ 
-              fontSize: 32,
-              width: 32,
-              height: 32,
-              color: '#ffffff',
-              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+            <Typography variant="h5" color="error" sx={{ fontWeight: 'bold', mb: 2 }}>
+              Лимит кликов!
+            </Typography>
+            <Typography variant="body1" color="textSecondary">
+              Вы достигли своего лимита, ожидайте новый сезон
+            </Typography>
+          </Paper>
+        ) : (
+          <ClickButton 
+            variant="contained" 
+            onClick={handleClick}
+            className="click-button"
+            disableRipple
+          >
+            <Box sx={{
+              width: 60,
+              height: 60,
+              minWidth: 60,
+              minHeight: 60,
+              borderRadius: '50%',
+              background: alpha('#ffffff', 0.15),
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mb: 1,
+              backdropFilter: 'blur(8px)',
+              border: `2px solid ${alpha('#ffffff', 0.2)}`,
+              transition: 'all 0.3s ease',
               flexShrink: 0
-            }} />
-          </Box>
-          <Typography variant="h5" sx={{ 
-            fontWeight: 700, 
-            mb: 1,
-            textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-            letterSpacing: 0.5
-          }}>
-            КЛИК
-          </Typography>
-          <Typography variant="body1" sx={{ 
-            bgcolor: alpha('#ffffff', 0.15),
-            px: 3, 
-            py: 1, 
-            borderRadius: 20,
-            backdropFilter: 'blur(8px)',
-            border: `1px solid ${alpha('#ffffff', 0.2)}`,
-            fontWeight: 600,
-            fontSize: '0.9rem',
-            textShadow: '0 1px 2px rgba(0,0,0,0.2)'
-          }}>
-            +{clickPowerWithMultiplier.toFixed(3)} за клик
-          </Typography>
-          
-          
-          {ClickEffects}
-        </ClickButton>
+            }}>
+            <TouchAppIcon sx={{ 
+                fontSize: 32,
+                width: 32,
+                height: 32,
+                color: '#ffffff',
+                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+                flexShrink: 0
+              }} />
+            </Box>
+            <Typography variant="h5" sx={{ 
+              fontWeight: 700, 
+              mb: 1,
+              textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+              letterSpacing: 0.5
+            }}>
+              КЛИК
+            </Typography>
+            <Typography variant="body1" sx={{ 
+              bgcolor: alpha('#ffffff', 0.15),
+              px: 3, 
+              py: 1, 
+              borderRadius: 20,
+              backdropFilter: 'blur(8px)',
+              border: `1px solid ${alpha('#ffffff', 0.2)}`,
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              textShadow: '0 1px 2px rgba(0,0,0,0.2)'
+            }}>
+              +{clickPowerWithMultiplier.toFixed(3)} за клик
+            </Typography>
+            
+            
+            {ClickEffects}
+          </ClickButton>
+        )}
       </Box>
 
       <Grid container spacing={2}>
@@ -1028,7 +1051,7 @@ const ClickerPage = () => {
         </Grid>
       </Grid>
     </Box>
-  ), [balance, clickPower, totalEarned, autoClickerPaused, rapidClicksEnabled, clickPowerWithMultiplier, getUpgrade, handleRapidClicksChange, handleClick, ClickEffects]);
+  ), [balance, clickPower, totalEarned, autoClickerPaused, rapidClicksEnabled, clickPowerWithMultiplier, getUpgrade, handleRapidClicksChange, handleClick, ClickEffects, clicksLimitReached, theme]);
   
   const renderShopSection = useMemo(() => (
     <Box>
@@ -1143,7 +1166,7 @@ const ClickerPage = () => {
                 fullWidth
                 variant="contained"
                 color="primary"
-                disabled={userPoints < getUpgrade('click_power').next_level_cost}
+                disabled={userPoints < getUpgrade('click_power').next_level_cost || clicksLimitReached}
                 sx={{ mt: 2, borderRadius: 2 }}
                 onClick={() => handleBuyUpgrade('click_power')}
                 startIcon={<UpgradeIcon />}
@@ -1227,7 +1250,7 @@ const ClickerPage = () => {
                 fullWidth
                 variant="contained"
                 color="success"
-                disabled={userPoints < getUpgrade('auto_click').next_level_cost}
+                disabled={userPoints < getUpgrade('auto_click').next_level_cost || clicksLimitReached}
                 sx={{ mt: 2, borderRadius: 2 }}
                 onClick={() => handleBuyUpgrade('auto_click')}
                 startIcon={<UpgradeIcon />}
@@ -1311,7 +1334,7 @@ const ClickerPage = () => {
                 fullWidth
                 variant="contained"
                 color="secondary"
-                disabled={userPoints < getUpgrade('multiplier').next_level_cost}
+                disabled={userPoints < getUpgrade('multiplier').next_level_cost || clicksLimitReached}
                 sx={{ mt: 2, borderRadius: 2 }}
                 onClick={() => handleBuyUpgrade('multiplier')}
                 startIcon={<UpgradeIcon />}
@@ -1323,13 +1346,31 @@ const ClickerPage = () => {
         </Grid>
       </Grid>
     </Box>
-  ), [upgrades, userPoints, getUpgrade, handleBuyUpgrade]);
+  ), [upgrades, userPoints, getUpgrade, handleBuyUpgrade, clicksLimitReached]);
   
   const renderStatsSection = useMemo(() => (
     <Box>
       <Typography variant="h5" sx={{ mb: 2, fontWeight: 'medium' }}>
         Статистика
       </Typography>
+      
+      {clicksLimitReached && (
+        <Paper sx={{ 
+          p: 3, 
+          borderRadius: 3, 
+          textAlign: 'center', 
+          bgcolor: alpha(theme.palette.error.main, 0.08), 
+          border: `2px solid ${alpha(theme.palette.error.main, 0.2)}`,
+          mb: 3
+        }}>
+          <Typography variant="h6" color="error" sx={{ fontWeight: 'bold', mb: 1 }}>
+            Лимит кликов достигнут!
+          </Typography>
+          <Typography variant="body2" color="textSecondary">
+            Вы достигли своего лимита в 100,000 кликов. Ожидайте новый сезон для продолжения игры.
+          </Typography>
+        </Paper>
+      )}
       
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={6}>
@@ -1453,7 +1494,7 @@ const ClickerPage = () => {
         Вернуться к клику
       </Button>
     </Box>
-  ), [balance, totalEarned, totalWithdrawn, upgrades, getUpgrade, handleNavigateToClick]);
+  ), [balance, totalEarned, totalWithdrawn, upgrades, getUpgrade, handleNavigateToClick, clicksLimitReached, theme]);
   
   
   const renderLeaderboardSection = useMemo(() => (

@@ -19,7 +19,7 @@
 }
 
 body, html, button, input, textarea, select, p, h1, h2, h3, h4, h5, h6, a, span, div {
-  font-family: var(--font-family) !important;
+  font-family: var(--font-family) ;
 }
 
 * {

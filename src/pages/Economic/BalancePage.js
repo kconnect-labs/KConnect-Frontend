@@ -796,9 +796,8 @@ const BalancePage = () => {
         let title = transaction.description || t('balance.transactions.transaction');
         let type = transaction.transaction_type || 'unknown';
         
-
-        if (type.includes('blackjack') || type.includes('minigame')) {
-
+        // Игровые транзакции (Blackjack)
+        if (type.includes('blackjack')) {
           if (type === 'blackjack_win' || type === 'blackjack_win_21') {
             icon = <CasinoIcon sx={{ color: 'success.main' }} />;
             title = t('balance.transactions.blackjack_win');
@@ -808,12 +807,116 @@ const BalancePage = () => {
           } else if (type === 'blackjack_lose' || type === 'blackjack_lose_bust') {
             icon = <CasinoIcon sx={{ color: 'error.main' }} />;
             title = t('balance.transactions.blackjack_lose');
-          } else if (type === 'minigame_bet') {
-            icon = <SportsEsportsIcon sx={{ color: 'error.main' }} />;
-            title = t('balance.transactions.minigame_bet');
-          } else {
-            icon = <SportsEsportsIcon sx={{ color: transaction.amount > 0 ? 'success.main' : 'error.main' }} />;
+          } else if (type === 'blackjack_bet') {
+            icon = <CasinoIcon sx={{ color: 'error.main' }} />;
+            title = t('balance.transactions.blackjack_bet');
           }
+        }
+        // Игровые транзакции (Roulette)
+        else if (type.includes('roulette')) {
+          if (type === 'roulette_win') {
+            icon = <CasinoIcon sx={{ color: 'success.main' }} />;
+            title = t('balance.transactions.roulette_win');
+          } else if (type === 'roulette_bet') {
+            icon = <CasinoIcon sx={{ color: 'error.main' }} />;
+            title = t('balance.transactions.roulette_bet');
+          }
+        }
+        // Игровые транзакции (Cups)
+        else if (type === 'cups_win') {
+          icon = <CasinoIcon sx={{ color: 'success.main' }} />;
+          title = t('balance.transactions.cups_win');
+        }
+        // Мини-игры
+        else if (type === 'minigame_bet') {
+          icon = <SportsEsportsIcon sx={{ color: 'error.main' }} />;
+          title = t('balance.transactions.minigame_bet');
+        }
+        // Аукционы
+        else if (type.includes('auction') && !type.includes('username_auction')) {
+          if (type === 'auction_bid' || type === 'auction_bid_increase') {
+            icon = <TagIcon sx={{ color: 'error.main' }} />;
+            title = t('balance.transactions.auction_bid');
+          } else if (type === 'auction_bid_refund' || type === 'auction_refund') {
+            icon = <TagIcon sx={{ color: 'success.main' }} />;
+            title = t('balance.transactions.auction_refund');
+          } else if (type === 'auction_sale') {
+            icon = <TagIcon sx={{ color: 'success.main' }} />;
+            title = t('balance.transactions.auction_sale');
+          }
+        }
+        // Аукционы юзернеймов
+        else if (type.includes('username_auction')) {
+          if (type === 'username_auction_bid') {
+            icon = <AccountCircleIcon sx={{ color: 'error.main' }} />;
+            title = t('balance.transactions.username_auction_bid');
+          } else if (type === 'username_auction_refund') {
+            icon = <AccountCircleIcon sx={{ color: 'success.main' }} />;
+            title = t('balance.transactions.username_auction_refund');
+          } else if (type === 'username_auction_sale' || type === 'username_bid_accepted_sale') {
+            icon = <AccountCircleIcon sx={{ color: 'success.main' }} />;
+            title = t('balance.transactions.username_auction_sale');
+          }
+        }
+        // Покупки юзернеймов
+        else if (type === 'username_immediate_purchase' || type === 'username_purchase') {
+          icon = <AccountCircleIcon sx={{ color: 'error.main' }} />;
+          title = t('balance.transactions.username_purchase');
+        }
+        // Покупки пачек
+        else if (type === 'pack_purchase') {
+          icon = <ShoppingCartIcon sx={{ color: 'error.main' }} />;
+          title = t('balance.transactions.pack_purchase');
+        }
+        // Маркетплейс
+        else if (type.includes('marketplace')) {
+          if (type === 'marketplace_buy') {
+            icon = <ShoppingCartIcon sx={{ color: 'error.main' }} />;
+            title = t('balance.transactions.marketplace_buy');
+          } else if (type === 'marketplace_sell') {
+            icon = <ShoppingCartIcon sx={{ color: 'success.main' }} />;
+            title = t('balance.transactions.marketplace_sell');
+          }
+        }
+        // Передачи предметов
+        else if (type === 'item_transfer') {
+          icon = <SendIcon sx={{ color: 'error.main' }} />;
+          title = t('balance.transactions.item_transfer');
+        }
+        // Апгрейд предметов
+        else if (type === 'item_upgrade') {
+          icon = <TrendingUpIcon sx={{ color: 'error.main' }} />;
+          title = t('balance.transactions.item_upgrade');
+        }
+        // Конвертация
+        else if (type.includes('conversion')) {
+          if (type === 'conversion_deposit') {
+            icon = <AccountBalanceWalletIcon sx={{ color: 'success.main' }} />;
+            title = t('balance.transactions.conversion_deposit');
+          } else if (type === 'conversion_withdrawal') {
+            icon = <AccountBalanceWalletIcon sx={{ color: 'error.main' }} />;
+            title = t('balance.transactions.conversion_withdrawal');
+          }
+        }
+        // Компенсация
+        else if (type === 'compensation') {
+          icon = <MonetizationOnIcon sx={{ color: 'success.main' }} />;
+          title = t('balance.transactions.compensation');
+        }
+        // Кастомная активность
+        else if (type === 'custom_period_activity') {
+          icon = <TrendingUpIcon sx={{ color: 'success.main' }} />;
+          title = t('balance.transactions.custom_period_activity');
+        }
+        // Призы за топ
+        else if (type === 'top_prize') {
+          icon = <DiamondIcon sx={{ color: 'success.main' }} />;
+          title = t('balance.transactions.top_prize');
+        }
+        // По умолчанию
+        else {
+          icon = <SportsEsportsIcon sx={{ color: transaction.amount > 0 ? 'success.main' : 'error.main' }} />;
+          title = transaction.description || t('balance.transactions.transaction');
         }
         
         return {
@@ -1425,6 +1528,8 @@ const BalancePage = () => {
     switch (transaction.transaction_type) {
       case 'weekly_activity':
         return 'Еженедельное начисление баллов за активность';
+      case 'custom_period_activity':
+        return 'Начисление баллов за активность за период';
       case 'top_prize':
         if (transaction.description.includes('Ultimate подписка')) {
           return 'Приз за 1 место - Ultimate подписка на 30 дней';
@@ -1434,6 +1539,58 @@ const BalancePage = () => {
           return 'Приз за 3 место - бонусные баллы';
         }
         return transaction.description;
+      case 'compensation':
+        return 'Компенсация';
+      case 'conversion_deposit':
+        return 'Конвертация - пополнение';
+      case 'conversion_withdrawal':
+        return 'Конвертация - списание';
+      case 'blackjack_win':
+      case 'blackjack_win_21':
+        return 'Выигрыш в блэкджек';
+      case 'blackjack_lose':
+      case 'blackjack_lose_bust':
+        return 'Проигрыш в блэкджек';
+      case 'blackjack_tie':
+        return 'Ничья в блэкджек';
+      case 'blackjack_bet':
+        return 'Ставка в блэкджек';
+      case 'roulette_win':
+        return 'Выигрыш в рулетке';
+      case 'roulette_bet':
+        return 'Ставка в рулетке';
+      case 'cups_win':
+        return 'Выигрыш в игре "Чашки"';
+      case 'minigame_bet':
+        return 'Ставка в мини-игре';
+      case 'auction_bid':
+      case 'auction_bid_increase':
+        return 'Ставка на аукционе';
+      case 'auction_bid_refund':
+      case 'auction_refund':
+        return 'Возврат ставки с аукциона';
+      case 'auction_sale':
+        return 'Продажа на аукционе';
+      case 'username_auction_bid':
+        return 'Ставка на аукционе юзернейма';
+      case 'username_auction_refund':
+        return 'Возврат ставки с аукциона юзернейма';
+      case 'username_auction_sale':
+      case 'username_bid_accepted_sale':
+        return 'Продажа юзернейма на аукционе';
+      case 'username_immediate_purchase':
+      case 'username_purchase':
+        return 'Покупка юзернейма';
+      case 'pack_purchase':
+        return 'Покупка пачки';
+      case 'marketplace_buy':
+        return 'Покупка на маркетплейсе';
+      case 'marketplace_sell':
+        return 'Продажа на маркетплейсе';
+      case 'item_transfer':
+        return 'Передача предмета';
+      case 'item_upgrade':
+        return 'Апгрейд предмета';
       case 'purchase':
         return 'Покупка';
       case 'transfer':
@@ -1450,7 +1607,27 @@ const BalancePage = () => {
   };
 
   const renderTransactionRow = (transaction) => {
-    const isPositive = ['weekly_activity', 'top_prize', 'royalty', 'key_redeem'].includes(transaction.transaction_type);
+    const positiveTypes = [
+      'weekly_activity', 
+      'custom_period_activity',
+      'top_prize', 
+      'royalty', 
+      'key_redeem',
+      'compensation',
+      'conversion_deposit',
+      'blackjack_win',
+      'blackjack_win_21',
+      'roulette_win',
+      'cups_win',
+      'auction_bid_refund',
+      'auction_refund',
+      'auction_sale',
+      'username_auction_refund',
+      'username_auction_sale',
+      'username_bid_accepted_sale',
+      'marketplace_sell'
+    ];
+    const isPositive = positiveTypes.includes(transaction.transaction_type);
     const amount = transaction.amount || 0;
     
     return (
@@ -1819,9 +1996,14 @@ const BalancePage = () => {
                       selectedTransaction.type === 'purchase' ? t('balance.transactions.badge_purchase') :
                       selectedTransaction.type === 'royalty' ? t('balance.transactions.royalty_from_purchase') :
                       selectedTransaction.type === 'weekly_activity' ? t('balance.transactions.weekly_points') :
+                      selectedTransaction.type === 'custom_period_activity' ? t('balance.transactions.custom_period_activity') :
                       selectedTransaction.type === 'username' ? t('balance.transactions.username_purchase') :
-                      selectedTransaction.type === 'game' ? t('balance.transactions.game_transaction') :
-                      t('balance.transactions.transaction')
+                      selectedTransaction.type === 'game' ? getTransactionDescription(selectedTransaction) :
+                      selectedTransaction.type === 'compensation' ? t('balance.transactions.compensation') :
+                      selectedTransaction.type === 'conversion_deposit' ? t('balance.transactions.conversion_deposit') :
+                      selectedTransaction.type === 'conversion_withdrawal' ? t('balance.transactions.conversion_withdrawal') :
+                      selectedTransaction.type === 'top_prize' ? t('balance.transactions.top_prize') :
+                      getTransactionDescription(selectedTransaction)
                     }
                   </Typography>
                 </Box>

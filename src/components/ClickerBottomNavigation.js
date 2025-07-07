@@ -5,7 +5,11 @@ import { Icon } from '@iconify/react';
 import { useTheme } from '@mui/material/styles';
 import { ThemeSettingsContext } from '../App';
 
-const ClickerBottomNavigation = ({ activeSection, onSectionChange }) => {
+const ClickerBottomNavigation = ({ activeSection, onSectionChange, isMobile }) => {
+  // ClickerBottomNavigation рендерится только на мобильных устройствах
+  if (!isMobile) {
+    return null;
+  }
   const navigate = useNavigate();
   const theme = useTheme();
   const { themeSettings } = useContext(ThemeSettingsContext);

@@ -31,22 +31,18 @@ export const parseDate = (dateString) => {
   if (!dateString) return new Date();
   
   
-  console.log(`Parsing date string: "${dateString}"`);
   
   
   if (dateString.endsWith('Z')) {
-    console.log('  ✓ String has Z suffix, parsing as UTC');
     return new Date(dateString);
   } 
   
   else if (dateString.includes('T') && !dateString.includes('Z')) {
-    console.log('  ✓ String is ISO format but missing Z, adding Z suffix');
     
     return new Date(dateString + 'Z');
   } 
   
   else {
-    console.log('  ✓ String format uncertain, parsing as-is');
     return new Date(dateString);
   }
 };

@@ -8,8 +8,13 @@ const UIBottomNavigation = ({
   onChange, 
   children, 
   id,
-  sx = {}
+  sx = {},
+  isMobile
 }) => {
+  // UIBottomNavigation рендерится только на мобильных устройствах
+  if (!isMobile) {
+    return null;
+  }
   const theme = useTheme();
   const { themeSettings } = useContext(ThemeSettingsContext);
 

@@ -10,7 +10,11 @@ import SellIcon from '@mui/icons-material/Sell';
 import { useTheme } from '@mui/material/styles';
 import { ThemeSettingsContext } from '../App';
 
-const BadgeShopBottomNavigation = ({ tabValue, onTabChange }) => {
+const BadgeShopBottomNavigation = ({ tabValue, onTabChange, isMobile }) => {
+  // BadgeShopBottomNavigation рендерится только на мобильных устройствах
+  if (!isMobile) {
+    return null;
+  }
   const navigate = useNavigate();
   const theme = useTheme();
   const { themeSettings } = useContext(ThemeSettingsContext);

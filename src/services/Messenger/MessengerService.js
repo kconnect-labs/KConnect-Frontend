@@ -649,7 +649,9 @@ class MessengerService {
                 }
               }
             })
-            .catch(() => );
+            .catch(() => {
+              console.debug('Failed to load user profile for avatar update');
+            });
         }
       }
       return this.normalizeMessage(message);

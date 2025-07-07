@@ -1,0 +1,35 @@
+.my-masonry-grid {
+  display: flex;
+  margin-left: -16px; /* gutter size offset */
+  width: auto;
+}
+.my-masonry-grid_column {
+  padding-left: 16px; /* gutter size */
+  background-clip: padding-box;
+}
+.my-masonry-grid_column > div {
+  margin-bottom: 16px;
+}
+
+@media (max-width: 1100px) {
+  .my-masonry-grid {
+    margin-left: -12px;
+  }
+  .my-masonry-grid_column {
+    padding-left: 12px;
+  }
+  .my-masonry-grid_column > div {
+    margin-bottom: 12px;
+  }
+}
+@media (max-width: 700px) {
+  .my-masonry-grid {
+    margin-left: -8px;
+  }
+  .my-masonry-grid_column {
+    padding-left: 8px;
+  }
+  .my-masonry-grid_column > div {
+    margin-bottom: 8px;
+  }
+} 

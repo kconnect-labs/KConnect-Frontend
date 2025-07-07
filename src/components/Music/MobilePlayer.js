@@ -103,7 +103,11 @@ const TrackInfo = memo(({ title, artist, onClick }) => (
   </Box>
 ));
 
-const MobilePlayer = memo(() => {
+const MobilePlayer = memo(({ isMobile }) => {
+  // MobilePlayer рендерится только на мобильных устройствах
+  if (!isMobile) {
+    return null;
+  }
   const theme = useTheme();
   const { themeSettings } = useContext(ThemeSettingsContext);
   const { 

@@ -84,6 +84,14 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
   '& .MuiFormHelperText-root': {
     marginLeft: 2,
     marginTop: 8
+  },
+  // Убираем стрелочки у поля ввода числа
+  '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': {
+    '-webkit-appearance': 'none',
+    margin: 0,
+  },
+  '& input[type=number]': {
+    '-moz-appearance': 'textfield',
   }
 }));
 
@@ -222,6 +230,7 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
   const [isTransferring, setIsTransferring] = useState(false);
   const [transferSuccess, setTransferSuccess] = useState(false);
   const [transferReceipt, setTransferReceipt] = useState(null);
+  const [includeCommissionMode, setIncludeCommissionMode] = useState(false);
   
   const debounceTimerRef = useRef(null);
 
@@ -340,6 +349,18 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
     };
   };
 
+  // Calculate amount with commission included (for desired recipient amount)
+  const calculateAmountWithCommission = (desiredAmount) => {
+    if (!desiredAmount || isNaN(desiredAmount)) return 0;
+    const numAmount = parseInt(desiredAmount);
+    // Если получатель должен получить X, а комиссия 10% от суммы списания,
+    // то: сумма_списания - (сумма_списания * 0.1) = X
+    // сумма_списания * 0.9 = X
+    // сумма_списания = X / 0.9
+    // Используем Math.round для более точного расчета
+    return Math.round(numAmount / 0.9);
+  };
+
   const handleTransferPoints = async () => {
     const errors = {};
     if (!transferData.username) errors.username = t('balance.transfer.errors.enter_username');
@@ -349,8 +370,15 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
     } else if (isNaN(transferData.amount) || parseInt(transferData.amount) <= 0) {
       errors.amount = t('balance.transfer.errors.positive_amount');
     } else {
-      const { total } = calculateCommission(transferData.amount);
-      if (total > userPoints) {
+      let amountToCheck;
+      if (includeCommissionMode) {
+        amountToCheck = calculateAmountWithCommission(transferData.amount);
+      } else {
+        const { total } = calculateCommission(transferData.amount);
+        amountToCheck = total;
+      }
+      
+      if (amountToCheck > userPoints) {
         errors.amount = t('balance.transfer.errors.insufficient_points');
       }
     }
@@ -365,9 +393,26 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
     setTransferErrors({});
     setIsTransferring(true);
     
-    const transferAmount = parseInt(transferData.amount);
-    const { commission, total, recipientAmount } = calculateCommission(transferAmount);
-    const newBalance = userPoints - total;
+    let transferAmount, commission, total, recipientAmount, newBalance;
+    
+    if (includeCommissionMode) {
+      // В режиме "с комиссией" пользователь вводит желаемую сумму к получению
+      // Нужно рассчитать сумму к списанию
+      transferAmount = calculateAmountWithCommission(transferData.amount);
+      const { commission: calcCommission, total: calcTotal, recipientAmount: calcRecipientAmount } = calculateCommission(transferAmount);
+      commission = calcCommission;
+      total = calcTotal;
+      recipientAmount = calcRecipientAmount;
+      newBalance = userPoints - total;
+    } else {
+      // В обычном режиме пользователь вводит сумму к списанию
+      transferAmount = parseInt(transferData.amount);
+      const { commission: calcCommission, total: calcTotal, recipientAmount: calcRecipientAmount } = calculateCommission(transferAmount);
+      commission = calcCommission;
+      total = calcTotal;
+      recipientAmount = calcRecipientAmount;
+      newBalance = userPoints - total;
+    }
     
     try {
       const response = await axios.post(`/api/user/transfer-points`, {
@@ -454,6 +499,15 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
     setTransferData(prev => ({...prev, username: '', recipient_id: null}));
     setUserSearch(prev => ({ ...prev, loading: false, exists: false, suggestions: [] }));
   };
+
+  const handleToggleCommissionMode = () => {
+    setIncludeCommissionMode(!includeCommissionMode);
+    // Clear amount when switching modes
+    setTransferData(prev => ({...prev, amount: ''}));
+    setTransferErrors(prev => ({...prev, amount: ''}));
+  };
+
+
 
   return (
     <StyledDialog 
@@ -610,8 +664,30 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
             )}
             
             <InputContainer>
+              {/* Mode toggle */}
+              <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                  {includeCommissionMode ? 'Режим: сумма к получению' : 'Режим: сумма к списанию'}
+                </Typography>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={handleToggleCommissionMode}
+                  sx={{
+                    color: 'rgba(255,255,255,0.7)',
+                    borderColor: 'rgba(255,255,255,0.3)',
+                    '&:hover': {
+                      borderColor: 'rgba(255,255,255,0.5)',
+                      backgroundColor: 'rgba(255,255,255,0.1)'
+                    }
+                  }}
+                >
+                  {includeCommissionMode ? 'Переключить на обычный' : 'Переключить на получение'}
+                </Button>
+              </Box>
+
               <StyledTextField
-                label={t('balance.transfer_menu.amount.label')}
+                label={includeCommissionMode ? 'Желаемая сумма к получению' : 'Сумма к списанию'}
                 fullWidth
                 variant="outlined"
                 type="number"
@@ -632,40 +708,80 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
               {transferData.amount && !transferErrors.amount && (
                 <Box sx={{ mt: 2, p: 2, bgcolor: 'rgba(0,0,0,0.2)', borderRadius: 1 }}>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
-                    {t('balance.transfer_menu.amount.details')}
+                    {includeCommissionMode ? 'Расчет с учетом комиссии' : t('balance.transfer_menu.amount.details')}
                   </Typography>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('balance.transfer_menu.amount.transfer_amount')}
-                    </Typography>
-                    <Typography variant="body2" color="text.primary">
-                      {transferData.amount} {t('balance.transfer_menu.points_suffix')}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('balance.transfer_menu.amount.commission')}
-                    </Typography>
-                    <Typography variant="body2" color="error">
-                      -{calculateCommission(transferData.amount).commission} {t('balance.transfer_menu.points_suffix')}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('balance.transfer_menu.amount.recipient_gets')}
-                    </Typography>
-                    <Typography variant="body2" color="success.main">
-                      {calculateCommission(transferData.amount).recipientAmount} {t('balance.transfer_menu.points_suffix')}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('balance.transfer_menu.amount.your_balance')}
-                    </Typography>
-                    <Typography variant="body2" color="text.primary">
-                      {userPoints - calculateCommission(transferData.amount).total} {t('balance.transfer_menu.points_suffix')}
-                    </Typography>
-                  </Box>
+                  
+                  {includeCommissionMode ? (
+                    <>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Желаемая сумма к получению
+                        </Typography>
+                        <Typography variant="body2" color="text.primary">
+                          {transferData.amount} {t('balance.transfer_menu.points_suffix')}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Комиссия (10%)
+                        </Typography>
+                        <Typography variant="body2" color="error">
+                          +{Math.floor(calculateAmountWithCommission(transferData.amount) * 0.1)} {t('balance.transfer_menu.points_suffix')}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Сумма к списанию
+                        </Typography>
+                        <Typography variant="body2" color="warning.main" fontWeight="bold">
+                          {calculateAmountWithCommission(transferData.amount)} {t('balance.transfer_menu.points_suffix')}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Typography variant="body2" color="text.secondary">
+                          {t('balance.transfer_menu.amount.your_balance')}
+                        </Typography>
+                        <Typography variant="body2" color="text.primary">
+                          {userPoints - calculateAmountWithCommission(transferData.amount)} {t('balance.transfer_menu.points_suffix')}
+                        </Typography>
+                      </Box>
+                    </>
+                  ) : (
+                    <>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          {t('balance.transfer_menu.amount.transfer_amount')}
+                        </Typography>
+                        <Typography variant="body2" color="text.primary">
+                          {transferData.amount} {t('balance.transfer_menu.points_suffix')}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          {t('balance.transfer_menu.amount.commission')}
+                        </Typography>
+                        <Typography variant="body2" color="error">
+                          -{calculateCommission(transferData.amount).commission} {t('balance.transfer_menu.points_suffix')}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          {t('balance.transfer_menu.amount.recipient_gets')}
+                        </Typography>
+                        <Typography variant="body2" color="success.main">
+                          {calculateCommission(transferData.amount).recipientAmount} {t('balance.transfer_menu.points_suffix')}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Typography variant="body2" color="text.secondary">
+                          {t('balance.transfer_menu.amount.your_balance')}
+                        </Typography>
+                        <Typography variant="body2" color="text.primary">
+                          {userPoints - calculateCommission(transferData.amount).total} {t('balance.transfer_menu.points_suffix')}
+                        </Typography>
+                      </Box>
+                    </>
+                  )}
                 </Box>
               )}
             </InputContainer>
@@ -708,7 +824,14 @@ const TransferMenu = ({ open, onClose, userPoints, onSuccess }) => {
             </CancelButton>
             <GradientButton 
               onClick={handleTransferPoints} 
-              disabled={!userSearch.exists || !transferData.recipient_id || userSearch.loading || !transferData.amount || isTransferring}
+              disabled={
+                !userSearch.exists || 
+                !transferData.recipient_id || 
+                userSearch.loading || 
+                !transferData.amount || 
+                isTransferring ||
+                (includeCommissionMode && calculateAmountWithCommission(transferData.amount) > userPoints)
+              }
               startIcon={isTransferring ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
             >
               {isTransferring ? t('balance.transfer_menu.buttons.processing') : t('balance.transfer_menu.buttons.transfer')}

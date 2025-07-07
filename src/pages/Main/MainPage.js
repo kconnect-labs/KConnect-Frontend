@@ -39,13 +39,15 @@ import { MusicContext } from '../../context/MusicContext';
 import PauseIcon from '@mui/icons-material/Pause';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
-import ContentLoader from '../../components/UI/ContentLoader';
+
 import TimerIcon from '@mui/icons-material/Timer';
 import UpdateInfo from '../../components/Updates/UpdateInfo';
 import UpdateService from '../../services/UpdateService';
 import SimpleImageViewer from '../../components/SimpleImageViewer';
 import DynamicIslandNotification from '../../components/DynamicIslandNotification';
 import WarningIcon from '@mui/icons-material/Warning';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import StarIcon from '@mui/icons-material/Star';
 // import TelegramIcon from '@mui/icons-material/Telegram';
 
 
@@ -124,6 +126,15 @@ const RightColumn = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('sm')]: {
     gap: theme.spacing(1), 
   },
+}));
+
+const SupportBlock = styled(Box)(({ theme }) => ({
+  borderRadius: '12px',
+  background: 'rgba(255, 255, 255, 0.03)',
+  backdropFilter: 'blur(20px)',
+  border: '1px solid rgba(255, 255, 255, 0.12)',
+  overflow: 'hidden',
+  position: 'relative',
 }));
 
 
@@ -1820,6 +1831,139 @@ const MainPage = React.memo(() => {
         
         <RightColumn>
           
+          <SupportBlock sx={{ display: { xs: 'none', sm: 'block' }, mb: '-5px' }}>
+            <Box sx={{ p: 1.5, pt: 1.5 }}>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                mb: 1.5,
+                gap: 1
+              }}>
+                <Box sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, rgba(208, 188, 255, 0.2), rgba(184, 169, 255, 0.15))',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '1px solid rgba(208, 188, 255, 0.3)',
+                  boxShadow: '0 2px 8px rgba(208, 188, 255, 0.15)'
+                }}>
+                  <FavoriteIcon sx={{ 
+                    color: '#D0BCFF', 
+                    fontSize: 20,
+                    filter: 'drop-shadow(0 1px 2px rgba(208, 188, 255, 0.3))'
+                  }} />
+                </Box>
+                <Box>
+                  <Typography variant="h6" sx={{ 
+                    fontWeight: 600, 
+                    color: '#D0BCFF',
+                    fontSize: '1.1rem',
+                    letterSpacing: '0.2px'
+                  }}>
+                    Поддержите проект
+                  </Typography>
+                  <Typography variant="caption" sx={{ 
+                    color: 'text.secondary',
+                    fontSize: '0.75rem',
+                    opacity: 0.8
+                  }}>
+                    Помогите развитию платформы
+                  </Typography>
+                </Box>
+              </Box>
+              
+              <Typography variant="body2" sx={{ 
+                color: 'text.secondary',
+                mb: 2,
+                lineHeight: 1.5,
+                fontSize: '0.85rem'
+              }}>
+                Ваша поддержка помогает нам создавать новые функции, улучшать производительность и развивать сообщество.
+              </Typography>
+              
+              <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={<StarIcon sx={{ fontSize: 16 }} />}
+                  onClick={() => window.open('https://boosty.to/qsoul', '_blank')}
+                  sx={{
+                    flex: 1,
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    fontSize: '0.8rem',
+                    background: 'rgba(208, 188, 255, 0.15)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(208, 188, 255, 0.3)',
+                    color: '#D0BCFF',
+                    '&:hover': {
+                      background: 'rgba(208, 188, 255, 0.25)',
+                      borderColor: 'rgba(208, 188, 255, 0.5)',
+                      transform: 'translateY(-1px)'
+                    },
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  Подписаться
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<FavoriteIcon sx={{ fontSize: 16 }} />}
+                  onClick={() => window.open('https://boosty.to/qsoul', '_blank')}
+                  sx={{
+                    flex: 1,
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    fontSize: '0.8rem',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    backdropFilter: 'blur(20px)',
+                    borderColor: 'rgba(208, 188, 255, 0.3)',
+                    color: '#D0BCFF',
+                    '&:hover': {
+                      background: 'rgba(208, 188, 255, 0.1)',
+                      borderColor: 'rgba(208, 188, 255, 0.5)',
+                      transform: 'translateY(-1px)'
+                    },
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  Донат
+                </Button>
+              </Box>
+              
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1,
+                p: 1.5,
+                borderRadius: '8px',
+                background: 'rgba(208, 188, 255, 0.05)',
+                border: '1px solid rgba(208, 188, 255, 0.15)'
+              }}>
+                <Box sx={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #4CAF50, #45A049)',
+                  boxShadow: '0 0 6px rgba(76, 175, 80, 0.4)'
+                }} />
+                <Typography variant="caption" sx={{ 
+                  color: 'text.secondary',
+                  fontSize: '0.7rem',
+                  fontWeight: 500
+                }}>
+                  Безопасные платежи через Boosty
+                </Typography>
+              </Box>
+            </Box>
+          </SupportBlock>
+          
           <Box 
             component={Paper} 
             sx={{ 
@@ -1838,20 +1982,39 @@ const MainPage = React.memo(() => {
             
             {loadingRecommendations ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 3, px: 2 }}>
-                <ContentLoader
-                  height={170}
-                  width="100%"
-                  speed={2}
-                  backgroundColor="#292929"
-                  foregroundColor="#333333"
-                >
-                  
-                  <rect x="0" y="0" rx="8" ry="8" width="100%" height="50" />
-                  
-                  <rect x="0" y="60" rx="8" ry="8" width="100%" height="50" />
-                  
-                  <rect x="0" y="120" rx="8" ry="8" width="100%" height="50" />
-                </ContentLoader>
+                <Box sx={{ 
+                  width: '100%', 
+                  height: 170,
+                  '@keyframes pulse': {
+                    '0%': { opacity: 1 },
+                    '50%': { opacity: 0.5 },
+                    '100%': { opacity: 1 }
+                  }
+                }}>
+                  <Box sx={{ 
+                    width: '100%', 
+                    height: 50, 
+                    borderRadius: '8px',
+                    backgroundColor: '#292929',
+                    mb: 1,
+                    animation: 'pulse 2s infinite'
+                  }} />
+                  <Box sx={{ 
+                    width: '100%', 
+                    height: 50, 
+                    borderRadius: '8px',
+                    backgroundColor: '#292929',
+                    mb: 1,
+                    animation: 'pulse 2s infinite'
+                  }} />
+                  <Box sx={{ 
+                    width: '100%', 
+                    height: 50, 
+                    borderRadius: '8px',
+                    backgroundColor: '#292929',
+                    animation: 'pulse 2s infinite'
+                  }} />
+                </Box>
               </Box>
             ) : recommendations.length === 0 ? (
               <Box sx={{ 

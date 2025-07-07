@@ -15,6 +15,7 @@ const HeaderActions = ({
   handleNewNotification
 }) => (
   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+    {/* Кнопка кошелька рендерится только на PC */}
     {user && !isMobile && (
       <Tooltip title={t('header.tooltips.wallet')}>
         <IconButton
@@ -37,6 +38,8 @@ const HeaderActions = ({
         </IconButton>
       </Tooltip>
     )}
+    
+    {/* Кнопка поиска рендерится везде */}
     <IconButton 
       color="inherit" 
       onClick={toggleSearch}
@@ -58,11 +61,15 @@ const HeaderActions = ({
     >
       <Icon icon="solar:magnifer-bold" width="24" height="24" />
     </IconButton>
+    
+    {/* Уведомления рендерятся везде */}
     {user && (
       <Box sx={{ display: 'flex', alignItems: 'center', opacity: 0.6, transition: 'opacity 0.2s', '&:hover': { opacity: 1 } }}>
         <NotificationList onNewNotification={handleNewNotification} />
       </Box>
     )}
+    
+    {/* Кнопка профиля рендерится везде */}
     <IconButton
       edge="end"
       aria-label="account"

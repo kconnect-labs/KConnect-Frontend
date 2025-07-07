@@ -7,7 +7,11 @@ import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
 import { useTheme } from '@mui/material/styles';
 import { ThemeSettingsContext } from '../App';
 
-const SettingsBottomNavigation = ({ activeTab, onTabChange, user }) => {
+const SettingsBottomNavigation = ({ activeTab, onTabChange, user, isMobile }) => {
+  // SettingsBottomNavigation рендерится только на мобильных устройствах
+  if (!isMobile) {
+    return null;
+  }
   const navigate = useNavigate();
   const isChannel = user?.account_type === 'channel';
   const theme = useTheme();

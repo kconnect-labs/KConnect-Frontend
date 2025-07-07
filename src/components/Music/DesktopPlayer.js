@@ -387,7 +387,11 @@ const VolumeSection = memo(({
   );
 });
 
-const DesktopPlayer = memo(() => {
+const DesktopPlayer = memo(({ isMobile }) => {
+  // DesktopPlayer рендерится только на PC
+  if (isMobile) {
+    return null;
+  }
   const theme = useTheme();
   const { themeSettings } = useContext(ThemeSettingsContext);
   const { 

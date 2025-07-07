@@ -88,8 +88,29 @@
       "blackjack_win": "Выигрыш в игре \"21\"",
       "blackjack_tie": "Ничья в игре \"21\"",
       "blackjack_lose": "Проигрыш в игре \"21\"",
+      "blackjack_bet": "Ставка в игре \"21\"",
+      "roulette_win": "Выигрыш в рулетке",
+      "roulette_bet": "Ставка в рулетке",
+      "cups_win": "Выигрыш в игре \"Чашки\"",
       "minigame_bet": "Ставка в мини-игре",
       "game_transaction": "Транзакция в мини-игре",
+      "auction_bid": "Ставка на аукционе",
+      "auction_refund": "Возврат ставки с аукциона",
+      "auction_sale": "Продажа на аукционе",
+      "username_auction_bid": "Ставка на аукционе юзернейма",
+      "username_auction_refund": "Возврат ставки с аукциона юзернейма",
+      "username_auction_sale": "Продажа юзернейма на аукционе",
+      "username_purchase": "Покупка юзернейма",
+      "pack_purchase": "Покупка пачки",
+      "marketplace_buy": "Покупка на маркетплейсе",
+      "marketplace_sell": "Продажа на маркетплейсе",
+      "item_transfer": "Передача предмета",
+      "item_upgrade": "Апгрейд предмета",
+      "conversion_deposit": "Конвертация - пополнение",
+      "conversion_withdrawal": "Конвертация - списание",
+      "compensation": "Компенсация",
+      "custom_period_activity": "Начисление баллов за активность за период",
+      "top_prize": "Приз за топ",
       "withdrawal": "Вывод заработанных баллов",
       "no_history": "У вас пока нет истории транзакций",
       "load_more": "Следующая страница",
@@ -484,7 +505,7 @@
         "badge_shop": "Бейджики",
         "username_auction": "Юзернеймы"
       },
-      "minigames": "Мини-игры",
+      "minigames": "Кликер",
       "subscription_plans": "Планы подписок",
       "more": {
         "title": "Еще",
@@ -574,7 +595,8 @@
       "posts": "Публикации",
       "wall": "Стена",
       "media": "Медиа",
-      "about": "Инфо"
+      "about": "Инфо",
+      "attachments": "Вложения" 
     },
     "create_post": {
       "placeholder": "Что у вас нового?",
@@ -612,7 +634,12 @@
       "expired": "Подписка истекла",
       "channel": "Канал",
       "pick_me": "Пикми",
-      "active": "Подписка {type} активна до {date}"
+      "active": "Подписка {type} активна до {date}",
+      "expires": "Истекает",
+      "total_duration": "Общая длительность",
+      "months": "месяцев",
+      "active_subscription": "Активная подписка",
+      "active": "Активна"
     },
     "medals": {
       "title": "Медали",
@@ -653,6 +680,10 @@
     "awarded_on": "Выдана: {{date}}",
     "awarded_by": "Кем: {{by}}",
     "feed": {
+      "tabs": {
+        "posts": "Посты",
+        "attachments": "Вложения"
+      },
       "wall": {
         "loading_error": "Произошла ошибка при загрузке записей стены",
         "empty": "На стене пока нет записей",
@@ -666,6 +697,15 @@
         "empty_description": "Пользователь еще не создал ни одного поста",
         "error_title": "Произошла ошибка",
         "all_loaded": "Все посты загружены"
+      },
+      "attachments": {
+        "empty": "Нет вложений",
+        "empty_description": "У этого пользователя пока нет вложений",
+        "loading_error": "Ошибка загрузки вложений",
+        "error_title": "Ошибка загрузки вложений",
+        "play_video": "Смотреть видео",
+        "view_image": "Увеличить",
+        "all_loaded": "Все вложения загружены"
       }
     }
   },
@@ -902,7 +942,7 @@
       },
       "entertainment": {
         "title": "Развлечения",
-        "minigames": "Мини-игры",
+        "minigames": "Кликер",
         "username_auction": "Аукцион юзернеймов",
         "subscription_plans": "Планы подписок",
         "new_badge": "Новое"

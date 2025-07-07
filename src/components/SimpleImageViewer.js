@@ -190,7 +190,10 @@ const SimpleImageViewer = ({ isOpen, onClose, images, initialIndex = 0 }) => {
     }
   }, [isOpen, isSwipingDown]);
 
-  if (!isOpen) return null;
+  // Рендерим содержимое только если просмотрщик открыт
+  if (!isOpen) {
+    return null;
+  }
 
   return ReactDOM.createPortal(
     <Lightbox

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useContext, lazy, Suspense, useTransition, useRef, useCallback } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
+import { useMediaQuery } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import AppBottomNavigation from './components/BottomNavigation';
@@ -18,6 +19,7 @@ import JoinGroupChat from './pages/Messenger/JoinGroupChat';
 import CookiePage from './pages/Info/CookiesPage';
 import { LanguageProvider } from './context/LanguageContext';
 import { DefaultPropsProvider } from './context/DefaultPropsContext';
+import { MessengerProvider } from './contexts/MessengerContext';
 import axios from 'axios';
 
 export const SessionContext = React.createContext({
@@ -81,7 +83,6 @@ const NotFound = lazy(() => import('./pages/Info/NotFound'));
 const AdminPage = lazy(() => import('./pages/Admin/AdminPage'));
 const ModeratorPage = lazy(() => import('./pages/Admin/ModeratorPage'));
 const UpdatesPage = lazy(() => import('./pages/Main/UpdatesPage'));
-const SharePreviewTest = lazy(() => import('./components/SharePreviewTest'));
 const BadgeShopPage = lazy(() => import('./pages/Economic/BadgeShopPage'));
 const BalancePage = lazy(() => import('./pages/Economic/BalancePage'));
 const UsernameAuctionPage = lazy(() => import('./pages/Economic/UsernameAuctionPage'));
@@ -91,11 +92,16 @@ const MarketplacePage = lazy(() => import('./pages/Economic/components/marketpla
 const GrantsPage = lazy(() => import('./pages/Economic/components/grantPage/GrantsPage'));
 const SimpleApiDocsPage = lazy(() => import('./pages/Info/SimpleApiDocsPage'));
 const SubPlanes = lazy(() => import('./pages/Economic/SubPlanes'));
+const ClickerPage = lazy(() => import('./pages/MiniGames/ClickerPage'));
+
 const AboutPage = lazy(() => import('./pages/Info/AboutPage'));
 const LikedTracksPage = lazy(() => import('./pages/MusicPage/components/LikedTracksPage'));
 const AllTracksPage = lazy(() => import('./pages/MusicPage/AllTracksPage'));
 const PlaylistsPage = lazy(() => import('./pages/MusicPage/PlaylistsPage'));
 const FriendsPage = lazy(() => import('./pages/User/FriendsPage'));
+const StickerManagePage = lazy(() => import('./pages/Info/StickerManagePage'));
+const StreetBlacklistPage = lazy(() => import('./pages/Collab/StreetBlacklistPage'));
+const StreetBlacklistV1Page = lazy(() => import('./pages/Collab/StreetBlacklistV1Page'));
 
 
 export const ThemeSettingsContext = React.createContext({
@@ -321,6 +327,7 @@ const AppRoutes = () => {
   const { user, isAuthenticated, loading, checkAuth, error, setUser } = useContext(AuthContext);
   const location = useLocation();
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
   
   const background = location.state && location.state.background;
@@ -458,7 +465,6 @@ const AppRoutes = () => {
           <Route path="/messenger/join/:inviteCode" element={isAuthenticated ? <JoinGroupChat /> : <Navigate to="/login" replace />} />
           <Route path="/bugs" element={<BugReportPage />} />
           <Route path="/leaderboard" element={<RequireAuth><LeaderboardPage /></RequireAuth>} />          
-          <Route path="/share-preview-test" element={isAuthenticated ? <SharePreviewTest /> : <Navigate to="/login" replace />} />
           <Route path="/more" element={isAuthenticated ? <MorePage /> : <Navigate to="/login" replace />} />
           <Route path="/admin" element={isAuthenticated ? <AdminPage /> : <Navigate to="/login" replace />} />
           <Route path="/moderator" element={isAuthenticated ? <ModeratorPage /> : <Navigate to="/login" replace />} />
@@ -466,6 +472,8 @@ const AppRoutes = () => {
           <Route path="/username-auction" element={isAuthenticated ? <UsernameAuctionPage /> : <Navigate to="/login" replace />} />         
           <Route path="/economic/packs" element={isAuthenticated ? <InventoryPackPage /> : <Navigate to="/login" replace />} />
           <Route path="/economic/inventory" element={isAuthenticated ? <InventoryPage /> : <Navigate to="/login" replace />} />
+          <Route path="/minigames/clicker" element={isAuthenticated ? <ClickerPage /> : <Navigate to="/login" replace />} />
+
           <Route path="/balance" element={isAuthenticated ? <BalancePage /> : <Navigate to="/login" replace />} />
           <Route path="/documentapi" element={isAuthenticated ? <SimpleApiDocsPage /> : <Navigate to="/login" replace />} />
           <Route path="/sub-planes" element={isAuthenticated ? <SubPlanes /> : <Navigate to="/login" replace />} />
@@ -478,6 +486,7 @@ const AppRoutes = () => {
           <Route path="/item/:itemId" element={<ItemRedirectPage />} />
           <Route path="/friends/:username" element={<FriendsPage />} />
           <Route path="/friends" element={<FriendsRedirect />} />
+          <Route path="/inform/sticker" element={isAuthenticated ? <StickerManagePage /> : <Navigate to="/login" replace />} />
           <Route path="*" element={<NotFound />} />
         </Routes>                
         {background && (
@@ -489,7 +498,8 @@ const AppRoutes = () => {
           </Routes>
         )}
       </PageTransition>
-      <AppBottomNavigation user={user} />
+      {/* Bottom navigation рендерится только на мобильных устройствах */}
+      {isMobile && <AppBottomNavigation user={user} isMobile={isMobile} />}
     </MainLayout>
   );
 };
@@ -1106,35 +1116,89 @@ function App() {
                   `
                 }}/>
               )}
-              <SessionProvider>
-                <LanguageProvider>
-                  <MusicProvider>
-                    <PostDetailProvider>
-                        <Box sx={{ 
-                          display: 'flex', 
-                          flexDirection: 'column', 
-                          minHeight: '100vh',
-                          bgcolor: 'background.default'
-                        }}>
-                        <ErrorBoundary FallbackComponent={ErrorFallback}>
-                          <Suspense fallback={<LoadingIndicator />}>
-                            <DefaultSEO />
-                            <Routes>
-                              <Route path="/rules" element={<PublicPages />} />
-                              <Route path="/privacy-policy" element={<PublicPages />} />
-                              <Route path="/terms-of-service" element={<PublicPages />} />
-                              <Route path="/about" element={<PublicPages />} />
-                              <Route path="/cookies" element={<PublicPages />} />
-                              <Route path="*" element={<AppRoutes />} />
-                            </Routes>
-                            <MusicPlayerCore />
-                          </Suspense>
-                      </ErrorBoundary>
-                      </Box>
-                    </PostDetailProvider>
-                  </MusicProvider>
-                </LanguageProvider>
-              </SessionProvider>
+              <Routes>
+                <Route path="/street/blacklist" element={
+                  <SessionProvider>
+                    <LanguageProvider>
+                      <MusicProvider>
+                        <PostDetailProvider>
+                          <Box sx={{ 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            minHeight: '100vh',
+                            bgcolor: 'background.default'
+                          }}>
+                            <ErrorBoundary FallbackComponent={ErrorFallback}>
+                              <Suspense fallback={<LoadingIndicator />}>
+                                <DefaultSEO />
+                                <StreetBlacklistPage />
+                                <MusicPlayerCore />
+                              </Suspense>
+                            </ErrorBoundary>
+                          </Box>
+                        </PostDetailProvider>
+                      </MusicProvider>
+                    </LanguageProvider>
+                  </SessionProvider>
+                } />
+                <Route path="/street/blacklist/v1" element={
+                  <SessionProvider>
+                    <LanguageProvider>
+                      <MusicProvider>
+                        <PostDetailProvider>
+                          <Box sx={{ 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            minHeight: '100vh',
+                            bgcolor: 'background.default'
+                          }}>
+                            <ErrorBoundary FallbackComponent={ErrorFallback}>
+                              <Suspense fallback={<LoadingIndicator />}>
+                                <DefaultSEO />
+                                <StreetBlacklistV1Page />
+                                <MusicPlayerCore />
+                              </Suspense>
+                            </ErrorBoundary>
+                          </Box>
+                        </PostDetailProvider>
+                      </MusicProvider>
+                    </LanguageProvider>
+                  </SessionProvider>
+                } />
+                <Route path="*" element={
+                  <SessionProvider>
+                  <MessengerProvider>
+                    <LanguageProvider>
+                      <MusicProvider>
+                        <PostDetailProvider>
+                            <Box sx={{ 
+                              display: 'flex', 
+                              flexDirection: 'column', 
+                              minHeight: '100vh',
+                              bgcolor: 'background.default'
+                            }}>
+                              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                                <Suspense fallback={<LoadingIndicator />}>
+                                  <DefaultSEO />
+                                  <Routes>
+                                    <Route path="/rules" element={<PublicPages />} />
+                                    <Route path="/privacy-policy" element={<PublicPages />} />
+                                    <Route path="/terms-of-service" element={<PublicPages />} />
+                                    <Route path="/about" element={<PublicPages />} />
+                                    <Route path="/cookies" element={<PublicPages />} />
+                                    <Route path="*" element={<AppRoutes />} />
+                                  </Routes>
+                                  <MusicPlayerCore />
+                                </Suspense>
+                              </ErrorBoundary>
+                            </Box>
+                        </PostDetailProvider>
+                      </MusicProvider>
+                    </LanguageProvider>
+                    </MessengerProvider>
+                  </SessionProvider>
+                } />
+              </Routes>
             </DefaultPropsProvider>
             {/* <CookieBanner /> */}
           </ThemeProvider>

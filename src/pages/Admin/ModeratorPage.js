@@ -98,6 +98,7 @@ import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import StarsIcon from '@mui/icons-material/Stars';
 import DecorationMenu from '../../UIKIT/DecorationMenu';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import CheckIcon from '@mui/icons-material/Check';
 
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
@@ -474,19 +475,29 @@ const ModeratorPage = () => {
   
   // --- UI СЕКЦИЯ КЛЮЧЕЙ ---
   const renderModKeysSection = () => (
-    <Box sx={{ mt: 4, mb: 2 }}>
-      <Typography variant="h6" sx={{ mb: 2, fontWeight: 700, color: 'primary.light' }}>
-        Управление ключами
-      </Typography>
+    <Box sx={{ mt: 4 }}>
+      
+      
       <Button
-        variant="contained"
-        color="primary"
+        variant="outlined"
         onClick={handleOpenCreateKeyDialog}
-        sx={{ mb: 2, fontWeight: 600, borderRadius: 2 }}
+        sx={{ 
+          mb: 3, 
+          borderRadius: 2,
+          background: 'rgba(255, 255, 255, 0.03)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+          color: 'rgba(255, 255, 255, 0.87)',
+          '&:hover': {
+            background: 'rgba(255, 255, 255, 0.08)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+          }
+        }}
         fullWidth={true}
       >
         Создать ключ
       </Button>
+      
       {modKeysLoading && modKeys.length === 0 ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
           <CircularProgress size={28} />
@@ -494,285 +505,128 @@ const ModeratorPage = () => {
       ) : modKeysError ? (
         <Alert severity="error">{modKeysError}</Alert>
       ) : (
-        <Grid container spacing={2}>
+        <Box>
           {modKeys.length === 0 ? (
-            <Grid item xs={12}>
-              <Alert severity="info">Нет созданных ключей</Alert>
-            </Grid>
+            <Box sx={{ 
+              p: 3, 
+              textAlign: 'center',
+              borderRadius: 2,
+              background: 'rgba(255, 255, 255, 0.03)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+            }}>
+              <Typography variant="body2" color="rgba(255, 255, 255, 0.6)">
+                Нет созданных ключей
+              </Typography>
+            </Box>
           ) : (
-            modKeys.map((key, idx) => (
-              <Grid item xs={12} sm={6} md={4} key={key.id}>
-                <Paper sx={{ p: 2, borderRadius: 2, bgcolor: 'rgba(18,18,18,0.95)', display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'primary.main', wordBreak: 'break-all' }}>
-                      {key.key}
-                    </Typography>
-                    <IconButton size="small" onClick={() => handleCopyKey(key)}>
-                      <ContentCopyIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Тип: {key.key_type === 'points' ? 'Баллы' : 'Подписка'}
-                  </Typography>
-                  {key.key_type === 'points' && (
-                    <Typography variant="body2" color="text.secondary">
-                      Баллы: <b>{key.points_value}</b>
-                    </Typography>
-                  )}
-                  {key.key_type === 'subscription' && (
-                    <Typography variant="body2" color="text.secondary">
-                      Подписка: <b>{key.subscription_type}</b>
-                    </Typography>
-                  )}
-                  <Typography variant="body2" color="text.secondary">
-                    Использовано: <b>{key.current_uses}/{key.max_uses}</b>
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Создан: {key.created_at ? new Date(key.created_at).toLocaleDateString() : '-'}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Действителен до: {key.expires_at ? new Date(key.expires_at).toLocaleDateString() : '-'}
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+            <Grid container spacing={2}>
+              {modKeys.map((key, idx) => (
+                <Grid item xs={12} sm={6} md={4} key={key.id}>
+                  <Box sx={{ 
+                    p: 3, 
+                    borderRadius: 2, 
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: 1.5 
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          fontWeight: 500, 
+                          color: 'rgba(255, 255, 255, 0.87)', 
+                          wordBreak: 'break-all',
+                          fontFamily: 'monospace',
+                          fontSize: '0.75rem'
+                        }}
+                      >
+                        {key.key}
+                      </Typography>
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleCopyKey(key)}
+                        sx={{
+                          borderRadius: 1,
+                          background: 'rgba(255, 255, 255, 0.05)',
+                          '&:hover': {
+                            background: 'rgba(255, 255, 255, 0.1)',
+                          }
+                        }}
+                      >
+                        <ContentCopyIcon fontSize="small" sx={{ color: 'rgba(255, 255, 255, 0.6)' }} />
+                      </IconButton>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                      <Typography variant="caption" color="rgba(255, 255, 255, 0.6)">
+                        Тип: {key.key_type === 'points' ? 'Баллы' : 'Подписка'}
+                      </Typography>
+                      
+                      {key.key_type === 'points' && (
+                        <Typography variant="caption" color="rgba(255, 255, 255, 0.6)">
+                          Баллы: {key.points_value}
+                        </Typography>
+                      )}
+                      
+                      {key.key_type === 'subscription' && (
+                        <Typography variant="caption" color="rgba(255, 255, 255, 0.6)">
+                          Подписка: {key.subscription_type}
+                        </Typography>
+                      )}
+                      
+                      <Typography variant="caption" color="rgba(255, 255, 255, 0.6)">
+                        Использовано: {key.current_uses}/{key.max_uses}
+                      </Typography>
+                      
+                      <Typography variant="caption" color="rgba(255, 255, 255, 0.6)">
+                        Создан: {key.created_at ? new Date(key.created_at).toLocaleDateString() : '-'}
+                      </Typography>
+                      
+                      <Typography variant="caption" color="rgba(255, 255, 255, 0.6)">
+                        Действителен до: {key.expires_at ? new Date(key.expires_at).toLocaleDateString() : '-'}
+                      </Typography>
+                    </Box>
+                    
                     <Button
                       variant="outlined"
-                      color="error"
                       size="small"
                       onClick={() => handleDeleteKey(key.id)}
                       disabled={modKeysDeleting[key.id]}
+                      sx={{
+                        mt: 1,
+                        borderRadius: 1,
+                        background: 'rgba(244, 67, 54, 0.05)',
+                        border: '1px solid rgba(244, 67, 54, 0.2)',
+                        color: 'rgba(244, 67, 54, 0.8)',
+                        '&:hover': {
+                          background: 'rgba(244, 67, 54, 0.1)',
+                          border: '1px solid rgba(244, 67, 54, 0.3)',
+                        }
+                      }}
                       fullWidth
                     >
-                      {modKeysDeleting[key.id] ? <CircularProgress size={18} /> : 'Удалить'}
+                      {modKeysDeleting[key.id] ? <CircularProgress size={16} /> : 'Удалить'}
                     </Button>
                   </Box>
-                </Paper>
-                {/* Внизу последней карточки — ref для infinite scroll */}
-                {idx === modKeys.length - 1 && modKeysHasNext && (
-                  <div ref={modKeysLoaderRef} style={{ height: 1 }} />
-                )}
-              </Grid>
-            ))
-          )}
-          {/* Лоадер подгрузки */}
-          {modKeysLoadingMore && (
-            <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-              <CircularProgress size={24} />
+                  
+                  {idx === modKeys.length - 1 && modKeysHasNext && (
+                    <div ref={modKeysLoaderRef} style={{ height: 1 }} />
+                  )}
+                </Grid>
+              ))}
+              
+              {modKeysLoadingMore && (
+                <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                  <CircularProgress size={24} />
+                </Grid>
+              )}
             </Grid>
           )}
-        </Grid>
-      )}
-      {/* Диалог создания ключа */}
-      <StyledDialog open={modKeysDialogOpen} onClose={handleCloseCreateKeyDialog} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ bgcolor: 'rgba(18,18,18,0.95)', color: '#fff' }}>
-          Генерация ключа
-          {!modKeysCreateLoading && (
-            <IconButton
-              aria-label="close"
-              onClick={handleCloseCreateKeyDialog}
-              sx={{ position: 'absolute', right: 8, top: 8, color: '#fff' }}
-            >
-              <CloseIcon />
-            </IconButton>
-          )}
-        </DialogTitle>
-        <DialogContent sx={{ bgcolor: 'rgba(18,18,18,0.95)' }}>
-          <Box sx={{ mt: 1 }}>
-            {generatedKeys.length > 0 ? (
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                  <Typography variant="subtitle1" fontWeight="bold" color="#fff">
-                    Сгенерированный ключ:
-                  </Typography>
-                  <Button
-                    size="small"
-                    startIcon={<ContentCopyIcon />}
-                    onClick={() => navigator.clipboard.writeText(generatedKeys.join('\n'))}
-                    sx={{ color: '#fff', borderColor: '#fff' }}
-                    variant="outlined"
-                  >
-                    Копировать
-                  </Button>
-                </Box>
-                <Paper variant="outlined" sx={{ p: 2, maxHeight: 200, overflow: 'auto', bgcolor: 'rgba(30,30,30,0.8)' }}>
-                  {generatedKeys.map((key, index) => (
-                    <Typography key={index} variant="body2" fontFamily="monospace" sx={{ mb: 0.5, color: '#fff' }}>
-                      {key}
-                    </Typography>
-                  ))}
-                </Paper>
-                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-                  <Button variant="outlined" onClick={() => setGeneratedKeys([])} sx={{ color: '#fff', borderColor: '#fff' }}>
-                    Сгенерировать еще
-                  </Button>
-                </Box>
-              </Box>
-            ) : (
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <FormControl fullWidth>
-                    <InputLabel sx={{ color: '#fff' }}>Тип ключа</InputLabel>
-                    <Select
-                      value={modKeysForm.type}
-                      label="Тип ключа"
-                      name="type"
-                      onChange={handleModKeysFormChange}
-                      sx={{ color: '#fff', '.MuiOutlinedInput-notchedOutline': { borderColor: '#444' }, '.MuiSvgIcon-root': { color: '#fff' } }}
-                    >
-                      <MenuItem value="points">Баллы</MenuItem>
-                      <MenuItem value="subscription">Подписка</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                {modKeysForm.type === 'points' ? (
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Количество баллов"
-                      name="points"
-                      type="number"
-                      fullWidth
-                      value={modKeysForm.points}
-                      onChange={handleModKeysFormChange}
-                      InputProps={{ inputProps: { min: 1 } }}
-                      sx={{ input: { color: '#fff' }, label: { color: '#fff' } }}
-                    />
-                  </Grid>
-                ) : (
-                  <>
-                    <Grid item xs={12} sm={6}>
-                      <FormControl fullWidth>
-                        <InputLabel sx={{ color: '#fff' }}>Тип подписки</InputLabel>
-                        <Select
-                          value={modKeysForm.subscription_type}
-                          label="Тип подписки"
-                          name="subscription_type"
-                          onChange={handleModKeysFormChange}
-                          sx={{ color: '#fff', '.MuiOutlinedInput-notchedOutline': { borderColor: '#444' }, '.MuiSvgIcon-root': { color: '#fff' } }}
-                        >
-                          <MenuItem value="basic">Базовая</MenuItem>
-                          <MenuItem value="premium">Премиум</MenuItem>
-                          <MenuItem value="ultimate">Ультимейт</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        label="Срок действия подписки (дней)"
-                        name="subscription_duration_days"
-                        type="number"
-                        fullWidth
-                        value={modKeysForm.subscription_duration_days}
-                        onChange={handleModKeysFormChange}
-                        InputProps={{ inputProps: { min: 1 } }}
-                        sx={{ input: { color: '#fff' }, label: { color: '#fff' } }}
-                      />
-                    </Grid>
-                  </>
-                )}
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Макс. число использований"
-                    name="max_uses"
-                    type="number"
-                    fullWidth
-                    value={modKeysForm.max_uses}
-                    onChange={handleModKeysFormChange}
-                    InputProps={{ inputProps: { min: 1 } }}
-                    helperText="Сколько раз можно использовать ключ"
-                    sx={{ input: { color: '#fff' }, label: { color: '#fff' } }}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Количество ключей"
-                    name="count"
-                    type="number"
-                    fullWidth
-                    value={modKeysForm.count}
-                    onChange={handleModKeysFormChange}
-                    InputProps={{ inputProps: { min: 1, max: 100 } }}
-                    helperText="От 1 до 100 ключей"
-                    sx={{ input: { color: '#fff' }, label: { color: '#fff' } }}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Срок действия (дней)"
-                    name="expires_days"
-                    type="number"
-                    fullWidth
-                    value={modKeysForm.expires_days}
-                    onChange={handleModKeysFormChange}
-                    InputProps={{ inputProps: { min: 0 } }}
-                    helperText="0 = бессрочно"
-                    sx={{ input: { color: '#fff' }, label: { color: '#fff' } }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    label="Описание"
-                    name="description"
-                    fullWidth
-                    multiline
-                    rows={2}
-                    value={modKeysForm.description}
-                    onChange={handleModKeysFormChange}
-                    helperText="Необязательное описание для модераторов"
-                    sx={{ input: { color: '#fff' }, label: { color: '#fff' } }}
-                  />
-                </Grid>
-                {modKeysCreateError && (
-                  <Grid item xs={12}>
-                    <Alert severity="error">{modKeysCreateError}</Alert>
-                  </Grid>
-                )}
-                {modKeysCreateSuccess && (
-                  <Grid item xs={12}>
-                    <Alert severity="success">{modKeysCreateSuccess}</Alert>
-                  </Grid>
-                )}
-              </Grid>
-            )}
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ bgcolor: 'rgba(18,18,18,0.95)' }}>
-          {generatedKeys.length === 0 && (
-            <>
-              <Button onClick={handleCloseCreateKeyDialog} disabled={modKeysCreateLoading} sx={{ color: '#fff' }}>
-                Отмена
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleCreateKey}
-                disabled={modKeysCreateLoading}
-                startIcon={modKeysCreateLoading ? <CircularProgress size={20} /> : null}
-              >
-                {modKeysCreateLoading ? 'Генерация...' : 'Сгенерировать'}
-              </Button>
-            </>
-          )}
-          {generatedKeys.length > 0 && (
-            <Button
-              onClick={() => {
-                setModKeysDialogOpen(false);
-                setGeneratedKeys([]);
-              }}
-              sx={{ color: '#fff' }}
-            >
-              Закрыть
-            </Button>
-          )}
-        </DialogActions>
-      </StyledDialog>
-      {modKeysHasNext && !modKeysLoadingMore && (
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={() => fetchModKeys(modKeysPage + 1, true)}
-          sx={{ mt: 2, mb: 2, width: '100%' }}
-        >
-          Отобразить ещё
-        </Button>
+        </Box>
       )}
     </Box>
   );
@@ -1087,7 +941,7 @@ const ModeratorPage = () => {
       if (!hasMore.posts && loadMore) return;
       
       loadMore ? setLoadingMore(true) : setLoading(true);
-      const currentPage = loadMore ? pageStates.posts : 1;
+      const currentPage = loadMore ? pageStates.posts + 1 : 1;
       
       const response = await axios.get(`/api/moderator/posts?page=${currentPage}&per_page=${rowsPerPage}${searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : ''}`);
       
@@ -1125,7 +979,7 @@ const ModeratorPage = () => {
       if (!hasMore.tracks && loadMore) return;
       
       loadMore ? setLoadingMore(true) : setLoading(true);
-      const currentPage = loadMore ? pageStates.tracks : 1;
+      const currentPage = loadMore ? pageStates.tracks + 1 : 1;
       
       const response = await axios.get(`/api/moderator/tracks?page=${currentPage}&per_page=${rowsPerPage}${searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : ''}`);
       
@@ -1163,7 +1017,7 @@ const ModeratorPage = () => {
       if (!hasMore.comments && loadMore) return;
       
       loadMore ? setLoadingMore(true) : setLoading(true);
-      const currentPage = loadMore ? pageStates.comments : 1;
+      const currentPage = loadMore ? pageStates.comments + 1 : 1;
       
       const response = await axios.get(`/api/moderator/comments?page=${currentPage}&per_page=${rowsPerPage}${searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : ''}`);
       
@@ -1201,7 +1055,7 @@ const ModeratorPage = () => {
       if (!hasMore.users && loadMore) return;
       
       loadMore ? setLoadingMore(true) : setLoading(true);
-      const currentPage = loadMore ? pageStates.users : 1;
+      const currentPage = loadMore ? pageStates.users + 1 : 1;
       
       const response = await axios.get(`/api/moderator/users?page=${currentPage}&per_page=${rowsPerPage}${searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : ''}`);
       
@@ -1840,6 +1694,29 @@ const ModeratorPage = () => {
             }}
             variant="outlined"
             size="small"
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                background: 'rgba(255, 255, 255, 0.03)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                '&:hover': {
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                },
+                '&.Mui-focused': {
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                }
+              },
+              '& .MuiInputBase-input': {
+                color: 'rgba(255, 255, 255, 0.87)',
+                '&::placeholder': {
+                  color: 'rgba(255, 255, 255, 0.5)',
+                  opacity: 1,
+                }
+              }
+            }}
           />
         </Box>
         
@@ -1848,7 +1725,22 @@ const ModeratorPage = () => {
             <Paper 
               key={post.id}
               ref={index === posts.length - 1 ? lastPostElementRef : null}
-              sx={{ p: { xs: 1.5, sm: 2 }, mb: 2, position: 'relative' }}
+              sx={{ 
+                p: { xs: 1.5, sm: 2 }, 
+                mb: 2, 
+                position: 'relative',
+                borderRadius: 2,
+                background: 'rgba(255, 255, 255, 0.03)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+                }
+              }}
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', mb: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 1, sm: 0 }, width: { xs: 'calc(100% - 48px)', sm: 'auto' } }}>
@@ -1878,7 +1770,20 @@ const ModeratorPage = () => {
                   <Button 
                     variant="outlined" 
                     size="small" 
-                    sx={{ mr: 1, height: 36 }}
+                    sx={{ 
+                      mr: 1, 
+                      height: 36,
+                      borderRadius: 2,
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      backdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                      color: 'rgba(255, 255, 255, 0.87)',
+                      '&:hover': {
+                        background: 'rgba(255, 255, 255, 0.08)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        transform: 'translateY(-1px)',
+                      }
+                    }}
                     onClick={() => navigate(`/post/${post.id}`)}
                   >
                     Открыть пост
@@ -1886,6 +1791,17 @@ const ModeratorPage = () => {
                   <IconButton 
                     color="error" 
                     onClick={() => openDeletePostDialog(post)}
+                    sx={{
+                      borderRadius: 2,
+                      background: 'rgba(244, 67, 54, 0.1)',
+                      backdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(244, 67, 54, 0.2)',
+                      '&:hover': {
+                        background: 'rgba(244, 67, 54, 0.2)',
+                        border: '1px solid rgba(244, 67, 54, 0.3)',
+                        transform: 'translateY(-1px)',
+                      }
+                    }}
                   >
                     <DeleteIcon />
                   </IconButton>
@@ -1982,10 +1898,25 @@ const ModeratorPage = () => {
           />
         </Box>
 
-        <TableContainer sx={{ overflowX: 'auto' }}>
+        <TableContainer 
+          sx={{ 
+            overflowX: 'auto',
+            borderRadius: 2,
+            background: 'rgba(255, 255, 255, 0.03)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+          }}
+        >
           <Table size="small">
             <TableHead>
-              <TableRow>
+              <TableRow sx={{ 
+                '& .MuiTableCell-head': {
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+                  color: 'rgba(255, 255, 255, 0.87)',
+                  fontWeight: 600,
+                }
+              }}>
                 <TableCell>Обложка</TableCell>
                 <TableCell>Название</TableCell>
                 <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Артист</TableCell>
@@ -1999,6 +1930,15 @@ const ModeratorPage = () => {
                 <TableRow 
                   key={track.id}
                   ref={index === tracks.length - 1 ? lastTrackElementRef : null}
+                  sx={{
+                    '&:hover': {
+                      background: 'rgba(255, 255, 255, 0.05)',
+                    },
+                    '& .MuiTableCell-body': {
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                      color: 'rgba(255, 255, 255, 0.87)',
+                    }
+                  }}
                 >
                   <TableCell>
                     <Avatar 
@@ -2093,10 +2033,25 @@ const ModeratorPage = () => {
           />
         </Box>
 
-        <TableContainer sx={{ overflowX: 'auto' }}>
+        <TableContainer 
+          sx={{ 
+            overflowX: 'auto',
+            borderRadius: 2,
+            background: 'rgba(255, 255, 255, 0.03)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+          }}
+        >
           <Table size="small">
             <TableHead>
-              <TableRow>
+              <TableRow sx={{ 
+                '& .MuiTableCell-head': {
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+                  color: 'rgba(255, 255, 255, 0.87)',
+                  fontWeight: 600,
+                }
+              }}>
                 <TableCell>Аватар</TableCell>
                 <TableCell>Имя</TableCell>
                 <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Username</TableCell>
@@ -2109,6 +2064,15 @@ const ModeratorPage = () => {
                 <TableRow 
                   key={user.id}
                   ref={index === users.length - 1 ? lastUserElementRef : null}
+                  sx={{
+                    '&:hover': {
+                      background: 'rgba(255, 255, 255, 0.05)',
+                    },
+                    '& .MuiTableCell-body': {
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                      color: 'rgba(255, 255, 255, 0.87)',
+                    }
+                  }}
                 >
                   <TableCell>
                     <Avatar 
@@ -3059,17 +3023,22 @@ const ModeratorPage = () => {
                     ref={isLastElement ? lastBadgeElementRef : null}
                   >
                     <Card 
-                      elevation={3}
+                      elevation={0}
                       sx={{ 
                         height: '100%', 
                         display: 'flex', 
                         flexDirection: 'column',
-                        transition: 'transform 0.2s, box-shadow 0.2s',
+                        transition: 'all 0.3s ease',
+                        borderRadius: 2,
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        backdropFilter: 'blur(20px)',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
                         '&:hover': {
+                          background: 'rgba(255, 255, 255, 0.05)',
+                          border: '1px solid rgba(255, 255, 255, 0.2)',
                           transform: 'translateY(-5px)',
-                          boxShadow: 6
-                        },
-                        bgcolor: badge.is_active ? 'background.paper' : 'rgba(0,0,0,0.05)'
+                          boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+                        }
                       }}
                     >
                       <CardHeader
@@ -3231,413 +3200,270 @@ const ModeratorPage = () => {
       : null;
       
     return (
-      <Grid container spacing={3}>
+      <Box sx={{ maxWidth: 800, mx: 'auto' }}>
         
-        <Grid item xs={12} md={4}>
-          <Card 
-            elevation={3} 
-            sx={{
-              height: '100%',
-              background: 'linear-gradient(to bottom right, rgb(35 35 35 / 95%), rgb(0 0 0 / 90%))',
-              color: 'white',
-              borderRadius: 2,
-              position: 'relative',
-              overflow: 'hidden'
-            }}
-          >
-            <Box 
+        <Box sx={{ mb: 4 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            mb: 3,
+            p: 3,
+            borderRadius: 2,
+            background: 'rgba(255, 255, 255, 0.03)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+          }}>
+            <Avatar 
+              src={user?.photo ? `/avatar/${user.id}/${user.photo}` : null}
               sx={{ 
-                position: 'absolute',
-                top: -50,
-                right: -50,
-                width: 150,
-                height: 150,
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(63,81,181,0.2) 0%, rgba(63,81,181,0) 70%)',
-                zIndex: 0
-              }} 
-            />
-            
-            <CardContent sx={{ position: 'relative', zIndex: 1, p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <Avatar 
-                  src={user?.photo ? `/avatar/${user.id}/${user.photo}` : null}
-                  sx={{ 
-                    width: 80, 
-                    height: 80,
-                    bgcolor: 'primary.main',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                  }}
-                >
-                  {user?.name?.charAt(0) || 'M'}
-                </Avatar>
-                <Box sx={{ ml: 2 }}>
-                  <Typography variant="h5" fontWeight="bold" gutterBottom>
-                    {user?.name || 'Модератор'}
-                  </Typography>
-                  <Typography variant="body2" color="rgba(255,255,255,0.7)">
-                    @{user?.username || 'username'}
-                  </Typography>
-                </Box>
-              </Box>
-              
-              <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)', mb: 2 }} />
-              
-              <Typography variant="subtitle1" color="primary.light" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-                <AdminPanelSettingsIcon sx={{ mr: 1 }} />
-                Статус модератора
+                width: 64, 
+                height: 64,
+                bgcolor: 'rgba(255, 255, 255, 0.1)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                mr: 3
+              }}
+            >
+              {user?.name?.charAt(0) || 'M'}
+            </Avatar>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="h6" fontWeight={500} sx={{ mb: 0.5 }}>
+                {user?.name || 'Модератор'}
               </Typography>
-              
+              <Typography variant="body2" color="rgba(255,255,255,0.6)" sx={{ mb: 1 }}>
+                @{user?.username || 'username'}
+              </Typography>
+              <Chip 
+                icon={moderatorData.moderator_level >= 3 ? <VerifiedUserIcon /> : <SecurityIcon />}
+                label={moderatorData.moderator_level >= 3 ? 'Администратор' : 'Модератор'} 
+                size="small"
+                sx={{ 
+                  borderRadius: 1,
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  color: 'rgba(255, 255, 255, 0.87)',
+                  fontSize: '0.75rem',
+                  height: 24
+                }}
+              />
+            </Box>
+          </Box>
+        </Box>
+
+        
+        <Box sx={{ mb: 4 }}>
+          <Box sx={{ 
+            p: 3,
+            borderRadius: 2,
+            background: 'rgba(255, 255, 255, 0.03)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+          }}>
+            {assignedDate && (
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Chip 
-                  icon={moderatorData.moderator_level >= 3 ? <VerifiedUserIcon /> : <SecurityIcon />}
-                  label={moderatorData.moderator_level >= 3 ? 'Администратор' : 'Модератор'} 
-                  color={moderatorData.moderator_level >= 3 ? 'secondary' : 'primary'}
-                  variant="filled"
-                  sx={{ 
-                    borderRadius: 2,
-                    background: moderatorData.moderator_level >= 3 
-                      ? 'linear-gradient(45deg, #9c27b0 30%, #d500f9 90%)'
-                      : 'linear-gradient(45deg, #3f51b5 30%, #5c6bc0 90%)',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-                    fontWeight: 'bold'
-                  }}
-                />
-              </Box>
-              
-              {assignedDate && (
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" color="rgba(255,255,255,0.7)" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-                    <AccessTimeIcon sx={{ mr: 1, fontSize: '0.9rem' }} />
+                <AccessTimeIcon sx={{ mr: 2, fontSize: 20, color: 'rgba(255,255,255,0.6)' }} />
+                <Box>
+                  <Typography variant="body2" color="rgba(255,255,255,0.6)">
                     Назначен модератором
                   </Typography>
-                  <Typography variant="body1" color="rgba(255,255,255,0.9)">
+                  <Typography variant="body1">
                     {assignedDate.toLocaleDateString()} 
                     <Typography component="span" variant="body2" color="rgba(255,255,255,0.6)" sx={{ ml: 1 }}>
                       ({daysSinceAssigned} {daysSinceAssigned === 1 ? 'день' : daysSinceAssigned < 5 ? 'дня' : 'дней'})
                     </Typography>
                   </Typography>
                 </Box>
-              )}
-              
-              {moderatorData.assigned_info?.assigned_by?.name && (
+              </Box>
+            )}
+            
+            {moderatorData.assigned_info?.assigned_by?.name && (
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <PersonIcon sx={{ mr: 2, fontSize: 20, color: 'rgba(255,255,255,0.6)' }} />
                 <Box>
-                  <Typography variant="subtitle2" color="rgba(255,255,255,0.7)" gutterBottom>
+                  <Typography variant="body2" color="rgba(255,255,255,0.6)">
                     Назначен администратором
                   </Typography>
-                  <Typography variant="body1" color="rgba(255,255,255,0.9)">
+                  <Typography variant="body1">
                     {moderatorData.assigned_info.assigned_by.name}
                   </Typography>
                 </Box>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
+              </Box>
+            )}
+          </Box>
+        </Box>
+
         
-        
-        <Grid item xs={12} md={8}>
-          <Card 
-            elevation={3}
-            sx={{
-              height: '100%',
-              background: 'linear-gradient(to bottom right, rgb(35 35 35 / 95%), rgb(0 0 0 / 90%))',
-              color: 'white',
-              borderRadius: 2
-            }}
-          >
-            <CardHeader
-              title={
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <VerifiedUserIcon sx={{ mr: 1 }} />
-                  <Typography variant="h6" color="primary.light">
-                    Права модератора
-                  </Typography>
-                </Box>
-              }
-              sx={{ 
-                borderBottom: '1px solid rgba(255,255,255,0.1)',
-                pb: 1
-              }}
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <PermissionItem 
+              title="Удаление постов" 
+              enabled={permissions.delete_posts}
+              icon={<PostAddIcon />}
             />
-            
-            <CardContent sx={{ p: 3 }}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <PermissionItem 
-                    title="Удаление постов" 
-                    enabled={permissions.delete_posts}
-                    icon={<PostAddIcon />}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <PermissionItem 
-                    title="Удаление музыки" 
-                    enabled={permissions.delete_music}
-                    icon={<MusicNoteIcon />}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <PermissionItem 
-                    title="Удаление комментариев" 
-                    enabled={permissions.delete_comments}
-                    icon={<CommentIcon />}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <PermissionItem 
-                    title="Удаление аватаров" 
-                    enabled={permissions.delete_avatar}
-                    icon={<PhotoIcon />}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <PermissionItem 
-                    title="Изменение имён" 
-                    enabled={permissions.change_user_name}
-                    icon={<PersonIcon />}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <PermissionItem 
-                    title="Изменение username" 
-                    enabled={permissions.change_username}
-                    icon={<EditIcon />}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <PermissionItem 
-                    title="Управление баг-репортами" 
-                    enabled={permissions.manage_bug_reports}
-                    icon={<BugReportIcon />}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <PermissionItem 
-                    title="Удаление баг-репортов" 
-                    enabled={permissions.delete_bug_reports}
-                    icon={<DeleteIcon />}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <PermissionItem 
-                    title="Редактирование бейджиков" 
-                    enabled={permissions.edit_badges}
-                    icon={<EmojiEventsIcon />}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <PermissionItem 
-                    title="Удаление бейджиков" 
-                    enabled={permissions.delete_badges}
-                    icon={<DeleteIcon />}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <PermissionItem 
-                    title="Генерация ключей" 
-                    enabled={permissions.can_generate_keys}
-                    icon={<VpnKeyIcon sx={{ color: permissions.can_generate_keys ? 'gold' : 'grey.600' }} />}
-                  />
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        
-        <Grid item xs={12}>
-          <Card 
-            elevation={3}
-            sx={{
-              background: 'linear-gradient(to bottom right, rgb(35 35 35 / 95%), rgb(0 0 0 / 90%))',
-              color: 'white',
-              borderRadius: 2
-            }}
-          >
-            <CardHeader
-              title={
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <AccessTimeIcon sx={{ mr: 1 }} />
-                  <Typography variant="h6" color="primary.light">
-                    Статистика работы модератора
-                  </Typography>
-                </Box>
-              }
-              sx={{ 
-                borderBottom: '1px solid rgba(255,255,255,0.1)',
-                pb: 1
-              }}
+          </Grid>
+          
+          <Grid item xs={12} sm={6}>
+            <PermissionItem 
+              title="Удаление музыки" 
+              enabled={permissions.delete_music}
+              icon={<MusicNoteIcon />}
             />
-            
-            <CardContent sx={{ p: 3 }}>
-              {moderatorStats.loading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-                  <CircularProgress size={32} />
-                </Box>
-              ) : (
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <Box sx={{ 
-                      p: 2, 
-                      bgcolor: 'rgba(63,81,181,0.05)', 
-                      borderRadius: 2,
-                      border: '1px solid rgba(63,81,181,0.1)',
-                      mb: 2
-                    }}>
-                      <Typography variant="subtitle2" color="primary.light" gutterBottom>
-                        Удаление контента
-                      </Typography>
-                      <Grid container spacing={1}>
-                        <Grid item xs={6}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                            <PostAddIcon sx={{ mr: 1, fontSize: '1rem', color: 'rgba(255,255,255,0.6)' }} />
-                            <Typography variant="body2" color="rgba(255,255,255,0.7)">
-                              Посты: <strong>{moderatorStats.deleted_posts}</strong>
-                            </Typography>
-                          </Box>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                            <MusicNoteIcon sx={{ mr: 1, fontSize: '1rem', color: 'rgba(255,255,255,0.6)' }} />
-                            <Typography variant="body2" color="rgba(255,255,255,0.7)">
-                              Треки: <strong>{moderatorStats.deleted_tracks}</strong>
-                            </Typography>
-                          </Box>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <CommentIcon sx={{ mr: 1, fontSize: '1rem', color: 'rgba(255,255,255,0.6)' }} />
-                            <Typography variant="body2" color="rgba(255,255,255,0.7)">
-                              Комментарии: <strong>{moderatorStats.deleted_comments}</strong>
-                            </Typography>
-                          </Box>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <PhotoIcon sx={{ mr: 1, fontSize: '1rem', color: 'rgba(255,255,255,0.6)' }} />
-                            <Typography variant="body2" color="rgba(255,255,255,0.7)">
-                              Аватары: <strong>{moderatorStats.deleted_avatars}</strong>
-                            </Typography>
-                          </Box>
-                        </Grid>
-                      </Grid>
-                    </Box>
-                  </Grid>
-                  
-                  <Grid item xs={12} sm={6}>
-                    <Box sx={{ 
-                      p: 2, 
-                      bgcolor: 'rgba(255,152,0,0.05)', 
-                      borderRadius: 2,
-                      border: '1px solid rgba(255,152,0,0.1)',
-                      mb: 2
-                    }}>
-                      <Typography variant="subtitle2" color="warning.light" gutterBottom>
-                        Наказания
-                      </Typography>
-                      <Grid container spacing={1}>
-                        <Grid item xs={6}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                            <WarningAmberIcon sx={{ mr: 1, fontSize: '1rem', color: 'rgba(255,255,255,0.6)' }} />
-                            <Typography variant="body2" color="rgba(255,255,255,0.7)">
-                              Предупреждения: <strong>{moderatorStats.warnings_issued}</strong>
-                            </Typography>
-                          </Box>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                            <BlockIcon sx={{ mr: 1, fontSize: '1rem', color: 'rgba(255,255,255,0.6)' }} />
-                            <Typography variant="body2" color="rgba(255,255,255,0.7)">
-                              Баны: <strong>{moderatorStats.bans_issued}</strong>
-                            </Typography>
-                          </Box>
-                        </Grid>
-                        <Grid item xs={12}>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <PersonIcon sx={{ mr: 1, fontSize: '1rem', color: 'rgba(255,255,255,0.6)' }} />
-                            <Typography variant="body2" color="rgba(255,255,255,0.7)">
-                              Обновление данных: <strong>{moderatorStats.updated_users}</strong>
-                            </Typography>
-                          </Box>
-                        </Grid>
-                      </Grid>
-                    </Box>
-                  </Grid>
-                  
-                  <Grid item xs={12}>
-                    <Box sx={{ 
-                      p: 2,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 2,
-                      background: 'linear-gradient(135deg, rgba(208, 188, 255, 0.1) 0%, rgba(208, 188, 255, 0.05) 100%)',
-                      border: '1px solid rgba(208, 188, 255, 0.2)'
-                    }}>
-                      <Typography variant="subtitle1" color="primary.light" sx={{ fontWeight: 'bold' }}>
-                        Всего действий: <strong>{moderatorStats.total_actions}</strong>
-                      </Typography>
-                    </Box>
-                  </Grid>
-                </Grid>
-              )}
-            </CardContent>
-          </Card>
+          </Grid>
+          
+          <Grid item xs={12} sm={6}>
+            <PermissionItem 
+              title="Удаление комментариев" 
+              enabled={permissions.delete_comments}
+              icon={<CommentIcon />}
+            />
+          </Grid>
+          
+          <Grid item xs={12} sm={6}>
+            <PermissionItem 
+              title="Удаление аватаров" 
+              enabled={permissions.delete_avatar}
+              icon={<PhotoIcon />}
+            />
+          </Grid>
+          
+          <Grid item xs={12} sm={6}>
+            <PermissionItem 
+              title="Изменение имён" 
+              enabled={permissions.change_user_name}
+              icon={<PersonIcon />}
+            />
+          </Grid>
+          
+          <Grid item xs={12} sm={6}>
+            <PermissionItem 
+              title="Изменение username" 
+              enabled={permissions.change_username}
+              icon={<PersonIcon />}
+            />
+          </Grid>
+          
+          <Grid item xs={12} sm={6}>
+            <PermissionItem 
+              title="Управление баг-репортами" 
+              enabled={permissions.manage_bug_reports}
+              icon={<BugReportIcon />}
+            />
+          </Grid>
+          
+          <Grid item xs={12} sm={6}>
+            <PermissionItem 
+              title="Удаление баг-репортов" 
+              enabled={permissions.delete_bug_reports}
+              icon={<BugReportIcon />}
+            />
+          </Grid>
+          
+          <Grid item xs={12} sm={6}>
+            <PermissionItem 
+              title="Редактирование бейджиков" 
+              enabled={permissions.edit_badges}
+              icon={<EmojiEventsIcon />}
+            />
+          </Grid>
+          
+          <Grid item xs={12} sm={6}>
+            <PermissionItem 
+              title="Удаление бейджиков" 
+              enabled={permissions.delete_badges}
+              icon={<EmojiEventsIcon />}
+            />
+          </Grid>
+          
+          <Grid item xs={12} sm={6}>
+            <PermissionItem 
+              title="Управление артистами" 
+              enabled={permissions.manage_artists}
+              icon={<PersonAddIcon />}
+            />
+          </Grid>
+          
+          <Grid item xs={12} sm={6}>
+            <PermissionItem 
+              title="Удаление артистов" 
+              enabled={permissions.delete_artists}
+              icon={<PersonAddIcon />}
+            />
+          </Grid>
         </Grid>
+
         
-        <Grid item xs={12}>
-          {renderModKeysSection()}
-        </Grid>
-      </Grid>
+        {renderModKeysSection()}
+      </Box>
     );
   };
   
   
   const PermissionItem = ({ title, enabled, icon }) => {
     return (
-      <Paper 
-        elevation={0}
+      <Box 
         sx={{
           p: 2,
-          borderRadius: 2,
-          backgroundColor: enabled ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.3)',
-          border: `1px solid ${enabled ? 'rgba(76,175,80,0.3)' : 'rgba(255,255,255,0.1)'}`,
+          borderRadius: 1,
+          background: enabled ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.02)',
+          border: `1px solid ${enabled ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.08)'}`,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between'
+          justifyContent: 'space-between',
+          transition: 'all 0.2s ease',
+          '&:hover': {
+            background: enabled ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.04)',
+          }
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Avatar 
+          <Box 
             sx={{ 
-              width: 32, 
-              height: 32, 
-              bgcolor: enabled ? 'rgba(76,175,80,0.2)' : 'rgba(255,255,255,0.05)',
-              mr: 1.5
+              width: 28, 
+              height: 28, 
+              borderRadius: 1,
+              background: enabled ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mr: 2
             }}
           >
-            {React.cloneElement(icon, { fontSize: 'small', color: enabled ? 'success' : 'disabled' })}
-          </Avatar>
-          <Typography variant="body1" color={enabled ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.5)'}>
+            {React.cloneElement(icon, { 
+              fontSize: 'small', 
+              sx: { 
+                color: enabled ? 'rgba(255, 255, 255, 0.87)' : 'rgba(255, 255, 255, 0.4)',
+                fontSize: 16
+              }
+            })}
+          </Box>
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              color: enabled ? 'rgba(255, 255, 255, 0.87)' : 'rgba(255, 255, 255, 0.5)',
+              fontWeight: enabled ? 500 : 400
+            }}
+          >
             {title}
           </Typography>
         </Box>
         
-        {enabled ? (
-          <CheckCircleIcon color="success" />
-        ) : (
-          <DoNotDisturbIcon color="disabled" sx={{ opacity: 0.5 }} />
-        )}
-      </Paper>
+        <Box 
+          sx={{ 
+            width: 16, 
+            height: 16, 
+            borderRadius: '50%',
+            background: enabled ? 'rgba(76, 175, 80, 0.8)' : 'rgba(255, 255, 255, 0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          {enabled ? (
+            <CheckIcon sx={{ fontSize: 12, color: 'white' }} />
+          ) : (
+            <CloseIcon sx={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.5)' }} />
+          )}
+        </Box>
+      </Box>
     );
   };
 
@@ -4010,6 +3836,18 @@ const ModeratorPage = () => {
               color="primary"
               startIcon={<PersonAddIcon />}
               onClick={openCreateArtistDialog}
+              sx={{
+                borderRadius: 2,
+                background: 'linear-gradient(45deg, #1976d2 30%, #42a5f5 90%)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(25, 118, 210, 0.3)',
+                boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #1565c0 30%, #1976d2 90%)',
+                  boxShadow: '0 6px 16px rgba(25, 118, 210, 0.4)',
+                  transform: 'translateY(-1px)',
+                }
+              }}
             >
               Добавить артиста
             </Button>
@@ -4025,17 +3863,22 @@ const ModeratorPage = () => {
               ref={index === artists.length - 1 ? lastArtistElementRef : null}
             >
               <Card 
-                elevation={3}
+                elevation={0}
                 sx={{ 
                   height: '100%', 
                   display: 'flex', 
                   flexDirection: 'column',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  transition: 'all 0.3s ease',
+                  borderRadius: 2,
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
                   '&:hover': {
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
                     transform: 'translateY(-5px)',
-                    boxShadow: 6
-                  },
-                  bgcolor: 'background.paper'
+                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+                  }
                 }}
               >
                 <CardHeader
@@ -4117,6 +3960,17 @@ const ModeratorPage = () => {
                       color="primary"
                       onClick={() => window.open(`/artist/${artist.id}`, '_blank')}
                       title="Открыть страницу артиста"
+                      sx={{
+                        borderRadius: 2,
+                        background: 'rgba(25, 118, 210, 0.1)',
+                        backdropFilter: 'blur(20px)',
+                        border: '1px solid rgba(25, 118, 210, 0.2)',
+                        '&:hover': {
+                          background: 'rgba(25, 118, 210, 0.2)',
+                          border: '1px solid rgba(25, 118, 210, 0.3)',
+                          transform: 'translateY(-1px)',
+                        }
+                      }}
                     >
                       <OpenInNewIcon fontSize="small" />
                     </IconButton>
@@ -4126,6 +3980,17 @@ const ModeratorPage = () => {
                         aria-label="Редактировать артиста"
                         color="primary"
                         size="small"
+                        sx={{
+                          borderRadius: 2,
+                          background: 'rgba(25, 118, 210, 0.1)',
+                          backdropFilter: 'blur(20px)',
+                          border: '1px solid rgba(25, 118, 210, 0.2)',
+                          '&:hover': {
+                            background: 'rgba(25, 118, 210, 0.2)',
+                            border: '1px solid rgba(25, 118, 210, 0.3)',
+                            transform: 'translateY(-1px)',
+                          }
+                        }}
                       >
                         <EditIcon fontSize="small" />
                       </IconButton>
@@ -4136,6 +4001,17 @@ const ModeratorPage = () => {
                         aria-label="Управление треками артиста"
                         color="primary"
                         size="small"
+                        sx={{
+                          borderRadius: 2,
+                          background: 'rgba(25, 118, 210, 0.1)',
+                          backdropFilter: 'blur(20px)',
+                          border: '1px solid rgba(25, 118, 210, 0.2)',
+                          '&:hover': {
+                            background: 'rgba(25, 118, 210, 0.2)',
+                            border: '1px solid rgba(25, 118, 210, 0.3)',
+                            transform: 'translateY(-1px)',
+                          }
+                        }}
                       >
                         <QueueMusicIcon fontSize="small" />
                       </IconButton>
@@ -4146,6 +4022,17 @@ const ModeratorPage = () => {
                         aria-label="Удалить артиста"
                         color="error"
                         size="small"
+                        sx={{
+                          borderRadius: 2,
+                          background: 'rgba(244, 67, 54, 0.1)',
+                          backdropFilter: 'blur(20px)',
+                          border: '1px solid rgba(244, 67, 54, 0.2)',
+                          '&:hover': {
+                            background: 'rgba(244, 67, 54, 0.2)',
+                            border: '1px solid rgba(244, 67, 54, 0.3)',
+                            transform: 'translateY(-1px)',
+                          }
+                        }}
                       >
                         <DeleteIcon fontSize="small" />
                       </IconButton>
@@ -4473,7 +4360,18 @@ const ModeratorPage = () => {
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       
-      <Paper sx={{ p: 2, mb: 3, display: 'flex', alignItems: 'center' }}>
+      <Paper 
+        sx={{ 
+          p: 3, 
+          mb: 3, 
+          display: 'flex', 
+          alignItems: 'center',
+          borderRadius: 2,
+          background: 'rgba(255, 255, 255, 0.03)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+        }}
+      >
         <SecurityIcon sx={{ fontSize: 40, mr: 2, color: 'primary.main' }} />
         <Box>
           <Typography variant="h5" component="h1" gutterBottom>
@@ -4488,13 +4386,44 @@ const ModeratorPage = () => {
       </Paper>
       
       
-      <Paper sx={{ p: 2 }}>
+      <Paper 
+        sx={{ 
+          p: 3,
+          borderRadius: 2,
+          background: 'rgba(255, 255, 255, 0.03)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+        }}
+      >
         <Tabs 
           value={tabValue} 
           onChange={(e, newValue) => setTabValue(newValue)}
           variant="scrollable"
           scrollButtons="auto"
-          sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
+          sx={{ 
+            borderBottom: 1, 
+            borderColor: 'rgba(255, 255, 255, 0.12)', 
+            mb: 2,
+            '& .MuiTab-root': {
+              borderRadius: '12px 12px 0 0',
+              background: 'rgba(255, 255, 255, 0.03)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              borderBottom: 'none',
+              marginRight: 1,
+              color: 'rgba(255, 255, 255, 0.7)',
+              '&:hover': {
+                background: 'rgba(255, 255, 255, 0.05)',
+                color: 'rgba(255, 255, 255, 0.87)',
+              },
+              '&.Mui-selected': {
+                background: 'rgba(255, 255, 255, 0.08)',
+                color: 'rgba(255, 255, 255, 0.87)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              }
+            }
+          }}
         >
           <Tab icon={<DashboardIcon />} label="Профиль" />
           <Tab icon={<PostAddIcon />} label="Посты" disabled={!permissions.delete_posts} />

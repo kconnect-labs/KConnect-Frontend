@@ -755,18 +755,15 @@ const LeaderboardPage = () => {
             }}
           >
             <Box>
-              <Typography variant="subtitle2">• Создание поста: 50 очков</Typography>
-              <Typography variant="subtitle2">• Лайк на ваш пост: 10 очков</Typography>
-              <Typography variant="subtitle2">• Написание комментария: 50 очков</Typography>
-              <Typography variant="subtitle2">• Лайк на ваш комментарий: 10 очков</Typography>
-              <Typography variant="subtitle2">• Создание истории: 25 очков</Typography>
+              <Typography variant="subtitle2">• Создание поста: 5 очков</Typography>
+              <Typography variant="subtitle2">• Лайк на ваш пост: 1 очков</Typography>
+              <Typography variant="subtitle2">• Написание комментария: 5 очков</Typography>
+              <Typography variant="subtitle2">• Лайк на ваш комментарий: 1 очков</Typography>
             </Box>
             <Box>
-              <Typography variant="subtitle2">• Ответ на комментарий: 30 очков</Typography>
-              <Typography variant="subtitle2">• Лайк на ваш ответ: 10 очков</Typography>
-              <Typography variant="subtitle2">• Репост: 40 очков</Typography>
-              <Typography variant="subtitle2">• Просмотр вашей истории: 10 очков</Typography>
-              <Typography variant="subtitle2">• Реакция на вашу историю: 20 очков</Typography>
+              <Typography variant="subtitle2">• Ответ на комментарий: 3 очков</Typography>
+              <Typography variant="subtitle2">• Лайк на ваш ответ: 1 очков</Typography>
+              <Typography variant="subtitle2">• Репост: 4 очков</Typography>
             </Box>
           </Box>
           <Typography variant="body2" sx={{ mt: 2 }}>

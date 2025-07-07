@@ -175,9 +175,17 @@ const ChatItem = ({
       : '';
     
     
+    // При текстовом сообщении проверяем, не является ли оно стикером вида [STICKER_packId_stickerId]
+    const STICKER_RE = /\[STICKER_\d+_\d+\]/i;
+
     switch (message.message_type) {
       case 'text':
+        if (STICKER_RE.test(message.content)) {
+          return `${senderPrefix}🏷️ Стикер`;
+        }
         return `${senderPrefix}${message.content}`;
+      case 'sticker':
+        return `${senderPrefix}🏷️ Стикер`;
       case 'photo':
         return `${senderPrefix}📷 Фото`;
       case 'video':

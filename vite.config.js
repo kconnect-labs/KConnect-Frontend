@@ -95,7 +95,7 @@ export default defineConfig(({ mode }) => {
 
     // --- ESBuild ---
     esbuild: {
-      loader: 'jsx',
+      loader: { '.js': 'jsx' },
       jsx: 'automatic',
       jsxInject: "import React from 'react'",
     },

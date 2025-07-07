@@ -100,7 +100,7 @@ const ActionButton = styled(IconButton)(({ theme }) => ({
 }));
 
 const LikedTracksPage = ({ onBack }) => {
-  const { playTrack, isPlaying, currentTrack, togglePlay } = useMusic();
+  const { playTrack, isPlaying, currentTrack, togglePlay, forceLoadTracks } = useMusic();
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -110,7 +110,11 @@ const LikedTracksPage = ({ onBack }) => {
 
   useEffect(() => {
     fetchLikedTracks();
-  }, []);
+    // Принудительно загружаем треки в MusicContext для секции 'liked'
+    if (forceLoadTracks) {
+      forceLoadTracks('liked');
+    }
+  }, [forceLoadTracks]);
 
   const fetchLikedTracks = async () => {
     try {

@@ -8,6 +8,8 @@ import { NavButton, MoreButton } from '../../../UIKIT';
 import { SidebarContext } from '../../../context/SidebarContext';
 import { useLanguage } from '../../../context/LanguageContext';
 import GavelIcon from '@mui/icons-material/Gavel';
+import Badge from '@mui/material/Badge';
+import { useMessenger } from '../../../contexts/MessengerContext';
 
 // Clean, minimal nested list styling
 const NestedList = styled(List)(({ theme }) => ({
@@ -40,6 +42,11 @@ const SidebarNavigation = memo(({
   const location = useLocation();
   const { t } = useLanguage();
   const { expandedMore, expandedAdminMod, expandedShops, expandedSocial, toggleExpandMore, toggleExpandAdminMod, toggleExpandShops, toggleExpandSocial } = useContext(SidebarContext);
+  const { unreadCounts } = useMessenger();
+  const totalUnread = useMemo(() => {
+    const total = Object.values(unreadCounts || {}).filter(c=>c>0).length;
+     return total;
+  }, [unreadCounts]);
   
   const isActive = useCallback((path) => {
     if (path === '/' && location.pathname === '/') {
@@ -50,7 +57,13 @@ const SidebarNavigation = memo(({
   
   const icons = useMemo(() => ({
     home: <Icon icon="material-symbols:home-outline" width="22" height="22" />,
-    messenger: <Icon icon="tabler:mail" width="22" height="22" />,
+    messenger: totalUnread>0 ? (
+      <Badge overlap="circular" badgeContent={totalUnread>99? '99+': totalUnread}
+        sx={{ '& .MuiBadge-badge': { backgroundColor:'#2f2f2f', border:'1px solid #b1b1b1', color:'#fff' } }}
+      >
+        <Icon icon="tabler:mail" width="22" height="22" />
+      </Badge>
+    ) : <Icon icon="tabler:mail" width="22" height="22" />,
     music: <Icon icon="tabler:music" width="22" height="22" />,
     shop: <Icon icon="tabler:coins" width="22" height="22" />,
     inventory: <Icon icon="tabler:backpack" width="22" height="22" />,
@@ -72,8 +85,9 @@ const SidebarNavigation = memo(({
     rules: <Icon icon="solar:document-text-outline" width="20" height="20" />,
     api: <Icon icon="solar:code-outline" width="20" height="20" />,
     marketplace: <Icon icon="solar:shop-2-outline" width="20" height="20" />,
-    pack: <Icon icon="solar:box-outline" width="20" height="20" />
-  }), []);
+    pack: <Icon icon="solar:box-outline" width="20" height="20" />,
+    sticker: <Icon icon="solar:sticker-smile-circle-2-bold" width="20" height="20" />,
+  }), [totalUnread]);
   
   const mainMenu = useMemo(() => (
     <>
@@ -255,6 +269,14 @@ const SidebarNavigation = memo(({
   const extraMenu = useMemo(() => (
     !isChannel && (
       <>
+              <NavButton
+          text={t('sidebar.navigation.minigames')}
+          icon={icons.games}
+          path="/minigames/clicker"
+          active={isActive('/minigames/clicker')}
+          themeColor={primaryColor}
+        />
+        
         <NavButton
           text={t('sidebar.navigation.subscription_plans')}
           icon={icons.subscription}
@@ -307,6 +329,13 @@ const SidebarNavigation = memo(({
             active={isActive('/documentapi')}
             themeColor={primaryColor}
             nested={true}
+          />
+          <NavButton
+            text="СтикерМенеджер"
+            icon={icons.sticker}
+            path="/inform/sticker"
+            active={isActive('/inform/sticker')}
+            themeColor={primaryColor}
           />
           
           <NavButton

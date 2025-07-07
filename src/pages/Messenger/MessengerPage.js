@@ -1,6 +1,5 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import { Box, Typography, CircularProgress, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, List, ListItem, ListItemAvatar, ListItemText, Avatar, Checkbox, IconButton, Menu, MenuItem, ListItemIcon, Snackbar } from '@mui/material';
-import { MessengerProvider } from '../../contexts/MessengerContext';
 import { AuthContext } from '../../context/AuthContext';
 import ChatList from '../../components/Messenger/ChatList';
 import ChatWindow from '../../components/Messenger/ChatWindow';
@@ -12,6 +11,7 @@ import axios from 'axios';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import { ArrowBack, MoreVert, Info, Link, Delete, Edit } from '@mui/icons-material';
+import ChatIcon from '@mui/icons-material/Chat';
 
 const MessengerPage = () => {
   const theme = useTheme();
@@ -37,26 +37,30 @@ const MessengerPage = () => {
   const [activeTab, setActiveTab] = useState('followers'); // 'followers' или 'following'
   
   // Найти место, где отображается название группы и добавить редактируемое поле только для админа
-  const isCurrentUserAdmin = currentChat && currentChat.members && authContext.user && currentChat.members.some(m => m.user_id === authContext.user.id && m.role === 'admin');
+  const isCurrentUserAdmin = useMemo(() => (
+    currentChat && currentChat.members && authContext.user && currentChat.members.some(m => m.user_id === authContext.user.id && m.role === 'admin')
+  ), [currentChat, authContext.user]);
   const [editTitle, setEditTitle] = useState("");
   const [editingTitle, setEditingTitle] = useState(false);
   
-  // Функция для получения значения cookie по имени
-  const getCookie = (name) => {
+  // Мемоизация getCookie
+  const getCookie = useCallback((name) => {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(';').shift();
     return null;
-  };
+  }, []);
   
-  // Получаем токены из разных источников
-  const sessionKeyCookie = getCookie('session_key') || getCookie('jwt') || getCookie('token');
-  const jwtToken = localStorage.getItem('token') || sessionKeyCookie;
+  // Мемоизация sessionKeyCookie и jwtToken
+  const sessionKeyCookie = useMemo(() => getCookie('session_key') || getCookie('jwt') || getCookie('token'), [getCookie]);
+  const jwtToken = useMemo(() => localStorage.getItem('token') || sessionKeyCookie, [sessionKeyCookie]);
   
-  // Получаем ключ из всех возможных источников
-  const sessionKey = authContext.sessionKey || authContext.session_key || 
+  // Мемоизация sessionKey
+  const sessionKey = useMemo(() => (
+    authContext.sessionKey || authContext.session_key || 
                     localStorage.getItem('session_key') || sessionKeyCookie || 
-                    forcedSessionKey || jwtToken;
+    forcedSessionKey || jwtToken
+  ), [authContext.sessionKey, authContext.session_key, sessionKeyCookie, forcedSessionKey, jwtToken]);
   
   // Настройка API для мессенджера через путь /apiMes/ (будет проксирован через NGINX)
   const API_URL = 'https://k-connect.ru/apiMes';
@@ -110,8 +114,8 @@ const MessengerPage = () => {
     }
   };
 
-  // Обработчик выбора пользователя
-  const handleUserSelect = (user) => {
+  // Мемоизация handleUserSelect
+  const handleUserSelect = useCallback((user) => {
     setSelectedUsers(prev => {
       const isSelected = prev.some(u => u.id === user.id);
       if (isSelected) {
@@ -120,7 +124,7 @@ const MessengerPage = () => {
         return [...prev, user];
       }
     });
-  };
+  }, []);
   
   // Принудительно запрашиваем session_key с сервера, если нет
   useEffect(() => {
@@ -183,84 +187,34 @@ const MessengerPage = () => {
     console.log('API URL:', API_URL);
   }, [authContext, sessionKey, sessionKeyCookie, jwtToken, forcedSessionKey, API_URL]);
   
-  // Если идет загрузка аутентификации или ключа сессии
-  if (authContext.loading || isLoadingSessionKey) {
-    return (
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '70vh' 
-      }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-  
-  // Если пользователь является каналом, показываем сообщение о недоступности
-  if (isChannel) {
-    return (
-      <Box sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '70vh'
-      }}>
-        <Typography variant="h6" color="error" gutterBottom>
-          Функция недоступна
-        </Typography>
-        <Typography variant="body1">
-          Каналы не могут использовать мессенджер. Мессенджер доступен только для обычных пользователей.
-        </Typography>
-      </Box>
-    );
-  }
-  
-  // Если нет ключа сессии, показываем ошибку и вывод отладочной информации
-  if (!sessionKey) {
-    return (
-      <Box sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '70vh'
-      }}>
-        <Typography variant="h6" gutterBottom>
-          Ошибка авторизации
-        </Typography>
-        <Typography variant="body1" mb={2}>
-          Для доступа к мессенджеру необходимо авторизоваться
-        </Typography>
-        
-      </Box>
-    );
-  }
 
-  // На мобильных устройствах показываем либо список, либо чат
-  const handleChatSelect = () => {
+
+  // Мемоизация handleChatSelect и handleBackToList
+  const handleChatSelect = useCallback(() => {
     if (isMobile) {
-      console.log('Handling chat selection - setting slideIn to TRUE');
-      // Сначала установим slideIn, затем обновим отображение
+      document.dispatchEvent(new CustomEvent('messenger-layout-change', { 
+        detail: { isInChat: true } 
+      }));
+      document.body.classList.add('messenger-chat-fullscreen');
       setSlideIn(true);
-      // Важно: на мобильных устройствах скрываем sidebar немедленно
       setTimeout(() => {
         setShowSidebar(false);
-      }, 50); // Малая задержка для анимации
+      }, 50);
     }
-  };
+  }, [isMobile]);
   
-  const handleBackToList = () => {
+  const handleBackToList = useCallback(() => {
     if (isMobile) {
-      // First start slide out animation
+      document.dispatchEvent(new CustomEvent('messenger-layout-change', { 
+        detail: { isInChat: false } 
+      }));
+      document.body.classList.remove('messenger-chat-fullscreen');
       setSlideIn(false);
-      // Only show sidebar after animation completes
       setTimeout(() => {
         setShowSidebar(true);
-      }, 300); // Match transition time
+      }, 300);
     }
-  };
+  }, [isMobile]);
   
   // Обработчик копирования ссылки-приглашения
   const handleCopyInviteLink = async () => {
@@ -330,6 +284,17 @@ const MessengerPage = () => {
     }
   };
 
+  // Мемоизация списков пользователей для диалога создания группы
+  const followersList = useMemo(() => followers, [followers]);
+  const followingList = useMemo(() => following, [following]);
+  const selectedUsersIds = useMemo(() => selectedUsers.map(u => u.id), [selectedUsers]);
+
+  // Вынесем onClick для кнопок в переменные, чтобы не создавать новые функции на каждый рендер
+  const handleNewChatClick = useCallback(() => {
+    window.dispatchEvent(new CustomEvent('messenger-new-chat'));
+  }, []);
+  const handleCreateGroupOpen = useCallback(() => setCreateGroupOpen(true), []);
+
   return (
     <Box sx={{ mt: 2.5 }}>
       <SEO 
@@ -337,18 +302,50 @@ const MessengerPage = () => {
         description="Обмен сообщениями и чаты на платформе К-Коннект"
       />
       
-      <MessengerProvider>
+      {/* Если идет загрузка аутентификации или ключа сессии */}
+      {(authContext.loading || isLoadingSessionKey) && (
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '70vh' 
+        }}>
+          <CircularProgress />
+        </Box>
+      )}
+      
+      {/* Если нет ключа сессии, показываем ошибку */}
+      {!sessionKey && !authContext.loading && !isLoadingSessionKey && (
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '70vh'
+        }}>
+          <Typography variant="h6" gutterBottom>
+            Ошибка авторизации
+          </Typography>
+          <Typography variant="body1" mb={2}>
+            Для доступа к мессенджеру необходимо авторизоваться
+          </Typography>
+        </Box>
+      )}
+      
+      {/* Основной контент мессенджера */}
+      {!authContext.loading && !isLoadingSessionKey && sessionKey && (
         <Box sx={{ 
           display: 'flex', 
           flexDirection: { xs: 'column', md: 'row' },
-          height: { xs: 'calc(100vh - 120px)', md: 'calc(100vh - 104px)' },
+          height: { xs: '100vh', md: 'calc(100vh - 70px)' },
           maxWidth: '1400px',
           mx: 'auto',
-          mt: 1,
-          mb: 2, 
+          mt: { xs: 0, md: 1 },
           overflow: 'hidden',
-          bgcolor: 'content.main',
-          borderRadius: 2,
+          background: 'rgba(255, 255, 255, 0.03)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: "8px",
+          border: '1px solid rgba(255, 255, 255, 0.12)', 
           position: 'relative'
         }}>
           {/* Боковая панель со списком чатов */}
@@ -359,13 +356,33 @@ const MessengerPage = () => {
             height: '100%',
             overflow: 'hidden'
           }}>
-            {/* Кнопка создания группы */}
-            <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
+            {/* Кнопки "Новый чат" и "Создать группу" */}
+            <Box sx={{ p: 1, display: 'flex', gap: 1 }}>
               <Button
                 variant="contained"
+                sx={{
+                  flex: 1,
+                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                  color: '#fff',
+                  border: '1px solid rgba(255, 255, 255, 0.32)',
+                  borderRadius: '8px'
+                }}
+                startIcon={<ChatIcon />}
+                onClick={handleNewChatClick}
+              >
+                Новый чат
+              </Button>
+              <Button
+                variant="contained"
+                sx={{
+                  flex: 1,
+                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                  color: '#fff',
+                  border: '1px solid rgba(255, 255, 255, 0.32)',
+                  borderRadius: '8px'
+                }}
                 startIcon={<AddIcon />}
-                onClick={() => setCreateGroupOpen(true)}
-                fullWidth
+                onClick={handleCreateGroupOpen}
               >
                 Создать группу
               </Button>
@@ -381,7 +398,7 @@ const MessengerPage = () => {
               id="mobile-chat-container"
               className={`messenger-main ${slideIn ? 'slide-in' : 'slide-out'}`}
               sx={{ 
-                display: 'block',
+                display: slideIn ? 'block' : 'none', // Полностью скрываем когда не активен
                 transform: slideIn ? 'translateX(0%) !important' : 'translateX(100%) !important',
                 transition: 'transform 0.3s ease-in-out',
                 position: 'fixed',
@@ -391,12 +408,14 @@ const MessengerPage = () => {
                 bottom: 0,
                 width: '100%',
                 height: '100vh',
-                zIndex: 1300,
+                zIndex: slideIn ? 1300 : -1, // Управляем z-index
                 backgroundColor: theme.palette.background.paper,
                 overflowX: 'hidden',  
                 maxWidth: '100vw',
                 WebkitOverflowScrolling: 'touch',
                 touchAction: 'manipulation',
+                // Дополнительная защита от блокировки интерфейса
+                pointerEvents: slideIn ? 'auto' : 'none',
               }}
             >
               <ChatWindow backAction={handleBackToList} isMobile={isMobile} />
@@ -413,7 +432,7 @@ const MessengerPage = () => {
             </Box>
           )}
         </Box>
-      </MessengerProvider>
+      )}
 
       {/* Диалог создания группы */}
       <Dialog 
@@ -423,13 +442,13 @@ const MessengerPage = () => {
         fullWidth
         PaperProps={{
           sx: {
-            backgroundColor: 'rgba(10, 10, 10, 0.75)',
+            backgroundColor: 'rgba(255, 255, 255, 0.03)',
             color: '#fff',
             boxShadow: '0 8px 32px 0 rgba(0,0,0,0.37)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            borderRadius: isMobile ? 0 : 3,
-            border: '1px solid rgba(40,40,40,0.5)'
+            backdropFilter: 'blur(50px)',
+            WebkitBackdropFilter: 'blur(50px)',
+            borderRadius: '8px',
+            border: '1px solid rgba(255, 255, 255, 0.12)'
           }
         }}
       >
@@ -475,13 +494,13 @@ const MessengerPage = () => {
             </Box>
           ) : (
             <List sx={{ maxHeight: 400, overflow: 'auto' }}>
-              {(activeTab === 'followers' ? followers : following).map((user) => (
+              {(activeTab === 'followers' ? followersList : followingList).map((user) => (
                 <ListItem
                   key={user.id}
                   secondaryAction={
                     <Checkbox
                       edge="end"
-                      checked={selectedUsers.some(u => u.id === user.id)}
+                      checked={selectedUsersIds.includes(user.id)}
                       onChange={() => handleUserSelect(user)}
                     />
                   }

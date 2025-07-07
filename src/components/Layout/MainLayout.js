@@ -23,10 +23,12 @@ const MainContainer = styled(Box)(({ theme }) => ({
 }));
 
 
-const ContentWrapper = styled(Box)(({ theme, isMusicPage, isMobile }) => ({
+const ContentWrapper = styled(Box, {
+  shouldForwardProp: (prop) => !['isMusicPage', 'isMobile', 'isInMessengerChat'].includes(prop),
+})(({ theme, isMusicPage, isMobile, isInMessengerChat }) => ({
   display: 'flex',
   flexGrow: 1,
-  paddingTop: isMusicPage && isMobile ? 0 : 40, 
+  paddingTop: isMusicPage && isMobile ? 0 : (isInMessengerChat ? 0 : 40), 
 }));
 
 
@@ -88,9 +90,13 @@ const MemoizedHeader = memo(({ toggleSidebar, isMobile }) => (
 ));
 
 
-const MemoizedSidebar = memo(({ open, onClose }) => (
-  <Sidebar open={open} onClose={onClose} />
-));
+const MemoizedSidebar = memo(({ open, onClose, isMobile }) => {
+  // На мобильных устройствах сайдбар вообще не рендерится
+  if (isMobile) {
+    return null;
+  }
+  return <Sidebar open={open} onClose={onClose} />;
+});
 
 const MainLayout = ({ children }) => {
   const theme = useTheme();
@@ -103,11 +109,30 @@ const MainLayout = ({ children }) => {
   
   const sidebarWidth = 280;
   
+  const isBanned = user && user.ban === 1;
+  const isOnBanPage = location.pathname === '/ban';
+  
+  const shouldShowFullLayout = !isBanned && !isOnBanPage;
+  const [isInMessengerChat, setIsInMessengerChat] = useState(false);
+
   useEffect(() => {
     if (isMobile) {
       setSidebarOpen(false);
     }
   }, [location, isMobile]);
+
+  useEffect(() => {
+    const handleMessengerLayoutChange = (event) => {
+      const { isInChat } = event.detail;
+      setIsInMessengerChat(isInChat);
+    };
+    
+    document.addEventListener('messenger-layout-change', handleMessengerLayoutChange);
+    
+    return () => {
+      document.removeEventListener('messenger-layout-change', handleMessengerLayoutChange);
+    };
+  }, []);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -124,11 +149,6 @@ const MainLayout = ({ children }) => {
   const hasBottomPlayer = isMobile && currentTrack && isMusicPage;
   const hasDesktopPlayer = !isMobile && currentTrack && isMusicPage;
   
-  const isBanned = user && user.ban === 1;
-  const isOnBanPage = location.pathname === '/ban';
-  
-  const shouldShowFullLayout = !isBanned && !isOnBanPage;
-
   if (isAuthPage) {
     return (
       <Box sx={{ 
@@ -159,27 +179,41 @@ const MainLayout = ({ children }) => {
       <CssBaseline />
       {shouldShowFullLayout && <MemoizedHeader toggleSidebar={toggleSidebar} isMobile={isMobile} />}
       
-      <ContentWrapper isMusicPage={isMusicPage} isMobile={isMobile}>
-        <Overlay 
-          className={sidebarOpen ? 'active' : ''} 
-          onClick={closeSidebar}
-        />
+      <ContentWrapper isMusicPage={isMusicPage} isMobile={isMobile} isInMessengerChat={isInMessengerChat}>
+        {/* Overlay рендерится только на PC, так как сайдбар только там */}
+        {!isMobile && (
+          <Overlay 
+            className={sidebarOpen ? 'active' : ''} 
+            onClick={closeSidebar}
+          />
+        )}
         
-        <SidebarContainer 
-          open={sidebarOpen} 
-          sx={{ width: sidebarWidth }}
-        >
-          <MemoizedSidebar open={sidebarOpen} onClose={closeSidebar} />
-        </SidebarContainer>
+        {/* Сайдбар рендерится только на PC */}
+        {!isMobile && (
+          <SidebarContainer 
+            open={sidebarOpen} 
+            sx={{ 
+              width: sidebarWidth,
+              display: isInMessengerChat ? 'none' : 'block'
+            }}
+          >
+            <MemoizedSidebar open={sidebarOpen} onClose={closeSidebar} isMobile={isMobile} />
+          </SidebarContainer>
+        )}
         
         <ContentContainer 
           sx={{ 
             color: themeSettings?.textColor || theme.palette.text.primary,
-            width: { md: `calc(100% - ${sidebarWidth}px)` },
+            width: { 
+              // На мобильных устройствах контент занимает всю ширину
+              xs: '100%',
+              sm: '100%',
+              md: isInMessengerChat ? '100%' : `calc(100% - ${sidebarWidth}px)` 
+            },
             paddingBottom: {
               xs: hasBottomPlayer ? theme.spacing(12) : 0,
               sm: hasBottomPlayer ? theme.spacing(12) : 0,
-              md: hasBottomPlayer ? theme.spacing(12) : theme.spacing(2)
+              md: hasDesktopPlayer ? theme.spacing(12) : theme.spacing(2)
             }
           }}
         >
@@ -187,8 +221,10 @@ const MainLayout = ({ children }) => {
         </ContentContainer>
       </ContentWrapper>
       
-      {hasBottomPlayer && <MobilePlayer />}
-      {hasDesktopPlayer && <DesktopPlayer />}
+      {/* Bottom navigation рендерится только на мобильных устройствах */}
+      {isMobile && hasBottomPlayer && <MobilePlayer isMobile={isMobile} />}
+      {/* Desktop player рендерится только на PC */}
+      {!isMobile && hasDesktopPlayer && <DesktopPlayer isMobile={isMobile} />}
     </MainContainer>
   );
 };
