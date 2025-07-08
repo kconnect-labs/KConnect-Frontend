@@ -48,6 +48,7 @@ import DynamicIslandNotification from '../../components/DynamicIslandNotificatio
 import WarningIcon from '@mui/icons-material/Warning';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import StarIcon from '@mui/icons-material/Star';
+import { usePageCommands } from '../../context/CommandPalleteContext';
 // import TelegramIcon from '@mui/icons-material/Telegram';
 
 
@@ -1400,7 +1401,70 @@ const MainPage = React.memo(() => {
       }
     };
   }, [hasMore, loading, posts.length, feedType]);
-  
+
+
+  usePageCommands([
+		{
+			id: 'cmd_reload_posts',
+			title: t(`commands.cmd_reload_posts.title`),
+			description: t(`commands.cmd_reload_posts.description`),
+			action: async () => {
+					console.log(`FEED TYPE CHANGED TO: ${feedType} - LOADING NEW POSTS`)
+					try {
+						setLoading(true)
+						setPosts([])
+
+						const params = {
+							page: 1,
+							per_page: 20,
+							sort: feedType,
+							include_all: feedType === 'all',
+						}
+
+						const currentRequestId = requestId + 1
+						setRequestId(currentRequestId)
+
+						let response
+						try {
+							response = await axios.get('/api/posts/feed', { params })
+						} catch (apiError) {
+							console.error(`Error in API call for ${feedType} feed:`, apiError)
+
+							if (feedType === 'recommended') {
+								setHasMore(false)
+								setPosts([])
+								setLoading(false)
+								feedTypeChanged.current = false
+								return
+							}
+
+							throw apiError
+						}
+
+						if (requestId !== currentRequestId - 1) return
+
+						if (response.data && Array.isArray(response.data.posts)) {
+							setPosts(response.data.posts)
+							setHasMore(response.data.has_next === true)
+							setPage(2)
+						} else {
+							setPosts([])
+							setHasMore(false)
+						}
+					} catch (error) {
+						console.error(`Error loading ${feedType} posts:`, error)
+						setPosts([])
+						setHasMore(false)
+					} finally {
+						setLoading(false)
+						feedTypeChanged.current = false
+					}
+				},
+      
+			keywords: ['посты', 'обновить', 'лайк', 'коменты'],
+			group: 'global',
+		},
+	])
   
   useEffect(() => {
     if (!isFirstRender.current) return; 
