@@ -26,7 +26,7 @@ const StyledDialog = styled(Dialog)({
 		border: '1px solid rgba(255, 255, 255, 0.1)',
 		borderRadius: 16,
 		overflow: 'hidden',
-		width: '500',
+		width: '700px',
 		height: '40vh',
 		maxWidth: 'none',
 		maxHeight: 'none',

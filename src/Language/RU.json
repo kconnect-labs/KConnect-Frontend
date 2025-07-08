@@ -990,6 +990,22 @@
       "title": "Профиль",
       "description": "Переход в профиль"
     },
+    "link_rules": {
+      "title": "Правила",
+      "description": "Переход в раздел с правилами"
+    },
+    "link_moderation": {
+      "title": "Модерация",
+      "description": "Переход в раздел модерации"
+    },
+    "link_admin": {
+      "title": "Админ-панель",
+      "description": "Переход в админ-панель"
+    },
+    "link_logout": {
+      "title": "Выйти",
+      "description": "Выйти из аккаунта"
+    },
     "link_leaderboard": {
       "title": "Лидерборд",
       "description": "Переход в лидерборд"
@@ -1036,11 +1052,11 @@
     },
     "cmd_reload_posts": {
       "title": "Перезагрузить посты",
-      "description": ""
+      "description": "Обновить ленту постов"
     }, 
     "cmd_play_music": {
       "title": "Включить мою волну",
-      "description": ""
+      "description": "Включить персональный плейлист 'Мой Вайб'"
     }
     
   }

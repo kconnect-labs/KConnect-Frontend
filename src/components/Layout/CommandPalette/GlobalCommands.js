@@ -1,6 +1,17 @@
 import { useState } from 'react'
 
 export const createGlobalCommands = (navigate, t, playMyVibe) => [
+	// Функциональные команды (действия)
+	{
+		id: 'cmd_play_music',
+		title: t(`commands.cmd_play_music.title`),
+		description: t(`commands.cmd_play_music.description`),
+		action: () => playMyVibe(), // вызываем метод play из контекста     
+		keywords: ['музыка', 'вайб'],
+		group: 'global',
+	},
+
+	// Переходы на страницы
 	{
 		id: 'linkHome',
 		title: t('commands.link_home.title'),
@@ -123,19 +134,19 @@ export const createGlobalCommands = (navigate, t, playMyVibe) => [
 		group: 'global',
 	},
 	{
-		id: 'cmd_okak',
-		title: t(`commands.cmd_okak.title`),
-		description: t(`commands.cmd_okak.description`),
-		action: () => navigate('/okak'),
-		keywords: ['хуй', 'прикол', 'че', 'окак'],
+		id: 'link_profile',
+		title: t('commands.link_profile.title'),
+		description: t('commands.link_profile.description'),
+		action: () => navigate('/profile'),
+		keywords: ['профиль', 'profile', 'аккаунт'],
 		group: 'global',
 	},
 	{
-		id: 'cmd_play_music',
-		title: t(`commands.cmd_play_music.title`),
-		description: t(`commands.cmd_play_music.description`),
-		action: () => playMyVibe(), // вызываем метод play из контекста     
-		keywords: ['музыка', 'вайб'],
+		id: 'link_logout',
+		title: t('commands.link_logout.title'),
+		description: t('commands.link_logout.description'),
+		action: () => { window.location.href = '/logout' },
+		keywords: ['выход', 'logout', 'signout'],
 		group: 'global',
 	},
 ]
