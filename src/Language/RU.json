@@ -966,5 +966,82 @@
       "version": "К-Коннект v2.9",
       "email": "verif@k-connect.ru"
     }
+
+  },
+  "commands": {
+    "input_title": "Поиск команды",
+    "link_home": {
+      "title": "Главная",
+      "description": "Переход на главную страницу"
+    },
+    "link_messenger": {
+      "title": "Мессенджер",
+      "description": "Переход в мессенджер"
+    },
+    "link_music": {
+      "title": "Музыка",
+      "description": "Переход в музыку"
+    },
+    "link_inventory": {
+      "title": "Инвентарь",
+      "description": "Переход в инвентарь"
+    },
+    "link_profile": {
+      "title": "Профиль",
+      "description": "Переход в профиль"
+    },
+    "link_leaderboard": {
+      "title": "Лидерборд",
+      "description": "Переход в лидерборд"
+    },
+    "link_bages" :{
+      "title": "Бейджики",
+      "description": "Переход в магазин бейджиков"
+    }, 
+    "link_marketplace": {
+      "title": "Маркетплейс",
+      "description": "Переход в маркетплейс"
+    },
+    "link_usernames": {
+      "title": "Аукцион юзернеймов",
+      "description": "Переход в аукцион юзернеймов"
+    },
+    "link_packs": {
+      "title": "Пачки",
+      "description": "Переход в магазин пачек"
+    },
+    "link_bugs" : {
+      "title": "Баг-репорты",
+      "description": "Переход в баг-репорты"
+    },
+    "link_api": {
+      "title": "API Документация",
+      "description": "Переход в API Документацию"
+    },
+    "link_stickers": {
+      "title": "Стикеры",
+      "description": "Переход в менеджер стикеров"
+    },
+    "link_about": {
+      "title": "О платформе",
+      "description": "Переход в раздел о платформе"
+    }, 
+    "link_settings": {
+      "title": "Настройки",
+      "description": "Переход в настройки"
+    },
+    "cmd_okak": {
+      "title": "Окак",
+      "description": "окак"
+    },
+    "cmd_reload_posts": {
+      "title": "Перезагрузить посты",
+      "description": ""
+    }, 
+    "cmd_play_music": {
+      "title": "Включить мою волну",
+      "description": ""
+    }
+    
   }
 }
