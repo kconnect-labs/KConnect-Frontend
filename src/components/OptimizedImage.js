@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Box, Skeleton } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import inventoryImageService from '../services/InventoryImageService';
+import { imageCache, createImageProps } from '../utils/imageUtils';
 
 const ImageContainer = styled(Box)(({ theme }) => ({
   position: 'relative',
@@ -40,6 +41,7 @@ const OptimizedImage = ({
   height = '100%', 
   fallbackText = 'Изображение недоступно',
   showSkeleton = true,
+  lazy = true,
   onLoad,
   onError,
   ...props 
@@ -54,6 +56,13 @@ const OptimizedImage = ({
     const checkImageExists = async () => {
       if (!src) {
         setImageExists(false);
+        return;
+      }
+
+      // Проверяем кэш изображений 💀
+      const cachedImage = imageCache.get(src);
+      if (cachedImage) {
+        setImageExists(true);
         return;
       }
 
@@ -91,6 +100,8 @@ const OptimizedImage = ({
   const handleLoad = () => {
     setLoaded(true);
     setError(false);
+    // Сохраняем в кэш
+    imageCache.set(src, { loaded: true, timestamp: Date.now() });
     if (onLoad) onLoad();
   };
 
@@ -111,6 +122,15 @@ const OptimizedImage = ({
     );
   }
 
+  const imageProps = createImageProps(src, {
+    lazy,
+    alt,
+    onLoad: handleLoad,
+    onError: handleError,
+    style: { display: loaded || error ? 'block' : 'none' },
+    ...props
+  });
+
   return (
     <ImageContainer sx={{ width, height }}>
       {showSkeleton && !loaded && !error && imageExists !== false && (
@@ -128,14 +148,9 @@ const OptimizedImage = ({
       
       <StyledImage
         ref={imgRef}
-        src={src}
-        alt={alt}
+        {...imageProps}
         loaded={loaded}
         error={error}
-        onLoad={handleLoad}
-        onError={handleError}
-        style={{ display: loaded || error ? 'block' : 'none' }}
-        {...props}
       />
       
       {error && (
