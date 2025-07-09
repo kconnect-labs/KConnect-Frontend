@@ -59,12 +59,22 @@ export default defineConfig(({ mode }) => {
       isProduction && viteCompression({
         algorithm: 'gzip',
         ext: '.gz',
-        filter: /\.(js|css|html)$/,
+        filter: /\.(js|css|html|svg|woff|woff2|ttf|otf)$/,
         threshold: 1024,
         deleteOriginFile: false,
         compressionOptions: { level: 9 },
         success: (file) => console.log(`✅ Gzip compressed: ${file}`),
         error: (err) => console.warn(`⚠️ Gzip compression failed: ${err.message}`),
+      }),
+      isProduction && viteCompression({
+        algorithm: 'brotliCompress',
+        ext: '.br',
+        filter: /\.(js|css|html|svg|woff|woff2|ttf|otf)$/,
+        threshold: 1024,
+        deleteOriginFile: false,
+        compressionOptions: { level: 11 },
+        success: (file) => console.log(`✅ Brotli compressed: ${file}`),
+        error: (err) => console.warn(`⚠️ Brotli compression failed: ${err.message}`),
       }),
       createHtmlPlugin({
         minify: isProduction,
@@ -80,8 +90,19 @@ export default defineConfig(({ mode }) => {
       }),
       imagePresets({
         cover: widthPreset({
-          widths: [400, 800, 1200],
+          widths: [400, 800, 1200, 1920],
           formats: ['webp', 'jpeg', 'png'],
+          quality: 85,
+        }),
+        thumbnail: widthPreset({
+          widths: [150, 300, 600],
+          formats: ['webp', 'jpeg'],
+          quality: 80,
+        }),
+        avatar: widthPreset({
+          widths: [50, 100, 200],
+          formats: ['webp', 'jpeg'],
+          quality: 85,
         })
       }),
     ].filter(Boolean),
@@ -133,10 +154,28 @@ export default defineConfig(({ mode }) => {
               'axios',
               'date-fns',
             ],
+            'images': [
+              'lottie-react',
+            ],
           },
           entryFileNames: 'assets/[name].[hash].js',
           chunkFileNames: 'assets/[name].[hash].js',
-          assetFileNames: 'assets/[name].[hash].[ext]'
+          assetFileNames: (assetInfo) => {
+            const info = assetInfo.name.split('.');
+            const ext = info[info.length - 1];
+            
+            // Оптимизируем имена файлов для лучшего кэширования
+            if (/\.(png|jpe?g|svg|gif|tiff|bmp|ico|webp)$/i.test(assetInfo.name)) {
+              return `assets/images/[name].[hash].[ext]`;
+            }
+            if (/\.(woff2?|eot|ttf|otf)$/i.test(assetInfo.name)) {
+              return `assets/fonts/[name].[hash].[ext]`;
+            }
+            if (/\.(css)$/i.test(assetInfo.name)) {
+              return `assets/css/[name].[hash].[ext]`;
+            }
+            return `assets/[name].[hash].[ext]`;
+          }
         }
       },
       chunkSizeWarningLimit: 1000,

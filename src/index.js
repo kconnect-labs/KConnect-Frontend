@@ -7,6 +7,7 @@ import './utils/createSvgIcon';
 import './utils/consoleFilter';
 
 import indexedDbCache from './utils/indexedDbCache';
+import { initLazyLoading } from './utils/imageUtils';
 
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
@@ -102,9 +103,37 @@ async function setupCaching() {
   }
 }
 
+async function setupPerformanceOptimizations() {
+  console.debug('[Performance] Настройка оптимизаций производительности...');
+  
+  try {
+    initLazyLoading();
+    
+    const criticalImages = [
+      '/static/uploads/avatar/system/avatar.png',
+      '/static/uploads/system/album_placeholder.jpg'
+    ];
+    
+    //прелоад для критических изображений
+    criticalImages.forEach(url => {
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'image';
+      link.href = url;
+      document.head.appendChild(link);
+    });
+    
+    console.debug('[Performance] Оптимизации производительности настроены');
+  } catch (error) {
+    console.error('[Performance] Ошибка при настройке оптимизаций:', error);
+  }
+}
+
 indexedDbCache.init();
 
 setupCaching().then(() => {
+  return setupPerformanceOptimizations();
+}).then(() => {
   const container = document.getElementById('root');
   const root = createRoot(container);
   

@@ -651,3 +651,164 @@ export const handleImageError = (e, fallbackUrl = '/uploads/system/album_placeho
   img.dataset.errorHandled = 'true';
   img.src = fallbackUrl;
 }; 
+
+/**
+ * @param {string} src
+ * @param {Object} options
+ * @param {boolean} options.lazy
+ * @param {string} options.alt
+ * @param {Object} options.style
+ * @returns {Object}
+ */
+export const createImageProps = (src, options = {}) => {
+  const {
+    lazy = true,
+    alt = 'Изображение',
+    style = {},
+    onLoad,
+    onError,
+    ...otherProps
+  } = options;
+
+  return {
+    src,
+    alt,
+    loading: lazy ? 'lazy' : 'eager',
+    style,
+    onLoad,
+    onError,
+    ...otherProps
+  };
+};
+
+/**
+ */
+class ImageCache {
+  constructor(maxSize = 100, ttl = 5 * 60 * 1000) { 
+    this.cache = new Map();
+    this.maxSize = maxSize;
+    this.ttl = ttl;
+  }
+
+  set(key, value) {
+    this.cleanup();
+    
+    if (this.cache.size >= this.maxSize) {
+      const firstKey = this.cache.keys().next().value;
+      this.cache.delete(firstKey);
+    }
+    
+    this.cache.set(key, {
+      value,
+      timestamp: Date.now()
+    });
+  }
+
+  get(key) {
+    const item = this.cache.get(key);
+    if (!item) return null;
+    
+    // Проверяем TTL
+    if (Date.now() - item.timestamp > this.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return item.value;
+  }
+
+  cleanup() {
+    const now = Date.now();
+    for (const [key, item] of this.cache.entries()) {
+      if (now - item.timestamp > this.ttl) {
+        this.cache.delete(key);
+      }
+    }
+  }
+
+  clear() {
+    this.cache.clear();
+  }
+}
+
+export const imageCache = new ImageCache(); 
+
+/**
+ * @param {string} selector
+ * @param {boolean} force
+ */
+export const addLazyLoadingToImages = (selector = 'img:not([loading])', force = false) => {
+  if (typeof document === 'undefined') return;
+  
+  const images = document.querySelectorAll(selector);
+  
+  images.forEach((img) => {
+    if (!force && img.hasAttribute('loading')) return;
+    
+    const rect = img.getBoundingClientRect();
+    const isAboveFold = rect.top < window.innerHeight && rect.bottom > 0;
+    
+    if (isAboveFold && !force) {
+      img.setAttribute('loading', 'eager');
+    } else {
+      img.setAttribute('loading', 'lazy');
+    }
+    
+    if (!img.hasAttribute('data-lazy-processed')) {
+      img.addEventListener('error', (e) => {
+        handleImageError(e, '/static/uploads/system/album_placeholder.jpg');
+      });
+      img.setAttribute('data-lazy-processed', 'true');
+    }
+  });
+};
+
+/**
+ */
+export const initLazyLoading = () => {
+  if (typeof document === 'undefined') return;
+  
+  addLazyLoadingToImages();
+  
+  if ('MutationObserver' in window) {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              if (node.tagName === 'IMG') {
+                addLazyLoadingToImages('img:not([loading])', false);
+              }
+              const images = node.querySelectorAll && node.querySelectorAll('img:not([loading])');
+              if (images && images.length > 0) {
+                addLazyLoadingToImages('img:not([loading])', false);
+              }
+            }
+          });
+        }
+      });
+    });
+    
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+};
+
+/**
+ * @param {string[]} urls
+ * @param {number} priority 
+ */
+export const preloadImages = (urls = [], priority = 3) => {
+  if (typeof window === 'undefined') return;
+  
+  urls.forEach((url) => {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = url;
+    link.fetchPriority = priority === 1 ? 'high' : priority === 5 ? 'low' : 'auto';
+    document.head.appendChild(link);
+  });
+}; 

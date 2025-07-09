@@ -100,7 +100,6 @@
       "username_auction_bid": "Ставка на аукционе юзернейма",
       "username_auction_refund": "Возврат ставки с аукциона юзернейма",
       "username_auction_sale": "Продажа юзернейма на аукционе",
-      "username_purchase": "Покупка юзернейма",
       "pack_purchase": "Покупка пачки",
       "marketplace_buy": "Покупка на маркетплейсе",
       "marketplace_sell": "Продажа на маркетплейсе",
@@ -638,8 +637,7 @@
       "expires": "Истекает",
       "total_duration": "Общая длительность",
       "months": "месяцев",
-      "active_subscription": "Активная подписка",
-      "active": "Активна"
+      "active_subscription": "Активная подписка"
     },
     "medals": {
       "title": "Медали",
@@ -869,7 +867,6 @@
     "errorLike": "Ошибка лайка",
     "errorLikeReply": "Ошибка лайка ответа",
     "errorDelete": "Ошибка удаления",
-    "errorDeleteReply": "Ошибка удаления ответа",
     "errorRefresh": "Ошибка обновления",
     "errorRefreshReply": "Ошибка обновления ответа",
     "errorView": "Ошибка просмотра",
